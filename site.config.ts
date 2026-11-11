@@ -58,8 +58,9 @@ export default {
   // 1200×630; make your own from the sample in public/assets/og.png.
   social: { image: "/assets/og.png", width: 1200, height: 630 },
   themeColor: "#191919",
-  // Ask (optional, Cloudflare only): typed questions get the answer here
-  // that fits, quoted. Uncomment, and see "Ask" in README.md.
+  // Ask (optional, Cloudflare only): a typed question gets a sentence
+  // written from the answer here that fits, and checked against it.
+  // Uncomment, and see "Ask" in README.md.
   // ask: { role: "a software engineer" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,

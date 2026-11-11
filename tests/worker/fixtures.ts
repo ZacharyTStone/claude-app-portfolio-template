@@ -71,10 +71,11 @@ export const lines = (logs: ReturnType<typeof captureLogs>): string[] =>
 /** What each logged question cost, in Neurons; undefined for a line without. */
 export const costs = (logs: ReturnType<typeof captureLogs>): unknown[] => written(logs).map((line) => line.neurons);
 
-// What the tests read of what the model was sent.
+// What the tests read of what the model was sent: the picker with its
+// tool, the writer (write.ts) with none.
 type ModelInput = {
   messages: { role: string; content: string }[];
-  tools: {
+  tools?: {
     function: {
       parameters: {
         properties: {
@@ -134,6 +135,10 @@ export const models =
 
 type Options = {
   run?: Run;
+  /** What the model writes when it's asked for a reply (write.ts): each
+      time it's asked, the next of these (the last, from then on). Nothing,
+      unless a test is about what's written. */
+  writes?: unknown[];
   /** What AskGuard says to /take. */
   guardSays?: string;
   guard?: GuardStub;
@@ -147,10 +152,30 @@ type Options = {
   vars?: Partial<Record<keyof Env, string>>;
 };
 
-/** The Worker's bindings, stood in for; what the picker and Llama Guard
-    were sent, and the keys the rate limiter was asked about. */
+/** A model's reply that also says what its call used, as Workers AI does. */
+export const using = <Reply extends object>(reply: Reply, prompt_tokens: number, completion_tokens: number) => ({
+  ...reply,
+  usage: { prompt_tokens, completion_tokens, total_tokens: prompt_tokens + completion_tokens },
+});
+
+/** The model's reply when it writes `text`, and nothing of what it used
+    unless `tokens` says. */
+export const wrote = (text: string, tokens?: [read: number, written: number]) =>
+  tokens ? using({ response: text }, ...tokens) : { response: text };
+
+// Asked for a reply, the stand-in writes nothing and uses nothing: a test
+// about picking or quoting is the same with or without the writer.
+const WRITES_NOTHING = [wrote("", [0, 0])];
+
+/** What the log says of a reply the stand-in was asked for and didn't
+    write: a line's fields after `ask`. */
+export const UNWRITTEN = { wrote: "dropped", unwritten: "empty" } as const;
+
+/** The Worker's bindings, stood in for; what the picker, the writer and
+    Llama Guard were sent, and the keys the rate limiter was asked about. */
 export function stubs({
   run = () => toolCall("about.1"),
+  writes = WRITES_NOTHING,
   guardSays,
   guard = guardStub(guardSays),
   limit = async () => ({ success: true }),
@@ -159,6 +184,7 @@ export function stubs({
   vars,
 }: Options = {}) {
   const calls: Call[] = [];
+  const writeCalls: Call[] = [];
   const guardCalls: Call[] = [];
   const limitKeys: string[] = [];
   const bindings: Record<string, unknown> = {
@@ -179,6 +205,13 @@ export function stubs({
     },
     AI: {
       run: async (name: string, input: ModelInput) => {
+        // The writer is the call to the picker's model with no tool.
+        if (name !== GUARD_MODEL && !input.tools) {
+          writeCalls.push({ model: name, input });
+          const said = writes[Math.min(writeCalls.length, writes.length) - 1];
+          if (said instanceof Error) throw said;
+          return said;
+        }
         (name === GUARD_MODEL ? guardCalls : calls).push({ model: name, input });
         return run(name, input);
       },
@@ -187,7 +220,7 @@ export function stubs({
   for (const name of without) delete bindings[name];
   // Only what the Worker uses is stood in for, so this is cast to the real
   // bindings.
-  return { env: bindings as unknown as Env, calls, guardCalls, guard, limitKeys };
+  return { env: bindings as unknown as Env, calls, writeCalls, guardCalls, guard, limitKeys };
 }
 
 /** The picker's reply when it calls pick_answer with `id`, and the
@@ -202,12 +235,6 @@ export const toolCall = (id: string, sentences?: unknown, thinking?: unknown) =>
       },
     },
   ],
-});
-
-/** A model's reply that also says what its call used, as Workers AI does. */
-export const using = <Reply extends object>(reply: Reply, prompt_tokens: number, completion_tokens: number) => ({
-  ...reply,
-  usage: { prompt_tokens, completion_tokens, total_tokens: prompt_tokens + completion_tokens },
 });
 
 type Send = { method?: string; type?: string; url?: string; headers?: Record<string, string> };
@@ -249,5 +276,5 @@ export function firstCall(calls: Call[]): Call {
   return call;
 }
 export const systemMessage = (calls: Call[]) => firstCall(calls).input.messages[0]?.content ?? "";
-export const offered = (calls: Call[]) => firstCall(calls).input.tools[0]?.function.parameters.properties.id.enum;
-export const toolParameters = (calls: Call[]) => firstCall(calls).input.tools[0]?.function.parameters;
+export const offered = (calls: Call[]) => firstCall(calls).input.tools?.[0]?.function.parameters.properties.id.enum;
+export const toolParameters = (calls: Call[]) => firstCall(calls).input.tools?.[0]?.function.parameters;

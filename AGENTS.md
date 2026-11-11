@@ -116,12 +116,19 @@ examples/         (template) Sample content to import into the config, such as a
   `markdown.ts` (the config's Markdown, read one way by the pages, the
   script and the checks). Change one, and the type checker shows every
   side that has to follow.
-- **Ask only quotes.** The model reads every answer, says what it makes of
-  the question (its thinking, which goes to the log), then picks an answer
-  and the numbers of its lines; the Worker builds the reply from those lines
-  (`src/worker/ask/quote.ts`), and from the sentence before one that opens
-  by pointing back at it ("It shipped…"), so a reply reads on its own. No
-  text the model writes reaches a visitor.
+- **Ask says only what the site says.** The model reads every answer, says
+  what it makes of the question (its thinking, which goes to the log), then
+  picks an answer and the numbers of its lines (`src/worker/ask/pick.ts`).
+  A second, small call writes a one-sentence reply from those lines
+  (`write.ts`), and the Worker checks it word by word (`grounded.ts`):
+  every name, number and claim has to be in the lines, a "not" can't be
+  added or dropped, and "Yes" needs the lines to have what was asked. One
+  that fails is asked for once more, then dropped, and the lines are quoted
+  as they are if they're sentences (`quote.ts`); a card's row is never a
+  reply, so the page shows the answer. What the visitor typed is never a
+  source, and nothing the model writes reaches a visitor unchecked. A
+  change to what a reply may say is a change to `grounded.ts` and its
+  tests, not to the model's instructions alone.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,
   namespaces or parameter properties, and imports name the `.ts` file. The
   tests and scripts import `src/site` and `src/shared` straight into Node.

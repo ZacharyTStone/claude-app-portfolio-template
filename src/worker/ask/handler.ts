@@ -1,8 +1,9 @@
 /* POST /ask: admit() turns away what can't go to the model (a bad request,
    a visitor past a limit, a day's budget spent), then answer() picks while
-   Llama Guard reads the question, quotes the pick, and has what the two
+   Llama Guard reads the question, has a reply written from the lines
+   picked (or quotes them, when none passes its check), and has what the
    calls cost counted. Every reply is an AskResponse, or a 4xx. */
-import type { AskResponse } from "../../shared/ask.ts";
+import type { AskAnswer, AskResponse } from "../../shared/ask.ts";
 import { GUARD_MODEL, INAPPROPRIATE, NONE, PRICES, UNLISTED_PRICE, WARN_AT } from "../constants.ts";
 import { readSettings, type Env, type Settings } from "../env.ts";
 import { block, spend, take } from "../guard/client.ts";
@@ -13,8 +14,9 @@ import { neurons } from "./cost.ts";
 import { covers } from "./coverage.ts";
 import { verdictOn } from "./moderation.ts";
 import { pick } from "./pick.ts";
-import { quote, type QuoteCheck } from "./quote.ts";
+import { cited, quote, type QuoteCheck } from "./quote.ts";
 import { readQuestion, refuseRequest, type Question } from "./request.ts";
+import { write, writesIn, type Unwritten, type Written } from "./write.ts";
 
 const respond = (data: AskResponse, status = 200) => json(data, status);
 
@@ -22,12 +24,17 @@ const respond = (data: AskResponse, status = 200) => json(data, status);
     what's in it). Fields left undefined are left out. */
 type LogLine = {
   ask: string;
-  /** What the question's two model calls cost, in Neurons. */
+  /** What the question's model calls cost, in Neurons. */
   neurons?: number;
   why?: string;
   error?: string;
   /** The answer picked, which didn't name what was asked (coverage.ts). */
   uncovered?: string;
+  /** Whether a reply was written from the lines picked and passed its
+      check, and if not, why. */
+  wrote?: "sent" | "dropped";
+  unwritten?: Unwritten;
+  /** Whether those lines could be quoted instead, and if not, why. */
   reply?: "sent" | "dropped";
   check?: QuoteCheck;
   /** The model ran out of room to write before it had picked. */
@@ -35,8 +42,10 @@ type LogLine = {
   question?: string;
   /** What the model made of the question before it picked. */
   thought?: string;
-  /** The line numbers the model gave, and the reply quoted from them. */
+  /** The line numbers the model gave; the words a reply it wrote had that
+      those lines don't; and the reply sent, written or quoted. */
   chose?: string;
+  unsaid?: string;
   said?: string;
 };
 const log = (line: LogLine) => console.log(JSON.stringify(line));
@@ -95,14 +104,14 @@ async function answer(env: Env, later: Later, { asked, who, left, choices, setti
       pick(env.AI, settings.model, asked.question, answers),
       verdictOn(env.AI, asked.question),
     ]);
-    // What the two calls cost goes on the day's count once the reply has
-    // gone: the visitor doesn't wait for it.
-    const cost =
+    // What the calls cost goes on the day's count once the reply has gone:
+    // the visitor doesn't wait for it.
+    const read =
       neurons(picked.tokens, settings.price) + neurons(verdict.tokens, PRICES.get(GUARD_MODEL) ?? UNLISTED_PRICE);
-    later.waitUntil(spend(env.ASK_GUARD, cost, settings));
     if (picked.id === INAPPROPRIATE || verdict.unsafe) {
+      later.waitUntil(spend(env.ASK_GUARD, read, settings));
       await block(env.ASK_GUARD, who, settings);
-      log({ ask: "blocked", neurons: rounded(cost), question, thought: question ? picked.thought : undefined });
+      log({ ask: "blocked", neurons: rounded(read), question, thought: question ? picked.thought : undefined });
       return respond({ blocked: true, flagged: true });
     }
     const found = answers.answers.find((item) => item.id === picked.id);
@@ -111,29 +120,60 @@ async function answer(env: Env, later: Later, { asked, who, left, choices, setti
     // may not be true: the visitor is told to ask the owner instead.
     const uncovered = found && !covers(found, asked.question, ownerNames(answers)) ? found.id : undefined;
     const shown = uncovered ? undefined : found;
-    const quoted = shown ? quote(shown.text, picked.sentences) : null;
+    // The reply is written from the lines picked, and checked against
+    // them; if none passes, the lines are quoted as they are, where they're
+    // sentences. Where no reply is written at all (a language the check
+    // can't read), any line is quoted, as it always was.
+    const written = shown
+      ? await writeFrom(env.AI, settings.model, asked, shown, picked.sentences, answers)
+      : undefined;
+    const quoted = shown ? quote(shown.text, picked.sentences, { sentencesOnly: written !== undefined }) : null;
+    const reply = written?.reply ?? quoted?.reply;
+    const cost = read + (written ? neurons(written.tokens, settings.price) : 0);
+    later.waitUntil(spend(env.ASK_GUARD, cost, settings));
     log({
       ask: shown?.id ?? NONE,
       neurons: rounded(cost),
       uncovered,
+      wrote: written ? (written.reply === undefined ? "dropped" : "sent") : undefined,
+      unwritten: written?.why,
       reply: quoted?.outcome,
       check: quoted?.check,
       cut: picked.cut,
       question,
-      // Its thinking may repeat the question, so it's logged only with it.
+      // Its thinking may repeat the question, and so may what it wrote, so
+      // they're logged only with it.
       thought: question ? picked.thought : undefined,
       chose: question && quoted ? JSON.stringify(picked.sentences) : undefined,
-      said: question ? quoted?.reply : undefined,
+      unsaid: question && written?.unsaid?.length ? written.unsaid.join(" ") : undefined,
+      said: question ? reply : undefined,
     });
     return respond({
       id: shown?.id ?? null,
-      reply: quoted?.reply,
+      reply,
       left: left <= warnAt(settings.visitorLimit) ? left : undefined,
     });
   } catch (error) {
     log({ ask: "error", error: errorCode(error), question });
     return respond({ id: null, why: "error" });
   }
+}
+
+// A reply to the question, written from the lines of `answer` the picker
+// chose; undefined when there are none to write from, or the page's
+// language isn't one a reply can be checked in.
+async function writeFrom(
+  ai: Ai,
+  model: string,
+  { question }: Question,
+  { text, title, q }: AskAnswer,
+  sentences: unknown,
+  choices: Choices,
+): Promise<Written | undefined> {
+  const lines = cited(text, sentences);
+  if (lines === null || !writesIn(choices.lang)) return undefined;
+  const { name, role, lang } = choices;
+  return write(ai, model, { question, lang, lines, title, q, name, role, owner: ownerNames(choices) });
 }
 
 // The owner's name, and as the page's language writes it if that differs:

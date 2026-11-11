@@ -21,8 +21,8 @@ export const MAX_QUESTION_LENGTH = 300;
 export const MAX_REQUEST_BYTES = 2048;
 
 /** Longest reply the Worker sends and the page shows, in characters: room
-    for two of an answer's lines, and the sentence before one that can't be
-    read without it. */
+    for two of an answer's lines quoted, and the sentence before one that
+    can't be read without it. A reply written from them is shorter. */
 export const MAX_REPLY_LENGTH = 400;
 
 /** Where Ask's Worker answers, under the site's path: the pages send a
@@ -71,10 +71,10 @@ export type AskRequest = {
     then a link to the tab the answer is in. */
 export type AskResponse =
   // The answer picked, or null for none (the "Something else" reply); with
-  // an id, maybe a reply: one or two of that answer's own lines, the ones
-  // that answer the question, each with the sentence before it if it can't
-  // be read without it (src/worker/ask/quote.ts); and, when they're few,
-  // the questions the visitor has left today.
+  // an id, maybe a reply: a sentence written from the lines of that answer
+  // that say what was asked, and checked against them word by word
+  // (src/worker/ask/write.ts), or those lines as they are (quote.ts); and,
+  // when they're few, the questions the visitor has left today.
   | { id: string | null; reply?: string; left?: number }
   // The question was inappropriate (`flagged`), or the visitor was blocked
   // for one earlier: the page goes without Ask for the rest of the visit.

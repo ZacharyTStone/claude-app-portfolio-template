@@ -1,7 +1,8 @@
-/* The reply /ask sends with a pick: one or two of the picked answer's own
-   lines, chosen by number: a sentence of a paragraph, an item of a list, a
-   row of a card, a figure. The model only gives the numbers, so the reply
-   is always the owner's words, never the model's.
+/* The lines of a picked answer that say what was asked, chosen by number:
+   a sentence of a paragraph, an item of a list, a row of a card, a figure.
+   A reply is written from them (write.ts) and checked against them
+   (grounded.ts); when none can be written, they're quoted as they are, the
+   owner's own words.
 
    A reply is read with nothing around it, so it has to make sense that way.
    A sentence that opens by pointing back at the one before it ("It shipped
@@ -17,8 +18,9 @@ export const MAX_QUOTED = 2;
 /** Why a quote asked for wasn't sent: the numbers aren't a list of at most
     MAX_QUOTED, one names no numbered line, the lines (and the ones they
     can't be read without) are the whole answer, which the page shows as it
-    is, with no reply, or together they're too long. */
-export type QuoteCheck = "unreadable" | "range" | "whole" | "length";
+    is, with no reply, or together they're too long; or one is a card's row,
+    a list's item or a figure where only a sentence will do (`rows`). */
+export type QuoteCheck = "unreadable" | "range" | "whole" | "length" | "rows";
 
 /** The reply, or why it was dropped; null when the model asked for none. */
 export type Quoted =
@@ -200,20 +202,46 @@ function joined(pieces: Piece[]): string {
   return pieces.reduce((before, piece, i) => `${before}${piece.text}${i < pieces.length - 1 ? gap(piece) : ""}`, "");
 }
 
-/** The reply quoting the pieces `numbers` names, each with the sentences it
-    can't be read without, in the answer's order. */
-export function quote(text: string, numbers: unknown): Quoted {
-  if (numbers === undefined || numbers === null || (Array.isArray(numbers) && !numbers.length)) return null;
-  if (!isArrayOf(numbers, isCount) || numbers.length > MAX_QUOTED) return dropped("unreadable");
-  const pieces = numbered(text);
+const noneGiven = (numbers: unknown) =>
+  numbers === undefined || numbers === null || (Array.isArray(numbers) && !numbers.length);
+
+// The pieces `numbers` names, each with the sentences it can't be read
+// without, in the answer's order; or why they can't be told.
+function chosenBy(pieces: Piece[], numbers: unknown): Piece[] | QuoteCheck {
+  if (!isArrayOf(numbers, isCount) || numbers.length > MAX_QUOTED) return "unreadable";
   const places = new Set<number>();
   for (const n of numbers) {
     const at = pieces.findIndex((item) => item.n === n);
-    if (at < 0) return dropped("range");
+    if (at < 0) return "range";
     // A numbered piece has what it needs: that's what gave it its number.
     for (const place of neededFor(pieces, at) ?? [at]) places.add(place);
   }
-  const chosen = [...places].sort((a, b) => a - b).flatMap((place) => pieces[place] ?? []);
+  return [...places].sort((a, b) => a - b).flatMap((place) => pieces[place] ?? []);
+}
+
+/** The lines a reply is written from (write.ts): the ones `numbers` names,
+    each with what it needs, however long together; or all an answer says
+    when it says one thing, which has no numbers to name. Null when there's
+    nothing to go by. */
+export function cited(text: string, numbers: unknown): string | null {
+  const pieces = numbered(text);
+  if (!pieces.some(({ n }) => n !== undefined)) return joined(said(pieces)) || null;
+  if (noneGiven(numbers)) return null;
+  const chosen = chosenBy(pieces, numbers);
+  return typeof chosen === "string" ? null : joined(chosen);
+}
+
+/** The reply quoting the pieces `numbers` names, each with the sentences it
+    can't be read without, in the answer's order. With `sentencesOnly`, only
+    sentences are quoted: a card's row ("frontend: React, Svelte") is what a
+    reply is written from, and no reply itself, so where one was to be
+    written and wasn't, the page shows the answer instead. */
+export function quote(text: string, numbers: unknown, { sentencesOnly = false } = {}): Quoted {
+  if (noneGiven(numbers)) return null;
+  const pieces = numbered(text);
+  const chosen = chosenBy(pieces, numbers);
+  if (typeof chosen === "string") return dropped(chosen);
+  if (sentencesOnly && chosen.some(({ sentence }) => !sentence)) return dropped("rows");
   // All the answer says: the page shows the answer itself, as it's written.
   const texts = (list: Piece[]) => squashed(list.map((piece) => piece.text).join(""));
   if (texts(chosen) === texts(said(pieces))) return dropped("whole");
