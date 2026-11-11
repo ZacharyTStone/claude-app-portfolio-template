@@ -1,0 +1,66 @@
+---
+/* The home screen, shown when no tab is open: a greeting, a line about
+   you, and the app's box for a question with a few to start with. Without
+   JavaScript the box is hidden, and the hint points at the tabs. */
+import { MAX_QUESTION_LENGTH } from "../shared/ask.ts";
+import { DATA, HOURS, PAGE_CLASSES, PAGE_IDS, type GreetingPart } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import Inline from "./Inline.astro";
+import Topbar from "./Topbar.astro";
+
+interface Props {
+  page: Page;
+}
+const { lang } = Astro.props.page;
+const s = lang.strings;
+const { greeting, intro, hint, tagline, prompts = [] } = lang.home;
+// The box asks what the question card asks, and its button is the card's.
+const { ask, ui } = lang.questions;
+// For the script: a greeting for each part of the visitor's day, and who
+// this is in a line.
+const parts = Object.keys(HOURS.greeting) as GreetingPart[];
+const words = {
+  ...Object.fromEntries(parts.map((part) => [DATA.greet(part), greeting[part]])),
+  ...(tagline ? { [DATA.tagline]: tagline } : {}),
+};
+---
+
+<section class="home" id={PAGE_IDS.top} aria-labelledby={PAGE_IDS.hello}>
+  <Topbar strings={s} />
+  <div class="hello-wrap" {...words}>
+    <h1 class="hello" id={PAGE_IDS.hello}>
+      {greeting.default}
+    </h1>
+    <p class={PAGE_CLASSES.intro}>
+      <Inline text={intro} />
+    </p>
+    <div class={PAGE_CLASSES.homeAsk} data-js-only>
+      <div class={PAGE_CLASSES.composer}>
+        <input
+          type="text"
+          placeholder={ask}
+          aria-label={ask}
+          maxlength={MAX_QUESTION_LENGTH}
+          autocomplete="off"
+          enterkeyhint="send"
+        />
+        <button class={`${PAGE_CLASSES.homeSend} ic i-up`} type="button" aria-label={ui.send} title={ui.send}></button>
+      </div>
+      {prompts.length > 0 && (
+        <ul class={PAGE_CLASSES.prompts}>
+          {prompts.map((prompt) => (
+            <li>
+              <button type="button" {...{ [DATA.prompt]: prompt.answer }}>
+                {prompt.q}
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+    {hint && <p class="hint ic i-back">{hint}</p>}
+    <p class="under">
+      <span class="credit">{s.credit}</span>
+    </p>
+  </div>
+</section>

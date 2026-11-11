@@ -1,0 +1,49 @@
+---
+/* A conversation: each question and its answer. A question can have a
+   status line ("Read experience/acme.md ▸") that opens onto a file card. */
+import type { Thread } from "../shared/config.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import Block from "./Block.astro";
+import Card from "./Card.astro";
+import Inline from "./Inline.astro";
+import MessageActions from "./MessageActions.astro";
+import Tab from "./Tab.astro";
+
+interface Props {
+  page: Page;
+  thread: Thread;
+}
+const { page, thread } = Astro.props;
+const s = page.lang.strings;
+// "Read {file}": the words around the file's name.
+const [before, after = ""] = s.status.split("{file}");
+const last = thread.messages.length - 1;
+---
+
+<Tab page={page} id={thread.id} title={thread.title} pill={thread.pill}>
+  {thread.messages.map((message, i) => (
+    <>
+      <p class={PAGE_CLASSES.question}>
+        <span class={PAGE_CLASSES.srOnly}>{s.question}</span>
+        <Inline text={message.q} />
+      </p>
+      {message.read && (
+        <details class={PAGE_CLASSES.status}>
+          <summary>
+            {before}
+            <b>{message.read.file}</b>
+            {after}
+          </summary>
+          <Card card={message.read.card} />
+        </details>
+      )}
+      <div class={PAGE_CLASSES.answer}>
+        {message.a.map((block) => (
+          <Block block={block} />
+        ))}
+        {i === last && <MessageActions strings={s} />}
+      </div>
+    </>
+  ))}
+</Tab>

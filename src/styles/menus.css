@@ -1,0 +1,126 @@
+/* ---- Clickable headings (src/app) ---------------------------------- */
+/* The sidebar groups and the panel's sections fold, and the top-bar title
+   opens a menu. Their words sit in a button, and a click anywhere on the
+   heading, chevron included, presses it. */
+.head-click { cursor: pointer; border-radius: 8px; }
+.head-click:hover { background: var(--row-hover); }
+.head-click:has(> .head-btn:focus-visible) { box-shadow: var(--focus-ring); }
+.head-btn {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.head-btn:focus-visible { box-shadow: none; }
+
+/* ---- Menus (src/app) ------------------------------------------------ */
+/* The title's (the tab's questions, copy link, the other language), the
+   composer's (the questions to choose from) and the account's: a raised
+   panel, a muted heading, rows with an icon, and on the right a muted
+   shortcut, a blue check or an arrow. */
+.pop {
+  position: absolute;
+  z-index: 25;
+  width: max-content;
+  min-width: 240px;
+  max-width: min(400px, calc(100vw - 24px));
+  padding: 6px;
+  border-radius: 16px;
+  background: var(--menu);
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.5), inset 0 0 0 1px var(--rim);
+  font: 400 15px/22px var(--sans);
+  text-align: left;
+}
+.pop [role="menuitem"] {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  min-height: 36px;
+  padding: 7px 10px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  text-align: inherit;
+  cursor: pointer;
+}
+.pop [role="menuitem"]:is(:hover, :focus-visible) { background: var(--row-hover); box-shadow: none; }
+.pop [role="menuitem"][aria-disabled="true"] { cursor: default; background: none; }
+.pop .ic::before { width: 18px; height: 18px; color: var(--text-2); }
+.pop hr { height: 1px; margin: 6px 10px; border: 0; background: var(--line); }
+.pop-label { padding: 7px 10px 3px; font: 400 14px/20px var(--sans); color: var(--text-2); }
+.pop .opt { flex: 1; min-width: 0; }
+.pop .meta, .pop .key { flex: none; margin-left: auto; padding-left: 16px; font-size: 14px; color: var(--text-2); white-space: nowrap; }
+.pop .meta.ic { padding-left: 0; }
+.pop .meta.ic::before { width: 16px; height: 16px; }
+.pop .logo { width: 18px; height: 18px; }
+/* A row that opens a submenu ends in a chevron; the submenu opens beside
+   it, or below it where there's no room. */
+.pop .chev {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  background: var(--text-2);
+  --icon: url("/assets/icons/chevron-right.svg");
+}
+.pop [aria-expanded="true"] { background: var(--row-hover); }
+.pop .sub { top: 0; left: calc(100% - 4px); min-width: 200px; }
+.pop .sub.below { left: 12px; }
+.pop .danger { color: var(--danger); }
+.pop .danger .key { color: color-mix(in srgb, var(--danger) 70%, transparent); }
+
+.title-pop { top: calc(100% - 4px); }
+.account .pop { bottom: calc(100% - 4px); left: 0; max-width: 100%; }
+
+.pop .pop-mail { color: var(--text-2); }
+.pop .pop-clock { flex-direction: column; align-items: flex-start; gap: 0; }
+.pop-clock .pop-label { padding: 0; }
+/* The owner's time beside the visitor's. */
+.clocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; }
+.clocks > span { display: flex; flex-direction: column; }
+.clock-time { font: 400 26px/32px var(--serif); letter-spacing: -0.01em; }
+.clock-note { font-size: 13px; line-height: 18px; color: var(--text-2); }
+.pop .pro {
+  padding: 0 7px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--accent);
+  font: 500 12px/20px var(--sans);
+}
+
+/* A short message at the bottom of the screen. */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 96px;
+  z-index: 40;
+  max-width: calc(100vw - 32px);
+  padding: 8px 14px;
+  border-radius: 10px;
+  background: var(--text);
+  color: var(--page);
+  font: 500 14px/20px var(--sans);
+  text-align: center;
+  translate: -50% 8px;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.2s var(--ease), translate 0.2s var(--ease);
+}
+.toast.show { opacity: 1; translate: -50% 0; }
+
+
+@media (prefers-reduced-motion: no-preference) {
+  .pop, .follow-card { animation: pop-in 0.14s var(--ease); }
+  .pop.up, .follow-card { --from: 4px; }
+  @keyframes pop-in { from { opacity: 0; translate: 0 var(--from, -4px); } }
+}

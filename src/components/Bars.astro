@@ -1,0 +1,50 @@
+---
+/* Amounts as bars from one baseline, the longest the same length whatever
+   the unit, each with its value at its tip as text. The page allows no
+   inline styles, so a bar's length is an SVG attribute. */
+import type { Bars } from "../shared/content.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { barLength } from "../site/bars.ts";
+
+interface Props {
+  bars: Bars;
+}
+const { title, rows, note } = Astro.props.bars;
+const most = Math.max(...rows.map((row) => row.amount));
+const bars = rows.map((row) => ({ ...row, length: `${barLength(row.amount, most)}%` }));
+/** A bar's drawing, in CSS pixels: a row's height, the bar's thickness,
+    the radius of its tip, and how far from the tip its value is written. */
+const BAR = { row: 26, thick: 10, tip: 4, gap: 8 } as const;
+const y = (BAR.row - BAR.thick) / 2;
+---
+
+<figure class={`${PAGE_CLASSES.figure} bars`}>
+  <figcaption>
+    {title}
+    {note && (
+      <>
+        {" "}
+        <b>{note}</b>
+      </>
+    )}
+  </figcaption>
+  <dl>
+    {bars.map((bar) => (
+      <div class={bar.accent ? "accent" : undefined}>
+        <dt>{bar.label}</dt>
+        <dd>
+          <svg role="img" aria-label={bar.value} focusable="false" width="100%" height={BAR.row}>
+            {/* Square at the baseline: a stub the width of the radius covers the rounded corners there. */}
+            <g class="bar">
+              <rect y={y} width={BAR.tip} height={BAR.thick} />
+              <rect y={y} width={bar.length} height={BAR.thick} rx={BAR.tip} />
+            </g>
+            <text x={bar.length} y={BAR.row / 2} dx={BAR.gap} dominant-baseline="central">
+              {bar.value}
+            </text>
+          </svg>
+        </dd>
+      </div>
+    ))}
+  </dl>
+</figure>

@@ -1,0 +1,111 @@
+/* ---- Base ----------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { margin: 0; height: 100%; overflow: hidden; }
+body {
+  background: var(--page);
+  color: var(--text);
+  font: 400 16px/24px var(--sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+}
+a { color: inherit; text-decoration: none; }
+p, h1, h2, ul, ol, dl, dd, figure { margin: 0; }
+ul, ol { padding: 0; list-style: none; }
+button { font: inherit; color: inherit; }
+:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+  border-radius: 8px;
+}
+/* Headings take focus when a tab opens (for screen readers), with no ring. */
+:is(h1, h2)[tabindex="-1"]:focus { box-shadow: none; }
+::selection { background: color-mix(in srgb, var(--blue) 45%, transparent); }
+html:not(.js) [data-js-only] { display: none !important; }
+[hidden] { display: none !important; }
+
+.sr {
+  position: absolute; width: 1px; height: 1px; overflow: hidden;
+  clip-path: inset(50%); white-space: nowrap;
+}
+.skip {
+  position: absolute; left: -9999px; top: 8px; z-index: 30;
+  padding: 6px 12px; border-radius: 8px;
+  background: var(--text); color: var(--page); font: 500 14px/21px var(--sans);
+}
+.skip:focus { left: 8px; }
+
+/* Icons are SVG files (--icon) drawn as masks in their background colour:
+   an .ic's in the text colour, and the rest as their rules say. */
+.ic::before, .ic-after::after {
+  content: "";
+  display: inline-block;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  background: currentColor;
+}
+.ic::before, .ic-after::after, .hello::before, .chat-hello::before, .group::after, .me[role="button"]::after,
+:is(.status, .full) summary::after, .pop .chev, .options .on, .tick::before, .flow li + li::before {
+  -webkit-mask: var(--icon) center / contain no-repeat;
+  mask: var(--icon) center / contain no-repeat;
+}
+.i-plus { --icon: url("/assets/icons/plus.svg"); }
+.i-about { --icon: url("/assets/icons/about.svg"); }
+.i-skills { --icon: url("/assets/icons/skills.svg"); }
+.i-file { --icon: url("/assets/icons/file.svg"); }
+.i-contact { --icon: url("/assets/icons/contact.svg"); }
+.i-work { --icon: url("/assets/icons/experience.svg"); }
+.i-globe { --icon: url("/assets/icons/globe.svg"); }
+.i-copy { --icon: url("/assets/icons/copy.svg"); }
+.i-share { --icon: url("/assets/icons/share.svg"); }
+.i-sidebar { --icon: url("/assets/icons/sidebar.svg"); }
+.i-panel { --icon: url("/assets/icons/panel-right.svg"); }
+.i-close { --icon: url("/assets/icons/close.svg"); }
+.i-down { --icon: url("/assets/icons/chevron-down.svg"); }
+.i-out { --icon: url("/assets/icons/arrow-up-right.svg"); }
+.i-bolt { --icon: url("/assets/icons/bolt.svg"); }
+.i-logout { --icon: url("/assets/icons/logout.svg"); }
+.i-grip { --icon: url("/assets/icons/grip.svg"); }
+.i-more { --icon: url("/assets/icons/more.svg"); }
+.i-pen { --icon: url("/assets/icons/pencil.svg"); }
+.i-left { --icon: url("/assets/icons/chevron-left.svg"); }
+.i-back { --icon: url("/assets/icons/arrow-left.svg"); }
+.i-up { --icon: url("/assets/icons/arrow-up.svg"); }
+
+/* Plain buttons: a label with an icon, and icon-only. */
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: 500 14px/21px var(--sans);
+  cursor: pointer;
+}
+.icon-btn {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.btn-ghost:hover, .icon-btn:hover { background: var(--row-hover); color: var(--text); }
+/* A filled button: the card's Send, and "Log back in". */
+.ask-send, .bye-back {
+  border: 0;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.12);
+  font: 500 15px/1 var(--sans);
+  cursor: pointer;
+}
+.ask-send:hover, .bye-back:hover { background: rgb(255 255 255 / 0.18); }
+.icon-btn.done { --icon: url("/assets/icons/check.svg"); color: var(--green); }

@@ -1,0 +1,26 @@
+# Keeps the actions in .github/workflows and the npm packages in
+# package.json (Astro, TypeScript, Prettier, Playwright, the Workers types)
+# up to date, once a month, each in one grouped pull request. None of them
+# ends up on the site but Astro's build of it. The workflow, package.json
+# and package-lock.json are shared code, the same in the template and the
+# site it was made from, so a bump is made in both.
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: monthly
+    groups:
+      npm:
+        patterns: ["*"]
+    ignore:
+      # Astro's checker (@astrojs/check) supports TypeScript 5 and 6 only.
+      - dependency-name: typescript
+        update-types: ["version-update:semver-major"]

@@ -1,0 +1,26 @@
+---
+/* A file card: a small config file of key: value lines, with comments. */
+import type { Card } from "../shared/content.ts";
+import { cardRows } from "../site/card.ts";
+
+interface Props {
+  card: Card;
+}
+const { card } = Astro.props;
+const rows = cardRows(card);
+---
+
+<div class="card">
+  <p class="card-head ic i-file">
+    {card.file}
+    <span class="ok">✓</span>
+  </p>
+  {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup. */}
+  <pre>{rows.map((row, i) => [
+    i > 0 && "\n",
+    row.key && <span class="k">{row.key}:</span>,
+    row.indent,
+    <span class={row.accent ? "acc" : "str"}>{row.value}</span>,
+    row.comment && [row.beforeComment, <span class="c"># {row.comment}</span>],
+  ])}</pre>
+</div>

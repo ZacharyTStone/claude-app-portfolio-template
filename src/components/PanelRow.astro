@@ -1,0 +1,23 @@
+---
+/* A row of the details panel: an icon, a label and a note, and a link if
+   it has an href. */
+import type { PanelRow } from "../shared/config.ts";
+import { site } from "../site/current.ts";
+import { external } from "../shared/markdown.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { iconClass } from "./logos.ts";
+import Logo from "./Logo.astro";
+
+interface Props {
+  row: PanelRow;
+}
+const { label, meta, icon, href } = Astro.props.row;
+const Row = href ? "a" : "span";
+const link = href ? { href: site.link(href), ...external(href) } : {};
+---
+
+<Row class={iconClass(icon)} {...link}>
+  <Logo icon={icon} hidden />
+  {label}
+  <span class={PAGE_CLASSES.rowMeta}>{meta}</span>
+</Row>

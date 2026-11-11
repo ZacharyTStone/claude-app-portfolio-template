@@ -1,0 +1,37 @@
+/* ---- Composers (they open the question card) ----------------------- */
+.composer {
+  border-radius: 14px;
+  background: var(--composer);
+  box-shadow: var(--composer-shadow);
+  transition: background-color 0.2s var(--ease), box-shadow 0.2s var(--ease), opacity 0.2s var(--ease);
+}
+.composer .ph { color: var(--placeholder); font: 400 15px/21px var(--sans); }
+/* Under a tab it's a link home to the list of questions; the script opens
+   the same list right above it instead. */
+a.composer { cursor: pointer; }
+a.composer:hover, a.composer[aria-expanded="true"] { background: var(--composer-hover); }
+a.composer:focus-visible { border-radius: 14px; }
+.composer .ic::before { color: var(--text-2); }
+.model { font: 435 13px/20px var(--sans); white-space: nowrap; }
+.model em { font-style: normal; color: var(--text-2); margin-left: 6px; }
+
+/* Under a conversation: a slim one-line composer, with the model
+   label underneath it. */
+.dock { position: relative; flex: none; width: 100%; max-width: var(--column); margin: 0 auto; padding: 0 var(--gutter) 10px; }
+.slim {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 47px;
+  padding: 0 12px;
+}
+.slim .ph { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.under {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 12px 0 14px;
+  font: 400 12px/20px var(--sans);
+  color: var(--text-2);
+}
+.under .model { margin-left: auto; color: var(--text); }

@@ -1,0 +1,59 @@
+/* A portfolio laid out like the Claude app. Every page shares this one
+   stylesheet: src/layouts/Document.astro imports it, and Astro writes it
+   out as one file, with each part in place of its @import line here.
+
+   Every section is a "tab" in the sidebar and opens as a conversation. With
+   no JavaScript it all still works: each tab is an <article> shown by
+   :target, and the home screen shows when no tab is targeted. The script
+   (src/app) adds the rest (the greeting, menus, folding, the question card,
+   chats, the phone drawer, resizing and dragging), and the styles for those
+   are here too.
+
+   Colours, type, sizes and motion were measured from claude.ai/code (dark
+   theme) with getComputedStyle. Anthropic's own typefaces are proprietary,
+   so free ones stand in, picked side by side against screenshots of the
+   app: Inter for the sans (closest in width and x-height), Source Serif 4's
+   display optical size for the serif, Geist Mono for code. */
+
+@import "fonts.css";
+
+@import "tokens.css";
+
+@import "base.css";
+
+@import "layout.css";
+
+@import "sidebar.css";
+
+@import "thread.css";
+
+@import "cards.css";
+
+@import "figures.css";
+
+@import "composer.css";
+
+@import "greeting.css";
+@import "question-card.css";
+
+@import "home.css";
+
+@import "panel.css";
+
+@import "japanese.css";
+
+@import "menus.css";
+
+@import "chat.css";
+
+@import "logout.css";
+
+@import "not-found.css";
+
+@import "motion.css";
+
+@import "narrow.css";
+
+@import "print.css";
+
+@import "site.css";

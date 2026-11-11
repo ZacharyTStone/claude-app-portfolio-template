@@ -1,0 +1,30 @@
+---
+/* A line of the config's Markdown (src/shared/markdown.ts), as elements.
+   Its words are text, which Astro escapes, so no HTML gets through. */
+import { external, spans, type Span } from "../shared/markdown.ts";
+import { site } from "../site/current.ts";
+
+type Props = { text: string } | { spans: Span[] };
+
+const list = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spans;
+---
+
+{list.map((span) =>
+  typeof span === "string" ? (
+    span
+  ) : span.type === "code" ? (
+    <code>{span.text}</code>
+  ) : span.type === "strong" ? (
+    <strong>
+      <Astro.self spans={span.spans} />
+    </strong>
+  ) : span.type === "em" ? (
+    <em>
+      <Astro.self spans={span.spans} />
+    </em>
+  ) : (
+    <a href={site.link(span.href)} {...external(span.href)}>
+      <Astro.self spans={span.spans} />
+    </a>
+  ),
+)}

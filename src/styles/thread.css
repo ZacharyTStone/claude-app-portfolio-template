@@ -1,0 +1,175 @@
+/* ---- Main column ---------------------------------------------------- */
+.main { display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.tab, .home { display: none; flex: 1; flex-direction: column; min-height: 0; }
+.tab:target { display: flex; }
+.main:not(:has(.tab:target)) .home { display: flex; }
+
+.topbar {
+  position: relative;
+  height: var(--topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 20px;
+}
+.topbar .title {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  font: 435 14px/20px var(--sans);
+}
+.topbar .title::after {
+  width: 14px;
+  height: 14px;
+  color: var(--text-2);
+  --icon: url("/assets/icons/chevron-down.svg");
+  transition: rotate 0.2s var(--ease);
+}
+/* With the script, the name is a button that renames the
+   thread (a "Rename" tip shows on hover), and the chevron is its own button
+   that opens the thread's menu. */
+.title-name {
+  position: relative;
+  display: flex;
+  min-width: 0;
+  margin-left: -8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.title-name:hover { background: var(--row-hover); }
+.title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.title-name[data-tip]::after {
+  content: attr(data-tip);
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 50%;
+  z-index: 30;
+  padding: 3px 9px;
+  border-radius: 7px;
+  background: var(--menu);
+  box-shadow: inset 0 0 0 1px rgb(255 255 255 / 0.1), 0 4px 14px rgb(0 0 0 / 0.35);
+  font: 400 13px/20px var(--sans);
+  white-space: nowrap;
+  translate: -50% 0;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.15s var(--ease);
+}
+.title-name:hover::after { opacity: 1; transition-delay: 0.5s; }
+.title-input {
+  min-width: 0;
+  margin-left: -8px;
+  padding: 4px 8px;
+  border: 0;
+  border-radius: 8px;
+  background: color-mix(in srgb, var(--blue) 8%, transparent);
+  color: var(--text);
+  font: inherit;
+  box-shadow: inset 0 0 0 1px var(--blue), 0 0 6px 0 color-mix(in srgb, var(--blue) 25%, transparent);
+  outline: none;
+}
+.title-chev { width: 28px; height: 28px; margin-left: -6px; flex: none; }
+.title-chev::before { width: 14px; height: 14px; }
+.title-chev[aria-expanded="true"] { background: var(--row-hover); color: var(--text); }
+.pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-left: 4px;
+  padding: 0 7px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 500 12px/20px var(--sans);
+  color: var(--text-2);
+  white-space: nowrap;
+}
+.pill .live { margin: 0; }
+.topbar .actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.menu { display: none; }
+
+.scroll {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--row-selected) transparent;
+  /* Text fades out just above the composer instead of stopping at a hard
+     edge; the thread's bottom padding clears it at the end. */
+  -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+  mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
+}
+.thread {
+  max-width: var(--column);
+  margin: 0 auto;
+  padding: 24px var(--gutter) 32px;
+  display: grid;
+  gap: 24px;
+  font: 400 15px/21px var(--sans);
+}
+
+/* A visitor's question. */
+.q {
+  justify-self: end;
+  max-width: 85%;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--bubble);
+  overflow-wrap: anywhere;
+  transition: box-shadow 0.6s var(--ease);
+}
+/* Picked from the title's menu: a brief outline shows where it is. */
+.q.flash { box-shadow: 0 0 0 1.5px var(--accent); }
+/* My answer. */
+.a { display: grid; gap: 12px; min-width: 0; }
+.a strong { font-weight: 501; }
+.a ul { display: grid; gap: 6px; padding-left: 22px; list-style: disc; }
+.a li::marker { color: var(--text-2); }
+.a ul.plain { padding-left: 0; list-style: none; }
+/* A typed question /ask found inappropriate: hidden. */
+.q.removed { color: var(--text-2); font-style: italic; }
+/* Under an answer picked for a typed question (/ask): which tab it's from. */
+.a .from { color: var(--text-2); font-size: 13px; line-height: 20px; }
+.a a:not(.artifact) { text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
+.a a:not(.artifact):hover { text-decoration-color: var(--text); }
+code {
+  font: 400 13.5px/1 var(--mono);
+  padding: 1px 4px;
+  border-radius: 4px;
+  background: var(--chip);
+}
+
+/* "Read experience/acme.md ▸": a collapsible status line, as in the
+   app, that opens to show the file it read. Under a reply /ask wrote,
+   "Show the full answer ▸" looks the same, and opens onto the answer. */
+:is(.status, .full) summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-2);
+  cursor: pointer;
+  list-style: none;
+  border-radius: 6px;
+}
+:is(.status, .full) summary::-webkit-details-marker { display: none; }
+.status summary b { font-weight: 400; color: var(--text); }
+:is(.status, .full) summary::after {
+  content: "";
+  width: 12px;
+  height: 12px;
+  background: currentColor;
+  --icon: url("/assets/icons/caret-right.svg");
+  transition: rotate 0.2s var(--ease);
+}
+:is(.status, .full)[open] summary::after { rotate: 90deg; }
+:is(.status, .full) summary:hover { color: var(--text); }
+.status .card { margin-top: 10px; }
+.status + .a { margin-top: -10px; }
+/* The answer, once it's opened: its messages spaced as in a thread. */
+.full > div { display: grid; gap: 24px; margin-top: 14px; }

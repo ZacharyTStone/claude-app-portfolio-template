@@ -1,0 +1,21 @@
+---
+/* The buttons under a thread's last answer. */
+import type { Strings } from "../shared/config.ts";
+import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
+import { flag } from "./attributes.ts";
+
+interface Props {
+  strings: Strings;
+}
+const s = Astro.props.strings;
+---
+
+<div class={PAGE_CLASSES.messageActions} data-js-only>
+  <button
+    class="icon-btn ic i-copy"
+    type="button"
+    {...flag(DATA.copyLink)}
+    aria-label={s.copyTab}
+    title={s.copyTitle}
+  ></button>
+</div>

@@ -1,0 +1,55 @@
+---
+/* A tab: an <article> that :target shows, with its title and Share in the
+   bar across the top, the conversation (the slot), and the composer under
+   it. */
+import type { Pill } from "../shared/config.ts";
+import { DATA, PAGE_CLASSES, PAGE_IDS, titleId } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import { flag } from "./attributes.ts";
+import Topbar from "./Topbar.astro";
+
+interface Props {
+  page: Page;
+  /** The tab's address: #id. */
+  id: string;
+  title: string;
+  pill?: Pill;
+}
+const { page, id, title, pill } = Astro.props;
+const s = page.lang.strings;
+---
+
+<article class={PAGE_CLASSES.tab} id={id} aria-labelledby={titleId(id)}>
+  <Topbar strings={s}>
+    <h2 class={`${PAGE_CLASSES.title} ${PAGE_CLASSES.iconAfter}`} id={titleId(id)}>
+      {title}
+    </h2>
+    {pill && (
+      <span class="pill">
+        {pill.live && <span class="live" />}
+        {pill.label}
+      </span>
+    )}
+    <button slot="actions" class="btn-ghost ic i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
+      <span class={PAGE_CLASSES.label}>{s.share}</span>
+    </button>
+  </Topbar>
+  <div class={PAGE_CLASSES.scroll}>
+    <div class={PAGE_CLASSES.thread}>
+      <slot />
+    </div>
+  </div>
+  {/* The app's slim composer: a link home without JavaScript, and with it, the way to open the question card. */}
+  <div class="dock">
+    <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.top}`}>
+      <span class="ic i-plus" aria-hidden="true"></span>
+      <span class="ph">{s.followUpPlaceholder}</span>
+    </a>
+    <p class="under">
+      <span class="credit">{s.credit}</span>
+      <span class="model">
+        {page.site.config.name} <em>{s.model}</em>
+      </span>
+    </p>
+  </div>
+</article>

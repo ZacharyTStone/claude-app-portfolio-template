@@ -1,0 +1,26 @@
+---
+/* A link drawn as one of the app's artifact tiles: an icon, a name, and
+   what kind of thing it is. Any other attribute goes on the link. */
+import type { LinkCard } from "../shared/content.ts";
+import { site } from "../site/current.ts";
+import { external } from "../shared/markdown.ts";
+import { iconClass } from "./logos.ts";
+import Logo from "./Logo.astro";
+
+interface Props {
+  link: LinkCard;
+  [attribute: `data-${string}`]: string;
+}
+const { link, ...more } = Astro.props;
+const { name, kind, href, icon } = link;
+---
+
+<a class="artifact i-out ic-after" href={site.link(href)} {...external(href)} {...more}>
+  <span class:list={["tile", iconClass(icon)]} aria-hidden="true">
+    <Logo icon={icon} />
+  </span>
+  <span>
+    <span class="name">{name}</span>
+    <span class="kind">{kind}</span>
+  </span>
+</a>

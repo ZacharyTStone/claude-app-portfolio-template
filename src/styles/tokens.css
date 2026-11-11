@@ -1,0 +1,49 @@
+/* ---- Tokens (measured, dark) ---------------------------------------- */
+:root {
+  color-scheme: dark;
+
+  --page: #191919;
+  --sidebar: #1f1f1f;
+  --line: rgb(255 255 255 / 0.1);
+  --hairline: rgb(255 255 255 / 0.04);
+  --text: rgb(255 255 255 / 0.93);   /* 15:1 on --page */
+  --text-2: rgb(255 255 255 / 0.57); /* 6.4:1 */
+  --text-3: rgb(255 255 255 / 0.4);  /* 3.8:1: icons and decoration only */
+  --placeholder: #a0a0a0;            /* 4.6:1 on --composer-hover (the app's #878787 is 3.4:1) */
+  --row-hover: rgb(255 255 255 / 0.075);
+  --row-selected: rgb(255 255 255 / 0.15);
+  --bubble: rgb(255 255 255 / 0.05);
+  --composer: #303030;
+  --composer-hover: #363636;
+  --menu: #2b2b2b;
+  --rim: rgb(255 255 255 / 0.08);    /* the edge of what's raised: a menu, the card, the composer */
+  --composer-shadow: 0 4px 20px 0 rgb(0 0 0 / 0.075), inset 0 0 0 1px var(--rim);
+  --code-bg: #1f1f1f;
+  --code-edge: rgb(255 255 255 / 0.2);
+  --chip: rgb(255 255 255 / 0.075);
+  --accent: #d97757;
+  --mark: #757575; /* a figure's grey marks: --text-3 over --page, but solid, so shapes that overlap don't show */
+  --blue: #257de0;
+  --focus-ring: inset 0 0 0 1px var(--blue), 0 0 6px 0 color-mix(in srgb, var(--blue) 20%, transparent);
+  --danger: #e8776d;
+  --green: rgb(50 215 75);
+  --syntax-string: #e5b567; /* est.: not measured yet */
+
+  --sidebar-w: clamp(260px, 24vw, 385px);
+  --panel-w: 320px;
+  --topbar-h: 45px;
+  --column: 824px;
+  --gutter: 24px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --serif: "Source Serif 4", Georgia, "Times New Roman", serif;
+  --mono: "Geist Mono", ui-monospace, Menlo, Consolas, monospace;
+}
+
+:root:lang(ja) {
+  --sans: "Inter", "Noto Sans JP Subset", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", Meiryo, sans-serif;
+  --serif: "Source Serif 4", "Noto Serif JP Subset", "Hiragino Mincho ProN", "Yu Mincho", serif;
+  --mono: "Geist Mono", "Noto Sans JP Subset", ui-monospace, Menlo, Consolas, monospace;
+}

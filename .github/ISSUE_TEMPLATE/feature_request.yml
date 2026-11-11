@@ -1,0 +1,16 @@
+name: Idea or improvement
+description: Suggest something the template could do better.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: idea
+    attributes:
+      label: The idea
+      description: What would you like the template to do, and why would it help a portfolio?
+    validations:
+      required: true
+  - type: textarea
+    id: how
+    attributes:
+      label: How it might work
+      description: Optional. A config field, a new kind of block, a change to a component…

@@ -1,0 +1,23 @@
+---
+/* Printed (or saved as a PDF) the page leaves out the sidebar and the
+   panel, so it starts with who this is and how to reach them. Hidden on
+   screen. */
+import type { Page } from "../site/site.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { shortUrl } from "../site/url.ts";
+
+interface Props {
+  page: Page;
+}
+const { site, code, lang } = Astro.props.page;
+const { config } = site;
+const { email, github, linkedin } = config.links;
+const name = lang.person.name === config.name ? config.name : `${lang.person.name} (${config.name})`;
+const contacts = [email, site.url(code), github, linkedin].filter((contact) => contact !== undefined);
+---
+
+<div class={PAGE_CLASSES.printHead}>
+  <p class="print-name">{name}</p>
+  <p>{lang.meta.description}</p>
+  <p>{contacts.map(shortUrl).join(" · ")}</p>
+</div>

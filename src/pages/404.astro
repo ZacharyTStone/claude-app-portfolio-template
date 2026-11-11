@@ -1,0 +1,36 @@
+---
+/* The page the host serves for any address with nothing there: in the
+   main language, with a line and a way back in each. Its links start at
+   the site's root, as it can be served at any depth. */
+import Document from "../layouts/Document.astro";
+import { site } from "../site/current.ts";
+
+const { config, codes, main } = site;
+const { dir, meta, notFound } = site.lang(main);
+const title = notFound.title.replace(/[.。!！]$/, "");
+// The other languages' lines are marked as theirs.
+const langOf = (code: string) => (code === main ? undefined : code);
+---
+
+<Document lang={main} dir={dir} preload={meta.preload}>
+  <Fragment slot="head">
+    <title>{title} — {config.name}</title>
+    <meta name="robots" content="noindex" />
+  </Fragment>
+  <main class="lost">
+    <p class="code">404</p>
+    <h1 class="hello">{notFound.title}</h1>
+    {codes.map((code) => (
+      <p class="intro" lang={langOf(code)}>
+        {site.lang(code).notFound.text}
+      </p>
+    ))}
+    <p class="lost-links">
+      {codes.map((code) => (
+        <a href={site.path(code)} hreflang={langOf(code)} lang={langOf(code)}>
+          {site.lang(code).notFound.back}
+        </a>
+      ))}
+    </p>
+  </main>
+</Document>

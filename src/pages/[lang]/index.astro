@@ -1,0 +1,10 @@
+---
+/* Each other language's page, at /<code>/. */
+import Portfolio from "../../components/Portfolio.astro";
+import { site } from "../../site/current.ts";
+
+export const getStaticPaths = () =>
+  site.codes.filter((code) => code !== site.main).map((lang) => ({ params: { lang } }));
+---
+
+<Portfolio code={Astro.params.lang} />

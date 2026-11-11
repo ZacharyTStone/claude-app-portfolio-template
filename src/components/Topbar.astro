@@ -1,0 +1,30 @@
+---
+/* The bar across the top of the home screen and of every tab: the button
+   that shows the tabs on a phone, then the slot (a tab's title), then the
+   actions, the panel toggle first. */
+import type { Strings } from "../shared/config.ts";
+import { DATA, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { flag } from "./attributes.ts";
+
+interface Props {
+  strings: Strings;
+}
+const s = Astro.props.strings;
+---
+
+<header class="topbar">
+  <a class={`${PAGE_CLASSES.menu} btn-ghost ic i-sidebar`} href={`#${PAGE_IDS.tabs}`} aria-label={s.showTabs}></a>
+  <slot />
+  <span class="actions">
+    <button
+      class="icon-btn ic i-panel panel-toggle"
+      type="button"
+      data-js-only
+      {...flag(DATA.panelToggle)}
+      aria-controls={PAGE_IDS.details}
+      aria-label={s.panelToggle}
+      title={s.panelToggleTitle}
+    ></button>
+    <slot name="actions" />
+  </span>
+</header>

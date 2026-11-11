@@ -1,0 +1,26 @@
+/* Printed, or saved as a PDF: who this is and how to reach them first (the
+   sidebar and panel are left out), then every thread, dark on white. The
+   threads run on from page to page; only a message or a card is kept
+   whole. "Something else" and the chats are this visit's, so they're left
+   out. */
+.print-head { display: none; }
+@media print {
+  :root {
+    --page: #fff; --text: #111; --text-2: #555; --text-3: #777; --mark: #8c8c8c;
+    --bubble: #f2f2f2; --code-bg: #fafafa; --code-edge: #ccc; --chip: #eee;
+    --line: #ddd; --syntax-string: #8a5a00; --accent: #b4532f; --green: #2e7d32;
+  }
+  html, body { height: auto; overflow: visible; background: #fff; color: #000; }
+  .app { display: block; height: auto; }
+  .side, .panel, .home, .dock, .topbar .actions, .menu, .msg-actions, .skip,
+  .pop, .toast, .resizer, .follow-card, .thinking, .bye, .title-chev,
+  #asked, .tab[data-chat] { display: none !important; }
+  .print-head { display: block; margin: 0 0 8px; padding: 0 24px 16px; border-bottom: 1px solid #ccc; font: 400 13px/20px var(--sans); color: #333; }
+  .print-head .print-name { font: 400 28px/1.2 var(--serif); color: #000; margin-bottom: 4px; }
+  .tab { display: block !important; }
+  .tab .topbar { height: auto; padding-top: 16px; break-after: avoid; }
+  .scroll { overflow: visible; -webkit-mask-image: none; mask-image: none; }
+  .thread { padding-top: 12px; padding-bottom: 8px; }
+  .thread > *, .card, .fig, .quote, .a li { break-inside: avoid; }
+  .q, .a h3 { break-after: avoid; }
+}

@@ -1,0 +1,18 @@
+---
+/* A section of the details panel, under its heading. */
+import type { Panel } from "../shared/config.ts";
+import { panelId } from "../shared/page-data.ts";
+
+interface Props {
+  name: keyof Panel;
+  title: string;
+}
+const { name, title } = Astro.props;
+---
+
+<section aria-labelledby={panelId(name)}>
+  <h2 class="ic-after" id={panelId(name)}>
+    {title}
+  </h2>
+  <slot />
+</section>

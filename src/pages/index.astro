@@ -1,0 +1,7 @@
+---
+/* The main language's page, at the site's root. */
+import Portfolio from "../components/Portfolio.astro";
+import { site } from "../site/current.ts";
+---
+
+<Portfolio code={site.main} />

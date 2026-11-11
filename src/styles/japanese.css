@@ -1,0 +1,13 @@
+/* ---- Japanese typography ------------------------------------------- */
+/* Strict line breaking, headings broken at phrase boundaries, proportional
+   kana spacing (palt) on headings and interface labels but not in running
+   text, and more line height, which Japanese needs at these sizes. */
+:lang(ja) :is(p, li) { line-break: strict; }
+:lang(ja) :is(.hello, .intro, .q, .opt, .pop, .fig, .prompts) { word-break: auto-phrase; }
+:lang(ja) :is(.hello, .topbar .title, .nav, .tabs .t, .group, .pill, .lang,
+  .panel h2, .steps, .btn-ghost, .artifact .name, .ask h2, .pop, .me, .fig, .prompts, .a h3) {
+  font-feature-settings: "palt";
+}
+:lang(ja) .hello { line-height: 1.3; letter-spacing: 0.02em; }
+:lang(ja) :is(.thread, .intro) { line-height: 1.75; }
+:lang(ja) .q { letter-spacing: 0.02em; }

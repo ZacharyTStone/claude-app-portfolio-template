@@ -1,0 +1,58 @@
+---
+/* "Something else": the reply to a question the site has no answer for.
+   It says how to reach you, with the question in an email and in a message
+   to copy for LinkedIn. The script puts the question in; here it's a sample. */
+import { DATA, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import { shortUrl } from "../site/url.ts";
+import { flag } from "./attributes.ts";
+import Artifact from "./Artifact.astro";
+import Inline from "./Inline.astro";
+import MessageActions from "./MessageActions.astro";
+import Tab from "./Tab.astro";
+
+interface Props {
+  page: Page;
+}
+const { page } = Astro.props;
+const s = page.lang.strings;
+const { asked } = page.lang;
+const { email, linkedin } = page.site.config.links;
+const fill = (text: string) => text.replaceAll("{question}", () => asked.q);
+const mailto = `mailto:${email}?subject=${encodeURIComponent(asked.subject)}&body=${encodeURIComponent(fill(asked.email))}`;
+// The email as it is before the question is put in, for the script.
+const mailTemplate = { [DATA.mail]: asked.email, [DATA.subject]: asked.subject };
+---
+
+<Tab page={page} id={PAGE_IDS.asked} title={asked.title}>
+  <p class={PAGE_CLASSES.question}>
+    <span class={PAGE_CLASSES.srOnly}>{s.question}</span>
+    <span class={PAGE_CLASSES.askedQuestion}>{asked.q}</span>
+  </p>
+  <div class={PAGE_CLASSES.answer}>
+    <p>
+      <Inline text={asked.answer} />
+    </p>
+    <Artifact link={{ name: asked.mail, kind: email, href: mailto, icon: "contact" }} {...mailTemplate} />
+    {linkedin && asked.linkedin && asked.message && (
+      <>
+        <Artifact link={{ name: asked.linkedin, kind: shortUrl(linkedin), href: linkedin, icon: "linkedin" }} />
+        <div class={PAGE_CLASSES.draft} {...{ [DATA.draft]: asked.message.text }}>
+          <p class="draft-head">
+            {asked.message.label}
+            <button
+              class="icon-btn ic i-copy"
+              type="button"
+              data-js-only
+              {...flag(DATA.copyDraft)}
+              aria-label={asked.message.copy}
+              title={asked.message.copy}
+            />
+          </p>
+          <p class={PAGE_CLASSES.draftText}>{fill(asked.message.text)}</p>
+        </div>
+      </>
+    )}
+    <MessageActions strings={s} />
+  </div>
+</Tab>

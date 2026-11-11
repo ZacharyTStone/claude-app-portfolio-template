@@ -1,0 +1,23 @@
+---
+/* Steps in order: a box each, and (in the stylesheet) an arrow from each
+   to the next. */
+import type { Flow } from "../shared/content.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
+
+interface Props {
+  flow: Flow;
+}
+const { title, steps } = Astro.props.flow;
+---
+
+<figure class={`${PAGE_CLASSES.figure} flow`}>
+  <figcaption>{title}</figcaption>
+  <ol>
+    {steps.map(({ name, note }) => (
+      <li>
+        <b>{name}</b>
+        {note && <span>{note}</span>}
+      </li>
+    ))}
+  </ol>
+</figure>

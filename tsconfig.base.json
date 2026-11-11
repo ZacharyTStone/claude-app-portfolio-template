@@ -1,0 +1,25 @@
+{
+  // Shared by every part: strict, and only TypeScript that Node can run
+  // as-is by stripping the types (no enums, namespaces or parameter
+  // properties; imports name the .ts file). tsc only checks: esbuild bundles
+  // the browser code, wrangler the Worker, and Node runs the rest.
+  "compilerOptions": {
+    "target": "es2023",
+    "module": "preserve",
+    "moduleResolution": "bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "noImplicitOverride": true,
+    "noFallthroughCasesInSwitch": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "verbatimModuleSyntax": true,
+    "erasableSyntaxOnly": true,
+    "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "forceConsistentCasingInFileNames": true
+  }
+}

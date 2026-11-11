@@ -1,0 +1,64 @@
+---
+/* One part of an answer: a paragraph, a list, a file card, a link, a
+   figure, a picture, a quote or a heading (src/shared/content.ts). */
+import type { Block } from "../shared/content.ts";
+import Artifact from "./Artifact.astro";
+import Bars from "./Bars.astro";
+import Card from "./Card.astro";
+import Flow from "./Flow.astro";
+import Inline from "./Inline.astro";
+import Picture from "./Picture.astro";
+
+interface Props {
+  block: Block;
+}
+const { block } = Astro.props;
+// A paragraph is a string and a list an array; anything else is an object
+// named for its kind.
+const part = typeof block === "object" && !Array.isArray(block) ? block : undefined;
+---
+
+{typeof block === "string" && (
+  <p>
+    <Inline text={block} />
+  </p>
+)}
+{Array.isArray(block) && (
+  <ul>
+    {block.map((item) => (
+      <li>
+        <Inline text={item} />
+      </li>
+    ))}
+  </ul>
+)}
+{part && "card" in part && <Card card={part.card} />}
+{part && "link" in part && <Artifact link={part.link} />}
+{part && "bars" in part && <Bars bars={part.bars} />}
+{part && "flow" in part && <Flow flow={part.flow} />}
+{part && "image" in part && <Picture picture={part.image} />}
+{part && "images" in part && (
+  <div class="gallery">
+    {part.images.map((picture) => (
+      <Picture picture={picture} />
+    ))}
+  </div>
+)}
+{part && "quote" in part && (
+  <figure class="quote">
+    <blockquote>
+      <p>{part.quote.text}</p>
+    </blockquote>
+    <figcaption>{part.quote.by}</figcaption>
+  </figure>
+)}
+{part && "heading" in part && (
+  <h3>
+    {part.heading.label && (
+      <>
+        <span>{part.heading.label}</span>{" "}
+      </>
+    )}
+    {part.heading.title}
+  </h3>
+)}

@@ -1,0 +1,22 @@
+/* ---- A page of its own (src/app, and the 404) ---------------------- */
+/* Centred on the canvas in the greeting's type, with a row of links: the
+   goodbye "Log out" shows, and the not-found page (not-found.css). */
+.bye, .lost {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 24px var(--gutter) 12vh;
+  text-align: center;
+}
+.bye .hello, .lost .hello { margin-top: 0; }
+.bye-links, .lost-links { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.bye-links a, .lost-links a { box-shadow: inset 0 0 0 1px var(--line); font: 500 14px/21px var(--sans); }
+.bye-links a:hover, .lost-links a:hover { background: var(--row-hover); }
+
+/* The goodbye, over everything, with the owner's contact links. */
+.bye { position: fixed; inset: 0; z-index: 60; background: var(--page); }
+.bye-links { margin-top: 24px; }
+.bye-links a { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9px; }
+.bye-links .ic::before { color: var(--text-2); }
+.bye-back { margin-top: 28px; height: 36px; padding: 0 16px; }

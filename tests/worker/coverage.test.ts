@@ -1,0 +1,85 @@
+/* A pick has to name what the question names (src/worker/ask/coverage.ts):
+   a question about something the answers don't mention gets no pick, so
+   the visitor is told to ask the owner instead of reading a "no". */
+import assert from "node:assert/strict";
+import { test } from "node:test";
+import { covers, namedIn } from "../../src/worker/ask/coverage.ts";
+import { NONE } from "../../src/worker/constants.ts";
+import { ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
+
+const logs = captureLogs();
+
+const OWNER = "Alex Example アレックス・イグザンプル";
+const SKILLS = {
+  title: "Skills",
+  q: "what does alex work with?",
+  text: "TypeScript, React, Node.js and PostgreSQL (Prisma), GraphQL, REST APIs.",
+};
+
+test("a question names tools, companies and places, not its own words or the owner", () => {
+  assert.deepEqual(namedIn("Does Alex have expeirnce with Vercel?", OWNER), ["vercel"]);
+  assert.deepEqual(namedIn("Has he used AWS or S3?", OWNER), ["aws", "s3"]);
+  assert.deepEqual(namedIn("Can Alex do GraphQL?", OWNER), ["graphql"]);
+  assert.deepEqual(namedIn("アレックスはVercelを使ったことがある？", OWNER), ["vercel"]);
+  assert.deepEqual(namedIn("What's Alex Example's stack? Is he any good?", OWNER), []);
+  assert.deepEqual(namedIn("does alex know vercel?", OWNER), [], "lower case is read as plain words");
+});
+
+test("an answer covers a name it has, in another form too", () => {
+  for (const question of [
+    "Does Alex know React?",
+    "Does Alex know Postgres?",
+    "Is he good with Node?",
+    "Has he built REST API work?",
+    "Can Alex do GraphQL?",
+    "Does he write TS?",
+  ]) {
+    assert.ok(covers(SKILLS, question, OWNER), question);
+  }
+  assert.ok(covers({ title: "Resume", q: "can I see his resume?", text: "Here it is." }, "Can I see his CV?", OWNER));
+});
+
+test("an answer doesn't cover a name it doesn't have", () => {
+  for (const question of [
+    "Does Alex have experience with Vercel?",
+    "Has he used AWS?",
+    "Does he know Rust?",
+    "Did Alex work at Google?",
+  ]) {
+    assert.ok(!covers(SKILLS, question, OWNER), question);
+  }
+});
+
+test("a longer word isn't the same thing, but for a plural or a -JS or -QL", () => {
+  const answer = (text: string) => ({ title: "Skills", q: "what does alex work with?", text });
+  const different: Array<[question: string, text: string]> = [
+    ["Does he know Java?", "JavaScript and TypeScript."],
+    ["Did Alex work at OpenAI?", "Open to contract work."],
+    ["Does he use Excel?", "An excellent communicator."],
+    ["Does he know Scala?", "Scalable systems."],
+    ["Has he used Salesforce?", "Sales tools."],
+  ];
+  for (const [question, text] of different) assert.ok(!covers(answer(text), question, OWNER), question);
+  const same: Array<[question: string, text: string]> = [
+    ["Does he use Cloudflare Worker?", "Cloudflare Workers."],
+    ["Does he know Postgres?", "PostgreSQL."],
+    ["Does he know Next?", "NextJS."],
+  ];
+  for (const [question, text] of same) assert.ok(covers(answer(text), question, OWNER), question);
+});
+
+test("a pick that doesn't name what was asked is no pick, and the log says which it was", async () => {
+  logs.mock.resetCalls();
+  const { env } = stubs({ run: () => toolCall("skills.1", [1]) });
+  const response = await ask(env, { question: "Does Alex have experience with Vercel?", lang: "en" });
+  assert.deepEqual(await response.json(), { id: null });
+  const logged = lines(logs);
+  assert.ok(logged.includes(JSON.stringify({ ask: NONE, uncovered: "skills.1" })), logged.join("\n"));
+  assert.ok(!logged.some((line) => line.includes("Vercel")), "never the question");
+});
+
+test("a pick that names what was asked stands", async () => {
+  const { env } = stubs({ run: () => toolCall("skills.1") });
+  const response = await ask(env, { question: "Does Alex know Postgres?", lang: "en" });
+  assert.equal(((await response.json()) as { id: string | null }).id, "skills.1");
+});

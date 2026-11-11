@@ -1,0 +1,98 @@
+---
+/* The sidebar: the name and the language switch, "New tab" and the rows at
+   the top, the groups of tabs, and the account row at the bottom. */
+import { DATA, groupId, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import Account from "./Account.astro";
+import { flag } from "./attributes.ts";
+
+interface Props {
+  page: Page;
+}
+const { page } = Astro.props;
+const { site, code, lang } = page;
+const { config, codes } = site;
+const s = lang.strings;
+const { newTab, nav, groups } = lang.sidebar;
+// On a page in another language, the name is marked as its own.
+const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang : undefined;
+---
+
+<nav class="side" id={PAGE_IDS.tabs} aria-label={s.tabs}>
+  <div class="brand">
+    <button
+      class="icon-btn ic i-sidebar side-toggle"
+      type="button"
+      data-js-only
+      {...flag(DATA.sideToggle)}
+      aria-controls={PAGE_IDS.tabs}
+      aria-expanded="true"
+      aria-label={s.hideTabs}
+      title={s.hideTabs}
+    ></button>
+    <a class={PAGE_CLASSES.wordmark} href="./" lang={nameLang}>
+      {config.name}
+    </a>
+    {codes.length > 1 && (
+      <span class={PAGE_CLASSES.lang}>
+        {codes.map((c) =>
+          c === code ? (
+            <span aria-current="true">{site.lang(c).label}</span>
+          ) : (
+            <a href={site.path(c)} hreflang={c} lang={c} {...{ [DATA.name]: site.lang(c).name }}>
+              {site.lang(c).label}
+            </a>
+          ),
+        )}
+      </span>
+    )}
+    <a
+      class={`${PAGE_CLASSES.drawerClose} btn-ghost ic i-close`}
+      href={`#${PAGE_IDS.top}`}
+      aria-label={s.closeTabs}
+    ></a>
+  </div>
+
+  <ul class={PAGE_CLASSES.nav}>
+    <li>
+      <a class={`${PAGE_CLASSES.newTab} ic i-plus`} href="./">
+        {newTab}
+      </a>
+    </li>
+    {nav.map((row) => (
+      <li>
+        <a class={`ic i-${row.icon}`} href={`#${row.tab}`}>
+          {row.label}
+        </a>
+      </li>
+    ))}
+  </ul>
+
+  {groups.map((group) => (
+    <>
+      <p class={PAGE_CLASSES.group} id={groupId(group.id)}>
+        {group.label}
+      </p>
+      <ul class={PAGE_CLASSES.tabs} aria-labelledby={groupId(group.id)}>
+        {group.tabs.map((row) => (
+          <li>
+            <a href={`#${row.tab}`}>
+              <span class={PAGE_CLASSES.rowName}>
+                {row.title}
+                {row.live && (
+                  <>
+                    {" "}
+                    <span class="live" title={row.live} />
+                  </>
+                )}
+              </span>
+              <span class={PAGE_CLASSES.rowHint}>{row.subtitle}</span>
+            </a>
+          </li>
+        ))}
+      </ul>
+    </>
+  ))}
+
+  <Account page={page} />
+</nav>

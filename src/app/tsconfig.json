@@ -1,0 +1,9 @@
+{
+  // The browser: Astro bundles it into the pages' one script.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": []
+  },
+  "include": [".", "../shared"]
+}

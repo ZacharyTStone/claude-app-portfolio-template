@@ -1,0 +1,60 @@
+---
+/* The details panel on the right: the career at a glance, files and
+   links. Each section is optional. */
+import { DATA, PAGE_IDS } from "../shared/page-data.ts";
+import type { Page } from "../site/site.ts";
+import { flag } from "./attributes.ts";
+import PanelRow from "./PanelRow.astro";
+import PanelSection from "./PanelSection.astro";
+
+interface Props {
+  page: Page;
+}
+const { lang } = Astro.props.page;
+const s = lang.strings;
+const { progress } = lang.panel;
+const lists = (["outputs", "context"] as const).map((name) => ({ name, list: lang.panel[name] }));
+---
+
+<aside class="panel" id={PAGE_IDS.details} aria-label={s.panel}>
+  <button
+    class="icon-btn ic i-close panel-close"
+    type="button"
+    data-js-only
+    {...flag(DATA.panelToggle)}
+    aria-controls={PAGE_IDS.details}
+    aria-label={s.closePanel}
+    title={s.closePanelTitle}
+  ></button>
+  {progress && (
+    <PanelSection name="progress" title={progress.title}>
+      <ol class="steps">
+        {progress.steps.map((step) => (
+          <li>
+            <a href={`#${step.tab}`}>
+              <span class:list={["tick", { now: step.now }]} aria-hidden="true" />
+              <span>
+                {step.title}
+                <span class="when">{step.when}</span>
+              </span>
+            </a>
+          </li>
+        ))}
+      </ol>
+    </PanelSection>
+  )}
+  {lists.map(
+    ({ name, list }) =>
+      list && (
+        <PanelSection name={name} title={list.title}>
+          <ul class="rows">
+            {list.rows.map((row) => (
+              <li>
+                <PanelRow row={row} />
+              </li>
+            ))}
+          </ul>
+        </PanelSection>
+      ),
+  )}
+</aside>

@@ -1,0 +1,90 @@
+/* The question card, built by the script from the page's question
+   data (site.config.ts). Numbered choices, each with a line under it; a
+   topic opens a tab or asks a second question ("Which job?", "2 of 2");
+   and a "Something else" box to type in. The composer under every tab and
+   in a new chat opens it. */
+.ask {
+  position: relative;
+  padding: 12px 16px 10px;
+  border-radius: 18px;
+  background: var(--menu);
+  box-shadow: inset 0 0 0 1px var(--rim);
+}
+.ask h2 { padding: 4px 4px 8px; font: 400 16px/24px var(--sans); }
+.ask:has(> .pager:not([hidden])) h2 { padding-right: 100px; }
+.pager {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  color: var(--text-2);
+  font: 400 15px/20px var(--sans);
+  font-variant-numeric: tabular-nums;
+}
+.pager .icon-btn { width: 28px; height: 28px; }
+.pager .count { padding: 0 2px; }
+.options li { border-bottom: 1px solid var(--line); }
+.options :is(a, button) {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: calc(100% + 16px);
+  margin: 0 -8px;
+  padding: 10px 8px;
+  border: 0;
+  border-radius: 10px;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+.options :is(a, button):hover { background: var(--row-hover); }
+.opt { flex: 1; min-width: 0; }
+.opt-t { display: block; font: 400 16px/23px var(--sans); }
+.opt-d { display: block; font: 400 14px/20px var(--sans); color: var(--text-2); }
+.n {
+  width: 28px;
+  height: 28px;
+  flex: none;
+  display: grid;
+  place-items: center;
+  border-radius: 7px;
+  background: var(--chip);
+  color: var(--text-2);
+  font: 400 15px/1 var(--sans);
+}
+.n.ic::before { width: 15px; height: 15px; }
+.options .on {
+  flex: none;
+  width: 18px;
+  height: 18px;
+  background: var(--blue);
+  --icon: url("/assets/icons/check.svg");
+}
+.ask-else { display: flex; align-items: center; gap: 14px; min-height: 48px; padding: 8px 0 2px; }
+.else-input {
+  flex: 1;
+  min-width: 0;
+  padding: 4px 0;
+  border: 0;
+  background: none;
+  color: var(--text);
+  font: 400 16px/23px var(--sans);
+}
+.else-input::placeholder { color: var(--placeholder); opacity: 1; }
+.else-input:focus-visible { box-shadow: none; }
+.ask-send { flex: none; height: 34px; padding: 0 14px; }
+/* Under a tab, the same card sits on top of the composer. */
+.follow-card {
+  position: absolute;
+  z-index: 25;
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: calc(100% + 8px);
+  max-height: calc(100dvh - 140px);
+  margin: 0;
+  overflow-y: auto;
+  box-shadow: 0 12px 40px rgb(0 0 0 / 0.5), inset 0 0 0 1px var(--rim);
+}

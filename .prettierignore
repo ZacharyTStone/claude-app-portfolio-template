@@ -1,0 +1,4 @@
+# What Astro builds, and its cache.
+dist/
+.astro/
+package-lock.json

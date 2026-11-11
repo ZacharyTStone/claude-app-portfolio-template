@@ -1,0 +1,88 @@
+---
+/* The account row at the foot of the sidebar, and the menu it opens: your
+   email, your time beside the visitor's, the other language, "Upgrade"
+   (hire you), GitHub and "Log out". */
+import { CLOCK_MOODS } from "../shared/config.ts";
+import { DATA, LOCAL_ZONE, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { external } from "../shared/markdown.ts";
+import type { Page } from "../site/site.ts";
+import { flag } from "./attributes.ts";
+import Logo from "./Logo.astro";
+
+interface Props {
+  page: Page;
+}
+const { site, code, lang } = Astro.props.page;
+const { email, github } = site.config.links;
+const { initial, name, sub, label, clock, language = "", upgrade, logout } = lang.account;
+const other = site.codes.find((c) => c !== code);
+// For the script: how far apart your time and the visitor's are, a mood
+// for each part of your day, and what "Log out" says.
+const clockWords = {
+  [DATA.ahead]: clock.ahead,
+  [DATA.behind]: clock.behind,
+  [DATA.same]: clock.same,
+  ...Object.fromEntries(CLOCK_MOODS.map((when) => [DATA.mood(when), clock.moods[when]])),
+};
+const goodbye = { [DATA.byeTitle]: logout.title, [DATA.byeText]: logout.text, [DATA.byeBack]: logout.back };
+---
+
+<div class={PAGE_CLASSES.account}>
+  <div class={PAGE_CLASSES.me}>
+    <span class="avatar" aria-hidden="true">
+      {initial}
+    </span>
+    <span>
+      {name} <span class="sub">{sub}</span>
+    </span>
+  </div>
+  <div class="pop up" id={PAGE_IDS.accountMenu} role="menu" aria-label={label} hidden>
+    <a class={PAGE_CLASSES.mailRow} role="menuitem" href={`mailto:${email}`}>
+      {email}
+    </a>
+    <div class="pop-clock" role="menuitem" aria-disabled="true" {...flag(DATA.clock)} {...clockWords}>
+      <span class="clocks">
+        <span>
+          <span class="pop-label">{clock.me}</span>
+          <span class="clock-time" {...{ [DATA.zone]: site.config.timezone }}>
+            {clock.zone}
+          </span>
+        </span>
+        <span>
+          <span class="pop-label">{clock.you}</span>
+          <span class="clock-time" {...{ [DATA.zone]: LOCAL_ZONE }}>
+            –
+          </span>
+        </span>
+      </span>
+      <span class={PAGE_CLASSES.clockNote}></span>
+    </div>
+    <hr />
+    {other && (
+      <>
+        <a class="ic i-globe" role="menuitem" href={site.path(other)} hreflang={other} {...flag(DATA.langLink)}>
+          {language}
+          <span class={PAGE_CLASSES.rowMeta} lang={other}>
+            {site.lang(other).name}
+          </span>
+        </a>
+        <hr />
+      </>
+    )}
+    <a class="ic i-bolt" role="menuitem" href={`#${upgrade.tab}`}>
+      {upgrade.label}
+      <span class={`${PAGE_CLASSES.rowMeta} pro`}>{upgrade.hire}</span>
+    </a>
+    {github && (
+      <a role="menuitem" href={github} {...external(github)}>
+        <Logo icon="github" hidden />
+        GitHub
+        <span class={`${PAGE_CLASSES.rowMeta} ic i-out`} aria-hidden="true" />
+      </a>
+    )}
+    <hr />
+    <button class="ic i-logout" type="button" role="menuitem" {...flag(DATA.logout)} {...goodbye}>
+      {logout.label}
+    </button>
+  </div>
+</div>

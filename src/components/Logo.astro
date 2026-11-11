@@ -1,0 +1,19 @@
+---
+/* GitHub and LinkedIn are drawn as small lettered badges, not as .i-*
+   icons. */
+import { BADGES } from "./logos.ts";
+
+interface Props {
+  icon: string;
+  /** Hidden from screen readers, beside a name that says the same. */
+  hidden?: boolean;
+}
+const { icon, hidden = false } = Astro.props;
+const badge = BADGES.get(icon);
+---
+
+{badge && (
+  <span class={badge.cls} aria-hidden={hidden ? "true" : undefined}>
+    {badge.text}
+  </span>
+)}

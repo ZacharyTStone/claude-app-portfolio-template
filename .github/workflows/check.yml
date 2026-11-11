@@ -1,0 +1,30 @@
+name: Check
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# The checks only read the repo, so the job's token can't write to it.
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      # For the Japanese fonts' check.
+      - run: pip install fonttools brotli
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+
+      # Everything, in order, as it runs on your machine: see scripts/verify.ts.
+      - run: npm run verify
