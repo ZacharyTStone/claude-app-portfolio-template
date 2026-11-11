@@ -1,16 +1,23 @@
 /* The reply /ask sends with a pick: one or two of the picked answer's own
    lines, chosen by number: a sentence of a paragraph, an item of a list, a
    row of a card, a figure. The model only gives the numbers, so the reply
-   is always the owner's words, never the model's. */
+   is always the owner's words, never the model's.
+
+   A reply is read with nothing around it, so it has to make sense that way.
+   A sentence that opens by pointing back at the one before it ("It shipped
+   with no downtime.") doesn't: it's quoted with that sentence, or not at
+   all (`neededFor`). */
 import { isLabel, isReplyText, MAX_REPLY_LENGTH } from "../../shared/ask.ts";
 import { isArrayOf, isCount } from "../../shared/guards.ts";
 
-/** The most lines a reply quotes. */
+/** The most lines the model may name for a reply. One that can't be read
+    without the sentence before it brings that along (`neededFor`). */
 export const MAX_QUOTED = 2;
 
 /** Why a quote asked for wasn't sent: the numbers aren't a list of at most
-    MAX_QUOTED, one names no numbered line, the lines are the whole answer
-    (which the page shows anyway), or together they're too long. */
+    MAX_QUOTED, one names no numbered line, the lines (and the ones they
+    can't be read without) are the whole answer, which the page shows as it
+    is, with no reply, or together they're too long. */
 export type QuoteCheck = "unreadable" | "range" | "whole" | "length";
 
 /** The reply, or why it was dropped; null when the model asked for none. */
@@ -97,9 +104,71 @@ function sentenceEnd(text: string, i: number, depth: number): number | null {
 // What an answer says itself: its pieces but for the labels.
 const said = (pieces: Piece[]) => pieces.filter(({ text }) => !isLabel(text));
 
+// Words as a sentence starts with them: with a capital or without ("It",
+// "it"), never all in capitals ("IT was his first job.").
+const starting = (words: string) =>
+  words
+    .split(" ")
+    .map((word) => `[${word.charAt(0).toUpperCase()}${word.charAt(0)}]${word.slice(1)}`)
+    .join("|");
+
+// How a sentence opens when it points back at the one before it, and so
+// can't be read without it. In English: "it" or a demonstrative first ("It
+// shipped…", "Those include…", "That workflow…") or after a preposition
+// ("With that workflow, …", "Since then, …"), or a word that carries on
+// ("And", "Then", "Also", "For example"). In Japanese: これ, それ, この, その
+// and the words that carry on (また、さらに、たとえば). "He", "She" and "They"
+// aren't here: on a site about one person, they're that person. Nor is a
+// demonstrative that points at nothing said before: the site itself ("This
+// site runs on…"), "these days", "those who…".
+const THE_SITE = "(?! (?:site|page|portfolio)\\b)";
+const AFTER = starting(
+  "about across after alongside among at before besides beyond by despite during for from in into like of on " +
+    "onto over since through to under unlike until with within without",
+);
+const POINTS_BACK = [
+  new RegExp(`^(?:[Ii]ts?|[Tt]his${THE_SITE}|[Tt]hat|[Tt]hese(?! days\\b)|[Tt]hose(?! who\\b))\\b`),
+  new RegExp(`^(?:${AFTER}) (?:this${THE_SITE}|that|these|those|it|them|then|there)\\b`),
+  new RegExp(`^(?:${starting("and but also then instead both however meanwhile otherwise")}|[Ss]o(?! far\\b))\\b`),
+  /^(?:[Ff]or (?:example|instance)|[Ii]n addition|[Aa]s a result)\b/,
+  /^(?:これ(?!まで)|それ(?!ぞれ)|この(?!サイト|ページ|ポートフォリオ)|その|こうして|こうした|そこで|また、|さらに|そして|しかし|ただし|なお、|同時に|同様に|同じく|同社|加えて|あわせて|たとえば|例えば|つまり)/u,
+];
+// What may come before a sentence's first word: an emoji, a dash. Not a
+// quote mark or a bracket: someone's words quoted are theirs, as they are.
+const BEFORE_WORDS = /^[^\p{L}\p{N}"'“‘「『(（[]+/u;
+
+/** Whether a piece opens by pointing back at the sentence before it. */
+export function pointsBack({ text }: Piece): boolean {
+  const opening = text.replace(BEFORE_WORDS, "");
+  return POINTS_BACK.some((pattern) => pattern.test(opening));
+}
+
+/** Where in `pieces` the lines are that a reply quoting the one at `at`
+    needs: itself and, while one of them points back, the sentence before it
+    (a picture or a link between the two aside). Null when it points back at
+    no sentence: at a heading, a list, a card, or the question its answer was
+    written under, none of which a reply can bring along. */
+export function neededFor(pieces: Piece[], at: number): number[] | null {
+  const needed = [at];
+  for (let i = at, piece = pieces[i]; piece && pointsBack(piece); piece = pieces[i]) {
+    let before = i - 1;
+    while (isLabel(pieces[before]?.text ?? "")) before--;
+    if (!pieces[before]?.sentence) return null;
+    needed.unshift(before);
+    i = before;
+  }
+  return needed;
+}
+
 // Anything the answer says may be quoted, but a line that only leads into
-// the next, and one too long (or otherwise unfit) for a reply.
-const isQuotable = ({ text }: Piece) => !isLabel(text) && !LEADS_IN.test(text) && isReplyText(text);
+// the next, one that can't be read without lines a reply can't bring, and
+// one too long (or otherwise unfit) for a reply, with what it needs.
+function isQuotable(pieces: Piece[], at: number): boolean {
+  const piece = pieces[at];
+  if (!piece || isLabel(piece.text) || LEADS_IN.test(piece.text)) return false;
+  const needed = neededFor(pieces, at);
+  return needed !== null && isReplyText(joined(needed.flatMap((i) => pieces[i] ?? [])));
+}
 
 /** The answer's pieces, the ones that may be quoted numbered from 1. An
     answer that says one thing has nothing to quote. */
@@ -107,7 +176,7 @@ export function numbered(text: string): Piece[] {
   const pieces = piecesOf(text);
   if (said(pieces).length < 2) return pieces;
   let n = 0;
-  return pieces.map((piece) => (isQuotable(piece) ? { ...piece, n: ++n } : piece));
+  return pieces.map((piece, at) => (isQuotable(pieces, at) ? { ...piece, n: ++n } : piece));
 }
 
 /** The answer as the model reads it: each numbered piece after its number
@@ -127,21 +196,25 @@ export const BETWEEN_LINES = " · ";
 // (a list's item, a card's row), which would run into the next.
 const gap = ({ text, sentence }: Piece) => (!sentence ? BETWEEN_LINES : WIDE_ENDS.has(text.at(-1) ?? "") ? "" : " ");
 
-const joined = (pieces: Piece[]) =>
-  pieces.reduce((before, piece, i) => `${before}${piece.text}${i < pieces.length - 1 ? gap(piece) : ""}`, "");
+function joined(pieces: Piece[]): string {
+  return pieces.reduce((before, piece, i) => `${before}${piece.text}${i < pieces.length - 1 ? gap(piece) : ""}`, "");
+}
 
-/** The reply quoting the pieces `numbers` names, in the answer's order. */
+/** The reply quoting the pieces `numbers` names, each with the sentences it
+    can't be read without, in the answer's order. */
 export function quote(text: string, numbers: unknown): Quoted {
   if (numbers === undefined || numbers === null || (Array.isArray(numbers) && !numbers.length)) return null;
   if (!isArrayOf(numbers, isCount) || numbers.length > MAX_QUOTED) return dropped("unreadable");
   const pieces = numbered(text);
-  const chosen: Piece[] = [];
-  for (const n of [...new Set(numbers)].sort((a, b) => a - b)) {
-    const piece = pieces.find((item) => item.n === n);
-    if (!piece) return dropped("range");
-    chosen.push(piece);
+  const places = new Set<number>();
+  for (const n of numbers) {
+    const at = pieces.findIndex((item) => item.n === n);
+    if (at < 0) return dropped("range");
+    // A numbered piece has what it needs: that's what gave it its number.
+    for (const place of neededFor(pieces, at) ?? [at]) places.add(place);
   }
-  // All the answer says is what the page shows under the reply anyway.
+  const chosen = [...places].sort((a, b) => a - b).flatMap((place) => pieces[place] ?? []);
+  // All the answer says: the page shows the answer itself, as it's written.
   const texts = (list: Piece[]) => squashed(list.map((piece) => piece.text).join(""));
   if (texts(chosen) === texts(said(pieces))) return dropped("whole");
   const reply = joined(chosen);

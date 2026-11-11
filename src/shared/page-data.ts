@@ -28,10 +28,8 @@ export const SCRIPT_STRINGS = [
   "askRemoved",
   "askLimited",
   "askLeft",
-  // Under a reply /ask wrote: where a personal answer is from, and what
-  // opens the answer itself.
+  // Under a reply /ask sent: where a personal answer is from.
   "askFromPersonal",
-  "askFull",
 ] as const;
 
 export type ScriptString = (typeof SCRIPT_STRINGS)[number];

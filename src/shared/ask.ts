@@ -20,8 +20,10 @@ export const MAX_QUESTION_LENGTH = 300;
 /** Largest request body the Worker reads, in bytes. */
 export const MAX_REQUEST_BYTES = 2048;
 
-/** Longest reply the Worker sends and the page shows, in characters. */
-export const MAX_REPLY_LENGTH = 280;
+/** Longest reply the Worker sends and the page shows, in characters: room
+    for two of an answer's lines, and the sentence before one that can't be
+    read without it. */
+export const MAX_REPLY_LENGTH = 400;
 
 /** Where Ask's Worker answers, under the site's path: the pages send a
     typed question there, and wrangler.jsonc runs the Worker first there. */
@@ -65,13 +67,14 @@ export type AskRequest = {
 };
 
 /** What /ask replies. The page shows a picked answer from its own copy,
-    word for word; with a reply, the reply first (as text, never HTML),
-    then where it's from, then the answer, folded. */
+    word for word; with a reply, the reply instead (as text, never HTML),
+    then a link to the tab the answer is in. */
 export type AskResponse =
   // The answer picked, or null for none (the "Something else" reply); with
   // an id, maybe a reply: one or two of that answer's own lines, the ones
-  // that answer the question (src/worker/ask/quote.ts); and, when they're
-  // few, the questions the visitor has left today.
+  // that answer the question, each with the sentence before it if it can't
+  // be read without it (src/worker/ask/quote.ts); and, when they're few,
+  // the questions the visitor has left today.
   | { id: string | null; reply?: string; left?: number }
   // The question was inappropriate (`flagged`), or the visitor was blocked
   // for one earlier: the page goes without Ask for the rest of the visit.

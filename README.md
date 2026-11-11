@@ -144,7 +144,10 @@ your site, notes what the visitor wants to know, then picks the answer
 that says it and the one or two lines in it that answer most directly (a
 sentence, an item of a list, a row of a card). The Worker (`src/worker`)
 replies by quoting those lines, so nothing the model writes reaches a
-visitor. No good fit, or Ask over its limits, and the reply is "Something
+visitor. A reply is read with nothing around it, so a sentence that opens
+by pointing back at the one before it ("It shipped…", "Those include…") is
+quoted with that sentence, or not at all. Under the reply is a link to the
+tab it's from. No good fit, or Ask over its limits, and the reply is "Something
 else". Llama Guard reads every question; an inappropriate one blocks that
 visitor for a day.
 
@@ -377,8 +380,9 @@ nothing below to protect)
   refused before anything is spent on it, and a question is cut to 300
   characters.
 - The model can't write to a visitor. It may only name one of your answers,
-  from a fixed list, and number its lines. The Worker quotes those lines: at
-  most two, at most 280 characters, as text. What the model makes of the
+  from a fixed list, and number its lines. The Worker quotes those lines, at
+  most two, each with the sentence before it if it can't be read without
+  it: at most 400 characters, as text. What the model makes of the
   question goes to the log, if you log questions, and nowhere else.
 - A pick has to cover the question. One that doesn't name the tool, company
   or place the question names is dropped, so a near miss doesn't read as a

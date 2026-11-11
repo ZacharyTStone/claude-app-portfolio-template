@@ -29,15 +29,11 @@ const REPLY = "In short, yes, from the answer below. <b>This stays text</b>.";
 type Clickable = { click(): void; ownerDocument: { querySelectorAll(selector: string): { length: number } } };
 
 // The parts of an answer that came with a reply, in order.
-const REPLY_PARTS = [CLASS.reply, CLASS.from, CLASS.fullAnswer].map((selector) => selector.slice(1));
+const REPLY_PARTS = [CLASS.reply, CLASS.from].map((selector) => selector.slice(1));
 
-/** The answer that came with a reply, in `scope`: the reply as text, the
-    line `from`, and `answer`, folded under `summary` until it's opened. */
-async function checkReplied(
-  page: Page,
-  scope: string,
-  { from, summary, answer }: { from: { text: string; href: string }; summary: string; answer: string },
-) {
+/** The answer that came with a reply, in `scope`: the reply as text and the
+    line `from`, and no more (the answer itself is in its tab). */
+async function checkReplied(page: Page, scope: string, from: { text: string; href: string }) {
   // Sent just now (.added), or shown again with a chat.
   const replied = page
     .locator(`${scope} ${CLASS.thread} > ${CLASS.answer}`)
@@ -54,14 +50,7 @@ async function checkReplied(
   const line = replied.locator(`:scope > ${CLASS.from}`);
   assert.equal(squash(await line.textContent()), squash(from.text));
   assert.equal(await line.locator(`a[href="${from.href}"]`).count(), 1, "linking to its tab");
-  const full = replied.locator(`:scope > details${CLASS.fullAnswer}`);
-  assert.equal(await full.getAttribute("open"), null, "the answer starts folded");
-  assert.equal(squash(await full.locator("summary").textContent()), squash(summary));
-  assert.ok(await full.locator(":scope > div").isHidden(), "and can't be seen");
-  await full.locator("summary").click();
-  await eventually(async () => assert.notEqual(await full.getAttribute("open"), null));
-  await full.locator(":scope > div").waitFor({ state: "visible" });
-  assert.equal(squash(await full.locator(":scope > div").textContent()), squash(answer));
+  assert.equal(squash(await replied.textContent()), squash(`${REPLY}${from.text}`), "and nothing of the answer");
 }
 
 export default (site: Site): Check[] => {
@@ -109,14 +98,14 @@ export default (site: Site): Check[] => {
       },
     },
     {
-      name: "with a reply from /ask: the reply first, then the tab it's from, then the answer, folded until opened",
+      name: "with a reply from /ask: the reply, then the tab it's from, and no more of the answer",
       url: `#${A.id}`,
       skip: noAsk,
       async test(page) {
         await askReturns(page, askUrl, { id: threadAnswerId(B.id, 1), reply: REPLY });
         await askIn(page, A.id, "Is that a yes?");
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
-        await checkReplied(page, `#${A.id}`, { from, summary: words.askFull, answer: B.answers[0] ?? "" });
+        await checkReplied(page, `#${A.id}`, from);
         assert.equal(
           await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.from}`).count(),
           1,
@@ -132,19 +121,15 @@ export default (site: Site): Check[] => {
         if (!personal) return;
         await askReturns(page, askUrl, { id: personalAnswerId(personal.id), reply: REPLY });
         await askIn(page, A.id, "And what about that?");
-        const answer = await page
-          .locator(`#${personalTab(personal.id)} ${CLASS.thread} ${CLASS.answer}`)
-          .first()
-          .textContent();
         const from = {
           text: words.askFromPersonal.replace("{tab}", personal.title ?? personal.q),
           href: `#${personalTab(personal.id)}`,
         };
-        await checkReplied(page, `#${A.id}`, { from, summary: words.askFull, answer: answer ?? "" });
+        await checkReplied(page, `#${A.id}`, from);
       },
     },
     {
-      name: "a chat keeps the reply, folded answer and all, for the next visit",
+      name: "a chat keeps the reply, and where it's from, for the next visit",
       url: "./",
       skip: noAsk,
       async test(page) {
@@ -154,7 +139,7 @@ export default (site: Site): Check[] => {
         await revisit(page, site.url("./"));
         await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
-        await checkReplied(page, OPEN_CHAT, { from, summary: words.askFull, answer: B.answers[0] ?? "" });
+        await checkReplied(page, OPEN_CHAT, from);
       },
     },
     {
@@ -181,10 +166,6 @@ export default (site: Site): Check[] => {
             .waitFor();
         }
         assert.equal(await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.reply}`).count(), 0);
-        assert.equal(
-          await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} details${CLASS.fullAnswer}`).count(),
-          0,
-        );
         assert.ok(!(await page.locator("body").textContent())?.includes(REPLY), "nor the reply sent without one");
       },
     },
