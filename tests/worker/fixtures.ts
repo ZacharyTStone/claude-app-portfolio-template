@@ -77,7 +77,11 @@ type ModelInput = {
   tools: {
     function: {
       parameters: {
-        properties: { id: { type: string; enum: string[] }; sentences: { type: string; maxItems: number } };
+        properties: {
+          thinking: { type: string };
+          id: { type: string; enum: string[] };
+          sentences: { type: string; maxItems: number };
+        };
         required: string[];
       };
     };
@@ -187,12 +191,14 @@ export function stubs({
 }
 
 /** The picker's reply when it calls pick_answer with `id`, and the
-    `sentences` it gave, if any. */
-export const toolCall = (id: string, sentences?: unknown) => ({
+    `sentences` and `thinking` it gave, if any. */
+export const toolCall = (id: string, sentences?: unknown, thinking?: unknown) => ({
   choices: [
     {
       message: {
-        tool_calls: [{ type: "function", function: { name: PICK_TOOL, arguments: JSON.stringify({ id, sentences }) } }],
+        tool_calls: [
+          { type: "function", function: { name: PICK_TOOL, arguments: JSON.stringify({ thinking, id, sentences }) } },
+        ],
       },
     },
   ],

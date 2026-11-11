@@ -7,7 +7,7 @@ import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import config from "../site.config.ts";
-import { ASK_PATH } from "../src/shared/ask.ts";
+import { ASK_PATH, isLabel, labelled } from "../src/shared/ask.ts";
 import { HOSTS, PAGE_STRINGS } from "../src/shared/config.ts";
 import type { Language, SiteConfig, Strings } from "../src/shared/config.ts";
 import type { Block, Card } from "../src/shared/content.ts";
@@ -15,6 +15,7 @@ import { hrefsIn, plainText, spans } from "../src/shared/markdown.ts";
 import { contentSecurityPolicy, securityHeaders } from "../src/shared/headers.ts";
 import { SCRIPT_STRINGS } from "../src/shared/page-data.ts";
 import { askIndex, plainAnswers } from "../src/site/answers.ts";
+import { numbered } from "../src/worker/ask/quote.ts";
 import { barLength } from "../src/site/bars.ts";
 import { cardRows } from "../src/site/card.ts";
 import { ROOT } from "../src/site/constants.ts";
@@ -591,6 +592,24 @@ test("Ask's answers have a figure's words, each block on a line of its own", () 
   ]) {
     assert.ok(work.split("\n").includes(said), `"${said}" is a line of ${work}`);
   }
+});
+
+test("a picture's caption and a link's name are labels in Ask's answers, which Ask reads but doesn't quote", () => {
+  const site = makeSite(sample({ host: "cloudflare", ask: { role: "an engineer" } }));
+  const work = plainAnswers(site, "en").find((answer) => answer.id === "work.1")?.text ?? "";
+  const labels = work.split("\n").filter(isLabel);
+  assert.ok(labels.includes(labelled("picture", "The card, as shared.")), work);
+  assert.ok(labels.includes(labelled("picture", "Once more.")), work);
+  assert.ok(labels.includes(labelled("link", "The card")), work);
+  for (const label of labels) {
+    const piece = numbered(work).find(({ text }) => text === label);
+    assert.ok(piece && piece.n === undefined, `"${label}" has no number to quote it by`);
+  }
+});
+
+test("a card's rows are each a line of Ask's answers, which Ask can quote", () => {
+  const site = makeSite(sample({ host: "cloudflare", ask: { role: "an engineer" } }));
+  for (const { text } of plainAnswers(site, "en")) assert.ok(!/^\w+: [^\n]*; \w+: /m.test(text), text);
 });
 
 // ---- Hosts and addresses ---------------------------------------------------------------

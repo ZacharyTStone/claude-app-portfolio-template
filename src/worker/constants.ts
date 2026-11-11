@@ -12,16 +12,20 @@ export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;
 /** The model that picks, unless ASK_MODEL names another. */
 export const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
 
-/** The most the picker may write: its tool call, and any reasoning. */
+/** The most the picker may write: its tool call, with the sentence or two
+    of thinking the call starts with (pick.ts), and any reasoning of the
+    model's own. What it writes costs several times what it reads, and the
+    day's budget counts what was really used. */
 export const MAX_PICK_TOKENS = 1024;
 
-/** The most a model told not to reason may write: its tool call is a few
-    dozen tokens, and what it writes costs several times what it reads. */
-export const MAX_PLAIN_PICK_TOKENS = 256;
+/** The most a model told not to reason on its own may write: the call's
+    thinking is a sentence or two, and the rest of it a few dozen tokens. */
+export const MAX_PLAIN_PICK_TOKENS = 512;
 
-/** How each model is told that a pick from a list needs no long reasoning,
-    and how much one that doesn't reason may write. Any other model is called
-    without options. */
+/** How each model is told to keep its own reasoning short or off: the
+    thinking the pick needs is in the tool call, where it's a sentence or
+    two and the log can show it. With that, how much a model that doesn't
+    reason may write. Any other model is called without options. */
 export const MODEL_OPTIONS: ReadonlyMap<string, Record<string, unknown>> = new Map([
   [DEFAULT_MODEL, { chat_template_kwargs: { enable_thinking: false }, max_completion_tokens: MAX_PLAIN_PICK_TOKENS }],
   ["@cf/qwen/qwen3.8-27b", { reasoning_effort: "low" }],

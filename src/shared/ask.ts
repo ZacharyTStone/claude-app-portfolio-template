@@ -4,6 +4,13 @@
 
 import { personalTab } from "./page-data.ts";
 
+/** A line of an answer's text that only names something the page shows, a
+    picture or a link: "(picture: The home page)". The model reads it to
+    know what's there; it isn't the owner's sentence, so Ask never quotes it. */
+export type LabelKind = "picture" | "link";
+export const labelled = (kind: LabelKind, name: string): string => `(${kind}: ${name})`;
+export const isLabel = (line: string): boolean => /^\((?:picture|link): .*\)$/u.test(line);
+
 /** The index's file name on the site, which the Worker reads at /ask.json. */
 export const ASK_INDEX_FILE = "ask.json";
 
@@ -29,7 +36,9 @@ export type AskAnswer = {
   title: string;
   /** Its question. */
   q: string;
-  /** The answer, as plain text. */
+  /** The answer, as plain text: a line for each of its blocks (a paragraph,
+      a list's item, a card's row, a figure), a picture or a link as a
+      label (`labelled`). */
   text: string;
 };
 
@@ -60,9 +69,9 @@ export type AskRequest = {
     then where it's from, then the answer, folded. */
 export type AskResponse =
   // The answer picked, or null for none (the "Something else" reply); with
-  // an id, maybe a reply: one or two of that answer's own sentences, the
-  // ones that answer the question (src/worker/ask/quote.ts); and, when
-  // they're few, the questions the visitor has left today.
+  // an id, maybe a reply: one or two of that answer's own lines, the ones
+  // that answer the question (src/worker/ask/quote.ts); and, when they're
+  // few, the questions the visitor has left today.
   | { id: string | null; reply?: string; left?: number }
   // The question was inappropriate (`flagged`), or the visitor was blocked
   // for one earlier: the page goes without Ask for the rest of the visit.
@@ -86,6 +95,6 @@ const CONTROL = /[\p{Cc}\p{Cf}\u2028\u2029]/u;
 /** Text the page can show as a reply: a string with something in it, at
     most MAX_REPLY_LENGTH characters, with no control or format characters
     (so one line, and nothing hidden or reordered). The Worker quotes only
-    sentences that pass it, and the page checks what it's sent. */
+    lines that pass it, and the page checks what it's sent. */
 export const isReplyText = (value: unknown): value is string =>
   typeof value === "string" && value.trim() !== "" && value.length <= MAX_REPLY_LENGTH && !CONTROL.test(value);

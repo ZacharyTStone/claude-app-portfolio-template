@@ -75,9 +75,16 @@ function wordsOf(text: string): Set<string> {
 // isn't "JavaScript", nor "Excel" "excellent".
 const SAME_THING_ENDINGS = ["s", "es", "js", "ql", "sql"];
 
+// A name without the dots and dashes some write in it: "nodejs" for
+// "Node.js", "frontend" for "front-end".
+const plain = (word: string) => word.replace(/[.-]/g, "");
+
 // Whether the answer's word names what the question's term does.
 const same = (term: string, word: string): boolean =>
-  word === term || term.replace(/s$/, "") === word || SAME_THING_ENDINGS.some((ending) => word === `${term}${ending}`);
+  word === term ||
+  plain(word) === plain(term) ||
+  term.replace(/s$/, "") === word ||
+  SAME_THING_ENDINGS.some((ending) => word === `${term}${ending}`);
 
 // Short forms a visitor may use for what an answer spells out: a short
 // list, to add to when the eval shows a miss.
@@ -90,6 +97,11 @@ const SPELLED_OUT: Record<string, string[]> = {
   ux: ["user experience"],
   ui: ["user interface", "interface"],
   qa: ["quality assurance", "testing"],
+  ci: ["continuous integration"],
+  cd: ["continuous delivery", "continuous deployment", "deploy"],
+  k8s: ["kubernetes"],
+  db: ["database"],
+  fe: ["frontend", "front-end", "front end"],
 };
 
 /** Whether `answer` (its text, question and tab) names everything the

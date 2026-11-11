@@ -67,9 +67,10 @@
   //   // created, so changing this later doesn't move it.
   //   "ASK_GUARD_LOCATION": "enam",
   //   // Each /ask log line says which answer was picked and what it cost, or
-  //   // why the question was turned away, and never the visitor's address. "true" adds what
-  //   // was asked (`question`), the numbers of the sentences the model chose
-  //   // to quote (`chose`) and the reply sent (`said`), to read under the
+  //   // why the question was turned away, and never the visitor's address.
+  //   // "true" adds what was asked (`question`), what the model made of it
+  //   // before it picked (`thought`), the numbers of the lines it chose to
+  //   // quote (`chose`) and the reply sent (`said`), to read under the
   //   // Worker's Observability tab until Workers Logs drops them (3 days on
   //   // the free plan). Off, so visitors' words aren't kept, unless you
   //   // choose to keep them and say so.

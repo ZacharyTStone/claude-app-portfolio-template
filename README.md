@@ -139,12 +139,19 @@ With Ask off, as shipped, a question typed into the site gets the
 and a LinkedIn message to copy. Everything else works the same on any
 host.
 
-With Ask on, a small model on Cloudflare Workers AI picks which of your
-answers fits the question, and which one or two of its sentences answer it
-most directly. The Worker (`src/worker`) replies by quoting those
-sentences, so nothing the model writes reaches a visitor. No good fit, or
-Ask over its limits, and the reply is "Something else". Llama Guard reads
-every question; an inappropriate one blocks that visitor for a day.
+With Ask on, a small model on Cloudflare Workers AI reads every answer on
+your site, notes what the visitor wants to know, then picks the answer
+that says it and the one or two lines in it that answer most directly (a
+sentence, an item of a list, a row of a card). The Worker (`src/worker`)
+replies by quoting those lines, so nothing the model writes reaches a
+visitor. No good fit, or Ask over its limits, and the reply is "Something
+else". Llama Guard reads every question; an inappropriate one blocks that
+visitor for a day.
+
+Ask finds what your site says, so write answers it can quote: full
+sentences that make sense on their own ("Alex joined Acme in 2024", not
+"Joined in 2024"), and the facts people ask about (dates, titles, tools)
+stated somewhere in words.
 
 To turn it on (first check which plan your Cloudflare account is on:
 [What Ask can cost](#what-ask-can-cost)):
@@ -161,11 +168,12 @@ To turn it on (first check which plan your Cloudflare account is on:
 To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 `wrangler.jsonc` and deploy.
 
-**What is logged.** One line per question, under the Worker's
-Observability tab: which answer was picked and what it cost in Neurons, or
-why the question was turned away. Never the visitor's address. What was asked and what was quoted back
-are logged only if you set `ASK_LOG_QUESTIONS` to `"true"`; if you do, say
-so on your site.
+One line is logged per question, under the Worker's Observability tab:
+which answer was picked and what it cost in Neurons, or why the question
+was turned away. The visitor's address is never logged. What was asked,
+what the model made of it and what was quoted back are logged only if you
+set `ASK_LOG_QUESTIONS` to `"true"`; if you do, say so on your site. With
+it on, the `thought` in a line tells you why Ask answered as it did.
 
 To see how well it picks, put questions about you in
 `tests/ask-questions.json`, raise `ASK_VISITOR_LIMIT` above their number,
@@ -331,87 +339,87 @@ CSS and the site's one script, with no framework code.
 
 ## Protections
 
-Everything that protects a site made from the template, its visitors and
-its bill, in one list. The numbers are the defaults, from `wrangler.jsonc`.
-See `.github/SECURITY.md` to report a problem.
+What protects a site made from the template, its visitors and its bill.
+The numbers are the defaults, from `wrangler.jsonc`. See
+`.github/SECURITY.md` to report a problem.
 
 **The pages**
 
-- **A strict Content-Security-Policy.** `default-src 'none'`, with only
-  the site's own scripts, styles, images and fonts; nothing inline; the
-  page may fetch only from the site itself, and only with Ask on; no
-  `<base>`, no form posts, no framing.
-- **Trusted Types, with no policy.** The script can't turn a string into
-  markup: it builds elements, and shows a reply from `/ask` as text.
-- **The other headers.** HTTPS only for two years (HSTS; subdomains and
-  preloading if you ask for them with `hsts`); `nosniff`;
-  `X-Frame-Options: DENY`; a referrer policy that gives another site the
-  origin at most; a Permissions-Policy that turns off the camera,
+- The Content-Security-Policy is `default-src 'none'`, with only the site's
+  own scripts, styles, images and fonts. Nothing inline runs, the page may
+  fetch only from the site itself, and only with Ask on, and there is no
+  `<base>`, no form post and no framing.
+- Trusted Types is required with no policy, so the script can't turn a
+  string into markup. It builds elements, and shows a reply from `/ask` as
+  text.
+- The other headers are in `src/shared/headers.ts`: HTTPS only for two years
+  (HSTS; subdomains and preloading if you ask for them with `hsts`);
+  `nosniff`; `X-Frame-Options: DENY`; a referrer policy that gives another
+  site the origin at most; a Permissions-Policy that turns off the camera,
   microphone, location, payments, USB and ad topics; and
-  `Cross-Origin-Opener-Policy: same-origin`. All of them are in
-  `src/shared/headers.ts`. A host that reads no `_headers` file gets the
-  Content-Security-Policy and the referrer policy in `<meta>` tags, and
-  the rest are yours to set there (see [Deploy](#deploy)).
-- **Nothing from anyone else.** No analytics, no cookies, no third-party
-  requests: the fonts and icons are the site's own files. Chats and
-  layout are kept in `localStorage`, in the visitor's browser only. A
-  link to another site opens with `noopener noreferrer`.
-- **A config that's checked.** The build stops on a link that isn't a web,
-  mailto, #tab or site address (so no `javascript:`), and on a value that
-  doesn't look like what it's used as. The config's Markdown is bold,
-  italic, code and links, never HTML.
+  `Cross-Origin-Opener-Policy: same-origin`. A host that reads no `_headers`
+  file gets the Content-Security-Policy and the referrer policy in `<meta>`
+  tags, and the rest are yours to set there (see [Deploy](#deploy)).
+- The site has no analytics, no cookies and no third-party requests: the
+  fonts and icons are its own files. Chats and layout are kept in
+  `localStorage`, in the visitor's browser only. A link to another site
+  opens with `noopener noreferrer`.
+- The build checks the config. It stops on a link that isn't a web, mailto,
+  #tab or site address (so no `javascript:`), and on a value that doesn't
+  look like what it's used as. The config's Markdown is bold, italic, code
+  and links, never HTML.
 
 **Ask's requests** (Ask is off as shipped: then there is no Worker, and
 nothing below to protect)
 
-- **Only a small JSON POST gets in.** Another method, another content
-  type (which a page on another site can't send) or a body over 2,048
-  bytes is refused before anything is spent on it, and a question is cut
-  to 300 characters.
-- **The model can't write to a visitor.** It may only name one of your
-  answers, from a fixed list, and number its sentences. The Worker quotes
-  those sentences: at most two, at most 280 characters, as text.
-- **A pick has to cover the question.** One that doesn't name the tool,
-  company or place the question names is dropped, so a near miss doesn't
-  read as a "no".
-- **Two checks on every question.** The picker flags a rude question, or
-  one that tries to give it other orders, and Llama Guard reads each
-  question too. Either blocks the visitor from Ask for 24 hours.
-- **Visitors aren't identified.** A visitor is counted by a salted hash
-  of their address (an IPv6 address by its /64). Set your own salt as a
-  secret (`ASK_SALT`). The address is never stored or logged; what was
-  asked is logged only if you turn `ASK_LOG_QUESTIONS` on; and an error
-  is logged by its number or kind, never its message.
+- Ask takes only a small JSON POST. Another method, another content type
+  (which a page on another site can't send) or a body over 2,048 bytes is
+  refused before anything is spent on it, and a question is cut to 300
+  characters.
+- The model can't write to a visitor. It may only name one of your answers,
+  from a fixed list, and number its lines. The Worker quotes those lines: at
+  most two, at most 280 characters, as text. What the model makes of the
+  question goes to the log, if you log questions, and nowhere else.
+- A pick has to cover the question. One that doesn't name the tool, company
+  or place the question names is dropped, so a near miss doesn't read as a
+  "no".
+- Two models check every question. The picker flags a rude question, or one
+  that tries to give it other orders, and Llama Guard reads each question
+  too. Either blocks the visitor from Ask for 24 hours.
+- Visitors aren't identified. A visitor is counted by a salted hash of their
+  address (an IPv6 address by its /64). Set your own salt as a secret
+  (`ASK_SALT`). The address is never stored or logged; what was asked is
+  logged only if you turn `ASK_LOG_QUESTIONS` on; and an error is logged by
+  its number or kind, never its message.
 
 **Ask's cost**
 
-- **A visitor's limits.** 10 questions a minute and 30 a day.
-- **The site's limits.** 200 questions a day, and 9,000 Neurons a day,
+- A visitor may ask 10 questions a minute and 30 a day.
+- The site may answer 200 questions a day and spend 9,000 Neurons a day,
   counted from the tokens each question's model calls used.
-- **Small model calls.** The picker may write 256 tokens, and Llama Guard
-  10.
-- **It fails closed.** With the rate limiter, the Durable Object or a
-  model missing or failing, no model is called, and the visitor gets the
+- The model calls are kept small: the picker may write 512 tokens, and Llama
+  Guard 10.
+- Ask fails closed. With the rate limiter, the Durable Object or a model
+  missing or failing, no model is called, and the visitor gets the
   "Something else" reply.
-- **A switch.** `ASK_ENABLED` set to `"false"` turns Ask off without a
-  code change.
-- **The plan.** On Workers Free, Cloudflare refuses what it would
-  otherwise bill, and the pages are files that never run the Worker (see
-  [What Ask can cost](#what-ask-can-cost)).
-- **Rules at the edge**, which you set by hand in the Cloudflare
-  dashboard: a rate limit on `/ask`, and a block on requests the site has
-  no use for (see [Rules at the edge](#rules-at-the-edge)).
+- `ASK_ENABLED` set to `"false"` turns Ask off without a code change.
+- On Workers Free, Cloudflare refuses what it would otherwise bill, and the
+  pages are files that never run the Worker (see [What Ask can
+  cost](#what-ask-can-cost)).
+- Two rules are yours to set by hand in the Cloudflare dashboard: a rate
+  limit on `/ask`, and a block on requests the site has no use for (see
+  [Rules at the edge](#rules-at-the-edge)).
 
 **The code**
 
-- **Every change is checked.** `npm run verify` runs on each pull
-  request: formatting, types, the build, the HTML, the unit tests, and
-  the browser checks, which are served with the real security headers.
-  The workflow's token can only read the repository.
-- **Dependencies are kept current.** Dependabot opens a pull request each
-  month for the npm packages and the GitHub Actions. None of the packages
-  reaches the browser: only Astro's build of the site does.
-- **Nothing built is committed.** Your host builds the site from source.
+- `npm run verify` runs on each pull request: formatting, types, the build,
+  the HTML, the unit tests, and the browser checks, which are served with
+  the real security headers. The workflow's token can only read the
+  repository.
+- Dependabot opens a pull request each month for the npm packages and the
+  GitHub Actions. None of the packages reaches the browser: only Astro's
+  build of the site does.
+- Nothing built is committed. Your host builds the site from source.
 
 ## Credits and licence
 
