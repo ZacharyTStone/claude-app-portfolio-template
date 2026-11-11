@@ -4,8 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES } from "../../src/shared/ask.ts";
-import worker from "../../src/worker/index.ts";
-import { ask, askJson, firstCall, stubs } from "./fixtures.ts";
+import { ask, askJson, firstCall, send, stubs } from "./fixtures.ts";
 
 test("turned off, it doesn't call the model", async () => {
   for (const ASK_ENABLED of ["false", "TRUE", ""]) {
@@ -42,7 +41,7 @@ test("a body with no Content-Length is read no further than MAX_REQUEST_BYTES", 
     body,
     duplex: "half",
   } as RequestInit);
-  assert.equal((await worker.fetch(request, env)).status, 413);
+  assert.equal((await send(env, request)).status, 413);
   assert.ok(pulled <= MAX_REQUEST_BYTES / chunk.byteLength + 2, `read ${pulled} KB`);
   assert.equal(calls.length, 0);
 });

@@ -1,6 +1,7 @@
 /* The limits on cost: the rate limiter, and the day's allowances kept by
-   AskGuard (the site's and each visitor's). Past any limit, or with either
-   missing or down, the model isn't asked. */
+   AskGuard (the site's and each visitor's questions, and the Neurons the
+   site's may cost). Past any limit, or with either missing or down, the
+   model isn't asked. What a question costs is in cost.test.ts. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
@@ -50,20 +51,22 @@ test("the rate limit is keyed by the visitor's hash, the same one AskGuard count
   assert.match(limitKeys[0] ?? "", /^[0-9a-f]{32}$/);
 });
 
-test("AskGuard is asked with the site's and the visitor's daily limits, as set or by default", async () => {
+test("AskGuard is asked with the day's limits (the site's, a visitor's, the Neurons), as set or by default", async () => {
   const take = async (vars = {}) => {
     const { env, guard } = stubs({ vars });
     await askJson(env, "who?");
     const url = guard.requests.find((request) => request.pathname === GUARD_PATH.take);
-    return [url?.searchParams.get("limit"), url?.searchParams.get("each")];
+    return ["limit", "each", "budget"].map((name) => url?.searchParams.get(name));
   };
-  assert.deepEqual(await take(), [String(DEFAULTS.dailyLimit), String(DEFAULTS.visitorLimit)]);
-  assert.deepEqual(await take({ ASK_DAILY_LIMIT: "7", ASK_VISITOR_LIMIT: "5" }), ["7", "5"]);
+  const defaults = [DEFAULTS.dailyLimit, DEFAULTS.visitorLimit, DEFAULTS.neuronBudget].map(String);
+  assert.deepEqual(await take(), defaults);
+  assert.deepEqual(await take({ ASK_DAILY_LIMIT: "7", ASK_VISITOR_LIMIT: "5", ASK_DAILY_NEURONS: "1200" }), [
+    "7",
+    "5",
+    "1200",
+  ]);
   for (const bad of ["0", "-1", "Infinity", "lots"]) {
-    assert.deepEqual(await take({ ASK_DAILY_LIMIT: bad, ASK_VISITOR_LIMIT: bad }), [
-      String(DEFAULTS.dailyLimit),
-      String(DEFAULTS.visitorLimit),
-    ]);
+    assert.deepEqual(await take({ ASK_DAILY_LIMIT: bad, ASK_VISITOR_LIMIT: bad, ASK_DAILY_NEURONS: bad }), defaults);
   }
 });
 
@@ -117,6 +120,22 @@ test("with WARN_AT questions left or fewer, the reply says how many", async () =
   }
 });
 
+test("a small visitor's limit is warned about near its end, not from its start: at a third left", async () => {
+  for (const [limit, left, said] of [
+    ["12", 4, { id: "skills.1", left: 4 }],
+    ["12", 5, { id: "skills.1" }],
+    ["2", 1, { id: "skills.1" }],
+    ["2", 0, { id: "skills.1", left: 0 }],
+  ] as const) {
+    const { env } = stubs({
+      run: models(toolCall("skills.1")),
+      guardSays: okLeft(left),
+      vars: { ASK_VISITOR_LIMIT: limit },
+    });
+    assert.deepEqual(await askJson(env, "Postgres?"), said, `${left} left of ${limit}`);
+  }
+});
+
 test("past the visitor's limit: { limited } with the limit, no model call", async () => {
   for (const [vars, limit] of [
     [{}, DEFAULTS.visitorLimit],
@@ -159,7 +178,7 @@ const used = (stored: Stored) => (stored.get(GUARD_KEYS.today) as { used: number
 test("the guard counts the site's and each visitor's day, and holds blocks until they run out", async () => {
   const stored: Stored = new Map();
   const call = guardOver(stored);
-  const take = (who: string, limit: number, each: number) => call(GUARD_PATH.take, { limit, each, who });
+  const take = (who: string, limit: number, each: number) => call(GUARD_PATH.take, { limit, each, budget: 9000, who });
   // The site's daily limit (3), across visitors.
   const replies = [];
   for (const who of ["a", "b", "c", "d"]) replies.push(await take(who, 3, 30));
@@ -194,10 +213,56 @@ test("a new day forgets every visitor's count and the blocks run out, however ma
   );
 });
 
+test("the guard counts what the day's questions cost, and past the budget takes no more until the next day", async () => {
+  const stored: Stored = new Map();
+  const call = guardOver(stored);
+  const take = (who: string, budget: number | string = 100) =>
+    call(GUARD_PATH.take, { limit: 99, each: 30, budget, who });
+  const spent = () => (stored.get(GUARD_KEYS.today) as { neurons?: number } | undefined)?.neurons;
+  // Nothing to add a cost to before the day's first question.
+  assert.equal(await call(GUARD_PATH.spend, { neurons: 5 }), GUARD_REPLY.ok);
+  assert.equal(spent(), undefined);
+  assert.equal(await take("a"), okLeft(29));
+  assert.equal(await call(GUARD_PATH.spend, { neurons: 60.5 }), GUARD_REPLY.ok);
+  // Under the budget another is taken, and taking keeps what's been spent.
+  assert.equal(await take("b"), okLeft(29));
+  assert.equal(spent(), 60.5);
+  await call(GUARD_PATH.spend, { neurons: 39.5 });
+  assert.equal(spent(), 100);
+  // At the budget: no more, whoever asks, and nothing of theirs is counted.
+  assert.equal(await take("c"), GUARD_REPLY.spent);
+  assert.equal(used(stored), 2);
+  assert.equal(stored.has(`${GUARD_KEYS.count}c`), false);
+  // A larger budget lets the day go on; none at all is no limit.
+  assert.equal(await take("c", 101), okLeft(29));
+  assert.equal(await call(GUARD_PATH.take, { limit: 99, each: 30, who: "d" }), okLeft(29));
+  // The next day starts from nothing, and a cost that comes in for the day
+  // before is dropped.
+  stored.set(GUARD_KEYS.today, { day: "2000-01-01", used: 50, neurons: 100 });
+  await call(GUARD_PATH.spend, { neurons: 7 });
+  assert.deepEqual(stored.get(GUARD_KEYS.today), { day: "2000-01-01", used: 50, neurons: 100 });
+  assert.equal(await take("e"), okLeft(29));
+  assert.equal(spent(), 0);
+});
+
+test("a day's count from before the guard counted Neurons is read as none spent", async () => {
+  const stored: Stored = new Map();
+  const call = guardOver(stored);
+  assert.equal(await call(GUARD_PATH.take, { limit: 99, each: 30, budget: 10, who: "a" }), okLeft(29));
+  const today = stored.get(GUARD_KEYS.today) as { day: string; used: number };
+  stored.set(GUARD_KEYS.today, { day: today.day, used: today.used });
+  assert.equal(await call(GUARD_PATH.take, { limit: 99, each: 30, budget: 10, who: "b" }), okLeft(29));
+  await call(GUARD_PATH.spend, { neurons: 10 });
+  assert.equal(await call(GUARD_PATH.take, { limit: 99, each: 30, budget: 10, who: "c" }), GUARD_REPLY.spent);
+});
+
 test("the guard turns away a request it can't read, and a path it doesn't have", async () => {
   const call = guardOver(new Map());
   assert.equal(await call(GUARD_PATH.take, { limit: 3, each: 30 }), 400);
   assert.equal(await call(GUARD_PATH.take, { limit: "lots", each: 30, who: "a" }), 400);
+  assert.equal(await call(GUARD_PATH.take, { limit: 3, each: 30, budget: "lots", who: "a" }), 400);
+  assert.equal(await call(GUARD_PATH.spend, {}), 400);
+  assert.equal(await call(GUARD_PATH.spend, { neurons: -1 }), 400);
   assert.equal(await call(GUARD_PATH.block, { hours: -1, who: "a" }), 400);
   assert.equal(await call("/other", { who: "a" }), 404);
 });

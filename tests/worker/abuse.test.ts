@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
-import { isUnsafe } from "../../src/worker/ask/moderation.ts";
+import { verdictOn } from "../../src/worker/ask/moderation.ts";
 import {
   GUARD_OPTIONS,
   GUARD_PATH,
@@ -96,10 +96,10 @@ test("Llama Guard is run cut short, and failing or slower than its time, the pic
   assert.deepEqual(await askJson(down.env, "Postgres?"), { id: "skills.1" });
   const never = { run: () => new Promise(() => {}) } as unknown as Ai;
   const started = Date.now();
-  assert.equal(await isUnsafe(never, "anything", 30), false);
+  assert.equal((await verdictOn(never, "anything", 30)).unsafe, false);
   assert.ok(Date.now() - started < 1000);
   const unsafe = { run: async () => ({ response: "unsafe\nS1" }) } as unknown as Ai;
-  assert.equal(await isUnsafe(unsafe, "anything", 30), true);
+  assert.equal((await verdictOn(unsafe, "anything", 30)).unsafe, true);
 });
 
 test("a blocked asker gets { blocked } with no model call", async () => {

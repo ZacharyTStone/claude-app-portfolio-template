@@ -8,9 +8,9 @@ import type { Env } from "./env.ts";
 export { AskGuard } from "./guard/ask-guard.ts";
 
 export default {
-  async fetch(request: Request, env: Env): Promise<Response> {
+  async fetch(request: Request, env: Env, ctx: ExecutionContext): Promise<Response> {
     // A path with no file reaches the Worker too: it gets the site's 404.
     if (new URL(request.url).pathname !== ASK_PATH) return env.ASSETS.fetch(request);
-    return handleAsk(request, env);
+    return handleAsk(request, env, ctx);
   },
 } satisfies ExportedHandler<Env>;

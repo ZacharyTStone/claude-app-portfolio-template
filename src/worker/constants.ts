@@ -1,6 +1,6 @@
-/* The Worker's fixed names and numbers: its paths, models, limits, and what
-   AskGuard stores. The settings (ASK_*) are in env.ts, and the contract with
-   the page in src/shared/ask.ts. */
+/* The Worker's fixed names and numbers: its paths, models, prices, limits,
+   and what AskGuard stores. The settings (ASK_*) are in env.ts, and the
+   contract with the page in src/shared/ask.ts. */
 
 import { ASK_INDEX_FILE } from "../shared/ask.ts";
 
@@ -12,12 +12,23 @@ export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;
 /** The model that picks, unless ASK_MODEL names another. */
 export const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
 
-/** How each model is told that a pick from a list needs no long reasoning.
-    Any other model is called without options. */
+/** The most the picker may write: its tool call, and any reasoning. */
+export const MAX_PICK_TOKENS = 1024;
+
+/** The most a model told not to reason may write: its tool call is a few
+    dozen tokens, and what it writes costs several times what it reads. */
+export const MAX_PLAIN_PICK_TOKENS = 256;
+
+/** How each model is told that a pick from a list needs no long reasoning,
+    and how much one that doesn't reason may write. Any other model is called
+    without options. */
 export const MODEL_OPTIONS: ReadonlyMap<string, Record<string, unknown>> = new Map([
-  [DEFAULT_MODEL, { chat_template_kwargs: { enable_thinking: false } }],
+  [DEFAULT_MODEL, { chat_template_kwargs: { enable_thinking: false }, max_completion_tokens: MAX_PLAIN_PICK_TOKENS }],
   ["@cf/qwen/qwen3.8-27b", { reasoning_effort: "low" }],
-  ["@cf/deepseek-ai/deepseek-v4.1-flash-1017", { reasoning_effort: "none" }],
+  [
+    "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
+    { reasoning_effort: "none", max_completion_tokens: MAX_PLAIN_PICK_TOKENS },
+  ],
 ]);
 
 /** Llama Guard, which reads every question beside the picker. */
@@ -31,6 +42,11 @@ export const GUARD_OPTIONS = { max_tokens: 10, temperature: 0 } as const;
 /** How long the pick waits for its verdict, in milliseconds. */
 export const GUARD_TIMEOUT = 2500;
 
+/** About what Llama Guard reads besides the question: its own instructions
+    and categories, in tokens. Used for a verdict that came too late to say
+    what it used. */
+export const GUARD_PROMPT_TOKENS = 250;
+
 /** The one tool the picker may call, and what it may say besides an id. */
 export const PICK_TOOL = "pick_answer";
 /** No answer says what was asked. */
@@ -38,12 +54,29 @@ export const NONE = "none";
 /** The question is rude, or tries to make the model do something else. */
 export const INAPPROPRIATE = "inappropriate";
 
-/** The most the picker may write (its tool call, and any reasoning). */
-export const MAX_PICK_TOKENS = 1024;
+// ---- What a call costs -----------------------------------------------------------
+
+/** A model's price: Neurons for a million tokens read, and for a million
+    written (developers.cloudflare.com/workers-ai/platform/pricing). */
+export type Price = { input: number; output: number };
+
+/** The prices of the models above. The day's budget (ASK_DAILY_NEURONS) is
+    counted with these, so when Cloudflare changes one, change it here. */
+export const PRICES: ReadonlyMap<string, Price> = new Map([
+  [DEFAULT_MODEL, { input: 5_500, output: 36_400 }],
+  ["@cf/qwen/qwen3.8-27b", { input: 40_909, output: 290_909 }],
+  ["@cf/deepseek-ai/deepseek-v4.1-flash-1017", { input: 27_273, output: 109_091 }],
+  [GUARD_MODEL, { input: 44_003, output: 2_730 }],
+]);
+
+/** A model with no price here is counted at the dearest picker's, so the
+    budget stops early rather than late; ASK_MODEL_PRICE gives its own. */
+export const UNLISTED_PRICE: Price = { input: 40_909, output: 290_909 };
 
 // ---- Limits ------------------------------------------------------------------------
 
-/** A visitor with this many questions or fewer left today is told so. */
+/** A visitor with this many questions or fewer left today is told so (or,
+    where a visitor's limit is under three times this, a third of it). */
 export const WARN_AT = 10;
 
 /** What a visitor's address is hashed with, unless ASK_SALT says. The hash
@@ -57,19 +90,23 @@ export const VISITOR_SALT = "portfolio-ask:";
 /** The name the site's one AskGuard is found by. */
 export const GUARD_NAME = "ask";
 
-/** Where its two requests go, and what each says in its query. Any host
-    does: a Durable Object gets whatever it's sent. */
+/** Where its requests go, and what each says in its query. Any host does:
+    a Durable Object gets whatever it's sent. */
 export const GUARD_ORIGIN = "https://guard";
-export const GUARD_PATH = { take: "/take", block: "/block" } as const;
-export type TakeQuery = { limit: string; each: string; who: string };
+export const GUARD_PATH = { take: "/take", block: "/block", spend: "/spend" } as const;
+/** `limit` and `each` are the day's questions, the site's and one visitor's;
+    `budget` the day's Neurons. */
+export type TakeQuery = { limit: string; each: string; budget: string; who: string };
 export type BlockQuery = { hours: string; who: string };
+export type SpendQuery = { neurons: string };
 
 /** What it answers: to /take, "ok <left>" or another of these (client.ts's
-    Gate says what each means); to /block, "ok". */
+    Gate says what each means); to /block and /spend, "ok". */
 export const GUARD_REPLY = { ok: "ok", limited: "limited", spent: "spent", blocked: "blocked" } as const;
 
 /** What it keeps. These keys are the deployed site's state, so they stay:
-    - today: { day, used }, the site's questions on that day;
+    - today: { day, used, neurons }, the site's questions on that day, and
+      the Neurons they cost (not there before the first is counted);
     - count + who: { day, asked }, one visitor's;
     - block + who: when their block runs out (ms since 1970). */
 export const GUARD_KEYS = { today: "today", count: "count:", block: "block:" } as const;

@@ -29,9 +29,10 @@
   // // At most 10 questions a minute from one visitor (per Cloudflare
   // // location). namespace_id is any number, unique in your account.
   // "ratelimits": [{ "name": "ASK_LIMIT", "namespace_id": "4242", "simple": { "limit": 10, "period": 60 } }],
-  // // And at most ASK_DAILY_LIMIT a day for the whole site, and a block on
-  // // anyone who asks something inappropriate, kept in one Durable Object
-  // // (AskGuard, src/worker/guard).
+  // // And for the whole site a day's questions (ASK_DAILY_LIMIT) and what
+  // // they may cost (ASK_DAILY_NEURONS), and a block on anyone who asks
+  // // something inappropriate, kept in one Durable Object (AskGuard,
+  // // src/worker/guard).
   // "durable_objects": { "bindings": [{ "name": "ASK_GUARD", "class_name": "AskGuard" }] },
   // "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AskGuard"] }],
   // // Visitors' addresses are hashed before they're counted. Set your own
@@ -41,13 +42,22 @@
   //   // "false" turns /ask off without a code change (typed questions then
   //   // get the "Something else" reply).
   //   "ASK_ENABLED": "true",
-  //   // Questions sent to the model per day (UTC), for the whole site. Each
-  //   // is at most about 40 Neurons with GLM-4.7-Flash (the pick, and Llama
-  //   // Guard reading the question), so 200 is at most about 8,000, inside
-  //   // the free 10,000 a day.
+  //   // Questions sent to the model per day (UTC), for the whole site.
   //   "ASK_DAILY_LIMIT": "200",
-  //   // Questions per visitor (hashed address) per day. Near it they're told
-  //   // how many are left; past it, that asking runs on a free service.
+  //   // What those questions may cost per day, in Workers AI Neurons, for
+  //   // the whole site. Each question's cost is counted from the tokens its
+  //   // two model calls used (the pick, and Llama Guard reading the
+  //   // question), and once the day's reach this no more are asked until
+  //   // midnight UTC. Workers AI gives 10,000 free a day; the 1,000 between
+  //   // is for the questions already on their way when the budget is
+  //   // reached. What a question costs depends on how much your site says,
+  //   // since the model reads every answer: each /ask log line has it, as
+  //   // `neurons`.
+  //   "ASK_DAILY_NEURONS": "9000",
+  //   // Questions per visitor (hashed address) per day. With ten left (or a
+  //   // third of a smaller limit) they're told how many; past it, that
+  //   // asking runs on a free service. The lower this is, the more
+  //   // addresses it takes to use up the site's day.
   //   "ASK_VISITOR_LIMIT": "30",
   //   // How long an address (hashed) can't use /ask after an inappropriate
   //   // question.
@@ -56,8 +66,8 @@
   //   // near Workers AI in North America; it stays where it was first
   //   // created, so changing this later doesn't move it.
   //   "ASK_GUARD_LOCATION": "enam",
-  //   // Each /ask log line says which answer was picked, or why the question
-  //   // was turned away, and never the visitor's address. "true" adds what
+  //   // Each /ask log line says which answer was picked and what it cost, or
+  //   // why the question was turned away, and never the visitor's address. "true" adds what
   //   // was asked (`question`), the numbers of the sentences the model chose
   //   // to quote (`chose`) and the reply sent (`said`), to read under the
   //   // Worker's Observability tab until Workers Logs drops them (3 days on
@@ -65,8 +75,10 @@
   //   // choose to keep them and say so.
   //   "ASK_LOG_QUESTIONS": "false",
   //   // Any Workers AI text model with function calling;
-  //   // src/worker/constants.ts has the settings for the ones it's been
-  //   // tried with.
+  //   // src/worker/constants.ts has the settings and the prices for the
+  //   // ones it's been tried with. Another model is counted at the dearest
+  //   // of those prices unless ASK_MODEL_PRICE gives its own, as Neurons
+  //   // for a million tokens read and a million written: "5500/36400".
   //   "ASK_MODEL": "@cf/zai-org/glm-4.7-flash"
   // },
   // ---- End of Ask -----------------------------------------------------------
