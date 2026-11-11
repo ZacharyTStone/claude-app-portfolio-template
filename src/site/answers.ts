@@ -4,7 +4,7 @@
    (llms.ts). */
 
 import type { AskAnswer, AskIndex } from "../shared/ask.ts";
-import { personalAnswerId, threadAnswerId } from "../shared/ask.ts";
+import { labelled, personalAnswerId, threadAnswerId } from "../shared/ask.ts";
 import type { Bars, Block, Card, Flow } from "../shared/content.ts";
 import { plainText } from "../shared/markdown.ts";
 import type { Site } from "./site.ts";
@@ -42,8 +42,8 @@ export function plainAnswers(site: Site, code: string): AskAnswer[] {
   ];
 }
 
-// Each block on a line of its own: Ask quotes whole sentences, and a
-// figure's words mustn't run into the sentence after it (quote.ts).
+// Each block on a line of its own, and each item of a list and row of a
+// card: Ask quotes an answer a line or a sentence at a time (quote.ts).
 const lines = (blocks: string[]): string => blocks.filter(Boolean).join("\n");
 
 function blockText(b: Block): string {
@@ -54,11 +54,14 @@ function blockText(b: Block): string {
   if ("flow" in b) return flowText(b.flow);
   if ("quote" in b) return `“${b.quote.text}” (${b.quote.by})`;
   if ("heading" in b) return `${b.heading.title}:`;
-  // A picture says nothing the answer doesn't, but for its caption.
-  if ("image" in b) return b.image.caption ?? "";
-  if ("images" in b) return lines(b.images.map((image) => image.caption ?? ""));
-  return b.link.name;
+  // A picture says nothing the answer doesn't, but for its caption; a link,
+  // its name. Each is a label: read by the model, never quoted.
+  if ("image" in b) return picture(b.image.caption);
+  if ("images" in b) return lines(b.images.map((image) => picture(image.caption)));
+  return labelled("link", b.link.name);
 }
+
+const picture = (caption = ""): string => (caption ? labelled("picture", caption) : "");
 
 // A figure says what its answer says, so its words are the answer's too:
 // "Time to load: Before 1.04 s, After 385 ms (64% faster)"
@@ -69,11 +72,11 @@ const barsText = ({ title, rows, note }: Bars): string =>
 const flowText = ({ title, steps }: Flow): string =>
   `${title}: ${steps.map(({ name, note }) => (note ? `${name} (${note})` : name)).join(" → ")}`;
 
-// "company: Acme; role: Senior Engineer"
-const cardText = ({ lines }: Card): string =>
-  lines
-    .map(([key, value]) => {
+// A row to a line: "company: Acme", then "role: Senior Engineer".
+const cardText = (card: Card): string =>
+  lines(
+    card.lines.map(([key, value]) => {
       const text = typeof value === "string" ? value : Array.isArray(value) ? value.join(" ") : value.accent;
       return `${key}: ${text}`;
-    })
-    .join("; ");
+    }),
+  );

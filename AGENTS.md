@@ -116,8 +116,9 @@ examples/         (template) Sample content to import into the config, such as a
   `markdown.ts` (the config's Markdown, read one way by the pages, the
   script and the checks). Change one, and the type checker shows every
   side that has to follow.
-- **Ask only quotes.** The model picks an answer and the numbers of its
-  sentences; the Worker builds the reply from those sentences
+- **Ask only quotes.** The model reads every answer, says what it makes of
+  the question (its thinking, which goes to the log), then picks an answer
+  and the numbers of its lines; the Worker builds the reply from those lines
   (`src/worker/ask/quote.ts`). No text the model writes reaches a visitor.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,
   namespaces or parameter properties, and imports name the `.ts` file. The

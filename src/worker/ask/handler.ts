@@ -30,8 +30,12 @@ type LogLine = {
   uncovered?: string;
   reply?: "sent" | "dropped";
   check?: QuoteCheck;
+  /** The model ran out of room to write before it had picked. */
+  cut?: true;
   question?: string;
-  /** The sentence numbers the model gave, and the reply quoted from them. */
+  /** What the model made of the question before it picked. */
+  thought?: string;
+  /** The line numbers the model gave, and the reply quoted from them. */
   chose?: string;
   said?: string;
 };
@@ -98,7 +102,7 @@ async function answer(env: Env, later: Later, { asked, who, left, choices, setti
     later.waitUntil(spend(env.ASK_GUARD, cost, settings));
     if (picked.id === INAPPROPRIATE || verdict.unsafe) {
       await block(env.ASK_GUARD, who, settings);
-      log({ ask: "blocked", neurons: rounded(cost), question });
+      log({ ask: "blocked", neurons: rounded(cost), question, thought: question ? picked.thought : undefined });
       return respond({ blocked: true, flagged: true });
     }
     const found = answers.answers.find((item) => item.id === picked.id);
@@ -114,7 +118,10 @@ async function answer(env: Env, later: Later, { asked, who, left, choices, setti
       uncovered,
       reply: quoted?.outcome,
       check: quoted?.check,
+      cut: picked.cut,
       question,
+      // Its thinking may repeat the question, so it's logged only with it.
+      thought: question ? picked.thought : undefined,
       chose: question && quoted ? JSON.stringify(picked.sentences) : undefined,
       said: question ? quoted?.reply : undefined,
     });

@@ -183,9 +183,9 @@ export default {
               q: `what has ${lower(me.first)} built there?`,
               a: [
                 [
-                  "**A faster dashboard.** Rebuilt the main dashboard so it loads in under a second.",
-                  "**Self-serve billing.** Customers change plans without contacting support.",
-                  "**A design system.** Started the component library the whole team now uses.",
+                  "Rebuilt the main dashboard, which now loads in under a second.",
+                  "Added self-serve billing, so customers change plans without contacting support.",
+                  "Started the component library the whole team now uses.",
                 ],
                 {
                   bars: {
@@ -290,7 +290,7 @@ export default {
             {
               q: `what’s ${lower(me.first)}’s stack?`,
               a: [
-                "TypeScript across the stack, with a soft spot for fast, accessible interfaces.",
+                `${me.first} works in TypeScript on the frontend and the backend, and is best at fast, accessible interfaces.`,
                 {
                   card: {
                     file: "skills.yaml",

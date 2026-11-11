@@ -68,6 +68,25 @@ test("a longer word isn't the same thing, but for a plural or a -JS or -QL", () 
   for (const [question, text] of same) assert.ok(covers(answer(text), question, OWNER), question);
 });
 
+test("a name is the same with or without its dots and dashes, and a short form covers what's spelled out", () => {
+  const answer = (text: string) => ({ title: "Skills", q: "what does alex work with?", text });
+  const covered: Array<[question: string, text: string]> = [
+    ["Does he know NodeJS?", "Node.js and React."],
+    ["Is he a Front-End engineer?", "A frontend engineer."],
+    ["Has he used SvelteKit?", "Svelte-Kit."],
+    ["Can Alex do CI/CD?", "He put strict mode behind a CI gate and co-owns the nightly deploys."],
+    ["Can Alex do CI/CD?", "Continuous integration and continuous delivery, on GitHub Actions."],
+    ["Has he run K8s?", "Kubernetes, on AWS."],
+  ];
+  for (const [question, text] of covered) assert.ok(covers(answer(text), question, OWNER), `${question} ${text}`);
+  const not: Array<[question: string, text: string]> = [
+    ["Can Alex do CI/CD?", "He put strict mode behind a CI gate."],
+    ["Can Alex do CI/CD?", "TypeScript and React."],
+    ["Does he know NodeJS?", "Nodes in a graph."],
+  ];
+  for (const [question, text] of not) assert.ok(!covers(answer(text), question, OWNER), `${question} ${text}`);
+});
+
 test("a pick that doesn't name what was asked is no pick, and the log says which it was", async () => {
   logs.mock.resetCalls();
   const { env } = stubs({ run: () => toolCall("skills.1", [1]) });
