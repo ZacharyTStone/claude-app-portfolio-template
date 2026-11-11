@@ -6,7 +6,14 @@ import { test } from "node:test";
 import type { AskIndex } from "../../src/shared/ask.ts";
 import { readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
 import { MAX_QUOTED } from "../../src/worker/ask/quote.ts";
-import { DEFAULT_MODEL, INAPPROPRIATE, NONE, PICK_TOOL } from "../../src/worker/constants.ts";
+import {
+  DEFAULT_MODEL,
+  INAPPROPRIATE,
+  MAX_PICK_TOKENS,
+  MAX_PLAIN_PICK_TOKENS,
+  NONE,
+  PICK_TOOL,
+} from "../../src/worker/constants.ts";
 import {
   EN,
   IDS,
@@ -51,6 +58,19 @@ test("ASK_MODEL switches the model, with that model's settings", async () => {
   await ask(env, { question: "who is he?", lang: "en" });
   assert.equal(firstCall(calls).model, "@cf/qwen/qwen3.8-27b");
   assert.equal(firstCall(calls).input.reasoning_effort, "low");
+});
+
+test("a model told not to reason may write only a tool call's worth; one that may reason, or isn't known, more", async () => {
+  const most = async (vars = {}) => {
+    const { env, calls } = stubs({ vars });
+    await ask(env, { question: "who is he?", lang: "en" });
+    return firstCall(calls).input.max_completion_tokens;
+  };
+  assert.equal(await most(), MAX_PLAIN_PICK_TOKENS);
+  assert.equal(await most({ ASK_MODEL: "@cf/deepseek-ai/deepseek-v4.1-flash-1017" }), MAX_PLAIN_PICK_TOKENS);
+  assert.equal(await most({ ASK_MODEL: "@cf/qwen/qwen3.8-27b" }), MAX_PICK_TOKENS);
+  assert.equal(await most({ ASK_MODEL: "@cf/someone/some-model" }), MAX_PICK_TOKENS);
+  assert.ok(MAX_PLAIN_PICK_TOKENS < MAX_PICK_TOKENS);
 });
 
 test("the Japanese page's answers are the ones offered for it", async () => {

@@ -1,15 +1,17 @@
 /* POST /ask: admit() turns away what can't go to the model (a bad request,
-   a visitor past a limit), then answer() picks while Llama Guard reads the
-   question, and quotes the pick. Every reply is an AskResponse, or a 4xx. */
+   a visitor past a limit, a day's budget spent), then answer() picks while
+   Llama Guard reads the question, quotes the pick, and has what the two
+   calls cost counted. Every reply is an AskResponse, or a 4xx. */
 import type { AskResponse } from "../../shared/ask.ts";
-import { INAPPROPRIATE, NONE, WARN_AT } from "../constants.ts";
+import { GUARD_MODEL, INAPPROPRIATE, NONE, PRICES, UNLISTED_PRICE, WARN_AT } from "../constants.ts";
 import { readSettings, type Env, type Settings } from "../env.ts";
-import { block, take } from "../guard/client.ts";
+import { block, spend, take } from "../guard/client.ts";
 import { json } from "../lib/http.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
 import { readChoices, type Choices } from "./answers.ts";
+import { neurons } from "./cost.ts";
 import { covers } from "./coverage.ts";
-import { isUnsafe } from "./moderation.ts";
+import { verdictOn } from "./moderation.ts";
 import { pick } from "./pick.ts";
 import { quote, type QuoteCheck } from "./quote.ts";
 import { readQuestion, refuseRequest, type Question } from "./request.ts";
@@ -20,6 +22,8 @@ const respond = (data: AskResponse, status = 200) => json(data, status);
     what's in it). Fields left undefined are left out. */
 type LogLine = {
   ask: string;
+  /** What the question's two model calls cost, in Neurons. */
+  neurons?: number;
   why?: string;
   error?: string;
   /** The answer picked, which didn't name what was asked (coverage.ts). */
@@ -36,9 +40,12 @@ const log = (line: LogLine) => console.log(JSON.stringify(line));
 /** A question that may go to the model, and what answering it needs. */
 type Admitted = { asked: Question; who: string; left: number; choices: Promise<Choices>; settings: Settings };
 
-export async function handleAsk(request: Request, env: Env): Promise<Response> {
+/** Something to finish after the reply has gone (ExecutionContext's). */
+type Later = Pick<ExecutionContext, "waitUntil">;
+
+export async function handleAsk(request: Request, env: Env, later: Later): Promise<Response> {
   const admitted = await admit(request, env);
-  return admitted instanceof Response ? admitted : answer(env, admitted);
+  return admitted instanceof Response ? admitted : answer(env, later, admitted);
 }
 
 async function admit(request: Request, env: Env): Promise<Admitted | Response> {
@@ -69,17 +76,29 @@ async function admit(request: Request, env: Env): Promise<Admitted | Response> {
   return respond({ id: null, why: "budget" });
 }
 
-async function answer(env: Env, { asked, who, left, choices, settings }: Admitted): Promise<Response> {
+// A visitor is told how many questions they have left once it's this few:
+// WARN_AT, or a third of a limit too small for that to be near its end.
+const warnAt = (visitorLimit: number) => Math.min(WARN_AT, Math.floor(visitorLimit / 3));
+
+// Neurons as the log has them: to one decimal place.
+const rounded = (amount: number) => Math.round(amount * 10) / 10;
+
+async function answer(env: Env, later: Later, { asked, who, left, choices, settings }: Admitted): Promise<Response> {
   const question = settings.logQuestions ? asked.question : undefined;
   try {
     const answers = await choices;
-    const [picked, unsafe] = await Promise.all([
+    const [picked, verdict] = await Promise.all([
       pick(env.AI, settings.model, asked.question, answers),
-      isUnsafe(env.AI, asked.question),
+      verdictOn(env.AI, asked.question),
     ]);
-    if (picked.id === INAPPROPRIATE || unsafe) {
+    // What the two calls cost goes on the day's count once the reply has
+    // gone: the visitor doesn't wait for it.
+    const cost =
+      neurons(picked.tokens, settings.price) + neurons(verdict.tokens, PRICES.get(GUARD_MODEL) ?? UNLISTED_PRICE);
+    later.waitUntil(spend(env.ASK_GUARD, cost, settings));
+    if (picked.id === INAPPROPRIATE || verdict.unsafe) {
       await block(env.ASK_GUARD, who, settings);
-      log({ ask: "blocked", question });
+      log({ ask: "blocked", neurons: rounded(cost), question });
       return respond({ blocked: true, flagged: true });
     }
     const found = answers.answers.find((item) => item.id === picked.id);
@@ -91,6 +110,7 @@ async function answer(env: Env, { asked, who, left, choices, settings }: Admitte
     const quoted = shown ? quote(shown.text, picked.sentences) : null;
     log({
       ask: shown?.id ?? NONE,
+      neurons: rounded(cost),
       uncovered,
       reply: quoted?.outcome,
       check: quoted?.check,
@@ -98,7 +118,11 @@ async function answer(env: Env, { asked, who, left, choices, settings }: Admitte
       chose: question && quoted ? JSON.stringify(picked.sentences) : undefined,
       said: question ? quoted?.reply : undefined,
     });
-    return respond({ id: shown?.id ?? null, reply: quoted?.reply, left: left <= WARN_AT ? left : undefined });
+    return respond({
+      id: shown?.id ?? null,
+      reply: quoted?.reply,
+      left: left <= warnAt(settings.visitorLimit) ? left : undefined,
+    });
   } catch (error) {
     log({ ask: "error", error: errorCode(error), question });
     return respond({ id: null, why: "error" });

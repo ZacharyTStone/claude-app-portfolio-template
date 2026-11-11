@@ -5,11 +5,13 @@ import { isString } from "../../shared/guards.ts";
 import { INAPPROPRIATE, MAX_PICK_TOKENS, MODEL_OPTIONS, NONE, PICK_TOOL } from "../constants.ts";
 import { get, list } from "../lib/shape.ts";
 import type { Choices } from "./answers.ts";
+import { NO_TOKENS, tokensInJson, tokensUsed, type Tokens } from "./cost.ts";
 import { MAX_QUOTED, withNumbers } from "./quote.ts";
 
 /** What the model picked: an answer's id, "inappropriate", or null for no
-    pick; and, with an answer's id, the sentence numbers it gave (unread). */
-export type Picked = { id: string | null; sentences?: unknown };
+    pick; with an answer's id, the sentence numbers it gave (unread); and
+    the tokens the call used. */
+export type Picked = { id: string | null; sentences?: unknown; tokens: Tokens };
 
 const firstName = (name: string): string => name.trim().split(/\s+/)[0] ?? name;
 
@@ -74,25 +76,30 @@ const pickTool = (ids: string[]) => ({
 /** What the model picks for the question. */
 export async function pick(ai: Ai, model: string, question: string, choices: Choices): Promise<Picked> {
   const ids = choices.answers.map((answer) => answer.id);
-  if (!ids.length) return { id: null };
-  const result: unknown = await ai.run(model, {
+  if (!ids.length) return { id: null, tokens: NO_TOKENS };
+  const sent = {
     messages: [
       { role: "system", content: systemMessage(choices) },
       { role: "user", content: question },
     ],
     tools: [pickTool(ids)],
+  };
+  const result: unknown = await ai.run(model, {
+    ...sent,
     tool_choice: { type: "function", function: { name: PICK_TOOL } },
     temperature: 0,
     max_completion_tokens: MAX_PICK_TOKENS,
     ...MODEL_OPTIONS.get(model),
   });
+  // A reply that doesn't say what it used is counted by its size.
+  const tokens = tokensUsed(result) ?? { input: tokensInJson(sent), output: tokensInJson(result) };
   const call = readToolCall(result);
   // Only a tool call can say "inappropriate": a word in some text shouldn't
   // block anyone.
   const id = call ? call.id : readTextPick(result, ids);
-  if (id === INAPPROPRIATE) return { id };
-  if (id === null || !ids.includes(id)) return { id: null };
-  return call ? { id, sentences: call.sentences } : { id };
+  if (id === INAPPROPRIATE) return { id, tokens };
+  if (id === null || !ids.includes(id)) return { id: null, tokens };
+  return call ? { id, sentences: call.sentences, tokens } : { id, tokens };
 }
 
 /** The first tool call with an id, in either of the shapes Workers AI

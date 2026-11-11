@@ -59,9 +59,17 @@ export const ADDRESS = "203.0.113.9";
     that reads them. */
 export const captureLogs = () => mock.method(console, "log", () => {});
 
-/** The log lines `logs` has kept since it was last reset. */
+// The log lines `logs` has kept since it was last reset, as they were written.
+const written = (logs: ReturnType<typeof captureLogs>): Record<string, unknown>[] =>
+  logs.mock.calls.map((call) => JSON.parse(String(call.arguments[0])));
+
+/** The log lines `logs` has kept since it was last reset, without what each
+    question cost (`costs` has that: cost.test.ts checks it). */
 export const lines = (logs: ReturnType<typeof captureLogs>): string[] =>
-  logs.mock.calls.map((call) => String(call.arguments[0]));
+  written(logs).map(({ neurons: _cost, ...line }) => JSON.stringify(line));
+
+/** What each logged question cost, in Neurons; undefined for a line without. */
+export const costs = (logs: ReturnType<typeof captureLogs>): unknown[] => written(logs).map((line) => line.neurons);
 
 // What the tests read of what the model was sent.
 type ModelInput = {
@@ -83,7 +91,8 @@ type Run = (model: string, input: ModelInput) => unknown;
 export const okLeft = (left: number) => `${GUARD_REPLY.ok} ${left}`;
 
 // The AskGuard object: what /take says (okLeft(), one of GUARD_REPLY, or
-// "down" when it can't be reached), and the requests it got.
+// "down" when it can't be reached; /block and /spend get "ok"), and the
+// requests it got.
 export type GuardStub = {
   requests: URL[];
   last?: { id: unknown; options: unknown };
@@ -99,7 +108,7 @@ export function guardStub(says = okLeft(25), status = 200): GuardStub {
         if (says === "down") throw new Error("Durable Object unavailable");
         stub.last = { id, options };
         stub.requests.push(new URL(url));
-        return new Response(new URL(url).pathname === GUARD_PATH.block ? GUARD_REPLY.ok : says, { status });
+        return new Response(new URL(url).pathname === GUARD_PATH.take ? says : GUARD_REPLY.ok, { status });
       },
     }),
   };
@@ -189,7 +198,24 @@ export const toolCall = (id: string, sentences?: unknown) => ({
   ],
 });
 
+/** A model's reply that also says what its call used, as Workers AI does. */
+export const using = <Reply extends object>(reply: Reply, prompt_tokens: number, completion_tokens: number) => ({
+  ...reply,
+  usage: { prompt_tokens, completion_tokens, total_tokens: prompt_tokens + completion_tokens },
+});
+
 type Send = { method?: string; type?: string; url?: string; headers?: Record<string, string> };
+
+/** Sends the Worker a request, and waits for what it leaves until after
+    its reply (a question's cost, sent to AskGuard). */
+export async function send(env: Env, request: Request): Promise<Response> {
+  const after: Promise<unknown>[] = [];
+  // Only what the Worker uses of its context is stood in for.
+  const context = { waitUntil: (promise: Promise<unknown>) => void after.push(promise) } as unknown as ExecutionContext;
+  const response = await worker.fetch(request, env, context);
+  await Promise.all(after);
+  return response;
+}
 
 /** Sends `body` to the Worker, as the page would (a JSON POST to /ask). */
 export const ask = (
@@ -197,13 +223,13 @@ export const ask = (
   body: unknown,
   { method = "POST", type = "application/json", url = "https://site.example/ask", headers }: Send = {},
 ) =>
-  worker.fetch(
+  send(
+    env,
     new Request(url, {
       method,
       headers: { "Content-Type": type, "CF-Connecting-IP": ADDRESS, ...headers },
       body: method === "POST" ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined,
     }),
-    env,
   );
 
 /** What /ask replies to `question` on the English page, as JSON. */
