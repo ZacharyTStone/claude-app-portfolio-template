@@ -8,11 +8,17 @@
   "build": { "command": "npm run build" },
 
   // ---- Ask (optional) -------------------------------------------------------
-  // Off: there's no Worker script, and every path is a file in dist/. To
-  // turn it on, set `ask` in site.config.ts, then uncomment this block
-  // (select it and toggle the comment) and the two lines marked "Ask" in
-  // "assets". Workers AI, the rate limit and the Durable Object are set up
-  // from this file on the next deploy.
+  // Off: there's no Worker script, and every path is a file in dist/, which
+  // is free on every Cloudflare plan. To turn it on, set `ask` in
+  // site.config.ts, then uncomment this block (select it and toggle the
+  // comment) and the two lines marked "Ask" in "assets". Workers AI, the
+  // rate limit and the Durable Object are set up from this file on the next
+  // deploy.
+  //
+  // Turn it on in an account on the Workers Free plan: there, anything past
+  // Cloudflare's daily limits is refused, never billed. On Workers Paid the
+  // same flood is billed, and the limits below are all that's in its way:
+  // read "What Ask can cost" in the README first.
   //
   // // The one Worker script (src/worker, bundled by wrangler) answers POST
   // // /ask; a file is served without running it.

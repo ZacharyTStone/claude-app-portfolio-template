@@ -77,11 +77,13 @@ is served under a path (a GitHub project site), put the path in `url`:
 
 ### Cloudflare (recommended)
 
-The free tier covers it, `wrangler.jsonc` is the whole setup, and it is
-the only host that runs Ask. Set `host: "cloudflare"`, then either connect
-the repo in the Cloudflare dashboard (**Workers & Pages → Create → Import
-a repository**; it deploys on every push to `main`), or deploy from your
-machine:
+The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
+the only host that runs Ask. Use an account on the free plan: there
+Cloudflare refuses what it would otherwise bill, so the site can never
+cost anything (see [What Ask can cost](#what-ask-can-cost)). Set
+`host: "cloudflare"`, then either connect the repo in the Cloudflare
+dashboard (**Workers & Pages → Create → Import a repository**; it deploys
+on every push to `main`), or deploy from your machine:
 
 ```sh
 npx wrangler deploy   # runs npm run build, then uploads dist/
@@ -144,7 +146,8 @@ sentences, so nothing the model writes reaches a visitor. No good fit, or
 Ask over its limits, and the reply is "Something else". Llama Guard reads
 every question; an inappropriate one blocks that visitor for a day.
 
-To turn it on:
+To turn it on (first check which plan your Cloudflare account is on:
+[What Ask can cost](#what-ask-can-cost)):
 
 1. In `site.config.ts`, uncomment `ask: { role: "a software engineer" }`
    and put who you are in a few words. It needs `host: "cloudflare"`.
@@ -158,12 +161,6 @@ To turn it on:
 To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 `wrangler.jsonc` and deploy.
 
-**Cost.** Each question costs at most about 40 Neurons (the pick with
-GLM-4.7-Flash, and Llama Guard). The site takes at most 200 questions a
-day (`ASK_DAILY_LIMIT`), about 8,000 Neurons, inside Workers AI's free
-10,000 a day. One visitor gets 10 a minute and 30 a day. All of these are
-in `wrangler.jsonc`.
-
 **What is logged.** One line per question, under the Worker's
 Observability tab: which answer was picked, or why the question was turned
 away. Never the visitor's address. What was asked and what was quoted back
@@ -174,6 +171,48 @@ To see how well it picks, put questions about you in
 `tests/ask-questions.json`, raise `ASK_VISITOR_LIMIT` above their number,
 and run `node tests/ask-eval.ts https://<your site>`. The ones that should
 be blocked run last, and block your address for a day.
+
+### What Ask can cost
+
+Each question costs at most about 40 Neurons (the pick with GLM-4.7-Flash,
+and Llama Guard). The site takes at most 200 questions a day
+(`ASK_DAILY_LIMIT`), about 8,000 Neurons, inside Workers AI's free 10,000
+a day. One visitor gets 10 a minute and 30 a day. All of these are in
+`wrangler.jsonc`.
+
+Those limits are the Worker's own. What happens if something gets past
+them depends on the Cloudflare plan your account is on:
+
+- **Workers Free (recommended): nothing can be charged.** Past a limit,
+  Cloudflare refuses instead of billing: 100,000 Worker requests a day,
+  10,000 Neurons a day, and the Durable Object's free limits. A refused
+  question gets the "Something else" reply, and the pages keep loading,
+  because requests for files are free, unlimited and never run the Worker.
+- **Workers Paid: the same flood is billed, and no account setting caps
+  it.** Workers AI costs $0.011 per 1,000 Neurons past 10,000 a day,
+  counted across the whole account. Worker requests (every `/ask`, and
+  every address that isn't a file) cost $0.30 per million past 10 million
+  a month, and Durable Object requests past the plan's are billed too.
+  Cloudflare's budget alerts only send an email, a day later.
+
+If your account is on Workers Paid, make a charge impossible in one of two
+ways:
+
+1. **Give the site a free account of its own.** In the Cloudflare
+   dashboard, **Accounts → Create Account** adds a Free account under the
+   same login (up to five, once your login is a week old). Switch to it
+   before you connect the repo, or deploy to it from your machine:
+
+   ```sh
+   CLOUDFLARE_ACCOUNT_ID=<the new account's id> npx wrangler deploy
+   ```
+
+2. **Or leave Ask off.** Then there is no Worker at all, every request is
+   for a file, and those are free on every plan.
+
+If you run Ask in a paid account anyway, keep `ASK_DAILY_LIMIT` at 200 or
+less and set a $1 budget alert (**Manage Account → Billing → Billable
+Usage**), so that you at least hear about it.
 
 ## Languages and fonts
 
