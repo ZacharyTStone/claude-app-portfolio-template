@@ -20,6 +20,7 @@ import {
   IDS,
   INDEX,
   JA,
+  UNWRITTEN,
   ask,
   askJson,
   captureLogs,
@@ -70,6 +71,7 @@ test("the model's thinking is logged with the question, cut to size, and never s
   assert.deepEqual(lines(logs), [
     JSON.stringify({
       ask: "about.2",
+      ...UNWRITTEN,
       question: "Where does Alex live?",
       thought: "They ask where Alex lives. about.2 says New York.",
     }),
@@ -77,7 +79,7 @@ test("the model's thinking is logged with the question, cut to size, and never s
   // Without the questions, the log has no thinking either: it may repeat them.
   logs.mock.resetCalls();
   assert.deepEqual(await askJson(stubs({ run }).env, "Where does Alex live?"), { id: "about.2" });
-  assert.deepEqual(lines(logs), ['{"ask":"about.2"}']);
+  assert.deepEqual(lines(logs), [JSON.stringify({ ask: "about.2", ...UNWRITTEN })]);
   assert.equal(readToolCall(toolCall("about.2", [], "x".repeat(1000)))?.thought?.length, MAX_THOUGHT_LENGTH);
   for (const none of [undefined, "", "  ", 42, ["a"]]) {
     assert.equal(readToolCall(toolCall("about.2", [], none))?.thought, undefined, JSON.stringify(none));

@@ -17,7 +17,18 @@ import {
   UNLISTED_PRICE,
   type Price,
 } from "../../src/worker/constants.ts";
-import { askJson, captureLogs, costs, guardRequest, lines, models, stubs, toolCall, using } from "./fixtures.ts";
+import {
+  UNWRITTEN,
+  askJson,
+  captureLogs,
+  costs,
+  guardRequest,
+  lines,
+  models,
+  stubs,
+  toolCall,
+  using,
+} from "./fixtures.ts";
 
 const logs = captureLogs();
 
@@ -88,7 +99,7 @@ test("a question's cost is what its two calls used, counted by AskGuard and logg
     guard.requests.map((url) => url.pathname),
     [GUARD_PATH.take, GUARD_PATH.spend],
   );
-  assert.deepEqual(lines(logs), ['{"ask":"skills.1"}']);
+  assert.deepEqual(lines(logs), [JSON.stringify({ ask: "skills.1", ...UNWRITTEN })]);
   assert.deepEqual(costs(logs), [Math.round(costAt(PICKER) * 10) / 10]);
 });
 

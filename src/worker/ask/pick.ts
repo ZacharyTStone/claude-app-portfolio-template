@@ -1,7 +1,8 @@
 /* The pick: a small model on Workers AI gets the visitor's question and
    every answer on the site, and calls pick_answer with what it makes of the
    question (its thinking, which no visitor sees), then an answer's id,
-   "none" or "inappropriate", and the numbers of the lines that answer it. */
+   "none" or "inappropriate", and the numbers of the lines that answer it.
+   The reply is written from those lines in a call of its own (write.ts). */
 import { isString } from "../../shared/guards.ts";
 import { INAPPROPRIATE, MAX_PICK_TOKENS, MODEL_OPTIONS, NONE, PICK_TOOL } from "../constants.ts";
 import { get, list } from "../lib/shape.ts";

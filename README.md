@@ -142,16 +142,29 @@ host.
 With Ask on, a small model on Cloudflare Workers AI reads every answer on
 your site, notes what the visitor wants to know, then picks the answer
 that says it and the one or two lines in it that answer most directly (a
-sentence, an item of a list, a row of a card). The Worker (`src/worker`)
-replies by quoting those lines, so nothing the model writes reaches a
-visitor. A reply is read with nothing around it, so a sentence that opens
-by pointing back at the one before it ("It shipped…", "Those include…") is
-quoted with that sentence, or not at all. Under the reply is a link to the
-tab it's from. No good fit, or Ask over its limits, and the reply is "Something
-else". Llama Guard reads every question; an inappropriate one blocks that
-visitor for a day.
+sentence, an item of a list, a row of a card). From those lines it writes
+a one-sentence reply to the question as it was asked: "Does Alex know
+Svelte?" gets "Yes, Alex knows Svelte / SvelteKit.", not the list Svelte
+is in.
 
-Ask finds what your site says, so write answers it can quote: full
+The Worker (`src/worker`) checks that reply word by word before anyone
+sees it (`src/worker/ask/grounded.ts`). Every name, number and claim has
+to be in the lines it was written from; only plain grammar and a few
+verbs that claim little ("know", "use", "work", "have") may be added. A
+"not" can't be added or dropped, "Yes" needs the lines to have what was
+asked about, and what the visitor typed is never a source. A reply that
+fails is asked for once more, then thrown away: the lines are quoted as
+they are if they're sentences, and otherwise the page shows the whole
+answer. So nothing the model writes reaches a visitor unchecked, and
+nothing it writes can say what your site doesn't. Under the reply is a
+link to the tab it's from. No good fit, or Ask over its limits, and the
+reply is "Something else". Llama Guard reads every question; an
+inappropriate one blocks that visitor for a day.
+
+The check reads English and Japanese. On a page in another language no
+reply is written, and the lines are quoted.
+
+Ask finds what your site says, so write answers it can use: full
 sentences that make sense on their own ("Alex joined Acme in 2024", not
 "Joined in 2024"), and the facts people ask about (dates, titles, tools)
 stated somewhere in words.
@@ -174,7 +187,7 @@ To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 One line is logged per question, under the Worker's Observability tab:
 which answer was picked and what it cost in Neurons, or why the question
 was turned away. The visitor's address is never logged. What was asked,
-what the model made of it and what was quoted back are logged only if you
+what the model made of it and what was sent back are logged only if you
 set `ASK_LOG_QUESTIONS` to `"true"`; if you do, say so on your site. With
 it on, the `thought` in a line tells you why Ask answered as it did.
 
@@ -379,11 +392,14 @@ nothing below to protect)
   (which a page on another site can't send) or a body over 2,048 bytes is
   refused before anything is spent on it, and a question is cut to 300
   characters.
-- The model can't write to a visitor. It may only name one of your answers,
-  from a fixed list, and number its lines. The Worker quotes those lines, at
-  most two, each with the sentence before it if it can't be read without
-  it: at most 400 characters, as text. What the model makes of the
-  question goes to the log, if you log questions, and nowhere else.
+- The model can't say what your site doesn't. It names one of your
+  answers, from a fixed list, and numbers at most two of its lines, then
+  writes one sentence from them. The Worker checks that sentence word by
+  word: anything but plain grammar has to be in those lines (never in what
+  the visitor typed), a "not" can't be added or dropped, and it's shown as
+  text, 240 characters at most. One that fails twice isn't shown: the
+  lines are quoted instead, or the whole answer. What the model makes of
+  the question goes to the log, if you log questions, and nowhere else.
 - A pick has to cover the question. One that doesn't name the tool, company
   or place the question names is dropped, so a near miss doesn't read as a
   "no".

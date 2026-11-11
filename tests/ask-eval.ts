@@ -1,4 +1,4 @@
-/* How well /ask picks, and what it quotes, against a deployed site or a preview:
+/* How well /ask picks, and what it replies, against a deployed site or a preview:
      node tests/ask-eval.ts https://<the site or a preview> [questions.json]
    It doesn't fail on misses: what's good enough is your call. */
 import { readFileSync } from "node:fs";

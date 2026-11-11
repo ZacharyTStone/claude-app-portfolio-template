@@ -35,6 +35,21 @@ export const MODEL_OPTIONS: ReadonlyMap<string, Record<string, unknown>> = new M
   ],
 ]);
 
+/** The most the model may write for a reply (write.ts): a sentence, and
+    room for a model that reasons a little first. */
+export const MAX_WRITE_TOKENS = 256;
+
+/** The longest reply it may write, in characters: a sentence, not a
+    paragraph. A longer one is asked for again, shorter. */
+export const MAX_WRITTEN = 240;
+
+/** How many times it's asked: once, and once more with what was wrong. */
+export const WRITE_TRIES = 2;
+
+/** How long the writing may take in all, in milliseconds: past it, the
+    lines are quoted as they are. The page waits 12 s for /ask. */
+export const WRITE_TIMEOUT = 5000;
+
 /** Llama Guard, which reads every question beside the picker. */
 export const GUARD_MODEL = "@cf/meta/llama-guard-3-8b";
 

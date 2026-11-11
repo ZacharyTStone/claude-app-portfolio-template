@@ -14,7 +14,7 @@ import {
   withNumbers,
 } from "../../src/worker/ask/quote.ts";
 import { NONE } from "../../src/worker/constants.ts";
-import { EN, JA, askJson, captureLogs, lines, models, okLeft, stubs, toolCall } from "./fixtures.ts";
+import { EN, JA, UNWRITTEN, askJson, captureLogs, lines, models, okLeft, stubs, toolCall } from "./fixtures.ts";
 
 const logs = captureLogs();
 
@@ -184,6 +184,18 @@ test("no numbers is no reply asked for; numbers it can't read, or out of range, 
     outcome: "dropped",
     check: "range",
   });
+});
+
+test("where only sentences will do, a card's row, a list's item or a figure isn't quoted", () => {
+  const text = "role: Engineer\nAlex joined in 2024. Alex has two degrees:\nBS in Music, 2016\nAlex is in New York.";
+  assert.deepEqual(quote(text, [1], { sentencesOnly: true }), { outcome: "dropped", check: "rows" });
+  assert.deepEqual(quote(text, [2, 3], { sentencesOnly: true }), { outcome: "dropped", check: "rows" });
+  assert.deepEqual(quote(text, [2, 4], { sentencesOnly: true }), {
+    outcome: "sent",
+    reply: "Alex joined in 2024. Alex is in New York.",
+  });
+  // Anywhere else, any line is.
+  assert.deepEqual(quote(text, [1]), { outcome: "sent", reply: "role: Engineer" });
 });
 
 test("a quote that's the whole answer, or longer than MAX_REPLY_LENGTH, is dropped", () => {
@@ -383,7 +395,7 @@ test("numbers that name no line: the pick without a reply, and the log says why"
   ];
   for (const run of runs) await askJson(stubs({ run }).env, "What does Alex do at Acme?");
   assert.deepEqual(lines(logs), [
-    '{"ask":"acme.1","reply":"sent"}',
+    JSON.stringify({ ask: "acme.1", ...UNWRITTEN, reply: "sent" }),
     '{"ask":"acme.1","reply":"dropped","check":"range"}',
     '{"ask":"acme.1","reply":"dropped","check":"unreadable"}',
     '{"ask":"acme.1"}',
