@@ -146,9 +146,8 @@ code {
 }
 
 /* "Read experience/acme.md ▸": a collapsible status line, as in the
-   app, that opens to show the file it read. Under a reply /ask wrote,
-   "Show the full answer ▸" looks the same, and opens onto the answer. */
-:is(.status, .full) summary {
+   app, that opens to show the file it read. */
+.status summary {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -157,9 +156,9 @@ code {
   list-style: none;
   border-radius: 6px;
 }
-:is(.status, .full) summary::-webkit-details-marker { display: none; }
+.status summary::-webkit-details-marker { display: none; }
 .status summary b { font-weight: 400; color: var(--text); }
-:is(.status, .full) summary::after {
+.status summary::after {
   content: "";
   width: 12px;
   height: 12px;
@@ -167,9 +166,7 @@ code {
   --icon: url("/assets/icons/caret-right.svg");
   transition: rotate 0.2s var(--ease);
 }
-:is(.status, .full)[open] summary::after { rotate: 90deg; }
-:is(.status, .full) summary:hover { color: var(--text); }
+.status[open] summary::after { rotate: 90deg; }
+.status summary:hover { color: var(--text); }
 .status .card { margin-top: 10px; }
 .status + .a { margin-top: -10px; }
-/* The answer, once it's opened: its messages spaced as in a thread. */
-.full > div { display: grid; gap: 24px; margin-top: 14px; }

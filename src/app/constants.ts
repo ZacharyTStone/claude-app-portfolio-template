@@ -75,10 +75,8 @@ export const CLASS = {
   show: "show",
   /** The line under a reply: the tab it's from, or the questions left. */
   from: "from",
-  /** Under a typed question, the reply /ask wrote, and the answer, folded
-      (src/shared/ask.ts). */
+  /** Under a typed question, the reply /ask sent (src/shared/ask.ts). */
   reply: "reply",
-  fullAnswer: "full",
   /** The goodbye "Log out" shows: its contact links, and "Log back in". */
   bye: "bye",
   byeLinks: "bye-links",

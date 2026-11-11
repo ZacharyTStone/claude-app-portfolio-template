@@ -46,7 +46,7 @@ html:not(.js) [data-js-only] { display: none !important; }
   background: currentColor;
 }
 .ic::before, .ic-after::after, .hello::before, .chat-hello::before, .group::after, .me[role="button"]::after,
-:is(.status, .full) summary::after, .pop .chev, .options .on, .tick::before, .flow li + li::before {
+.status summary::after, .pop .chev, .options .on, .tick::before, .flow li + li::before {
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
 }

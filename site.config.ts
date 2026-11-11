@@ -521,10 +521,9 @@ export default {
         moveSection: "Move {name}",
         resize: "Resize the tabs",
         // The rest show only with Ask on. Under a reply to a typed question:
-        // where it's from, and what opens the whole answer.
+        // where it's from.
         askFrom: "From the {tab} tab",
         askFromPersonal: "From “{tab}”",
-        askFull: "Show the full answer",
         // What replaces a question found inappropriate.
         askRemoved: "Question removed",
         // Past a visitor's {limit} questions for the day, and the note under

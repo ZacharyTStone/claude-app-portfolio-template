@@ -443,7 +443,6 @@ export default function japanese(me: Me): Language {
       resize: "タブの幅を変更",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
-      askFull: "回答の全文を見る",
       askRemoved: "質問は削除されました",
       askLimited: `今日の質問はここまでです。無料のサービスで動いているため、1日{limit}問までになっています。${ja.first}のことはタブからすべてご覧いただけます。連絡方法は[連絡先](#contact)をどうぞ。`,
       askLeft: "お知らせ：無料のサービスで動いているため、質問は1日の上限があります。今日はあと{n}問です。",

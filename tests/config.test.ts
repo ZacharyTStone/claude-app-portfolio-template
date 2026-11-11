@@ -15,7 +15,7 @@ import { hrefsIn, plainText, spans } from "../src/shared/markdown.ts";
 import { contentSecurityPolicy, securityHeaders } from "../src/shared/headers.ts";
 import { SCRIPT_STRINGS } from "../src/shared/page-data.ts";
 import { askIndex, plainAnswers } from "../src/site/answers.ts";
-import { numbered } from "../src/worker/ask/quote.ts";
+import { neededFor, numbered, pointsBack, quote } from "../src/worker/ask/quote.ts";
 import { barLength } from "../src/site/bars.ts";
 import { cardRows } from "../src/site/card.ts";
 import { ROOT } from "../src/site/constants.ts";
@@ -610,6 +610,22 @@ test("a picture's caption and a link's name are labels in Ask's answers, which A
 test("a card's rows are each a line of Ask's answers, which Ask can quote", () => {
   const site = makeSite(sample({ host: "cloudflare", ask: { role: "an engineer" } }));
   for (const { text } of plainAnswers(site, "en")) assert.ok(!/^\w+: [^\n]*; \w+: /m.test(text), text);
+});
+
+test("no reply Ask can quote from this site opens by pointing back at a line it left out", () => {
+  const site = makeSite(config);
+  for (const code of site.codes) {
+    for (const { id, text } of plainAnswers(site, code)) {
+      const pieces = numbered(text);
+      for (const [at, piece] of pieces.entries()) {
+        if (piece.n === undefined) continue;
+        const reply = quote(text, [piece.n])?.reply;
+        const first = pieces[neededFor(pieces, at)?.[0] ?? -1];
+        assert.ok(first && !pointsBack(first), `${code} ${id}: "${piece.text}" would start at "${first?.text}"`);
+        if (reply !== undefined) assert.ok(reply.startsWith(first.text), `${code} ${id}: ${reply}`);
+      }
+    }
+  }
 });
 
 // ---- Hosts and addresses ---------------------------------------------------------------

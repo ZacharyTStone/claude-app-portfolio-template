@@ -1,6 +1,6 @@
 /* What's sent into a thread, and the reply it gets: the site's own answers,
    copied from the page (a thread's, the one /ask picked, or "Something
-   else"), with /ask's reply first when it sent one (src/shared/ask.ts). */
+   else"), or /ask's reply when it sent one (src/shared/ask.ts). */
 import { isReplyText } from "../shared/ask.ts";
 import { ID } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
@@ -81,29 +81,22 @@ function findAnswer(id: string): { tab: HTMLElement; q: Element } | null {
 export const isAnswer = (id: string): boolean => findAnswer(id) !== null;
 
 /** One answer as /ask names it, word for word, ending with a link to its
-    tab. With a reply from /ask, one message instead: the reply, the link (a
-    personal answer gets one too), then the answer, folded. Null for an id
-    that names none. */
+    tab. With a reply from /ask, the reply instead, and the link to the tab
+    the rest is in (a personal answer gets one too). Null for an id that
+    names none. */
 export function answerFor(id: string, reply?: string): Element[] | null {
   const found = findAnswer(id);
   if (!found) return null;
   const { tab, q } = found;
-  const tabId = tab.id;
+  const personal = isPersonalTab(tab.id);
+  if (reply !== undefined) {
+    // The reply as text; the answer it's from is a click away, in its tab.
+    const from = fromLine(tab, personal ? words.askFromPersonal : words.askFrom);
+    return [make("div", { class: PAGE_CLASSES.answer }, make("p", { class: CLASS.reply }, reply), from)];
+  }
   const answer: Element[] = [];
   for (let node = q.nextElementSibling; node && !node.matches(SELECTOR.question); node = node.nextElementSibling) {
     if (!node.matches(SELECTOR.sent)) answer.push(copyMessage(node));
-  }
-  const personal = isPersonalTab(tabId);
-  if (reply !== undefined) {
-    // The reply as text; the answer under it, as it is.
-    const full = make(
-      "details",
-      { class: CLASS.fullAnswer },
-      make("summary", {}, words.askFull),
-      make("div", {}, ...answer),
-    );
-    const from = fromLine(tab, personal ? words.askFromPersonal : words.askFrom);
-    return [make("div", { class: PAGE_CLASSES.answer }, make("p", { class: CLASS.reply }, reply), from, full)];
   }
   // A personal answer's tab has no row in the sidebar: on its own, no "From" line.
   if (!personal) addToReply(answer, fromLine(tab, words.askFrom));
