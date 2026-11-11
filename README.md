@@ -162,8 +162,8 @@ To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 `wrangler.jsonc` and deploy.
 
 **What is logged.** One line per question, under the Worker's
-Observability tab: which answer was picked, or why the question was turned
-away. Never the visitor's address. What was asked and what was quoted back
+Observability tab: which answer was picked and what it cost in Neurons, or
+why the question was turned away. Never the visitor's address. What was asked and what was quoted back
 are logged only if you set `ASK_LOG_QUESTIONS` to `"true"`; if you do, say
 so on your site.
 
@@ -174,14 +174,18 @@ be blocked run last, and block your address for a day.
 
 ### What Ask can cost
 
-Each question costs at most about 40 Neurons (the pick with GLM-4.7-Flash,
-and Llama Guard). The site takes at most 200 questions a day
-(`ASK_DAILY_LIMIT`), about 8,000 Neurons, inside Workers AI's free 10,000
-a day. One visitor gets 10 a minute and 30 a day. All of these are in
-`wrangler.jsonc`.
+Ask keeps count of what the day's questions cost. Each question makes two
+model calls (the pick with GLM-4.7-Flash, and Llama Guard), each reports
+the tokens it used, and the Worker prices them in Neurons. Past
+`ASK_DAILY_NEURONS` (9,000, inside Workers AI's free 10,000 a day) no more
+are asked until midnight UTC. What one question costs depends on how much
+your site says, since the model reads every answer: each log line has it,
+as `neurons`. The site also takes at most 200 questions a day
+(`ASK_DAILY_LIMIT`), and one visitor 10 a minute and 30 a day. All of
+these are in `wrangler.jsonc`.
 
-Those limits are the Worker's own. What happens if something gets past
-them depends on the Cloudflare plan your account is on:
+Those limits are the Worker's own. What happens to whatever they don't
+cover depends on the Cloudflare plan your account is on:
 
 - **Workers Free (recommended): nothing can be charged.** Past a limit,
   Cloudflare refuses instead of billing: 100,000 Worker requests a day,
@@ -190,10 +194,12 @@ them depends on the Cloudflare plan your account is on:
   because requests for files are free, unlimited and never run the Worker.
 - **Workers Paid: the same flood is billed, and no account setting caps
   it.** Workers AI costs $0.011 per 1,000 Neurons past 10,000 a day,
-  counted across the whole account. Worker requests (every `/ask`, and
-  every address that isn't a file) cost $0.30 per million past 10 million
-  a month, and Durable Object requests past the plan's are billed too.
-  Cloudflare's budget alerts only send an email, a day later.
+  counted across the whole account: Ask stops at its own budget, but
+  shares that allowance with everything else in the account. Worker
+  requests (every `/ask`, and every address that isn't a file) cost $0.30
+  per million past 10 million a month, and Durable Object requests past
+  the plan's are billed too. Cloudflare's budget alerts only send an
+  email, a day later.
 
 If your account is on Workers Paid, make a charge impossible in one of two
 ways:
@@ -210,9 +216,44 @@ ways:
 2. **Or leave Ask off.** Then there is no Worker at all, every request is
    for a file, and those are free on every plan.
 
-If you run Ask in a paid account anyway, keep `ASK_DAILY_LIMIT` at 200 or
-less and set a $1 budget alert (**Manage Account → Billing → Billable
+If you run Ask in a paid account anyway, keep `ASK_DAILY_NEURONS` at 9,000
+or less and set a $1 budget alert (**Manage Account → Billing → Billable
 Usage**), so that you at least hear about it.
+
+### Rules at the edge
+
+Ask's limits are checked by the Worker, so a request it turns away has
+still run it, and so has every address that isn't a file. On Workers Free
+those use up the 100,000 requests a day, after which Ask and the 404 page
+stop until midnight UTC (your pages keep loading); on Workers Paid they
+are billed. Two rules on your domain's zone turn the commonest of that
+traffic away before the Worker runs. Both are free, and both are set in
+the Cloudflare dashboard, under **Security → Security rules**.
+
+1. **A rate limiting rule** (the Free plan has one), for a flood of
+   questions from one address:
+
+   - When incoming requests match: `(http.request.uri.path eq "/ask")`
+   - With the same characteristics: IP
+   - When rate exceeds: 5 requests per 10 seconds
+   - Then take action: Block, for 10 seconds
+
+2. **A custom rule**, action Block, for requests the site has no use for:
+   anything but a `POST` to `/ask`, anything but `GET` or `HEAD` to the
+   rest, and the paths scanners try.
+
+   ```txt
+   (http.request.uri.path eq "/ask" and http.request.method ne "POST")
+   or (http.request.uri.path ne "/ask" and not (http.request.method in {"GET" "HEAD"}))
+   or (http.request.uri.path contains ".php")
+   or (http.request.uri.path contains "/wp-")
+   or (http.request.uri.path contains "/.env")
+   or (http.request.uri.path contains "/.git")
+   or (http.request.uri.path contains "/cgi-bin/")
+   ```
+
+A site served under a path has that path before `/ask` in both rules.
+**Security → Events** shows what each rule has matched.
 
 ## Languages and fonts
 
@@ -288,13 +329,89 @@ again for every tab, in every language. Astro components read like the
 HTML they become, and what reaches the browser is still only plain HTML,
 CSS and the site's one script, with no framework code.
 
-## Privacy and security
+## Protections
 
-No analytics, no cookies, no third-party requests. Fonts and icons are
-served from the site itself. The Content-Security-Policy allows only the
-site's own files, nothing inline, and Trusted Types with no policy. The
-browser remembers chats and layout in `localStorage`, on the visitor's
-device only. See `.github/SECURITY.md` to report a problem.
+Everything that protects a site made from the template, its visitors and
+its bill, in one list. The numbers are the defaults, from `wrangler.jsonc`.
+See `.github/SECURITY.md` to report a problem.
+
+**The pages**
+
+- **A strict Content-Security-Policy.** `default-src 'none'`, with only
+  the site's own scripts, styles, images and fonts; nothing inline; the
+  page may fetch only from the site itself, and only with Ask on; no
+  `<base>`, no form posts, no framing.
+- **Trusted Types, with no policy.** The script can't turn a string into
+  markup: it builds elements, and shows a reply from `/ask` as text.
+- **The other headers.** HTTPS only for two years (HSTS; subdomains and
+  preloading if you ask for them with `hsts`); `nosniff`;
+  `X-Frame-Options: DENY`; a referrer policy that gives another site the
+  origin at most; a Permissions-Policy that turns off the camera,
+  microphone, location, payments, USB and ad topics; and
+  `Cross-Origin-Opener-Policy: same-origin`. All of them are in
+  `src/shared/headers.ts`. A host that reads no `_headers` file gets the
+  Content-Security-Policy and the referrer policy in `<meta>` tags, and
+  the rest are yours to set there (see [Deploy](#deploy)).
+- **Nothing from anyone else.** No analytics, no cookies, no third-party
+  requests: the fonts and icons are the site's own files. Chats and
+  layout are kept in `localStorage`, in the visitor's browser only. A
+  link to another site opens with `noopener noreferrer`.
+- **A config that's checked.** The build stops on a link that isn't a web,
+  mailto, #tab or site address (so no `javascript:`), and on a value that
+  doesn't look like what it's used as. The config's Markdown is bold,
+  italic, code and links, never HTML.
+
+**Ask's requests** (Ask is off as shipped: then there is no Worker, and
+nothing below to protect)
+
+- **Only a small JSON POST gets in.** Another method, another content
+  type (which a page on another site can't send) or a body over 2,048
+  bytes is refused before anything is spent on it, and a question is cut
+  to 300 characters.
+- **The model can't write to a visitor.** It may only name one of your
+  answers, from a fixed list, and number its sentences. The Worker quotes
+  those sentences: at most two, at most 280 characters, as text.
+- **A pick has to cover the question.** One that doesn't name the tool,
+  company or place the question names is dropped, so a near miss doesn't
+  read as a "no".
+- **Two checks on every question.** The picker flags a rude question, or
+  one that tries to give it other orders, and Llama Guard reads each
+  question too. Either blocks the visitor from Ask for 24 hours.
+- **Visitors aren't identified.** A visitor is counted by a salted hash
+  of their address (an IPv6 address by its /64). Set your own salt as a
+  secret (`ASK_SALT`). The address is never stored or logged; what was
+  asked is logged only if you turn `ASK_LOG_QUESTIONS` on; and an error
+  is logged by its number or kind, never its message.
+
+**Ask's cost**
+
+- **A visitor's limits.** 10 questions a minute and 30 a day.
+- **The site's limits.** 200 questions a day, and 9,000 Neurons a day,
+  counted from the tokens each question's model calls used.
+- **Small model calls.** The picker may write 256 tokens, and Llama Guard
+  10.
+- **It fails closed.** With the rate limiter, the Durable Object or a
+  model missing or failing, no model is called, and the visitor gets the
+  "Something else" reply.
+- **A switch.** `ASK_ENABLED` set to `"false"` turns Ask off without a
+  code change.
+- **The plan.** On Workers Free, Cloudflare refuses what it would
+  otherwise bill, and the pages are files that never run the Worker (see
+  [What Ask can cost](#what-ask-can-cost)).
+- **Rules at the edge**, which you set by hand in the Cloudflare
+  dashboard: a rate limit on `/ask`, and a block on requests the site has
+  no use for (see [Rules at the edge](#rules-at-the-edge)).
+
+**The code**
+
+- **Every change is checked.** `npm run verify` runs on each pull
+  request: formatting, types, the build, the HTML, the unit tests, and
+  the browser checks, which are served with the real security headers.
+  The workflow's token can only read the repository.
+- **Dependencies are kept current.** Dependabot opens a pull request each
+  month for the npm packages and the GitHub Actions. None of the packages
+  reaches the browser: only Astro's build of the site does.
+- **Nothing built is committed.** Your host builds the site from source.
 
 ## Credits and licence
 
