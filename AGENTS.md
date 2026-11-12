@@ -219,6 +219,35 @@ export default {
 { image: { src: "/assets/order.svg", still: "/assets/order-still.svg", alt: "…", width: 1600, height: 400 } }
 ```
 
+What the kit has, each documented where it's defined:
+
+- **Shapes.**
+  - To draw: `box`, `label`, `dot`, `line`, `arrowhead`, `bar` (it stands
+    for words), `dots` (a map).
+  - A line's path: `levelCurve`, `arc`, or any SVG path (`rounded` writes a
+    number in one).
+  - Where things go: `Place`, `centreOf`, `rightOf`; `aroundOrigin` and
+    `placed`, for what turns or grows about its own middle.
+  - Room for text: `textWidth`, `sizeToFit`, `baselineAround`.
+  - Together: `group`, `moving` (a shape with motion on it),
+    `onlyWhenMoving`.
+- **Motion**, from `loopOf(seconds)`.
+  - A value changing: `loop.track` (any attribute), `loop.transform`,
+    `loop.shown`, `loop.changing` (one text after another).
+  - A line: `loop.draw` draws it, `loop.along` moves a shape along one.
+  - Passing through: `loop.traveller` (a dot) and `loop.carried` (any
+    shapes) along a path, `loop.ripple`.
+  - A light: `loop.flash`, `loop.light` (over anything), `loop.edgeLight`
+    (a box's edge, as something arrives).
+- **A story's loop**, for a picture that follows one thing, ends as its
+  still, then clears and starts again.
+  - When it clears: `loopOf(seconds, { from, to })`. What the story built
+    up fades then, together.
+  - Coming to stay: `loop.since`, or by `loop.popping`, `loop.rising` or
+    `loop.gliding` into place.
+  - Starting over: `loop.fromTheStart` (what the loop changes),
+    `loop.untilClear` (what something else brought in).
+
 - **Move things, not words.** A dot along a line, a card up a list, a box
   that lights as something reaches it. Text that fades in a row at a time
   is a list: a `flow` or a paragraph says it better, and without motion.
@@ -229,19 +258,26 @@ export default {
 - **Every motion lasts the whole loop.** Say when a thing happens in
   seconds into the loop (`loop.shown(2, 5)`), never with a length of its
   own, or the parts drift apart. Make the loop's end meet its start: what
-  resets does it out of sight.
+  resets does it out of sight (a story's loop does this for what's put on
+  it).
 - **Draw each shape the way it rests.** The `-still.svg` file is the same
   shapes without their motion, and it's what a visitor who has asked for
   less motion sees (the image's `still`; a test says if it's missing). It
   should read as a finished diagram. What only passes through is
-  `onlyWhenMoving` (`loop.traveller` and `loop.ripple` already are).
+  `onlyWhenMoving` (what's `loop.carried`, a `traveller`, a `ripple` and a
+  `light` already are).
 - **Big and few words.** It's shown about 700 px wide on a desktop and 340
   on a phone: draw it 1600 wide, with text at 32 or more. It's drawn in
   the visitor's own font, so leave room around text (`textWidth`
   estimates it).
 - **Each language's words are in `words`.** The first language's files are
   `NAME.svg` and `NAME-still.svg`; another's have its code (`NAME-ja.svg`).
-  A folder inside `diagrams/` holds parts that diagrams share.
+- **What two diagrams draw goes in a part:** a file in a folder inside
+  `diagrams/` (say `diagrams/parts/`), named for what it draws, with a
+  header that says which diagrams use it. What any diagram might need
+  goes in the kit instead. A change to either shouldn't change a picture
+  it wasn't meant to: `npm run diagrams -- --check` names the files that
+  would change.
 - **Look at it.** `npm run diagrams NAME` writes one diagram; open the SVG
   file in a browser. Commit the files with the diagram: `npm test` fails
   while they aren't what it draws.
