@@ -70,11 +70,11 @@
   //   // why the question was turned away, and never the visitor's address.
   //   // "true" adds what was asked (`question`), what the model made of it
   //   // before it picked (`thought`), the numbers of the lines it chose
-  //   // (`chose`), the words of a reply it wrote that those lines don't
-  //   // have (`unsaid`) and the reply sent (`said`), to read under the
-  //   // Worker's Observability tab until Workers Logs drops them (3 days on
-  //   // the free plan). Off, so visitors' words aren't kept, unless you
-  //   // choose to keep them and say so.
+  //   // (`chose`), the names and numbers of a reply it wrote that those
+  //   // lines don't have (`unsaid`) and the reply sent (`said`), to read
+  //   // under the Worker's Observability tab until Workers Logs drops them
+  //   // (3 days on the free plan). Off, so visitors' words aren't kept,
+  //   // unless you choose to keep them and say so.
   //   "ASK_LOG_QUESTIONS": "false",
   //   // Any Workers AI text model with function calling;
   //   // src/worker/constants.ts has the settings and the prices for the
