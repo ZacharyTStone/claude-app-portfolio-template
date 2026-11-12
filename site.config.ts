@@ -14,6 +14,13 @@
      https://…).
    - Icons are about, skills, file, contact, work and globe; panel rows and
      link cards can also be github or linkedin.
+   - A `flow` draws steps in order. Give it an `example`, and each step
+     its own, and it follows one made-up case through the steps and plays:
+     they light up in turn, and a visitor can pick a step or play it again
+     ("Saving a note", below).
+   - `viewer` lists the links that open in a panel beside the conversation,
+     in a frame, instead of a new tab: a resume in Google Docs, say. The
+     sample has none; there's one to uncomment under `ask`.
    - To add a language, see examples/ja.ts. */
 import type { SiteConfig } from "./src/shared/config.ts";
 
@@ -58,10 +65,20 @@ export default {
   // 1200×630; make your own from the sample in public/assets/og.png.
   social: { image: "/assets/og.png", width: 1200, height: 630 },
   themeColor: "#191919",
-  // Ask (optional, Cloudflare only): a typed question gets a sentence
-  // written from the answer here that fits, and checked against it.
-  // Uncomment, and see "Ask" in README.md.
+  // Ask (optional, Cloudflare only): a typed question gets a reply of a
+  // sentence or two, written from the answer here that fits, with the
+  // lines it was written from quoted under it. Uncomment, and see "Ask" in
+  // README.md.
   // ask: { role: "a software engineer" },
+  // The viewer (optional): a link listed here opens in a panel beside the
+  // conversation, in a frame, instead of a new tab. Each entry is a link's
+  // `href`, exactly as this file has it, then the address the frame shows:
+  // a Google Doc that anyone with the link can view is shown at its
+  // address ending /preview. The sample has none, because nothing it links
+  // to can be shown in a frame: GitHub and LinkedIn refuse, and so does a
+  // file on the site itself. With the resume in Google Docs, it would be
+  // the line below. See "Diagrams that play, and the viewer" in README.md.
+  // viewer: { [me.resume]: "https://docs.google.com/document/d/YOUR-DOC-ID/preview" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
     about: `${me.name} is a senior software engineer at ${acme.company}, working on the web app its customers use every day. Before that, ${me.first} built sites and apps for clients at ${globex.company}, an agency, and on the side made ${me.project.name}, an offline-first notes app.`,
@@ -260,13 +277,37 @@ export default {
               a: [
                 "Every note is saved in the browser first, so typing never waits for the network. Changes queue up while offline and sync when the connection comes back.",
                 {
+                  // With `example`, the flow follows one made-up case through
+                  // its steps, and plays: each step's `example` is what the
+                  // case looks like there. Without them it's boxes and arrows.
                   flow: {
                     title: "Saving a note",
+                    example: "An example: a note typed on a flight, with no Wi-Fi",
                     steps: [
-                      { name: "Type", note: "saved as you go" },
-                      { name: "IndexedDB", note: "in the browser" },
-                      { name: "Sync queue", note: "waits for a connection" },
-                      { name: "Server" },
+                      {
+                        name: "Type",
+                        note: "saved as you go",
+                        example: "“Flights on the 14th, back on the 21st.”",
+                      },
+                      {
+                        name: "IndexedDB",
+                        note: "in the browser",
+                        example: [
+                          "The note is saved before the sentence is finished. Under its title:",
+                          "**Saved on this device** · syncs when online",
+                        ],
+                      },
+                      {
+                        name: "Sync queue",
+                        note: "waits for a connection",
+                        example:
+                          "One change is in the queue: **Trip to Lisbon**, edited just now. It waits there until landing.",
+                      },
+                      {
+                        name: "Server",
+                        example:
+                          "The plane lands, the laptop is back online, and the change is sent. The queue is empty again.",
+                      },
                     ],
                   },
                 },
@@ -313,6 +354,8 @@ export default {
           messages: [
             {
               q: `can i see ${lower(me.first)}’s resume?`,
+              // Listed in `viewer`, this link (and the panel's row for it)
+              // would open beside the conversation, not in a new tab.
               a: ["Sure:", { link: { name: "Resume", kind: "Document · PDF", href: me.resume, icon: "file" } }],
             },
           ],
@@ -521,6 +564,12 @@ export default {
         newChat: "New chat",
         moveSection: "Move {name}",
         resize: "Resize the tabs",
+        // The button that plays a flow's example, and plays it again.
+        flowPlay: "Play",
+        flowReplay: "Replay",
+        // The viewer's two buttons, on a site with `viewer`.
+        viewerOpen: "Open in a new tab",
+        viewerClose: "Close",
         // The rest show only with Ask on. Under a reply to a typed question:
         // where it's from.
         askFrom: "From the {tab} tab",

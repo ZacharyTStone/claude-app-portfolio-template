@@ -209,11 +209,27 @@ export default function japanese(me: Me): Language {
               {
                 flow: {
                   title: "メモが保存されるまで",
+                  example: "例：Wi-Fiのない機内でメモを書いた場合",
                   steps: [
-                    { name: "入力", note: "書くそばから保存" },
-                    { name: "IndexedDB", note: "ブラウザの中" },
-                    { name: "同期キュー", note: "接続を待つ" },
-                    { name: "サーバー" },
+                    { name: "入力", note: "書くそばから保存", example: "「フライトは14日、帰りは21日。」" },
+                    {
+                      name: "IndexedDB",
+                      note: "ブラウザの中",
+                      example: [
+                        "文を書き終える前に、メモはもう保存されています。タイトルの下の表示：",
+                        "**この端末に保存済み** · オンライン時に同期",
+                      ],
+                    },
+                    {
+                      name: "同期キュー",
+                      note: "接続を待つ",
+                      example: "キューに変更が1件：**Trip to Lisbon**（たった今編集）。着陸までここで待ちます。",
+                    },
+                    {
+                      name: "サーバー",
+                      example:
+                        "着陸してノートパソコンがオンラインに戻ると、変更が送信されます。キューはまた空になります。",
+                    },
                   ],
                 },
               },
@@ -441,6 +457,10 @@ export default function japanese(me: Me): Language {
       newChat: "新しいチャット",
       moveSection: "{name}を移動",
       resize: "タブの幅を変更",
+      flowPlay: "再生",
+      flowReplay: "もう一度再生",
+      viewerOpen: "新しいタブで開く",
+      viewerClose: "閉じる",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",
