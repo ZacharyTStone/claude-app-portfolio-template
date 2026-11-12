@@ -26,8 +26,9 @@ test("Every diagram's files are what it draws now", async () => {
 
 test("A diagram is shapes and their motion: no script, no styles, no file of another's", () => {
   /** What a picture shown with <img>, under the page's policy, can't have
-      or shouldn't need. */
-  const notInAPicture = /<script|<style|\sstyle=|\sclass=|\shref=|<foreignObject|<image|<use|\son[a-z]+=|url\(/i;
+      or shouldn't need. A `url(` may only point inside the picture itself
+      (`url(#its-clip)`), never at a file. */
+  const notInAPicture = /<script|<style|\sstyle=|\sclass=|\shref=|<foreignObject|<image|<use|\son[a-z]+=|url\((?!#)/i;
   for (const [path, text] of files) {
     assert.doesNotMatch(text, notInAPicture, path);
   }
