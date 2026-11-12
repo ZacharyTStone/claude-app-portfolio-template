@@ -210,8 +210,9 @@ address for a day.
 ### What Ask can cost
 
 Ask keeps count of what the day's questions cost. Each question makes two
-model calls (the pick with GLM-4.7-Flash, and Llama Guard), each reports
-the tokens it used, and the Worker prices them in Neurons. Past
+model calls (the pick with GLM-4.7-Flash, and Llama Guard) and, when
+there's a reply to write, one or two more. Each reports the tokens it
+used, and the Worker prices them in Neurons. Past
 `ASK_DAILY_NEURONS` (9,000, inside Workers AI's free 10,000 a day) no more
 are asked until midnight UTC. What one question costs depends on how much
 your site says, since the model reads every answer: each log line has it,
@@ -498,8 +499,8 @@ nothing below to protect)
 - A visitor may ask 10 questions a minute and 30 a day.
 - The site may answer 200 questions a day and spend 9,000 Neurons a day,
   counted from the tokens each question's model calls used.
-- The model calls are kept small: the picker may write 512 tokens, and Llama
-  Guard 10.
+- The model calls are kept small: the picker may write 512 tokens, the
+  reply's writer 320 a try, two tries at most, and Llama Guard 10.
 - Ask fails closed. With the rate limiter, the Durable Object or a model
   missing or failing, no model is called, and the visitor gets the
   "Something else" reply.

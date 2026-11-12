@@ -46,13 +46,13 @@
   //   "ASK_DAILY_LIMIT": "200",
   //   // What those questions may cost per day, in Workers AI Neurons, for
   //   // the whole site. Each question's cost is counted from the tokens its
-  //   // two model calls used (the pick, and Llama Guard reading the
-  //   // question), and once the day's reach this no more are asked until
-  //   // midnight UTC. Workers AI gives 10,000 free a day; the 1,000 between
-  //   // is for the questions already on their way when the budget is
-  //   // reached. What a question costs depends on how much your site says,
-  //   // since the model reads every answer: each /ask log line has it, as
-  //   // `neurons`.
+  //   // model calls used (the pick, Llama Guard reading the question, and
+  //   // the reply written from the pick), and once the day's reach this no
+  //   // more are asked until midnight UTC. Workers AI gives 10,000 free a
+  //   // day; the 1,000 between is for the questions already on their way
+  //   // when the budget is reached. What a question costs depends on how
+  //   // much your site says, since the model reads every answer: each /ask
+  //   // log line has it, as `neurons`.
   //   "ASK_DAILY_NEURONS": "9000",
   //   // Questions per visitor (hashed address) per day. With ten left (or a
   //   // third of a smaller limit) they're told how many; past it, that
