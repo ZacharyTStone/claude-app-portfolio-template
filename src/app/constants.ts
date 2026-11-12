@@ -95,6 +95,14 @@ export const CLASS = {
   viewerFrame: "viewer-frame",
   viewing: "viewing",
   viewerLoading: "loading",
+  /** A quote or a file card that comes in when it's scrolled to (seen.ts):
+      while it's out of sight; once it has come in; and, when several come
+      into view together, how far behind the first each one is. */
+  waiting: "waiting",
+  seen: "seen",
+  seenAfter1: "after-1",
+  seenAfter2: "after-2",
+  seenAfter3: "after-3",
 } as const;
 
 const has = (attribute: string) => `[${attribute}]`;
@@ -189,6 +197,9 @@ export const SELECTOR = {
 
   // A link that opens in the viewer.
   viewLink: `a${has(DATA.view)}`,
+
+  // What comes in as it's scrolled to: a quote, a file card.
+  comesIntoView: `.${PAGE_CLASSES.quote}, .${PAGE_CLASSES.fileCard}`,
 } as const;
 
 /** In milliseconds. */
@@ -210,6 +221,9 @@ export const TIMING = {
       when it settles after. */
   slide: 180,
   settle: 200,
+  /** How long after a page starts to load it's still arriving: until then
+      what's on screen may come in as what's scrolled to does (seen.ts). */
+  pageArrives: 700,
 } as const;
 
 /** In CSS pixels, unless it says otherwise. */
@@ -240,4 +254,9 @@ export const SIZE = {
   /** From this width the viewer is beside the conversation, in the panel's
       place; below it, it covers the screen (the stylesheet's breakpoint). */
   viewerBeside: 1200,
+  /** How much of a quote or a card has to be on screen before it comes in
+      (a fraction of it, not pixels), or else how much of the screen it has
+      to fill, for one too tall to show that much of. */
+  inViewShare: 0.3,
+  fillsScreenShare: 0.4,
 } as const;

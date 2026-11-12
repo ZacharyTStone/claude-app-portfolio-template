@@ -48,4 +48,47 @@
   @keyframes idle { 50% { translate: 0 -6px; rotate: 22deg; } }
   .bye { animation: bye-in 0.35s var(--ease); }
   @keyframes bye-in { from { opacity: 0; } }
+  /* A quote and a file card that were out of sight come in when they're
+     scrolled to (src/app/seen.ts marks them, and only with the script).
+     A quote's rule shows first, in the accent, then its words, then who
+     said them. A card's tick lands, then its lines are written out one
+     after another, as a file being read. When several arrive together
+     each waits its turn (--wait). */
+  .waiting { opacity: 0; }
+  .after-1 { --wait: 0.16s; }
+  .after-2 { --wait: 0.32s; }
+  .after-3 { --wait: 0.48s; }
+  .quote.seen { animation: quote-in 0.9s var(--wait, 0s) var(--ease) both; }
+  .quote.seen blockquote { animation: arrive 0.45s calc(var(--wait, 0s) + 0.12s) var(--ease) both; }
+  .quote.seen figcaption { animation: arrive 0.4s calc(var(--wait, 0s) + 0.4s) var(--ease) both; }
+  @keyframes quote-in {
+    from { opacity: 0; border-left-color: var(--accent); }
+    35% { opacity: 1; }
+    60% { border-left-color: var(--accent); }
+  }
+  .card.seen { animation: show 0.25s var(--wait, 0s) var(--ease) both; }
+  .card.seen .ok { animation: tick-in 0.4s calc(var(--wait, 0s) + 0.2s) var(--ease) both; }
+  @keyframes tick-in { from { opacity: 0; scale: 0.3; } 60% { scale: 1.3; } }
+  /* Each line a twentieth of a second after the one above it; past the
+     sixteenth they come together. */
+  .card.seen .ln { --line: 15; animation: show 0.12s calc(var(--wait, 0s) + 0.35s + var(--line) * 0.05s) var(--ease) both; }
+  .card.seen .ln:first-child { --line: 0; }
+  .card.seen .ln:nth-child(2) { --line: 1; }
+  .card.seen .ln:nth-child(3) { --line: 2; }
+  .card.seen .ln:nth-child(4) { --line: 3; }
+  .card.seen .ln:nth-child(5) { --line: 4; }
+  .card.seen .ln:nth-child(6) { --line: 5; }
+  .card.seen .ln:nth-child(7) { --line: 6; }
+  .card.seen .ln:nth-child(8) { --line: 7; }
+  .card.seen .ln:nth-child(9) { --line: 8; }
+  .card.seen .ln:nth-child(10) { --line: 9; }
+  .card.seen .ln:nth-child(11) { --line: 10; }
+  .card.seen .ln:nth-child(12) { --line: 11; }
+  .card.seen .ln:nth-child(13) { --line: 12; }
+  .card.seen .ln:nth-child(14) { --line: 13; }
+  .card.seen .ln:nth-child(15) { --line: 14; }
+  .card.seen .ln:nth-child(16) { --line: 15; }
+  /* The dot that says "this is where he is now" breathes. */
+  .live { animation: live 2.6s ease-in-out infinite; }
+  @keyframes live { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent); } }
 }

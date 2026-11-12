@@ -6,6 +6,7 @@ import { ID } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
+import { showWhole } from "./seen.ts";
 import { rich } from "./lib/markdown.ts";
 import { askedTab, questionText, words } from "./page.ts";
 import { isPersonalTab } from "./personal.ts";
@@ -49,11 +50,12 @@ export function questionFor(source: Source): string | null {
 }
 
 // A message to send again: without its buttons, or ids the page already
-// has.
+// has, and with nothing in it waiting to be scrolled to.
 function copyMessage(node: Element): Element {
   const copy = clone(node);
   copy.querySelectorAll(SELECTOR.messageActions).forEach((actions) => actions.remove());
   copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
+  showWhole(copy);
   return copy;
 }
 
