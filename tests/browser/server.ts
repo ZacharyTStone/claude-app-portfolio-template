@@ -17,7 +17,9 @@ import { DATA } from "../../src/shared/page-data.ts";
 // As SiteConfig, so a field this site leaves out (hsts) reads as undefined.
 const config: SiteConfig = siteConfig;
 
-const TYPES: Record<string, string> = {
+/** The Content-Type of each kind of file a built site has, by its
+    extension; and of any other kind, which a browser then doesn't show. */
+const CONTENT_TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
   ".css": "text/css",
   ".js": "text/javascript",
@@ -29,21 +31,45 @@ const TYPES: Record<string, string> = {
   ".txt": "text/plain; charset=utf-8",
   ".xml": "application/xml",
 };
+const UNKNOWN_CONTENT_TYPE = "application/octet-stream";
+
+// A page's opening tag, attributes and all: <html lang="en" data-ask="/ask">.
+const HTML_TAG = /<html\b[^>]*>/;
 
 /** Whether a built page has Ask on (data-ask on its <html>), so it may
     connect to /ask. */
 function hasAsk(html: string): boolean {
-  const root = html.match(/<html\b[^>]*>/)?.[0] ?? "";
-  return new RegExp(`\\s${DATA.ask}=`).test(root);
+  const htmlTag = html.match(HTML_TAG)?.[0] ?? "";
+  return new RegExp(`\\s${DATA.ask}=`).test(htmlTag);
 }
 
+/** The file or folder in `root` that a path on the site names ("ja/" or
+    "assets/app.css"), whether or not it's there. Null for a path that
+    can't be read (a % that escapes nothing) or that leaves `root` ("../"):
+    nothing outside the built site is ever served. */
+function fileIn(root: string, sitePath: string): string | null {
+  let decodedPath: string;
+  try {
+    decodedPath = decodeURIComponent(sitePath);
+  } catch {
+    return null;
+  }
+  const file = join(root, decodedPath);
+  return file === root || file.startsWith(root + sep) ? file : null;
+}
+
+const isFolder = (path: string): boolean => existsSync(path) && statSync(path).isDirectory();
+
+/** A site being served. */
 type Served = {
   /** The main page's address: the server's origin and the base path. */
   home: string;
+  /** Stops serving, and drops the connections still open. */
   close(): Promise<void>;
 };
 
-/** Serves `root` (the built site) at `base` on a free port of 127.0.0.1. */
+/** Serves `root` (the built site: dist/, unless another folder is given)
+    at `base` on a free port of 127.0.0.1. */
 export async function serve({
   root: folder = join(ROOT, OUTPUT),
   base = "/",
@@ -52,42 +78,40 @@ export async function serve({
   const ask = hasAsk(readFileSync(join(root, "index.html"), "utf8"));
   const headers = Object.fromEntries(securityHeaders({ ask, frames: frameOrigins(config.viewer), hsts: config.hsts }));
 
-  const send = (res: ServerResponse, status: number, file: string) => {
-    res.writeHead(status, { ...headers, "Content-Type": TYPES[extname(file)] ?? "application/octet-stream" });
-    res.end(readFileSync(file));
+  const sendFile = (response: ServerResponse, status: number, file: string) => {
+    const contentType = CONTENT_TYPES[extname(file)] ?? UNKNOWN_CONTENT_TYPE;
+    response.writeHead(status, { ...headers, "Content-Type": contentType });
+    response.end(readFileSync(file));
   };
-  const redirect = (res: ServerResponse, to: string) => {
-    res.writeHead(301, { ...headers, Location: to });
-    res.end();
+  const redirect = (response: ServerResponse, to: string) => {
+    response.writeHead(301, { ...headers, Location: to });
+    response.end();
   };
 
-  const server = createServer((req, res) => {
-    const { pathname, search } = new URL(req.url ?? "/", "http://localhost");
-    const notFound = () => send(res, 404, join(root, "404.html"));
-    if (`${pathname}/` === base) return redirect(res, base + search);
+  const server = createServer((request, response) => {
+    // Only the path and the query are read: any origin does to parse them.
+    const { pathname, search } = new URL(request.url ?? "/", "http://localhost");
+    const notFound = () => sendFile(response, 404, join(root, "404.html"));
+    // The base path without its last slash: "/portfolio" → "/portfolio/".
+    if (`${pathname}/` === base) return redirect(response, base + search);
     if (!pathname.startsWith(base)) return notFound();
-    let file: string;
-    try {
-      file = join(root, decodeURIComponent(pathname.slice(base.length)));
-    } catch {
-      return notFound();
-    }
-    if (file !== root && !file.startsWith(root + sep)) return notFound();
-    if (existsSync(file) && statSync(file).isDirectory()) {
+    let file = fileIn(root, pathname.slice(base.length));
+    if (!file) return notFound();
+    if (isFolder(file)) {
       // As hosts do: /ja → /ja/, so the page's relative links work.
-      if (!pathname.endsWith("/")) return redirect(res, `${pathname}/${search}`);
+      if (!pathname.endsWith("/")) return redirect(response, `${pathname}/${search}`);
       file = join(file, "index.html");
     }
-    return existsSync(file) ? send(res, 200, file) : notFound();
+    return existsSync(file) ? sendFile(response, 200, file) : notFound();
   });
-  await new Promise<void>((done) => server.listen(0, "127.0.0.1", done));
+  await new Promise<void>((listening) => server.listen(0, "127.0.0.1", listening));
   const { port } = server.address() as AddressInfo;
   return {
     home: `http://127.0.0.1:${port}${base}`,
     close: () =>
-      new Promise<void>((done) => {
+      new Promise<void>((closed) => {
         server.closeAllConnections();
-        server.close(() => done());
+        server.close(() => closed());
       }),
   };
 }

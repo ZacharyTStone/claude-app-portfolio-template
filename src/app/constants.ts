@@ -95,14 +95,6 @@ export const CLASS = {
   viewerFrame: "viewer-frame",
   viewing: "viewing",
   viewerLoading: "loading",
-  /** A flow that follows an example (flow.ts): its play button; on the
-      figure once it shows a step at a time, and while it plays itself; on
-      a step the example has passed, and the one it's at. */
-  flowPlay: "flow-play",
-  flowStepping: "stepping",
-  flowPlaying: "playing",
-  flowPassed: "passed",
-  flowCurrent: "current",
 } as const;
 
 const has = (attribute: string) => `[${attribute}]`;
@@ -197,13 +189,6 @@ export const SELECTOR = {
 
   // A link that opens in the viewer.
   viewLink: `a${has(DATA.view)}`,
-
-  // A flow that follows an example: the figure, its steps in order, a
-  // step's name and note, and its play button.
-  flowExample: has(DATA.flowExample),
-  flowSteps: "ol > li",
-  flowStep: `.${PAGE_CLASSES.flowStep}`,
-  flowPlay: `.${CLASS.flowPlay}`,
 } as const;
 
 /** In milliseconds. */
@@ -225,8 +210,6 @@ export const TIMING = {
       when it settles after. */
   slide: 180,
   settle: 200,
-  /** How long a flow's example stays at each step as it plays. */
-  flowStep: 2200,
 } as const;
 
 /** In CSS pixels, unless it says otherwise. */
@@ -257,7 +240,4 @@ export const SIZE = {
   /** From this width the viewer is beside the conversation, in the panel's
       place; below it, it covers the screen (the stylesheet's breakpoint). */
   viewerBeside: 1200,
-  /** How much of a flow has to be on screen before its example plays (a
-      fraction of the figure, not pixels). */
-  flowInView: 0.35,
 } as const;

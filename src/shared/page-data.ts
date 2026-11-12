@@ -16,7 +16,7 @@
    4. data-* attributes      dataAttribute (for the wording), DATA (all the others)
    5. Classes                PAGE_CLASSES
    6. Ids made from others   ID_PREFIX, titleId, groupId, panelId, personalTab
-   7. Values with a meaning  CHATS_GROUP, LOCAL_ZONE, MENU_KEYS, SEPARATOR
+   7. Values with a meaning  CHATS_GROUP, LOCAL_ZONE, MENU_KEYS, SEPARATOR, REDUCED_MOTION
    8. The parts of the day   HOURS, partOfDay
 
    The values are part of the built page. The stylesheet (src/styles) has
@@ -96,10 +96,6 @@ export const OPTIONAL_SCRIPT_STRINGS = [
   // tab" and "Close".
   "viewerOpen",
   "viewerClose",
-  // A flow with an example to follow (content.ts's Flow): the button that
-  // plays it, and what it says once it has played.
-  "flowPlay",
-  "flowReplay",
 ] as const;
 
 /** The name of one of OPTIONAL_SCRIPT_STRINGS. */
@@ -108,7 +104,6 @@ export type OptionalScriptString = (typeof OPTIONAL_SCRIPT_STRINGS)[number];
 /** The optional script strings each part needs. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
-  flowExample: ["flowPlay", "flowReplay"],
 } as const satisfies Record<string, readonly OptionalScriptString[]>;
 
 /** Every script string a page can carry. */
@@ -344,9 +339,6 @@ export const DATA = {
   view: "data-view",
   /** On the same link: what the viewer calls what it shows. */
   viewTitle: "data-view-title",
-  /** No value. Marks a flow that follows an example through its steps,
-      which the browser code plays. */
-  flowExample: "data-flow-example",
 } as const;
 
 // ---- 5. Classes ----------------------------------------------------------------
@@ -401,10 +393,6 @@ export const PAGE_CLASSES = {
   prompts: "prompts",
   /** A figure in an answer: bars, a flow or a picture. */
   figure: "fig",
-  /** In a flow that follows an example: a step's name and note. */
-  flowStep: "step",
-  /** In such a flow: what the example looks like at a step. */
-  flowStepExample: "eg",
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
   menu: "menu",
@@ -495,6 +483,12 @@ export const MENU_KEYS = { rename: "r", copyLink: "c", delete: "d" } as const;
 /** What joins a tab's name and the site's in the window title, and the
     clock's two notes. */
 export const SEPARATOR = " · ";
+
+/** The media query that's true for a visitor whose computer asks for less
+    motion: a picture that moves shows its still to them (Picture.astro),
+    and the script moves nothing (src/app/lib/motion.ts). The stylesheet
+    has it typed out. */
+export const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";
 
 // ---- 8. The parts of the day ---------------------------------------------------
 

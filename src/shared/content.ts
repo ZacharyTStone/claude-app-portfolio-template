@@ -91,32 +91,16 @@ export type BarRow = { label: string; value: string; amount: number; accent?: bo
 /** Steps in order, drawn as boxes with an arrow from each to the next: a
     pipeline, or the way a request goes. Two to five.
 
-    With `example`, the flow follows one example through its steps, and
-    plays. It's then drawn down the page, a step a row, each with what the
-    example looks like there (the step's own `example`). The visitor
-    watches the steps light up in turn, and can pick any step or play it
-    again. Without JavaScript, and printed, every step shows at once.
-
-        flow: {
-          title: "What happens to an order",
-          example: "An example: two coffees, ordered at 8:02",
-          steps: [
-            { name: "The till", note: "takes the order", example: "2 × flat white, to go" },
-            { name: "The kitchen", note: "makes it", example: "Ticket 41, two cups" },
-            { name: "The counter", note: "calls the name", example: "“Order for Alex!”" },
-          ],
-        }
-
-    It needs strings.flowPlay and strings.flowReplay in each language. */
+        { title: "What happens to an order", steps: [
+          { name: "The till", note: "takes the order" },
+          { name: "The kitchen", note: "makes it" },
+          { name: "The counter", note: "calls the name" },
+        ] } */
 export type Flow = {
   /** What the steps are, over the figure: "What happens to an order". */
   title: string;
   /** The steps, first to last: FIGURE_LIMITS.flow says how many. */
   steps: FlowStep[];
-  /** What's followed through the steps, in a line: "An example: one
-      visitor's question". Every step then needs its own `example`. Leave
-      out for a flow that's only its boxes and arrows. */
-  example?: Markdown;
 };
 
 /** One step of a flow: its name, and optionally what it does, in a few
@@ -126,11 +110,6 @@ export type FlowStep = {
   name: string;
   /** What it does, after the name: "takes the order". */
   note?: string;
-  /** In a flow with an `example`: what the example looks like at this
-      step. A line, or several (each its own line); **bold** marks the part
-      to look at. It's an illustration, so Ask and llms.txt don't read it:
-      they read the steps. */
-  example?: Markdown | Markdown[];
 };
 
 /** How many of each a figure can hold and still read at a glance. */
@@ -141,15 +120,24 @@ export const FIGURE_LIMITS = {
 
 // ---- Pictures, quotes and headings ---------------------------------------------
 
-/** A picture of the thing itself, such as a screenshot: a file on the
-    site ("/assets/app.webp"), its size in pixels (so the page keeps its
-    place while it loads), and `alt`, which says what it shows to anyone who
-    can't see it. With `href`, the picture links there.
+/** A picture of the thing itself, such as a screenshot, or a diagram: a
+    file on the site ("/assets/app.webp"), its size in pixels (so the page
+    keeps its place while it loads), and `alt`, which says what it shows to
+    anyone who can't see it. With `href`, the picture links there.
 
-        { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" } */
+        { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" }
+
+    A picture that moves (an SVG with its own animation, as `npm run
+    diagrams` writes: AGENTS.md, "Adding a picture that moves") names the
+    same picture without its motion as `still`:
+
+        { src: "/assets/how.svg", still: "/assets/how-still.svg", alt: "…", width: 1600, height: 800 } */
 export type Picture = {
   /** The picture's file: a path on the site. */
   src: string;
+  /** For a picture that moves: the same picture, still. A visitor who has
+      asked their computer for less motion is shown this one instead. */
+  still?: string;
   /** What it shows, for anyone who can't see it. The build stops without
       one. */
   alt: string;

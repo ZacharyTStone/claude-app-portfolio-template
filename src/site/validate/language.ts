@@ -18,7 +18,7 @@ import {
 } from "../../shared/page-data.ts";
 import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
-import { answerBlocksIn, checkBlock, isFlowWithExample } from "./blocks.ts";
+import { checkBlock } from "./blocks.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isLocale, isPathOnSite } from "./shapes.ts";
 
@@ -251,18 +251,13 @@ type OptionalPart = {
 };
 
 /** The wording for the parts only some sites have (PART_STRINGS: the
-    viewer's buttons, a playing flow's button) is optional in the config's
-    type, so only this check can say that a site with the part has left it
-    out. A site gets it wrong by adding a viewer, or an example to a flow,
-    and not the words for its buttons. */
+    viewer's buttons) is optional in the config's type, so only this check
+    can say that a site with the part has left it out. A site gets it wrong
+    by adding a viewer and not the words for its buttons. */
 export function checkPartWording({ site, language, problemUnless }: LanguageChecks): void {
   // A part added to PART_STRINGS needs a line here, and the type says so.
   const parts = {
     viewer: { isOnTheSite: Boolean(site.config.viewer), nameInProblem: "viewer" },
-    flowExample: {
-      isOnTheSite: answerBlocksIn(language).some(isFlowWithExample),
-      nameInProblem: "a flow with an example",
-    },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {
     const part = parts[partName];

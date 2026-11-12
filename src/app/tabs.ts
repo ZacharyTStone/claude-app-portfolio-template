@@ -5,12 +5,12 @@ import { DATA, SEPARATOR, titleId } from "../shared/page-data.ts";
 import { SELECTOR } from "./constants.ts";
 import { clone, find } from "./lib/dom.ts";
 import { unfold } from "./folding.ts";
-import { hello, pageTitle, side, siteName } from "./page.ts";
+import { homeGreeting, pageTitle, side, siteName } from "./page.ts";
 
 /** The tab the address names, if it names one. */
 export function currentTab(): HTMLElement | null {
-  const el = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
-  return el?.matches(SELECTOR.tab) ? el : null;
+  const named = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
+  return named?.matches(SELECTOR.tab) ? named : null;
 }
 
 /** Whether a tab is a chat (chats.ts), not one of the portfolio's threads. */
@@ -45,39 +45,46 @@ export function clearHash(replace = false): void {
   history.replaceState(null, "", location.pathname + location.search);
 }
 
+/** Marks one of the sidebar's rows as the current page, and no other. */
+function markCurrentRow(currentRow: Element | null): void {
+  for (const row of side.querySelectorAll(`${SELECTOR.navRow}, ${SELECTOR.tabRow}`)) {
+    if (row === currentRow) row.setAttribute("aria-current", "page");
+    else row.removeAttribute("aria-current");
+  }
+}
+
 /** Brings the page into step with the open tab, and with `moveFocus`
     moves focus to its heading. */
 export function sync(moveFocus: boolean): void {
   const tab = currentTab();
-  // The tab's row. The home screen and a new chat with nothing sent in it
-  // yet have none, so "New tab" is selected for them.
-  const row = tab && rowFor(tab.id);
-  const current = row ?? (!tab || isChat(tab) ? side.querySelector(SELECTOR.newTab) : null);
-  for (const link of side.querySelectorAll(`${SELECTOR.navRow}, ${SELECTOR.tabRow}`)) {
-    if (link === current) link.setAttribute("aria-current", "page");
-    else link.removeAttribute("aria-current");
-  }
-  // Opening a tab inside a folded group unfolds it.
-  const list = row?.closest("ul");
-  if (list?.hidden) unfold(list);
+  const ownRow = tab ? rowFor(tab.id) : null;
+  // The home screen and a new chat with nothing sent in it yet have no row
+  // of their own, so "New tab" is selected for them.
+  const standsInNewTab = !tab || isChat(tab);
+  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(SELECTOR.newTab) : null));
 
-  const heading = tab ? find(tab, SELECTOR.title) : hello;
+  // Opening a tab inside a folded group unfolds it.
+  const groupList = ownRow?.closest("ul");
+  if (groupList?.hidden) unfold(groupList);
+
+  const heading = tab ? find(tab, SELECTOR.title) : homeGreeting;
   setTitle(tab ? heading.textContent : null);
   if (moveFocus) {
+    // A heading takes focus only once it's told it can, and not by Tab.
     heading.tabIndex = -1;
     heading.focus({ preventScroll: true });
   }
 }
 
-// What openTab was asked to do once its tab is open.
-let waiting: { tab: HTMLElement; then: () => void } | null = null;
+/** What openTab was asked to run once its tab is open, until it is. */
+let pendingOpen: { tab: HTMLElement; onceOpen: () => void } | null = null;
 
-/** Opens a tab, then runs `then` once it's open (and everything that
+/** Opens a tab, then runs `onceOpen` once it's open (and everything that
     happens when a tab opens has happened). With `replace`, in place of the
     page you were on in the history, so Back doesn't return to it. */
-export function openTab(tab: HTMLElement, then?: () => void, replace = false): void {
-  if (tab === currentTab()) return then?.();
-  waiting = then ? { tab, then } : null;
+export function openTab(tab: HTMLElement, onceOpen?: () => void, replace = false): void {
+  if (tab === currentTab()) return onceOpen?.();
+  pendingOpen = onceOpen ? { tab, onceOpen } : null;
   if (replace) location.replace(`#${tab.id}`);
   else location.hash = tab.id;
 }
@@ -86,9 +93,9 @@ export function openTab(tab: HTMLElement, then?: () => void, replace = false): v
     opened: main.ts calls it once the page is in step with the address.
     Another tab opening first means it won't be. */
 export function finishOpening(): void {
-  const tab = currentTab();
-  if (!waiting || !tab) return; // not yet: an address that names no tab
-  const { tab: awaited, then } = waiting;
-  waiting = null;
-  if (tab === awaited) then();
+  const openedTab = currentTab();
+  if (!pendingOpen || !openedTab) return; // not yet: an address that names no tab
+  const { tab: awaitedTab, onceOpen } = pendingOpen;
+  pendingOpen = null;
+  if (openedTab === awaitedTab) onceOpen();
 }

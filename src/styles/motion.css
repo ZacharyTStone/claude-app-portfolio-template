@@ -32,25 +32,13 @@
   @keyframes grow { from { transform: scaleX(0); } }
   @keyframes show { from { opacity: 0; } }
   /* A flow's steps arrive one after another, each after the arrow to it. */
-  .tab:target .flow:not(.follow) li { animation: arrive 0.4s var(--ease) both; }
-  .tab:target .flow:not(.follow) li::before { animation: show 0.3s var(--ease) both; }
-  .tab:target .flow:not(.follow) li:nth-child(2), .tab:target .flow:not(.follow) li:nth-child(2)::before { animation-delay: 0.3s; }
-  .tab:target .flow:not(.follow) li:nth-child(3), .tab:target .flow:not(.follow) li:nth-child(3)::before { animation-delay: 0.45s; }
-  .tab:target .flow:not(.follow) li:nth-child(4), .tab:target .flow:not(.follow) li:nth-child(4)::before { animation-delay: 0.6s; }
-  .tab:target .flow:not(.follow) li:nth-child(5), .tab:target .flow:not(.follow) li:nth-child(5)::before { animation-delay: 0.75s; }
-  .tab:target .flow:not(.follow) li:first-child { animation-delay: 0.15s; }
-  /* A flow that follows an example: each step's example rises into place
-     as the example reaches it, its mark pops, and while the flow plays
-     itself the line to the next step fills in the time the step is given. */
-  .follow .step, .follow .eg, .follow .eg > * { transition: opacity 0.35s var(--ease), translate 0.35s var(--ease); }
-  .stepping li:not(.passed, .current) .eg > * { translate: 0 6px; }
-  .stepping li.current::before { animation: mark-pop 0.35s var(--ease); }
-  @keyframes mark-pop { 50% { scale: 1.25; } }
-  .playing li.current:not(:last-child)::after {
-    background: linear-gradient(var(--accent), var(--accent)) top / 100% 0% no-repeat, var(--line);
-    animation: line-fill var(--flow-step, 2s) linear forwards;
-  }
-  @keyframes line-fill { to { background-size: 100% 100%, auto; } }
+  .tab:target .flow li { animation: arrive 0.4s var(--ease) both; }
+  .tab:target .flow li::before { animation: show 0.3s var(--ease) both; }
+  .tab:target .flow li:nth-child(2), .tab:target .flow li:nth-child(2)::before { animation-delay: 0.3s; }
+  .tab:target .flow li:nth-child(3), .tab:target .flow li:nth-child(3)::before { animation-delay: 0.45s; }
+  .tab:target .flow li:nth-child(4), .tab:target .flow li:nth-child(4)::before { animation-delay: 0.6s; }
+  .tab:target .flow li:nth-child(5), .tab:target .flow li:nth-child(5)::before { animation-delay: 0.75s; }
+  .tab:target .flow li:first-child { animation-delay: 0.15s; }
   /* The viewer slides in from the side, and its sparkle turns while the
      page loads. */
   .viewer { animation: viewer-in 0.25s var(--ease); }

@@ -67,88 +67,10 @@
   .flow li + li::before { top: -20px; left: 50%; margin: 0 0 0 -8px; rotate: 180deg; }
 }
 
-/* A flow that follows an example through its steps (src/app/flow.ts plays
-   it): down the page, a step a row, at any width. Each step is a numbered
-   mark on a line that runs down the left, then its name and what it does,
-   and under them what the example looks like there. */
-.flow .following { color: var(--text); font: 400 14px/21px var(--sans); }
-.flow.follow ol { flex-direction: column; gap: 0; counter-reset: flow-step; margin-top: 4px; }
-.flow.follow li {
-  counter-increment: flow-step;
-  display: grid;
-  grid-template-columns: 22px minmax(0, 1fr);
-  gap: 6px 12px;
-  padding: 0 0 16px;
-  border-radius: 0;
-  background: none;
-}
-.flow.follow li:last-child { padding-bottom: 0; }
-/* The step's number, in its mark: outlined until the example reaches it. */
-.flow.follow li::before {
-  content: counter(flow-step);
-  position: static;
-  grid-row: 1 / span 2;
-  width: 22px;
-  height: 22px;
-  margin: 0;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  background: var(--chip);
-  box-shadow: inset 0 0 0 1px var(--line);
-  color: var(--text-2);
-  font: 500 12px/1 var(--sans);
-  rotate: none;
-  -webkit-mask: none;
-  mask: none;
-}
-/* The line from each mark to the next. */
-.flow.follow li:not(:last-child)::after {
-  content: "";
-  position: absolute;
-  top: 26px;
-  bottom: 4px;
-  left: 10.5px;
-  width: 1px;
-  background: var(--line);
-}
-.flow .step { font: 400 13px/22px var(--sans); color: var(--text-2); }
-.flow .step b { color: var(--text); font: 500 14px/22px var(--sans); }
-.flow .eg {
-  display: grid;
-  gap: 2px;
-  padding: 7px 11px 8px;
-  border-radius: 8px;
-  background: var(--chip);
-  color: var(--text-2);
-  font: 400 13.5px/20px var(--sans);
-}
-.flow .eg strong, .flow .eg code { color: var(--text); }
-/* A line of an example in italics is something quoted: upright and quiet,
-   with a rule beside it, as a quote is elsewhere. */
-.flow .eg em { display: block; padding-left: 10px; border-left: 2px solid var(--line); color: var(--text-2); font-style: normal; }
-.flow .eg:not(:has(strong)) { color: var(--text); }
-/* The button that plays it, level with the title. */
-.flow-play { height: 24px; margin: -2px -6px -2px 0; padding: 0 8px; border-radius: 6px; color: var(--text-2); font: 500 13px/20px var(--sans); }
-.flow-play::before { content: ""; width: 0; height: 0; border-block: 4.5px solid transparent; border-left: 7px solid currentColor; }
-/* Played a step at a time: the steps the example hasn't reached are faint
-   and show no example yet, the one it's at is marked in the accent, and
-   the ones it has passed in grey. A step can be picked. */
-.flow.follow .step[role="button"] { width: fit-content; margin-inline: -6px; padding-inline: 6px; border-radius: 6px; cursor: pointer; }
-.flow.follow .step[role="button"]:hover { background: var(--row-hover); }
-.stepping li:not(.passed, .current) .step { opacity: 0.55; }
-.stepping li:not(.passed, .current) .eg { opacity: 0.4; }
-.stepping li:not(.passed, .current) .eg > * { opacity: 0; }
-/* While it plays itself, the step it's at is kept clear of the composer
-   that floats over the bottom of the tab (src/app/flow.ts scrolls to it). */
-.flow.follow li { scroll-margin-block: 72px 132px; }
-.stepping li.current::before { background: var(--accent); box-shadow: none; color: var(--page); }
-.stepping li.passed::before { background: var(--mark); box-shadow: none; color: var(--page); }
-.stepping li.passed::after { background: var(--mark); }
-
 /* A picture of the thing itself, edge to edge in the frame, with its
    caption under it. */
 .shot { overflow: hidden; }
+.shot picture { display: block; }
 .shot img { display: block; width: 100%; height: auto; }
 .shot a { display: block; }
 .shot figcaption { padding: 8px 14px 10px; }

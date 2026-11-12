@@ -17,6 +17,7 @@
     "test:browser": "node tests/browser/run.ts",
     "fonts": "node scripts/fonts.ts",
     "fonts:check": "node scripts/fonts.ts --check",
+    "diagrams": "node scripts/diagrams.ts",
     "format": "prettier --write \"**/*.{ts,json,astro}\"",
     "lint": "prettier --check \"**/*.{ts,json,astro}\"",
     "lint:html": "html-validate dist"

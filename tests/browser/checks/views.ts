@@ -1,57 +1,61 @@
 /* The site seen other ways: in its other languages, on a phone, without
    JavaScript and printed. */
 import assert from "node:assert/strict";
+import type { Page } from "playwright";
+import { DATA, SEPARATOR } from "../../../src/shared/page-data.ts";
 import {
+  computedStyle,
   desktop,
   eventually,
   iPhone,
+  OPEN_CARD,
   OPEN_CHAT,
+  OPEN_DRAWER,
+  waitForTabToOpen,
   pickFirstTab,
+  reportSkip,
   settled,
   settledTitle,
-  skip,
+  sidebarRow,
   squash,
   type Check,
+  type PageElement,
 } from "../helpers.ts";
-import { DATA, PAGE_CLASSES, SEPARATOR } from "../../../src/shared/page-data.ts";
-import { CLASS, ID, type Site } from "../site.ts";
+import { CLASS, ID, type LanguagePage, type Site } from "../site.ts";
 
-// Runs inside the page, where there's a DOM (Node's own types have none).
-declare function getComputedStyle(el: unknown): { color: string; visibility: string };
+/** How long the page has for what it should do at once, in milliseconds:
+    shorter than the wait every check gets. */
+const AT_ONCE_MS = 2000;
 
-/** An element, as far as measuring it goes. */
-type Measured = {
-  textContent: string | null;
-  getBoundingClientRect(): { left: number; right: number };
-  querySelectorAll(selector: string): Iterable<Measured>;
-};
+/** The most a printed colour's red, green and blue (0 to 255 each) may add
+    up to and still be dark text on paper. */
+const DARKEST_PRINT = 200;
 
-/** The words of a figure's parts (its caption, labels, values and steps)
-    that reach past its frame, for each figure. */
-const outsideTheirFigure = (figures: Measured[]): string[] =>
-  figures.flatMap((figure) => {
-    const frame = figure.getBoundingClientRect();
-    return [...figure.querySelectorAll("figcaption, dt, dd, text, li")]
-      .filter((part) => {
-        const box = part.getBoundingClientRect();
-        return box.left < frame.left - 0.5 || box.right > frame.right + 0.5;
-      })
-      .map((part) => part.textContent ?? "");
-  });
+/** The motion's speed while a check watches the drawer slide: a tenth, so
+    there's time to see it on its way. */
+const SLOW_MOTION_RATE = 0.1;
 
+/** The checks of the site seen other ways, made for the site as it was
+    read: one for each of its other languages among them. */
 export default (site: Site): Check[] => {
   const { A, C } = site;
-  const last = site.threads.at(-1) ?? A;
+  const lastThread = site.threads.at(-1) ?? A;
   return [
     {
       name: "a phone starts in a new chat that says who this is",
       url: "./",
       device: iPhone,
       async test(page) {
-        const chat = page.locator(`${CLASS.tab}[${DATA.chat}] ${CLASS.chatHello}`);
-        await chat.locator(CLASS.chatName).filter({ hasText: site.name }).waitFor();
-        if (site.tagline) assert.equal(await chat.locator(CLASS.intro).textContent(), site.tagline);
-        await page.locator(`${ID.followUp}:not([hidden])`).waitFor();
+        const whoThisIs = page.locator(`${CLASS.tab}[${DATA.chat}] ${CLASS.chatHello}`);
+        await whoThisIs.locator(CLASS.chatName).filter({ hasText: site.name }).waitFor();
+        if (site.tagline) {
+          assert.equal(
+            await whoThisIs.locator(CLASS.intro).textContent(),
+            site.tagline,
+            "the site's one line is under the name",
+          );
+        }
+        await page.locator(OPEN_CARD).waitFor();
       },
     },
     {
@@ -59,20 +63,27 @@ export default (site: Site): Check[] => {
       url: "./",
       device: iPhone,
       async test(page) {
-        const chat = page.locator(`.${PAGE_CLASSES.tab}[${DATA.chat}]`);
-        const thread = chat.locator(`.${PAGE_CLASSES.thread}`);
-        await page.locator(`${ID.followUp}:not([hidden])`).waitFor();
+        const chat = page.locator(`${CLASS.tab}[${DATA.chat}]`);
+        const thread = chat.locator(CLASS.thread);
+        await page.locator(OPEN_CARD).waitFor();
         // Into an empty thread, then under what's already in it.
         for (const [nth, when] of ["in a new chat", "under an earlier reply"].entries()) {
-          if (nth) await chat.locator(CLASS.composer).click();
+          // The second time, the card is opened again from the composer.
+          if (nth > 0) await chat.locator(CLASS.composer).click();
           await pickFirstTab(page);
-          const asked = thread.locator(`> .${PAGE_CLASSES.question}`).nth(nth);
-          await thread.locator(`> .${PAGE_CLASSES.answer}`).nth(nth).waitFor();
-          const frame = await chat.locator(CLASS.scroll).boundingBox();
-          assert.ok(frame, "the thread is on screen");
-          // How far the question is below the top of what's shown of the thread.
-          const top = await settled(page, async () => Math.round(((await asked.boundingBox())?.y ?? NaN) - frame.y));
-          assert.ok(top >= 0 && top < frame.height, `${when}, the question is ${top}px from the top of the thread`);
+          const question = thread.locator(`> ${CLASS.question}`).nth(nth);
+          await thread.locator(`> ${CLASS.answer}`).nth(nth).waitFor();
+          const shownOfThread = await chat.locator(CLASS.scroll).boundingBox();
+          assert.ok(shownOfThread, "the thread is on screen");
+          // How far the question is below the top of what's shown of the
+          // thread, once the page has stopped scrolling.
+          const below = await settled(page, async () =>
+            Math.round(((await question.boundingBox())?.y ?? NaN) - shownOfThread.y),
+          );
+          assert.ok(
+            below >= 0 && below < shownOfThread.height,
+            `${when}, the question is in view: it's ${below}px below the top of the thread, ${shownOfThread.height}px of which shows`,
+          );
         }
       },
     },
@@ -82,40 +93,37 @@ export default (site: Site): Check[] => {
       device: iPhone,
       skip: site.figureTabs.length ? null : "no thread has a figure",
       async test(page) {
-        const width = page.viewportSize()?.width ?? 0;
-        for (const id of site.figureTabs) {
-          await page.goto(site.url(`#${id}`));
-          const figures = page.locator(`#${id} .${PAGE_CLASSES.figure}`);
+        const screenWidth = page.viewportSize()?.width ?? 0;
+        for (const tab of site.figureTabs) {
+          await page.goto(site.url(`#${tab}`));
+          const figures = page.locator(`#${tab} ${CLASS.figure}`);
           await figures.first().waitFor();
-          assert.deepEqual(await figures.evaluateAll(outsideTheirFigure), [], `in #${id}`);
+          assert.deepEqual(
+            await figures.evaluateAll(wordsOutsideTheirFigure),
+            [],
+            `in #${tab}, nothing written in a figure reaches past the figure's edge`,
+          );
           for (const figure of await figures.all()) {
             const box = await figure.boundingBox();
-            assert.ok(box && box.x >= 0 && box.x + box.width <= width, `a figure in #${id} is wider than the screen`);
+            assert.ok(
+              box && box.x >= 0 && box.x + box.width <= screenWidth,
+              `every figure in #${tab} is within the screen's ${screenWidth}px`,
+            );
           }
         }
       },
     },
-    ...site.languages.map(({ href, lang }): Check => ({
-      name: `the ${lang} page, on the same tab`,
-      url: `${href}#${A.id}`,
-      async test(page) {
-        assert.equal(await page.locator("html").getAttribute("lang"), lang);
-        const title = squash(await page.locator(`#${A.id} ${CLASS.titleText}`).textContent());
-        await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.question}`).first().waitFor();
-        const windowTitle = await settledTitle(page, (text) => text.startsWith(`${title}${SEPARATOR}`));
-        assert.ok(windowTitle.startsWith(`${title}${SEPARATOR}`), "the tab's name in the window title");
-      },
-    })),
+    ...otherLanguageChecks(site),
     {
       name: "without JavaScript, a tab still opens",
-      url: `#${last.id}`,
+      url: `#${lastThread.id}`,
       device: { ...desktop, javaScriptEnabled: false },
       async test(page) {
-        assert.ok(await page.locator(`#${last.id} ${CLASS.thread}`).isVisible());
-        assert.ok(!(await page.locator(ID.top).isVisible()));
+        assert.ok(await page.locator(`#${lastThread.id} ${CLASS.thread}`).isVisible(), "the tab's thread shows");
+        assert.ok(!(await page.locator(ID.top).isVisible()), "the home screen doesn't show behind the tab");
         // Its link would close the tab, so there's no skip link.
         await page.keyboard.press("Tab");
-        assert.ok(await page.locator(CLASS.skip).isHidden());
+        assert.ok(await page.locator(CLASS.skip).isHidden(), "Tab brings up no skip link");
       },
     },
     {
@@ -123,18 +131,18 @@ export default (site: Site): Check[] => {
       url: "./",
       device: iPhone,
       async test(page) {
-        const card = page.locator(`${ID.followUp}:not([hidden])`);
+        const card = page.locator(OPEN_CARD);
         const chat = page.locator(OPEN_CHAT);
         await card.waitFor();
         await chat.locator(CLASS.menu).click();
-        await page.locator(`${ID.tabs} a[href="#${A.id}"]`).first().click();
-        await page.locator(`#${A.id}:target`).waitFor();
+        await sidebarRow(page, A.id).click();
+        await waitForTabToOpen(page, A.id);
         // Once the page has caught up (the drawer closes on the hashchange).
-        await page.locator(`${ID.tabs}${CLASS.drawerOpen}`).waitFor({ state: "detached" });
+        await page.locator(OPEN_DRAWER).waitFor({ state: "detached" });
         await page.goBack();
         await chat.waitFor();
         await card.waitFor();
-        assert.ok(await page.locator(ID.top).isHidden(), "not the home screen");
+        assert.ok(await page.locator(ID.top).isHidden(), "Back doesn't show the home screen");
       },
     },
     {
@@ -143,19 +151,14 @@ export default (site: Site): Check[] => {
       async test(page) {
         await page.locator(ID.hello).waitFor();
         await page.emulateMedia({ media: "print" });
-        assert.ok(await page.locator(CLASS.printHead).isVisible());
-        assert.ok(!(await page.locator(ID.asked).isVisible()));
+        assert.ok(await page.locator(CLASS.printHead).isVisible(), "who this is heads the printed page");
+        assert.ok(!(await page.locator(ID.asked).isVisible()), 'the "Something else" tab isn\'t printed');
         // A status line's file name if there is one: it's light on the screen.
-        const text = page
-          .locator(
-            site.statusLine
-              ? `${CLASS.tab} ${CLASS.status} summary b`
-              : `${CLASS.tab} ${CLASS.thread} ${CLASS.answer} p`,
-          )
-          .first();
-        const color = await text.evaluate((el: unknown) => getComputedStyle(el).color);
-        const [r = 255, g = 255, b = 255] = (color.match(/\d+/g) ?? []).map(Number);
-        assert.ok(r + g + b < 200, `printed in ${color}`);
+        const lightOnScreen = site.statusLine
+          ? `${CLASS.tab} ${CLASS.status} summary b`
+          : `${CLASS.tab} ${CLASS.thread} ${CLASS.answer} p`;
+        const color = await computedStyle(page.locator(lightOnScreen).first(), "color");
+        assert.ok(lightness(color) < DARKEST_PRINT, `text is printed dark, not in ${color}`);
       },
     },
     {
@@ -164,12 +167,13 @@ export default (site: Site): Check[] => {
       device: iPhone,
       async test(page) {
         const share = page.locator(`#${A.id} [${DATA.copyLink}]:has(${CLASS.label})`);
-        const label = share.locator(`.${PAGE_CLASSES.label}`);
+        const label = share.locator(CLASS.label);
         const name = squash(await label.textContent());
-        assert.ok(name, "its words are in the page");
-        await page.getByRole("button", { name, exact: true }).and(share).waitFor({ timeout: 2000 });
+        assert.ok(name, "Share's words are in the page");
+        // It's still a button called by those words.
+        await page.getByRole("button", { name, exact: true }).and(share).waitFor({ timeout: AT_ONCE_MS });
         const box = await label.boundingBox();
-        assert.ok(box && box.width <= 1 && box.height <= 1, "and take no room");
+        assert.ok(box && box.width <= 1 && box.height <= 1, "Share's words take no room: only its icon shows");
       },
     },
     {
@@ -177,24 +181,28 @@ export default (site: Site): Check[] => {
       url: `#${A.id}`,
       device: iPhone,
       async test(page) {
-        const drawer = page.locator(`${ID.tabs}${CLASS.drawerOpen}`);
-        const button = page.locator(`#${A.id} ${CLASS.menu}`);
-        await button.click();
+        const drawer = page.locator(OPEN_DRAWER);
+        const menuButton = page.locator(`#${A.id} ${CLASS.menu}`);
+        const menuButtonWithFocus = page.locator(`#${A.id} ${CLASS.menu}:focus`);
+        await menuButton.click();
         await drawer.waitFor();
-        assert.equal(await page.locator(`${ID.tabs} :focus`).count(), 1, "focus in the drawer");
+        assert.equal(await page.locator(`${ID.tabs} :focus`).count(), 1, "the focus is in the drawer");
+
         await page.keyboard.press("Escape");
-        assert.equal(await drawer.count(), 0);
-        await page.locator(`#${A.id} ${CLASS.menu}:focus`).waitFor();
-        await button.click();
+        assert.equal(await drawer.count(), 0, "Escape closes the drawer");
+        await menuButtonWithFocus.waitFor();
+
+        await menuButton.click();
         await page.locator(`${ID.tabs} ${CLASS.drawerClose}`).click();
-        assert.equal(await drawer.count(), 0);
-        await page.locator(`#${A.id} ${CLASS.menu}:focus`).waitFor();
-        if (!C) return skip("a row closing the phone drawer", "the sidebar has one thread");
-        await page.locator(`#${A.id} ${CLASS.menu}`).click();
-        await page.locator(`${ID.tabs} a[href="#${C.id}"]`).first().click();
-        await page.locator(`#${C.id}:target`).waitFor();
+        assert.equal(await drawer.count(), 0, "the drawer's close button closes it");
+        await menuButtonWithFocus.waitFor();
+
+        if (!C) return reportSkip("a row closing the phone drawer", "the sidebar has one thread");
+        await menuButton.click();
+        await sidebarRow(page, C.id).click();
+        await waitForTabToOpen(page, C.id);
         // Once the tab's open (on the hashchange after it).
-        await drawer.waitFor({ state: "detached", timeout: 2000 });
+        await drawer.waitFor({ state: "detached", timeout: AT_ONCE_MS });
       },
     },
     {
@@ -202,18 +210,74 @@ export default (site: Site): Check[] => {
       url: `#${A.id}`,
       device: iPhone,
       async test(page) {
-        const side = page.locator(ID.tabs);
-        const visibility = () => side.evaluate((el: unknown) => getComputedStyle(el).visibility);
+        const drawerVisibility = () => computedStyle(page.locator(ID.tabs), "visibility");
         await page.locator(`#${A.id} ${CLASS.menu}`).click();
-        await page.locator(`${ID.tabs}${CLASS.drawerOpen}`).waitFor();
-        // Motion at a tenth of its speed, to see it on its way.
-        const cdp = await page.context().newCDPSession(page);
-        await cdp.send("Animation.enable");
-        await cdp.send("Animation.setPlaybackRate", { playbackRate: 0.1 });
+        await page.locator(OPEN_DRAWER).waitFor();
+        await slowMotionTo(page, SLOW_MOTION_RATE);
         await page.keyboard.press("Escape");
-        assert.equal(await visibility(), "visible", "still showing as it slides");
-        await eventually(async () => assert.equal(await visibility(), "hidden"));
+        assert.equal(await drawerVisibility(), "visible", "the drawer still shows as it slides out");
+        await eventually(async () =>
+          assert.equal(await drawerVisibility(), "hidden", "the drawer is hidden once it has slid out"),
+        );
       },
     },
   ];
 };
+
+/** A check for each of the site's other languages: its page opens on the
+    tab the link names. A site in one language gets a check that's skipped,
+    and says so. */
+function otherLanguageChecks(site: Site): Check[] {
+  if (!site.languages.length) {
+    const nothingToCheck = async () => {};
+    return [{ name: "another language's page", url: "./", skip: "the site is in one language", test: nothingToCheck }];
+  }
+  return site.languages.map(({ href, lang }: LanguagePage): Check => ({
+    name: `the ${lang} page, on the same tab`,
+    url: `${href}#${site.A.id}`,
+    async test(page) {
+      assert.equal(await page.locator("html").getAttribute("lang"), lang, "the page is in the link's language");
+      const tabTitle = squash(await page.locator(`#${site.A.id} ${CLASS.titleText}`).textContent());
+      await page.locator(`#${site.A.id} ${CLASS.thread} > ${CLASS.question}`).first().waitFor();
+      // Only how it starts: the site's name was read from the main page,
+      // and this one may write it another way.
+      const startsWithTheTab = (title: string) => title.startsWith(`${tabTitle}${SEPARATOR}`);
+      assert.ok(
+        startsWithTheTab(await settledTitle(page, startsWithTheTab)),
+        "the window title starts with the tab's name",
+      );
+    },
+  }));
+}
+
+/** The words of a figure's parts (its caption, labels, values and steps)
+    that reach past its frame, for each figure: none, when everything in a
+    figure fits it. It runs in the page. */
+const wordsOutsideTheirFigure = (figures: PageElement[]): string[] =>
+  figures.flatMap((figure) => {
+    // Half a pixel either side: where the browser rounds a box.
+    const rounding = 0.5;
+    const frame = figure.getBoundingClientRect();
+    return [...figure.querySelectorAll("figcaption, dt, dd, text, li")]
+      .filter((part) => {
+        const box = part.getBoundingClientRect();
+        return box.left < frame.left - rounding || box.right > frame.right + rounding;
+      })
+      .map((part) => part.textContent ?? "");
+  });
+
+/** How light a CSS colour is ("rgb(26, 26, 26)"): its red, green and blue
+    added up, from 0 for black to 765 for white. A colour that can't be read
+    counts as white. */
+function lightness(color: string): number {
+  const [red = 255, green = 255, blue = 255] = (color.match(/\d+/g) ?? []).map(Number);
+  return red + green + blue;
+}
+
+/** Plays the page's animations and transitions at `rate` times their speed
+    from now on, through Chromium's DevTools. */
+async function slowMotionTo(page: Page, rate: number): Promise<void> {
+  const devTools = await page.context().newCDPSession(page);
+  await devTools.send("Animation.enable");
+  await devTools.send("Animation.setPlaybackRate", { playbackRate: rate });
+}

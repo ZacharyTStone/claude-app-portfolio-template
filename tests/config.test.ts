@@ -174,21 +174,6 @@ function workAnswer(language: Language): Block[] {
     sample's "work" thread, in English alone. */
 const problemsWithBlock = (block: Block): string[] => problemsAfter((_, english) => workAnswer(english).push(block));
 
-/** A flow that follows an example, each step showing it. */
-const flowWithExample: Block = {
-  flow: {
-    title: "A post",
-    example: "An example: one post",
-    steps: [
-      { name: "Draft", example: "A first line." },
-      { name: "Publish", example: ["It’s on the site.", "**Friday**, at nine."] },
-    ],
-  },
-};
-
-/** The wording a flow that follows an example needs. */
-const flowExampleWording = { flowPlay: "Play", flowReplay: "Replay" };
-
 /** A sample's English answers as /ask.json has them, read back from the
     file's text. */
 function englishAnswersInAskJson(config: SiteConfig): AskAnswer[] {
@@ -476,33 +461,6 @@ test("Validation catches a flow that isn't a figure", () => {
   );
 });
 
-test("A flow that follows an example shows it at every step, and needs the words for its button", () => {
-  const problemsWithBlockAndWording = (block: Block) =>
-    problemsAfter((_, english) => {
-      workAnswer(english).push(block);
-      Object.assign(english.strings, flowExampleWording);
-    });
-  assert.deepEqual(problemsWithBlockAndWording(flowWithExample), []);
-  // Without the words, the build says which are missing.
-  assert.deepEqual(problemsWithBlock(flowWithExample), [
-    "en: strings.flowPlay is missing (a flow with an example needs it)",
-    "en: strings.flowReplay is missing (a flow with an example needs it)",
-  ]);
-  // The example is followed through every step, or there isn't one.
-  assert.match(
-    problemsWithBlockAndWording({
-      flow: { title: "A post", example: "An example", steps: [{ name: "Draft" }, { name: "Publish" }] },
-    }).join("\n"),
-    /the step "Draft" in "A post" without an example/,
-  );
-  assert.match(
-    problemsWithBlock({
-      flow: { title: "A post", steps: [{ name: "Draft", example: "A line." }, { name: "Publish" }] },
-    }).join("\n"),
-    /an example on the step "Draft" in "A post", but the flow has none/,
-  );
-});
-
 test("Validation needs a picture to be a file on the site, with words for it, its size, and a safe link", () => {
   const picture = { src: "https://example.com/a.png", alt: "", width: 0, height: 630, href: "javascript:alert(1)" };
   for (const block of [{ image: picture }, { images: [picture] }]) {
@@ -511,6 +469,18 @@ test("Validation needs a picture to be a file on the site, with words for it, it
     assert.match(problems, /without an alt/);
     assert.match(problems, /without its width and height/);
     assert.match(problems, /the picture "https:\/\/example\.com\/a\.png" links to "javascript:alert\(1\)"/);
+  }
+});
+
+test("Validation needs a moving picture's still to be another file on the site", () => {
+  const moving = { src: "/assets/how.svg", alt: "How it works", width: 1600, height: 800 };
+  assert.deepEqual(problemsWithBlock({ image: { ...moving, still: "/assets/how-still.svg" } }), []);
+  for (const still of ["https://example.com/how-still.svg", moving.src, ""]) {
+    assert.match(
+      problemsWithBlock({ image: { ...moving, still } }).join("\n"),
+      /with the still ".*", which should be another file on this site/,
+      still,
+    );
   }
 });
 
@@ -673,18 +643,6 @@ test("llms.txt links into a site under a path, and leaves the Links section out 
   const withoutPanel = sampleConfig();
   for (const language of Object.values(withoutPanel.languages)) language.panel = {};
   assert.ok(!llmsTxt(makeSite(withoutPanel)).includes("## Links"));
-});
-
-test("A flow's example is an illustration: Ask's answers have its steps, not its example", () => {
-  const sample = sampleConfigWithAsk();
-  const english = sample.languages.en;
-  assert.ok(english);
-  workAnswer(english).push(flowWithExample);
-  const text = englishAnswersInAskJson(sample)
-    .map((answer) => answer.text)
-    .join("\n");
-  assert.ok(text.split("\n").includes("A post: Draft → Publish"), text);
-  assert.doesNotMatch(text, /A first line|An example: one post|Friday/);
 });
 
 test("Ask's answers have a figure's words, each block on a line of its own", () => {

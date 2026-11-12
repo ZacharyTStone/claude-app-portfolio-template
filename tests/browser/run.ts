@@ -16,6 +16,8 @@
    (`npx playwright install chromium`); nothing else. */
 import { chromium } from "playwright";
 import config from "../../site.config.ts";
+import { basePath } from "../../src/shared/url.ts";
+import { ROOT } from "../../src/site/constants.ts";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";
 import figures from "./checks/figures.ts";
@@ -23,50 +25,37 @@ import home from "./checks/home.ts";
 import sidebar from "./checks/sidebar.ts";
 import viewer from "./checks/viewer.ts";
 import views from "./checks/views.ts";
-import { desktop, skip, VISITOR_ZONE, type Check } from "./helpers.ts";
-import { basePath } from "../../src/shared/url.ts";
+import { desktop, reportSkip, VISITOR_ZONE, type Check } from "./helpers.ts";
 import { serve } from "./server.ts";
 import { readSite } from "./site.ts";
+
+/** The files of checks, in the order they run. */
+const CHECK_FILES = [home, ask, chats, sidebar, figures, viewer, views];
+
+/** How long a wait in a check may take, in milliseconds. What a check waits
+    for comes in well under this; it only bounds a failure. */
+const WAIT_LIMIT_MS = 10_000;
+
+/** The checks' own files, as a stack trace names them, and this one among
+    them. */
+const CHECKS_FOLDER = "/tests/browser/";
+const THIS_FILE = "/tests/browser/run.ts";
 
 const server = await serve({ base: basePath(config.url) });
 const browser = await chromium.launch();
 const site = await readSite(browser, server.home);
 
-const checks: Check[] = [home, ask, chats, sidebar, figures, viewer, views].flatMap((group) => group(site));
-let skipped = 0;
-if (!site.languages.length) {
-  skipped++;
-  skip("another language's page", "the site is in one language");
-}
-
-const problems: string[] = [];
 let passed = 0;
-for (const { name, url, device = desktop, skip: why, allowAsk = false, test } of checks) {
-  if (why) {
+let skipped = 0;
+/** What went wrong, an entry each, starting with the name of the check it
+    happened in. */
+const problems: string[] = [];
+
+for (const check of CHECK_FILES.flatMap((checksFor) => checksFor(site))) {
+  if (check.skip) {
     skipped++;
-    skip(name, why);
-    continue;
-  }
-  const context = await browser.newContext({ timezoneId: VISITOR_ZONE, ...device });
-  // What a check waits for comes in well under this; it only bounds a failure.
-  context.setDefaultTimeout(10_000);
-  const page = await context.newPage();
-  page.on("pageerror", (error) => problems.push(`${name}: ${error.message}`));
-  page.on("console", (message) => {
-    if (message.type() !== "error") return;
-    if (allowAsk && message.location().url === site.askUrl) return;
-    problems.push(`${name}: ${message.text()}`);
-  });
-  await page.goto(site.url(url));
-  try {
-    await test(page);
-    passed++;
-    console.log(`ok   ${name}`);
-  } catch (error) {
-    problems.push(`${name}: ${error instanceof Error ? error.message : String(error)}`);
-    console.log(`FAIL ${name}`);
-  }
-  await context.close();
+    reportSkip(check.name, check.skip);
+  } else if (await passes(check)) passed++;
 }
 
 await browser.close();
@@ -78,3 +67,45 @@ if (problems.length) {
   process.exit(1);
 }
 console.log(`\nAll ${summary}.`);
+
+/** Runs one check as a visitor in VISITOR_ZONE, in a browser context of its
+    own (so nothing an earlier check stored is there), and says "ok" or
+    "FAIL" with its name. It returns whether the check's test passed; why it
+    didn't goes to `problems`, and so does any error in the page or its
+    console, which fails the run even when the test passes. */
+async function passes({ name, url, device = desktop, allowAsk = false, test }: Check): Promise<boolean> {
+  const context = await browser.newContext({ timezoneId: VISITOR_ZONE, ...device });
+  context.setDefaultTimeout(WAIT_LIMIT_MS);
+  const page = await context.newPage();
+  page.on("pageerror", (error) => problems.push(`${name}: ${error.message}`));
+  page.on("console", (message) => {
+    if (message.type() !== "error") return;
+    // A request to /ask that the check made fail: its own doing.
+    if (allowAsk && message.location().url === site.askUrl) return;
+    problems.push(`${name}: ${message.text()}`);
+  });
+  await page.goto(site.url(url));
+  let testPassed = true;
+  try {
+    await test(page);
+    console.log(`ok   ${name}`);
+  } catch (error) {
+    testPassed = false;
+    problems.push(`${name}: ${whatWentWrong(error)}`);
+    console.log(`FAIL ${name}`);
+  }
+  await context.close();
+  return testPassed;
+}
+
+/** What a check's failure says, and under it where in the checks it
+    happened: the step that failed, then each step that called it, as lines
+    of a stack trace ("at openViewer (tests/browser/checks/viewer.ts:44:18)"). */
+function whatWentWrong(error: unknown): string {
+  if (!(error instanceof Error)) return String(error);
+  const stepsItFailedIn = (error.stack ?? "")
+    .split("\n")
+    .filter((line) => line.trimStart().startsWith("at ") && line.includes(CHECKS_FOLDER) && !line.includes(THIS_FILE))
+    .map((line) => line.replace("file://", "").replace(ROOT, ""));
+  return [error.message.trimEnd(), ...stepsItFailedIn].join("\n");
+}

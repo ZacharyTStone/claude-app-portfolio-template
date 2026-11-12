@@ -22,11 +22,16 @@ export const SHARED = [
   "astro.config.ts",
   "scripts/fonts.ts",
   "scripts/ja-font.py",
+  // What a diagram is drawn with, and what writes its files. The diagrams
+  // themselves (diagrams/) and the files they write are each site's own.
+  "scripts/diagram.ts",
+  "scripts/diagrams.ts",
   "scripts/template.ts",
   "scripts/update-template.ts",
   "scripts/verify.ts",
   "tests/browser",
   "tests/config.test.ts",
+  "tests/diagrams.test.ts",
   "tests/sample",
   "tests/sample-site.test.ts",
   "tests/site.test.ts",

@@ -1,148 +1,99 @@
-/* Figures that move: a flow that follows an example through its steps
-   plays when it's seen, a step can be picked, and it all shows at once
-   where it can't play. */
+/* Figures that move: a picture with its own animation moves in the page,
+   under the page's real security headers, and a visitor who has asked for
+   less motion is shown its still instead. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import { TIMING } from "../../../src/app/constants.ts";
-import { DATA } from "../../../src/shared/page-data.ts";
-import { askInNewChat, askReturns, desktop, eventually, OPEN_CHAT, type Check } from "../helpers.ts";
-import { CLASS, type Site } from "../site.ts";
+import { desktop, eventually, type Check, type PageElement } from "../helpers.ts";
+import { MOVING_PICTURE, type MovingPicture, type Site } from "../site.ts";
 
-const FLOW = `[${DATA.flowExample}]`;
-const STEPS = "ol > li";
+/** What stands in for the picture on a site without one, where every check
+    here is skipped. */
+const NO_PICTURE: MovingPicture = { tab: "", index: 0, moving: "", still: "" };
 
-/** How each step of a flow stands: "passed", "current" or "waiting". */
-const stepStates = (flow: Locator): Promise<string[]> =>
-  flow
-    .locator(STEPS)
-    .evaluateAll(
-      (steps: Array<{ classList: { contains(name: string): boolean } }>, names) =>
-        steps.map((step) =>
-          step.classList.contains(names.current)
-            ? "current"
-            : step.classList.contains(names.passed)
-              ? "passed"
-              : "waiting",
-        ),
-      { current: CLASS.flowCurrent.slice(1), passed: CLASS.flowPassed.slice(1) },
-    );
+/** How long to watch a picture for something in it to move. Every diagram
+    has something moving within a second or two of any moment. */
+const WATCH_MS = 6000;
 
-/** Whether a flow has `name` as a class of its own. */
-const has = (flow: Locator, name: string): Promise<boolean> =>
-  flow.evaluate(
-    (el: { classList: { contains(name: string): boolean } }, cls) => el.classList.contains(cls),
-    name.slice(1),
-  );
+/** How long a still picture is watched to see that nothing in it moves. */
+const STILL_FOR_MS = 1500;
 
+/** The checks of a picture that moves, made for the first one on the site. */
 export default (site: Site): Check[] => {
-  const { words, askUrl, noAsk } = site;
-  // The flow with the fewest steps: it's the quickest to watch to its end.
-  const [flow] = site.exampleFlows;
-  const skip = flow ? null : "the site has no flow that follows an example";
-  const tab = flow?.tab ?? "";
-  const count = flow?.steps ?? 0;
-  /** The flow, in its tab, scrolled to. */
-  async function seen(page: Page): Promise<Locator> {
-    const figure = page.locator(`#${tab} ${FLOW}`).nth(flow?.index ?? 0);
-    await figure.scrollIntoViewIfNeeded();
-    return figure;
-  }
-  /** Each step but the one at `index` as it should be once the example is there. */
-  const at = (index: number) =>
-    Array.from({ length: count }, (_, i) => (i < index ? "passed" : i === index ? "current" : "waiting"));
+  const picture = site.movingPictures[0] ?? NO_PICTURE;
+  const skip = site.movingPictures.length ? null : "the site has no picture that moves";
   return [
     {
-      name: "a flow that follows an example plays when it's seen: a step at a time, to its last",
-      url: `#${tab}`,
+      name: "a picture that moves is shown moving: its own file loads, and what it draws changes",
+      url: `#${picture.tab}`,
       skip,
       async test(page) {
-        const figure = await seen(page);
-        await figure.locator(`${STEPS}${CLASS.flowCurrent}`).first().waitFor();
-        assert.ok(await has(figure, CLASS.flowPlaying), "it's playing");
-        assert.equal(await figure.locator(CLASS.flowPlay).textContent(), words.flowReplay);
-        // Every step, in order: never two at once, never one skipped.
-        const order: string[] = [];
-        await eventually(
-          async () => {
-            const states = (await stepStates(figure)).join(" ");
-            if (order.at(-1) !== states) order.push(states);
-            assert.equal(states, at(count - 1).join(" "), "it reaches its last step");
-          },
-          count * TIMING.flowStep + 5000,
-        );
-        for (const states of order)
-          assert.equal(states.split(" ").filter((state) => state === "current").length, 1, states);
-        assert.equal(await has(figure, CLASS.flowPlaying), false, "and stops there");
+        const image = await scrollTo(page, picture);
+        assert.equal(await fileShown(image), picture.moving, "the picture shown is the one that moves");
+        // The page's policy lets a picture run its own animation: two looks
+        // at it, a moment apart, differ.
+        const firstLook = await image.screenshot();
+        await eventually(async () => {
+          assert.ok(
+            !firstLook.equals(await image.screenshot()),
+            "the picture has changed since it was first looked at",
+          );
+        }, WATCH_MS);
       },
     },
     {
-      name: "a step picked shows the example as far as there, by mouse or keyboard, and the button plays it from the start",
-      url: `#${tab}`,
-      skip,
-      async test(page) {
-        const figure = await seen(page);
-        await figure.locator(`${STEPS}${CLASS.flowCurrent}`).first().waitFor();
-        const names = figure.locator(`${STEPS} ${CLASS.flowStep}`);
-        await names.nth(1).click();
-        assert.deepEqual(await stepStates(figure), at(1));
-        assert.equal(await has(figure, CLASS.flowPlaying), false, "picking a step stops it playing");
-        assert.equal(await names.nth(1).getAttribute("aria-current"), "step");
-        // A step is a button: it takes the focus, and Enter presses it.
-        assert.equal(await names.first().getAttribute("role"), "button");
-        await names.first().focus();
-        await page.keyboard.press("Enter");
-        assert.deepEqual(await stepStates(figure), at(0));
-        await names.last().focus();
-        await page.keyboard.press("Space");
-        assert.deepEqual(await stepStates(figure), at(count - 1));
-        await figure.locator(CLASS.flowPlay).click();
-        assert.deepEqual(await stepStates(figure), at(0));
-        assert.ok(await has(figure, CLASS.flowPlaying), "the button plays it again");
-      },
-    },
-    {
-      name: "with motion reduced, a flow shows whole until its button plays it",
-      url: `#${tab}`,
+      name: "with motion reduced, a picture that moves is shown still",
+      url: `#${picture.tab}`,
       device: { ...desktop, reducedMotion: "reduce" },
       skip,
       async test(page) {
-        const figure = await seen(page);
-        const button = figure.locator(CLASS.flowPlay);
-        await button.waitFor();
-        assert.equal(await button.textContent(), words.flowPlay);
-        assert.equal(await has(figure, CLASS.flowStepping), false, "every step shows");
-        await button.click();
-        assert.deepEqual(await stepStates(figure), at(0));
+        const image = await scrollTo(page, picture);
+        assert.equal(await fileShown(image), picture.still, "the picture shown is the still one");
+        const firstLook = await image.screenshot();
+        await page.waitForTimeout(STILL_FOR_MS);
+        assert.ok(firstLook.equals(await image.screenshot()), "nothing in the still picture has moved");
       },
     },
     {
-      name: "without JavaScript, a flow shows every step's example, and no button",
-      url: `#${tab}`,
+      name: "without JavaScript, a picture still moves: the motion is the picture's own",
+      url: `#${picture.tab}`,
       device: { ...desktop, javaScriptEnabled: false },
       skip,
       async test(page) {
-        const figure = await seen(page);
-        assert.equal(await figure.locator(CLASS.flowPlay).count(), 0);
-        const examples = figure.locator(`${STEPS} ${CLASS.flowStepExample}`);
-        assert.equal(await examples.count(), count, "an example for each step");
-        for (const example of await examples.all()) assert.ok(await example.isVisible());
-      },
-    },
-    {
-      name: "a chat's copy of a flow shows whole, and plays by its own button",
-      url: "./",
-      skip: skip ?? noAsk,
-      async test(page) {
-        await askReturns(page, askUrl, { id: flow?.answer ?? null });
-        await askInNewChat(page, "How does that work?");
-        const copy = page.locator(`${OPEN_CHAT} ${FLOW}`).first();
-        await copy.waitFor();
-        assert.equal(await has(copy, CLASS.flowStepping), false, "every step shows");
-        const steps = await copy.locator(STEPS).count();
-        await copy.locator(CLASS.flowPlay).click();
-        const states = await stepStates(copy);
-        assert.deepEqual(states, ["current", ...Array<string>(steps - 1).fill("waiting")]);
+        const image = await scrollTo(page, picture);
+        const firstLook = await image.screenshot();
+        await eventually(async () => {
+          assert.ok(
+            !firstLook.equals(await image.screenshot()),
+            "the picture has changed since it was first looked at",
+          );
+        }, WATCH_MS);
       },
     },
   ];
 };
+
+/** The picture's <img>, in its tab, scrolled to and loaded. */
+async function scrollTo(page: Page, picture: MovingPicture): Promise<Locator> {
+  const image = page.locator(`#${picture.tab} ${MOVING_PICTURE} img`).nth(picture.index);
+  await image.scrollIntoViewIfNeeded();
+  await eventually(async () => {
+    assert.ok(
+      await image.evaluate((img: LoadedImage) => img.complete === true && (img.naturalWidth ?? 0) > 0),
+      "the picture has loaded",
+    );
+  });
+  return image;
+}
+
+/** An <img>, as far as these checks read it. What only an image has is
+    optional here, since a locator's element is typed as any element. */
+type LoadedImage = Pick<PageElement, "getAttribute"> & {
+  complete?: boolean;
+  naturalWidth?: number;
+  currentSrc?: string;
+};
+
+/** The file an <img> is showing, as a path on the site: its own `src`, or
+    the <source> the browser picked in its place. */
+const fileShown = (image: Locator): Promise<string> =>
+  image.evaluate((img: LoadedImage) => new URL(img.currentSrc ?? "").pathname);

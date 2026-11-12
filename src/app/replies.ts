@@ -5,7 +5,6 @@ import { isCitedLines, isReplyText } from "../shared/ask.ts";
 import { ID } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
-import { flowsIn, resetFlow } from "./flow.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { rich } from "./lib/markdown.ts";
 import { askedTab, questionText, words } from "./page.ts";
@@ -50,12 +49,11 @@ export function questionFor(source: Source): string | null {
 }
 
 // A message to send again: without its buttons, or ids the page already
-// has, and with a flow in it showing whole (the copy isn't the one playing).
+// has.
 function copyMessage(node: Element): Element {
   const copy = clone(node);
   copy.querySelectorAll(SELECTOR.messageActions).forEach((actions) => actions.remove());
   copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
-  flowsIn(copy).forEach(resetFlow);
   return copy;
 }
 

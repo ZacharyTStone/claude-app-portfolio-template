@@ -9,8 +9,8 @@
    nothing keeps running there once they're done. */
 import { DATA } from "../shared/page-data.ts";
 import { CLASS, SELECTOR, SIZE } from "./constants.ts";
-import { make } from "./lib/dom.ts";
-import { app, words } from "./page.ts";
+import { closestFrom, make } from "./lib/dom.ts";
+import { shell, words } from "./page.ts";
 
 /** What a framed page may do: run its own scripts as the site it's from,
     send its own forms and open its links in new tabs. Navigating this page
@@ -33,14 +33,18 @@ let viewer: Viewer | null = null;
 /** The link that opened it, which gets the focus back when it closes. */
 let openedFrom: HTMLElement | null = null;
 
+/** A window wide enough for the viewer to be beside the conversation. */
 const besideTheConversation = matchMedia(`(min-width: ${SIZE.viewerBeside}px)`);
+
+/** Whether the viewer is showing a page. */
+export const isViewerOpen = (): boolean => shell.classList.contains(CLASS.viewing);
 
 /** Whether the viewer covers the whole screen, as it does where there's no
     room for it beside the conversation. */
 export const viewerCoversScreen = (): boolean => isViewerOpen() && !besideTheConversation.matches;
 
-export const isViewerOpen = (): boolean => app.classList.contains(CLASS.viewing);
-
+/** Makes the viewer, hidden, in the shell: a bar with the name of what it
+    shows and its two buttons, over the place its frame goes. */
 function makeViewer(): Viewer {
   const title = make("h2", { class: CLASS.viewerTitle, tabindex: "-1" });
   const openInNewTab = make("a", {
@@ -60,7 +64,7 @@ function makeViewer(): Viewer {
   const bar = make("header", { class: CLASS.viewerBar }, title, openInNewTab, closeButton);
   const framePlace = make("div", { class: CLASS.viewerFrame });
   const panel = make("aside", { class: CLASS.viewer, hidden: "" }, bar, framePlace);
-  app.append(panel);
+  shell.append(panel);
   return { panel, title, openInNewTab, framePlace };
 }
 
@@ -91,7 +95,7 @@ function openInViewer(link: HTMLAnchorElement): void {
   openInNewTab.href = link.href;
   framePlace.replaceChildren(makeFrame(address, name, framePlace));
   panel.hidden = false;
-  app.classList.add(CLASS.viewing);
+  shell.classList.add(CLASS.viewing);
   openedFrom = link;
   title.focus();
 }
@@ -103,7 +107,7 @@ export function closeViewer({ keepFocus = false }: { keepFocus?: boolean } = {})
   if (!viewer || !isViewerOpen()) return;
   viewer.framePlace.replaceChildren();
   viewer.panel.hidden = true;
-  app.classList.remove(CLASS.viewing);
+  shell.classList.remove(CLASS.viewing);
   if (!keepFocus && openedFrom?.isConnected) openedFrom.focus();
   openedFrom = null;
 }
@@ -120,7 +124,7 @@ export function initViewer(): void {
   if (!document.querySelector(SELECTOR.viewLink)) return;
   // On the document, so the copies of an answer that chats make work too.
   document.addEventListener("click", (event) => {
-    const link = event.target instanceof Element ? event.target.closest(SELECTOR.viewLink) : null;
+    const link = closestFrom(event.target, SELECTOR.viewLink);
     if (!(link instanceof HTMLAnchorElement) || !isPlainClick(event)) return;
     event.preventDefault();
     openInViewer(link);

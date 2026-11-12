@@ -1,19 +1,26 @@
 /* Motion, unless the visitor's system asks for less. */
+import { REDUCED_MOTION } from "../../shared/page-data.ts";
 
-const reduce = matchMedia("(prefers-reduced-motion: reduce)");
+const reducedMotionQuery = matchMedia(REDUCED_MOTION);
 
-export const reducedMotion = (): boolean => reduce.matches;
+/** Whether the visitor's system asks for less motion. */
+export const isMotionReduced = (): boolean => reducedMotionQuery.matches;
 
-/** For scrollTo: smooth, unless motion is reduced. */
-const scrollBehavior = (): ScrollBehavior => (reduce.matches ? "auto" : "smooth");
+/** How to scroll (for scrollTo and scrollIntoView): smoothly, or at once
+    when motion is reduced. */
+export const scrollBehavior = (): ScrollBehavior => (isMotionReduced() ? "auto" : "smooth");
 
-/** Scrolls `scroller` to bring `el` to its top, `margin` under the edge, or
-    as near to it as there's room to scroll. Says whether there was room. */
-export function scrollToTop(scroller: HTMLElement, el: Element, margin: number): boolean {
-  const top = scroller.scrollTop + el.getBoundingClientRect().top - scroller.getBoundingClientRect().top - margin;
-  scroller.scrollTo({ top, behavior: scrollBehavior() });
-  return top <= scroller.scrollHeight - scroller.clientHeight;
+/** Scrolls `scroller` to bring `element` to its top, `margin` under the
+    edge, or as near to it as there's room to scroll. Says whether there was
+    room. */
+export function scrollToTop(scroller: HTMLElement, element: Element, margin: number): boolean {
+  const scrollTopWanted =
+    scroller.scrollTop + element.getBoundingClientRect().top - scroller.getBoundingClientRect().top - margin;
+  scroller.scrollTo({ top: scrollTopWanted, behavior: scrollBehavior() });
+  const furthestScrollTop = scroller.scrollHeight - scroller.clientHeight;
+  return scrollTopWanted <= furthestScrollTop;
 }
 
 /** Waits `ms`, or no time at all when motion is reduced. */
-export const pause = (ms: number): Promise<void> => new Promise((done) => setTimeout(done, reduce.matches ? 0 : ms));
+export const pause = (ms: number): Promise<void> =>
+  new Promise((resolve) => setTimeout(resolve, isMotionReduced() ? 0 : ms));

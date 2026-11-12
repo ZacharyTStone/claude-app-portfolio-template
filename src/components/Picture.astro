@@ -1,10 +1,12 @@
 ---
 /* A picture, in a figure's frame: loaded when it's near the screen, at a
    size the page already knows. With `href`, it links there (in the viewer,
-   if the config's `viewer` lists it, named by its caption).
+   if the config's `viewer` lists it, named by its caption). One that moves
+   has a `still`, which a visitor who has asked for less motion is shown
+   instead: the browser picks between the two, with no script.
    Styles: src/styles/figures.css. */
 import type { Picture } from "../shared/content.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { PAGE_CLASSES, REDUCED_MOTION } from "../shared/page-data.ts";
 import { site } from "../site/current.ts";
 import { external } from "../shared/markdown.ts";
 import { viewerLink } from "./attributes.ts";
@@ -14,18 +16,24 @@ interface Props {
       has it. */
   picture: Picture;
 }
-const { src, alt, width, height, caption, href, round } = Astro.props.picture;
+const { src, still, alt, width, height, caption, href, round } = Astro.props.picture;
 // The same <img> whether or not a link is around it.
 const imageAttributes = { src: site.link(src), alt, width, height, loading: "lazy", decoding: "async" } as const;
+// A link, or nothing, around the picture.
+const Frame = href ? "a" : Fragment;
+const frameAttributes = href ? { href: site.link(href), ...external(href), ...viewerLink(href, caption ?? alt) } : {};
 ---
 
 <figure class:list={[PAGE_CLASSES.figure, "shot", { round }]}>
-  {href ? (
-    <a href={site.link(href)} {...external(href)} {...viewerLink(href, caption ?? alt)}>
+  <Frame {...frameAttributes}>
+    {still ? (
+      <picture>
+        <source media={REDUCED_MOTION} srcset={site.link(still)} />
+        <img {...imageAttributes} />
+      </picture>
+    ) : (
       <img {...imageAttributes} />
-    </a>
-  ) : (
-    <img {...imageAttributes} />
-  )}
+    )}
+  </Frame>
   {caption && <figcaption>{caption}</figcaption>}
 </figure>

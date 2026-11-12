@@ -11,9 +11,10 @@ import { fileURLToPath } from "node:url";
 import { after, test } from "node:test";
 import { SITE_CONFIG } from "../src/integrations/site-config.ts";
 import { frameOrigins } from "../src/shared/headers.ts";
-import { DATA, PAGE_CLASSES, PART_STRINGS, dataAttribute } from "../src/shared/page-data.ts";
+import { escapeRegExp } from "es-toolkit";
+import { DATA, REDUCED_MOTION } from "../src/shared/page-data.ts";
 import { basePath } from "../src/shared/url.ts";
-import { HEADERS_FILE, ROOT } from "../src/site/constants.ts";
+import { HEADERS_FILE, ICONS, ROOT } from "../src/site/constants.ts";
 import { pagePolicy } from "../src/site/hosts.ts";
 import { makeSite } from "../src/site/site.ts";
 import sampleConfig from "./sample/site.config.ts";
@@ -131,15 +132,19 @@ test("the page's policy lets frames come from the viewer's site and no other, an
   }
 });
 
-test("a flow that follows an example has every step's example in the page, and its button's words", () => {
+test("a picture with a still offers it to a visitor who wants less motion, ahead of the moving one", () => {
+  const still = makeSite(sampleConfig).link(ICONS.png);
   for (const file of languagePageFiles) {
     const html = readBuiltFile(file);
-    const flow = html.match(new RegExp(`<figure[^>]*${DATA.flowExample}[^>]*>.*?</figure>`, "s"))?.[0] ?? "";
-    assert.ok(flow, `${file} has a flow that follows an example`);
-    const steps = flow.match(/<li>/g) ?? [];
-    const stepExamples = flow.match(new RegExp(`class="${PAGE_CLASSES.flowStepExample}"`, "g")) ?? [];
-    assert.ok(steps.length >= 2 && stepExamples.length === steps.length, `${file}: an example for each step`);
-    for (const key of PART_STRINGS.flowExample) assert.match(html, new RegExp(`data-${dataAttribute(key)}="`), file);
+    const picture = html.match(/<picture>.*?<\/picture>/s)?.[0] ?? "";
+    assert.ok(picture, `${file} has a picture with a still`);
+    assert.match(
+      picture,
+      new RegExp(
+        `^<picture><source media="${escapeRegExp(REDUCED_MOTION)}" srcset="${escapeRegExp(still)}"[^>]*><img `,
+      ),
+      file,
+    );
   }
 });
 

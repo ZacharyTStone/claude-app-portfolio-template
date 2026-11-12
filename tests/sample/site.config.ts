@@ -1,7 +1,7 @@
 /* A made-up site for tests/sample-site.test.ts to build: a GitHub project site
    (served under /portfolio/, on a host that reads no _headers file), in
-   two languages, with one of each kind of figure, a flow that follows an
-   example, and a link that opens in the viewer. */
+   two languages, with one of each kind of figure, a picture with a still,
+   and a link that opens in the viewer. */
 import type { Language, SiteConfig, Strings } from "../../src/shared/config.ts";
 import { PAGE_STRINGS } from "../../src/shared/config.ts";
 import { SCRIPT_STRINGS } from "../../src/shared/page-data.ts";
@@ -13,6 +13,8 @@ const icon = ICONS.appleTouch;
 /** That file's width and height, in pixels. */
 const ICON_SIZE = 180;
 const iconPicture = { src: icon, alt: "Sam's icon", width: ICON_SIZE, height: ICON_SIZE };
+/** Another file every site has, standing in for a moving picture's still. */
+const stillIcon = ICONS.png;
 
 /** A document on another site: the address the sample's link card has, and
     the address that shows the document in the viewer's frame. */
@@ -72,19 +74,9 @@ function sampleLanguage(label: string, locale: string): Language {
                 },
               },
               { flow: { title: "The pipeline", steps: [{ name: "Draft", note: "by hand" }, { name: "Publish" }] } },
-              {
-                flow: {
-                  title: "What happens to a post",
-                  example: "An example: one post about **Astro**",
-                  steps: [
-                    { name: "Draft", note: "by hand", example: "“Astro builds the page ahead of time.”" },
-                    { name: "Review", example: ["Read by a friend:", "**ahead of time** is the part to keep."] },
-                    { name: "Publish", note: "on a Friday", example: "It’s on the site." },
-                  ],
-                },
-              },
               { link: { name: "Sam's notes", kind: "Document", href: notes.href, icon: "file" } },
               { image: { ...iconPicture, caption: "Sam's icon.", href: icon } },
+              { image: { ...iconPicture, still: stillIcon, caption: "Sam's icon, as if it moved." } },
               { images: [iconPicture, { ...iconPicture, round: true }] },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
@@ -144,8 +136,6 @@ function sampleLanguage(label: string, locale: string): Language {
       status: "Read {file}",
       viewerOpen: "Open in a new tab",
       viewerClose: "Close",
-      flowPlay: "Play",
-      flowReplay: "Replay",
     } as Strings,
   };
 }

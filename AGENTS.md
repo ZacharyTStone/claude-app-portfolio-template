@@ -34,6 +34,7 @@ font check). Its steps, one by one:
 | `npm test`                        | Unit tests (`tests/**/*.test.ts`): some read `dist/`, one builds `tests/sample` |
 | `npm run fonts:check`             | The Japanese fonts have every character the Japanese page uses                  |
 | `npm run test:browser`            | The built pages in Chromium, with the real security headers                     |
+| `npm run diagrams`                | Writes the diagrams (`diagrams/*.ts`) as SVG files in `public/assets`           |
 
 `npm run update-template` (in a site made from the template) replaces the
 shared files with the template's latest; it needs a clean working tree.
@@ -61,9 +62,11 @@ src/styles/       The stylesheet in parts; app.css imports them in order, a site
 src/app/          The browser code; Astro bundles it into the pages' one script
 src/worker/       POST /ask, the only server code (Cloudflare Workers, bundled by wrangler)
 public/           Files served as they are: favicons, the social card, pictures, icons, fonts
+diagrams/         (each repo's own) Pictures that move, as code: `npm run diagrams` writes their files
 dist/             What Astro builds and the host serves (never committed)
 scripts/          template.ts (the shared list), update-template.ts, verify.ts, fonts.ts and ja-font.py
-                  (font subsets); in the site the template is made from, sync-template.ts
+                  (font subsets), diagram.ts (the kit a diagram is drawn with) and diagrams.ts (writes
+                  them); in the site the template is made from, sync-template.ts
 tests/            Unit tests (*.test.ts), browser/ (Playwright checks), sample/ (a made-up site the
                   tests build with SITE_CONFIG), the Ask eval
 examples/         (template) Sample content to import into the config, such as a second language
@@ -90,7 +93,10 @@ examples/         (template) Sample content to import into the config, such as a
   transitions or UI-framework integrations: the pages' only script is
   `src/app`.
 - **Nothing built is committed.** `dist/` is Astro's. `public/` holds only
-  files served as they are.
+  files served as they are. Two kinds of them are written by a script and
+  committed, so the host builds nothing but the pages: the Japanese font
+  subsets (`npm run fonts`) and the diagrams' SVG files
+  (`npm run diagrams`). A check fails while either is out of date.
 - **Shared code never names a person.** Shared files (`SHARED`) go to the
   public template; the sync refuses to copy a shared file that names the
   owner (the name whole and in parts in every language, the domain, email,
@@ -169,35 +175,78 @@ examples/         (template) Sample content to import into the config, such as a
    one); data with a shape goes in a type there that both sides import.
 6. `npm run verify`.
 
-## Adding a diagram that plays
+## Adding a picture that moves
 
-A `flow` draws steps in order. Give it an `example` and it follows one
-case through them, and plays (`Flow` in `src/shared/content.ts` has the
-shape and a sample; `tests/sample/site.config.ts` has one that builds):
+A diagram is a picture: boxes, lines, and things that move along them. Each
+is a short TypeScript file in `diagrams/`, drawn with the kit in
+`scripts/diagram.ts`. `npm run diagrams` writes it as SVG files in
+`public/assets`, and an `image` in the config shows it:
 
 ```ts
-{
-  flow: {
-    title: "What happens to an order",
-    example: "An example: two coffees, ordered at 8:02",
-    steps: [
-      { name: "The till", note: "takes the order", example: "2 × flat white, to go" },
-      { name: "The kitchen", note: "makes it", example: ["Ticket 41:", "**two cups**, oat milk"] },
-      { name: "The counter", note: "calls the name", example: "“Order for Alex!”" },
+// diagrams/order.ts
+import { arrowhead, box, label, levelCurve, line, loopOf, moving } from "../scripts/diagram.ts";
+import type { Diagram } from "../scripts/diagrams.ts";
+
+type Words = { till: string; kitchen: string };
+
+function draw(words: Words) {
+  const loop = loopOf(6); // seconds, and then it starts again
+  const road = levelCurve({ x: 520, y: 200 }, { x: 1048, y: 200 });
+  return {
+    width: 1600,
+    height: 400,
+    shapes: [
+      box({ x: 120, y: 120, width: 400, height: 160 }),
+      label(words.till, { x: 320, y: 214 }, { size: 46, weight: 600 }),
+      box({ x: 1080, y: 120, width: 400, height: 160 }),
+      label(words.kitchen, { x: 1280, y: 214 }, { size: 46, weight: 600 }),
+      moving(line(road), ...loop.draw(0.5, 1.5)), // the line draws itself,
+      arrowhead({ x: 1064, y: 200 }, 0),
+      loop.traveller(road, 1.5, 3), // and an order travels along it
     ],
-  },
+  };
 }
+
+export default {
+  name: "order",
+  words: { en: { till: "The till", kitchen: "The kitchen" }, ja: { till: "レジ", kitchen: "キッチン" } },
+  draw,
+} satisfies Diagram<Words>;
 ```
 
-- Every step needs an `example` (a line, or several; `**bold**` marks the
-  part to look at), and each language needs `strings.flowPlay` and
-  `strings.flowReplay`: the build says so if either is missing.
-- Write the example as one concrete, made-up case, with what it looks
-  like at each step, not a second description of the step.
-- `Flow.astro` puts every step and example in the page, so it reads whole
-  without JavaScript, with motion reduced and in print; `src/app/flow.ts`
-  only adds the playing. Ask and llms.txt read the steps, not the examples.
-- The same rules as any content: in every language, with the same steps.
+```ts
+// site.config.ts, in an answer
+{ image: { src: "/assets/order.svg", still: "/assets/order-still.svg", alt: "…", width: 1600, height: 400 } }
+```
+
+- **Move things, not words.** A dot along a line, a card up a list, a box
+  that lights as something reaches it. Text that fades in a row at a time
+  is a list: a `flow` or a paragraph says it better, and without motion.
+- **The motion is SVG's own** (`<animate>`, `<animateMotion>`), which runs
+  in an `<img>`: the page needs no script for it and its policy allows
+  nothing new. So a diagram has no `<style>`, `<script>`, `class` or file
+  of another's (`tests/diagrams.test.ts` says so).
+- **Every motion lasts the whole loop.** Say when a thing happens in
+  seconds into the loop (`loop.shown(2, 5)`), never with a length of its
+  own, or the parts drift apart. Make the loop's end meet its start: what
+  resets does it out of sight.
+- **Draw each shape the way it rests.** The `-still.svg` file is the same
+  shapes without their motion, and it's what a visitor who has asked for
+  less motion sees (the image's `still`; a test says if it's missing). It
+  should read as a finished diagram. What only passes through is
+  `onlyWhenMoving` (`loop.traveller` and `loop.ripple` already are).
+- **Big and few words.** It's shown about 700 px wide on a desktop and 340
+  on a phone: draw it 1600 wide, with text at 32 or more. It's drawn in
+  the visitor's own font, so leave room around text (`textWidth`
+  estimates it).
+- **Each language's words are in `words`.** The first language's files are
+  `NAME.svg` and `NAME-still.svg`; another's have its code (`NAME-ja.svg`).
+  A folder inside `diagrams/` holds parts that diagrams share.
+- **Look at it.** `npm run diagrams NAME` writes one diagram; open the SVG
+  file in a browser. Commit the files with the diagram: `npm test` fails
+  while they aren't what it draws.
+- `alt` says what the picture shows and what moves in it, for someone who
+  can't see it. Ask and llms.txt read its caption.
 
 ## Opening a link in the viewer
 
@@ -237,6 +286,11 @@ address to show in the frame (a Google Doc's ends `/preview`).
   Waits time out after 10 s (`run.ts`); pass a timeout only when a check
   needs another.
 - Callbacks that run in the page are compiled with Node's types, not the
-  DOM's: type their arguments structurally (`Attributed`, `lastText`).
+  DOM's: type their arguments as `PageElement` (`helpers.ts`), adding the
+  member a callback needs. `attributeOfEach`, `hasClass`, `hasFocus` and
+  `computedStyle` cover the common reads.
+- Give each assertion words that say what was expected. A step of more
+  than a few lines is a function under the list (`check…` when it
+  asserts): a failure prints the step it happened in.
 - Run `npm run test:browser` a few times: a check that passes once may
   still race.

@@ -67,13 +67,13 @@ type Reference = {
 /** An address with a scheme: "https://example.com", "mailto:alex@example.com". */
 const HAS_SCHEME = /^[a-z][a-z\d+.-]*:/i;
 
-/** A page's links and assets: every href and src that's a path, and the
+/** A page's links and assets: every href, src and srcset that's a path, and the
     full addresses on this site that the build writes into <link>, <meta>
     and JSON-LD (canonical, hreflang, og:image…). A full address in the
     text was written by hand, and may be served by something else on the
     same host, so it's left alone. */
 function pageReferences(html: string, from: URL): Reference[] {
-  const paths = [...html.matchAll(/\s(?:href|src)="([^"]*)"/g)]
+  const paths = [...html.matchAll(/\s(?:href|src|srcset)="([^"]*)"/g)]
     .map(([, ref = ""]) => ref)
     .filter((ref) => !HAS_SCHEME.test(ref));
   const metadataTags = html.match(/<link\b[^>]*>|<meta\b[^>]*>|<script\b[^>]*application\/ld\+json[^>]*>[^<]*/g) ?? [];

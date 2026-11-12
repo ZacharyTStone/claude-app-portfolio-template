@@ -3,74 +3,47 @@
    in for here: the checks never use the network. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import { desktop, eventually, iPhone, type Check } from "../helpers.ts";
 import { DATA } from "../../../src/shared/page-data.ts";
-import { CLASS, ID, type Site } from "../site.ts";
+import { desktop, eventually, hasFocus, iPhone, type Check, type PageElement } from "../helpers.ts";
+import { CLASS, ID, type Site, type ViewerLink } from "../site.ts";
 
+/** The page that stands in for whatever the viewer frames, and the words
+    that show it has loaded. */
 const FRAMED_TEXT = "A document, stood in for.";
 const FRAMED_PAGE = `<!doctype html><title>A document</title><p>${FRAMED_TEXT}</p>`;
 
-/** Stands in for the sites of `addresses`, in this tab and any it opens. */
-async function sitesReturnAPage(page: Page, addresses: string[]): Promise<void> {
-  for (const origin of new Set(addresses.map((address) => new URL(address).origin))) {
-    await page
-      .context()
-      .route(`${origin}/**`, (route) => route.fulfill({ status: 200, contentType: "text/html", body: FRAMED_PAGE }));
-  }
-}
+/** The viewer while it's open, and the frame it shows a page in. */
+const OPEN_VIEWER = `${CLASS.viewer}:not([hidden])`;
+const VIEWER_FRAME = `${CLASS.viewer} iframe`;
 
-/** An element, as far as knowing whether it has the focus goes. */
-type Focusable = { ownerDocument: { activeElement: unknown } };
+/** The keys that, held during a click, make it the browser's own: a new
+    tab, a new window, a download. Each is a MouseEvent's name for it. */
+const MODIFIER_KEYS = ["ctrlKey", "metaKey", "shiftKey", "altKey"];
 
-/** A link, as far as clicking it by hand goes. */
-type Clickable = {
-  dispatchEvent(event: unknown): boolean;
-  ownerDocument: {
-    defaultView: {
-      MouseEvent: new (type: string, init: Record<string, boolean>) => unknown;
-      addEventListener(
-        type: string,
-        listener: (event: { defaultPrevented: boolean; preventDefault(): void }) => void,
-        options: { once: boolean },
-      ): void;
-    } | null;
-  };
-};
+// In a frame's sandbox, what would let the framed page send the whole tab
+// somewhere else: "allow-top-navigation", or the same "-by-user-activation".
+const LETS_THE_FRAME_NAVIGATE_THE_TAB = /allow-top-navigation/;
 
-/** Clicks a link with these keys held, and says whether the page took the
-    click for itself (it stopped the browser following the link). Either
-    way the link isn't followed: the checks open no other site. */
-const clickTaken = (link: Locator, keys: Record<string, boolean>): Promise<boolean> =>
-  link.evaluate((el: Clickable, held) => {
-    const view = el.ownerDocument.defaultView;
-    if (!view) throw new Error("The link's page has no window");
-    let taken = false;
-    // The window hears the click after everything in the page has.
-    view.addEventListener(
-      "click",
-      (event) => {
-        taken = event.defaultPrevented;
-        event.preventDefault();
-      },
-      { once: true },
-    );
-    el.dispatchEvent(new view.MouseEvent("click", { bubbles: true, cancelable: true, ...held }));
-    return taken;
-  }, keys);
+/** What stands in for the link on a site without a viewer, where every
+    check here is skipped. */
+const NO_VIEWER_LINK: ViewerLink = { tab: "", href: "", shown: "", title: "" };
 
+/** The checks of the viewer, made for the first link on the site that
+    opens in it. */
 export default (site: Site): Check[] => {
-  const { viewer } = site;
-  const skip = viewer ? null : "the site has no viewer";
-  const tab = viewer?.tab ?? "";
-  const href = viewer?.href ?? "";
-  const shown = viewer?.shown ?? "";
-  /** The link, in its tab, and the viewer once it's open. */
+  const viewerLink = site.viewer ?? NO_VIEWER_LINK;
+  const skip = site.viewer ? null : "the site has no viewer";
+  const { tab, href, shown, title } = viewerLink;
+  /** The link, in its tab. */
   const link = (page: Page) => page.locator(`#${tab} a[${DATA.view}="${shown}"]`).first();
-  const open = (page: Page) => page.locator(`${CLASS.viewer}:not([hidden])`);
-  async function openViewer(page: Page) {
+  /** Clicks the link, with its site and the one the viewer frames stood in
+      for, and waits for the viewer. */
+  async function openViewer(page: Page): Promise<Locator> {
     await sitesReturnAPage(page, [href, shown]);
     await link(page).click();
-    await open(page).waitFor();
+    const viewer = page.locator(OPEN_VIEWER);
+    await viewer.waitFor();
+    return viewer;
   }
   return [
     {
@@ -78,22 +51,40 @@ export default (site: Site): Check[] => {
       url: `#${tab}`,
       skip,
       async test(page) {
-        await openViewer(page);
-        const frame = open(page).locator("iframe");
+        const viewer = await openViewer(page);
+        const frame = viewer.locator("iframe");
         assert.equal(await frame.getAttribute("src"), shown, "the frame shows the address the config gives");
-        assert.equal(await open(page).locator(CLASS.viewerTitle).textContent(), viewer?.title);
+        assert.equal(
+          await viewer.locator(CLASS.viewerTitle).textContent(),
+          title,
+          "the viewer is named as the config names the link",
+        );
         // The page it shows loaded: the security policy let that site in.
-        await page.frameLocator(`${CLASS.viewer} iframe`).getByText(FRAMED_TEXT).waitFor();
+        await page.frameLocator(VIEWER_FRAME).getByText(FRAMED_TEXT).waitFor();
         await eventually(async () => {
-          assert.equal(await page.locator(`${CLASS.viewerFrame}${CLASS.viewerLoading}`).count(), 0, "it has loaded");
+          assert.equal(
+            await page.locator(`${CLASS.viewerFrame}${CLASS.viewerLoading}`).count(),
+            0,
+            "the viewer stops saying its page is loading",
+          );
         });
         // The framed page can't take the visitor anywhere, and isn't told where they came from.
-        assert.doesNotMatch((await frame.getAttribute("sandbox")) ?? "", /allow-top-navigation/);
-        assert.equal(await frame.getAttribute("referrerpolicy"), "no-referrer");
+        const sandbox = (await frame.getAttribute("sandbox")) ?? "";
+        assert.doesNotMatch(
+          sandbox,
+          LETS_THE_FRAME_NAVIGATE_THE_TAB,
+          `the frame's sandbox doesn't let its page send the tab elsewhere: "${sandbox}"`,
+        );
+        assert.equal(
+          await frame.getAttribute("referrerpolicy"),
+          "no-referrer",
+          "the framed site isn't told where the visitor came from",
+        );
         // It's in the details panel's place, and "Open in a new tab" is the link as it was.
-        assert.equal(await page.locator(ID.details).isVisible(), false, "the panel makes room for it");
-        assert.equal(await open(page).locator(CLASS.viewerOpen).getAttribute("href"), href);
-        assert.equal(await open(page).locator(CLASS.viewerOpen).getAttribute("target"), "_blank");
+        assert.equal(await page.locator(ID.details).isVisible(), false, "the details panel makes room for the viewer");
+        const openInNewTab = viewer.locator(CLASS.viewerOpen);
+        assert.equal(await openInNewTab.getAttribute("href"), href, '"Open in a new tab" goes where the link goes');
+        assert.equal(await openInNewTab.getAttribute("target"), "_blank", '"Open in a new tab" opens a new tab');
       },
     },
     {
@@ -104,19 +95,12 @@ export default (site: Site): Check[] => {
         await openViewer(page);
         await page.keyboard.press("Escape");
         await page.locator(CLASS.viewer).waitFor({ state: "hidden" });
-        assert.equal(
-          await page.locator(`${CLASS.viewer} iframe`).count(),
-          0,
-          "nothing is left loading from the other site",
-        );
-        assert.equal(await page.locator(CLASS.viewing).count(), 0, "the shell is as it was");
-        assert.ok(
-          await link(page).evaluate((el: Focusable) => el.ownerDocument.activeElement === el),
-          "the focus is back on the link",
-        );
+        assert.equal(await page.locator(VIEWER_FRAME).count(), 0, "nothing is left loading from the other site");
+        assert.equal(await page.locator(CLASS.viewing).count(), 0, "the shell is as it was before the viewer opened");
+        assert.ok(await hasFocus(link(page)), "the focus is back on the link");
         // And it opens again.
         await link(page).click();
-        await open(page).locator("iframe").waitFor();
+        await page.locator(`${OPEN_VIEWER} iframe`).waitFor();
       },
     },
     {
@@ -125,12 +109,16 @@ export default (site: Site): Check[] => {
       skip,
       async test(page) {
         await sitesReturnAPage(page, [href, shown]);
-        for (const key of ["ctrlKey", "metaKey", "shiftKey", "altKey"]) {
-          assert.equal(await clickTaken(link(page), { [key]: true }), false, `a click with ${key} is the browser's`);
+        for (const key of MODIFIER_KEYS) {
+          assert.equal(
+            await pageTakesClick(link(page), { [key]: true }),
+            false,
+            `a click with ${key} is left to the browser`,
+          );
         }
-        assert.equal(await open(page).count(), 0, "and the viewer stays shut");
-        assert.equal(await clickTaken(link(page), {}), true, "a plain click is the viewer's");
-        await open(page).waitFor();
+        assert.equal(await page.locator(OPEN_VIEWER).count(), 0, "the viewer stays shut after those clicks");
+        assert.equal(await pageTakesClick(link(page), {}), true, "a plain click is the viewer's");
+        await page.locator(OPEN_VIEWER).waitFor();
       },
     },
     {
@@ -151,21 +139,53 @@ export default (site: Site): Check[] => {
       device: iPhone,
       skip,
       async test(page) {
-        await openViewer(page);
-        const size = page.viewportSize();
-        assert.ok(size);
+        const viewer = await openViewer(page);
+        const screen = page.viewportSize();
+        assert.ok(screen, "the phone has a screen size");
         await eventually(async () => {
-          const box = await open(page).boundingBox();
+          const box = await viewer.boundingBox();
           assert.deepEqual(
             box && [box.x, box.y, box.width, box.height].map(Math.round),
-            [0, 0, size.width, size.height],
-            "edge to edge",
+            [0, 0, screen.width, screen.height],
+            "the viewer covers the screen, edge to edge",
           );
         });
-        await open(page).locator(CLASS.viewerClose).click();
+        await viewer.locator(CLASS.viewerClose).click();
         await page.locator(CLASS.viewer).waitFor({ state: "hidden" });
         await page.locator(`#${tab} ${CLASS.thread}`).waitFor({ state: "visible" });
       },
     },
   ];
 };
+
+/** Stands in for the sites of `addresses`, in this tab and any it opens:
+    whatever is asked of them, they return FRAMED_PAGE. */
+async function sitesReturnAPage(page: Page, addresses: string[]): Promise<void> {
+  const origins = new Set(addresses.map((address) => new URL(address).origin));
+  for (const origin of origins) {
+    await page
+      .context()
+      .route(`${origin}/**`, (route) => route.fulfill({ status: 200, contentType: "text/html", body: FRAMED_PAGE }));
+  }
+}
+
+/** Clicks a link with these keys held, and says whether the page took the
+    click for itself: it stopped the browser following the link. Either way
+    the link isn't followed, as the checks open no other site. */
+const pageTakesClick = (link: Locator, keysHeld: Record<string, boolean>): Promise<boolean> =>
+  link.evaluate((el: PageElement, held) => {
+    const view = el.ownerDocument.defaultView;
+    if (!view) throw new Error("The link's page has no window");
+    let taken = false;
+    // The window hears the click after everything in the page has.
+    view.addEventListener(
+      "click",
+      (event) => {
+        taken = event.defaultPrevented;
+        event.preventDefault();
+      },
+      { once: true },
+    );
+    el.dispatchEvent(new view.MouseEvent("click", { bubbles: true, cancelable: true, ...held }));
+    return taken;
+  }, keysHeld);

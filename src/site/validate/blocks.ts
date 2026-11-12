@@ -5,7 +5,7 @@
 
 import type { Language } from "../../shared/config.ts";
 import { FIGURE_LIMITS } from "../../shared/content.ts";
-import type { Bars, Block, Flow, FlowStep, Heading, LinkCard, Markdown, Picture, Quote } from "../../shared/content.ts";
+import type { Bars, Block, Flow, Heading, LinkCard, Markdown, Picture, Quote } from "../../shared/content.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isPathOnSite, isPixelCount } from "./shapes.ts";
 
@@ -25,11 +25,6 @@ export function picturesIn(block: Block): Picture[] {
   return "images" in block ? block.images : [];
 }
 
-/** Whether a block is a flow that follows an example through its steps,
-    which the page plays: it needs wording a plain flow doesn't. */
-export const isFlowWithExample = (block: Block): boolean =>
-  !isTextBlock(block) && "flow" in block && isFilledIn(block.flow.example);
-
 /** Checks one block of an answer. `where` starts each message with the
     place the block is in: `the thread "work"`. */
 export function checkBlock(block: Block, where: string, checks: LanguageChecks): void {
@@ -44,15 +39,20 @@ export function checkBlock(block: Block, where: string, checks: LanguageChecks):
 
 /** A picture is a file on this site (the security policy lets images come
     from nowhere else), with words for anyone who can't see it, and its size
-    in pixels, so the page keeps its place while the file loads. A site gets
-    it wrong by pasting a picture's address from another site, or by leaving
-    the alt for later. */
+    in pixels, so the page keeps its place while the file loads. One that
+    moves has a still of itself, which is a file on this site too. A site
+    gets it wrong by pasting a picture's address from another site, or by
+    leaving the alt for later. */
 function checkPicture(
-  { src, alt, width, height, href }: Picture,
+  { src, still, alt, width, height, href }: Picture,
   where: string,
   { problemUnless, checkLinkIsSafe }: LanguageChecks,
 ): void {
   problemUnless(isPathOnSite(src), `${where} has a picture at "${src}", which should be a path on this site`);
+  problemUnless(
+    still == null || (isPathOnSite(still) && still !== src),
+    `${where} has the picture "${src}" with the still "${still}", which should be another file on this site: the same picture without its motion`,
+  );
   problemUnless(
     isFilledIn(alt),
     `${where} has the picture "${src}" without an alt: say what it shows, for anyone who can't see it`,
@@ -104,37 +104,17 @@ function checkBars({ title, rows }: Bars, where: string, { problemUnless }: Lang
 }
 
 /** A flow is a figure too: a title, and named steps, few enough to read at
-    a glance. If it follows an example (its own `example` says what's
-    followed), every step says what the example looks like there, since the
-    page plays it step by step; if it doesn't, no step has one, as nothing
-    would show it. */
-function checkFlow({ title, steps, example }: Flow, where: string, { problemUnless }: LanguageChecks): void {
+    a glance. */
+function checkFlow({ title, steps }: Flow, where: string, { problemUnless }: LanguageChecks): void {
   problemUnless(isFilledIn(title), `${where} has a flow without a title`);
   problemUnless(
     isWithin(steps.length, FIGURE_LIMITS.flow),
     `${where} has ${steps.length} steps in "${title}": it takes ${inWords(FIGURE_LIMITS.flow)}`,
   );
-  const followsExample = isFilledIn(example);
   for (const step of steps) {
     problemUnless(isFilledIn(step.name), `${where} has a step in "${title}" without a name`);
-    if (followsExample) {
-      problemUnless(
-        showsExample(step),
-        `${where} has the step "${step.name}" in "${title}" without an example: the flow follows one, so say what it looks like at each step`,
-      );
-    } else {
-      problemUnless(
-        step.example == null,
-        `${where} has an example on the step "${step.name}" in "${title}", but the flow has none: give it an "example" that says what's followed`,
-      );
-    }
   }
 }
-
-/** Whether a flow's step says what the example looks like there: a line,
-    or several with something in each. */
-const showsExample = ({ example }: FlowStep): boolean =>
-  Array.isArray(example) ? example.length > 0 && example.every(isFilledIn) : isFilledIn(example);
 
 /** A heading sets a part of a long answer apart by its title: without one
     there's nothing to draw. */

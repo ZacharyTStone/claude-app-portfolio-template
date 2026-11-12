@@ -1,11 +1,28 @@
 /* The sidebar and the details panel: folding, hiding, resizing and
    reordering, and that each is remembered. */
 import assert from "node:assert/strict";
-import { desktop, revisit, type Attributed, type Check } from "../helpers.ts";
+import type { Locator, Page } from "playwright";
+import { SIZE, TIMING } from "../../../src/app/constants.ts";
 import { DATA } from "../../../src/shared/page-data.ts";
-import { TIMING } from "../../../src/app/constants.ts";
-import { CLASS, ID, type Site } from "../site.ts";
+import { attributeOfEach, desktop, revisit, shell, type Check } from "../helpers.ts";
+import { CLASS, ID, PANEL_SECTIONS, type Site } from "../site.ts";
 
+/** How far the sidebar's edge is dragged, in pixels, and in how many moves
+    of the mouse. */
+const EDGE_DRAG_PX = 40;
+const EDGE_DRAG_MOVES = 4;
+
+/** In how many moves of the mouse a panel section is dragged, and how far
+    past the middle of the section next to it, in pixels. */
+const SECTION_DRAG_MOVES = 8;
+const PAST_THE_MIDDLE_PX = 4;
+
+/** How long the check gives a dropped section to settle, past the time the
+    script takes over it (TIMING.settle), in milliseconds. */
+const SETTLE_MARGIN_MS = 100;
+
+/** The checks of the sidebar and the details panel, made for the site as
+    it was read: its first thread, its groups, its panel's sections. */
 export default (site: Site): Check[] => {
   const { A, foldingGroup } = site;
   return [
@@ -14,44 +31,41 @@ export default (site: Site): Check[] => {
       url: "./",
       skip: foldingGroup ? null : "the sidebar has no groups",
       async test(page) {
-        const { id = "", tabs = [] } = foldingGroup ?? {};
-        const button = page.locator(`[id="${id}"] ${CLASS.foldButton}`);
-        const list = page.locator(`[id="${id}"] + ul`);
-        await button.click();
-        assert.ok(await list.isHidden());
-        assert.equal(await button.getAttribute("aria-expanded"), "false");
+        if (!foldingGroup) return;
+        const foldButton = page.locator(`[id="${foldingGroup.id}"] ${CLASS.foldButton}`);
+        const rows = page.locator(`[id="${foldingGroup.id}"] + ul`);
+        await foldButton.click();
+        assert.ok(await rows.isHidden(), "folded, the group's rows are hidden");
+        assert.equal(await foldButton.getAttribute("aria-expanded"), "false", "the group's button says it's folded");
         await revisit(page, site.url("./"));
-        assert.ok(await list.isHidden(), "still folded on the next visit");
-        await page.goto(site.url(`#${tabs[0]}`));
-        await list.waitFor();
-        assert.equal(await button.getAttribute("aria-expanded"), "true");
+        assert.ok(await rows.isHidden(), "the group is still folded on the next visit");
+        await page.goto(site.url(`#${foldingGroup.tabs[0]}`));
+        await rows.waitFor();
+        assert.equal(
+          await foldButton.getAttribute("aria-expanded"),
+          "true",
+          "opening a tab in the group unfolds it, and its button says so",
+        );
       },
     },
     {
       name: "the sidebar: arrow keys between rows, hidden and back, resized by keyboard and remembered",
       url: `#${A.id}`,
       async test(page) {
-        const rows = page.locator(`${ID.tabs} ${CLASS.nav} a`);
-        await rows.first().focus();
-        await page.keyboard.press("ArrowDown");
-        assert.equal(await page.locator(":focus").getAttribute("href"), await rows.nth(1).getAttribute("href"));
-        await page.locator(`[${DATA.sideToggle}]`).click();
-        assert.ok(await page.locator(ID.tabs).isHidden());
-        assert.equal(await page.locator(`#${A.id} ${CLASS.menu}:focus`).count(), 1);
-        await page.locator(`#${A.id} ${CLASS.menu}`).click();
-        assert.ok(await page.locator(ID.tabs).isVisible());
-        assert.equal(await page.locator(`[${DATA.sideToggle}]:focus`).count(), 1);
+        await checkArrowDownGoesToTheNextRow(page);
+        await checkSidebarHidesAndComesBack(page, A.id);
+
         const edge = page.locator(CLASS.resizer);
-        const width = async () => Number(await edge.getAttribute("aria-valuenow"));
-        const before = await width();
+        const defaultWidth = await sidebarWidth(page);
+        const twoStepsWider = defaultWidth + 2 * SIZE.sidebarStep;
         await edge.focus();
         await page.keyboard.press("ArrowRight");
         await page.keyboard.press("ArrowRight");
-        assert.equal(await width(), before + 32);
+        assert.equal(await sidebarWidth(page), twoStepsWider, "ArrowRight twice makes the sidebar two steps wider");
         await revisit(page, site.url(`#${A.id}`));
-        assert.equal(await width(), before + 32, "the width, on the next visit");
+        assert.equal(await sidebarWidth(page), twoStepsWider, "the sidebar is that wide on the next visit");
         await edge.dblclick();
-        assert.equal(await width(), before, "double-clicked: back to the default");
+        assert.equal(await sidebarWidth(page), defaultWidth, "a double-click on its edge puts the default width back");
       },
     },
     {
@@ -59,22 +73,25 @@ export default (site: Site): Check[] => {
       url: `#${A.id}`,
       async test(page) {
         const edge = page.locator(CLASS.resizer);
-        const width = async () => Number(await edge.getAttribute("aria-valuenow"));
-        const pinned = () => page.locator(ID.tabs).locator("..").getAttribute("style");
         await edge.click();
         await revisit(page, site.url(`#${A.id}`));
-        assert.equal(await pinned(), null, "a click leaves the default width");
-        const before = await width();
-        const box = await edge.boundingBox();
-        assert.ok(box, "the edge is on screen");
-        const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
-        await page.mouse.move(x, y);
-        await page.mouse.down();
-        await page.mouse.move(x + 40, y, { steps: 4 });
+        // A width that's been set is on the shell, as its style.
+        assert.equal(await shell(page).getAttribute("style"), null, "a click on the edge leaves the default width");
+
+        const widthBefore = await sidebarWidth(page);
+        await pressAndMove(page, edge, "the sidebar's edge", { dx: EDGE_DRAG_PX, moves: EDGE_DRAG_MOVES });
         await page.mouse.up();
-        assert.equal(await width(), before + 40);
+        assert.equal(
+          await sidebarWidth(page),
+          widthBefore + EDGE_DRAG_PX,
+          "the sidebar is wider by as far as it was dragged",
+        );
         await revisit(page, site.url(`#${A.id}`));
-        assert.equal(await width(), before + 40, "the width, on the next visit");
+        assert.equal(
+          await sidebarWidth(page),
+          widthBefore + EDGE_DRAG_PX,
+          "the sidebar is that wide on the next visit",
+        );
       },
     },
     {
@@ -84,34 +101,30 @@ export default (site: Site): Check[] => {
       // Nothing slides, so a grip is where it was measured when it's pressed.
       device: { ...desktop, reducedMotion: "reduce" },
       async test(page) {
-        const sections = page.locator(`${ID.details} > section`);
-        const order = () =>
-          sections.evaluateAll((all: Attributed[]) => all.map((s) => s.getAttribute("aria-labelledby")));
         const [first = "", second = "", ...rest] = site.panel;
-        // Drags the section `id` by its grip, `dy` down.
-        const drag = async (id: string, dy: number) => {
-          const section = page.locator(`${ID.details} > section[aria-labelledby="${id}"]`);
-          const box = await section.locator(CLASS.grip).boundingBox();
-          assert.ok(box, "its grip is on screen");
-          const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
-          await page.mouse.move(x, y);
-          await page.mouse.down();
-          await page.mouse.move(x, y + dy, { steps: 8 });
-        };
-        // Just far enough that its middle passes the middle of the one below
-        // (and then, back up, of the one above), whatever their heights.
-        const [top, next] = [await sections.nth(0).boundingBox(), await sections.nth(1).boundingBox()];
-        assert.ok(top && next, "the first two sections are on screen");
-        const past = next.y + next.height / 2 - (top.y + top.height / 2) + 4;
-        await drag(first, past);
+        const firstsGrip = page.locator(`${PANEL_SECTIONS}[aria-labelledby="${first}"] ${CLASS.grip}`);
+        const pastTheNext = await dragDistancePastTheSecondSection(page);
+        const dragFirstSection = (dy: number) =>
+          pressAndMove(page, firstsGrip, "the section's grip", { dy, moves: SECTION_DRAG_MOVES });
+
+        await dragFirstSection(pastTheNext);
         await page.mouse.up();
-        assert.deepEqual(await order(), [second, first, ...rest]);
-        // At once, before it has settled: it stays lifted while it's dragged.
-        await drag(first, -past);
-        await page.waitForTimeout(TIMING.settle + 100);
-        assert.equal(await page.locator(`${ID.details} ${CLASS.dragging}`).count(), 1, "still lifted");
+        assert.deepEqual(
+          await panelOrder(page),
+          [second, first, ...rest],
+          "dragged past the second section, the first is under it",
+        );
+        // Back up at once, before the drop has settled. When it would have,
+        // the section is being dragged again: it stays lifted.
+        await dragFirstSection(-pastTheNext);
+        await page.waitForTimeout(TIMING.settle + SETTLE_MARGIN_MS);
+        assert.equal(
+          await page.locator(`${ID.details} ${CLASS.dragging}`).count(),
+          1,
+          "the section is still lifted while the mouse holds it",
+        );
         await page.mouse.up();
-        assert.deepEqual(await order(), site.panel);
+        assert.deepEqual(await panelOrder(page), site.panel, "dragged back up, the sections are in their first order");
       },
     },
     {
@@ -121,25 +134,100 @@ export default (site: Site): Check[] => {
       async test(page) {
         const panel = page.locator(ID.details);
         const toggle = page.locator(`${ID.top} [${DATA.panelToggle}]`);
-        const sections = panel.locator(":scope > section");
-        const order = () =>
-          sections.evaluateAll((all: Attributed[]) => all.map((s) => s.getAttribute("aria-labelledby")));
         await toggle.click();
-        assert.ok(await panel.isHidden());
-        assert.equal(await toggle.getAttribute("aria-expanded"), "false");
+        assert.ok(await panel.isHidden(), "the panel's button hides it");
+        assert.equal(await toggle.getAttribute("aria-expanded"), "false", "the panel's button says it's hidden");
         await toggle.click();
-        assert.ok(await panel.isVisible());
+        assert.ok(await panel.isVisible(), "the panel's button brings it back");
+
         const [first = "", second = "", ...rest] = site.panel;
-        await sections.first().locator(CLASS.grip).focus();
+        const firstMovedDown = [second, first, ...rest];
+        await page.locator(PANEL_SECTIONS).first().locator(CLASS.grip).focus();
         await page.keyboard.press("ArrowDown");
-        assert.deepEqual(await order(), [second, first, ...rest]);
-        const heading = page.locator(`[id="${second}"] ${CLASS.foldButton}`);
-        await heading.click();
-        assert.equal(await heading.getAttribute("aria-expanded"), "false");
+        assert.deepEqual(await panelOrder(page), firstMovedDown, "ArrowDown on its grip moves the first section down");
+        const foldButton = page.locator(`[id="${second}"] ${CLASS.foldButton}`);
+        await foldButton.click();
+        assert.equal(await foldButton.getAttribute("aria-expanded"), "false", "the section's button says it's folded");
+
         await revisit(page, site.url("./"));
-        assert.deepEqual(await order(), [second, first, ...rest], "the order, on the next visit");
-        assert.equal(await heading.getAttribute("aria-expanded"), "false", "and the fold");
+        assert.deepEqual(await panelOrder(page), firstMovedDown, "the sections are in that order on the next visit");
+        assert.equal(
+          await foldButton.getAttribute("aria-expanded"),
+          "false",
+          "the section is still folded on the next visit",
+        );
       },
     },
   ];
 };
+
+// ---- The sidebar -------------------------------------------------------------------------
+
+/** From the sidebar's first row, ArrowDown takes the focus to its second. */
+async function checkArrowDownGoesToTheNextRow(page: Page): Promise<void> {
+  const rows = page.locator(`${ID.tabs} ${CLASS.nav} a`);
+  await rows.first().focus();
+  await page.keyboard.press("ArrowDown");
+  assert.equal(
+    await page.locator(":focus").getAttribute("href"),
+    await rows.nth(1).getAttribute("href"),
+    "ArrowDown takes the focus from the sidebar's first row to its second",
+  );
+}
+
+/** The sidebar's own button hides it, leaving the focus on the open tab's
+    menu button; that button brings it back, and the focus goes back too. */
+async function checkSidebarHidesAndComesBack(page: Page, openTabId: string): Promise<void> {
+  const sidebar = page.locator(ID.tabs);
+  const menuButton = `#${openTabId} ${CLASS.menu}`;
+  await page.locator(`[${DATA.sideToggle}]`).click();
+  assert.ok(await sidebar.isHidden(), "the sidebar's button hides it");
+  assert.equal(await page.locator(`${menuButton}:focus`).count(), 1, "the focus is on the tab's menu button");
+  await page.locator(menuButton).click();
+  assert.ok(await sidebar.isVisible(), "the tab's menu button brings the sidebar back");
+  assert.equal(
+    await page.locator(`[${DATA.sideToggle}]:focus`).count(),
+    1,
+    "the focus is back on the sidebar's button",
+  );
+}
+
+/** How wide the sidebar is, in pixels, as its edge (a separator) says. */
+const sidebarWidth = async (page: Page): Promise<number> =>
+  Number(await page.locator(CLASS.resizer).getAttribute("aria-valuenow"));
+
+/** Presses the mouse on the middle of `handle` and moves it `dx` pixels
+    across and `dy` down, in `moves` moves as a hand would, without letting
+    go: page.mouse.up() does that. `called` names the handle, should it not
+    be on screen. */
+async function pressAndMove(
+  page: Page,
+  handle: Locator,
+  called: string,
+  { dx = 0, dy = 0, moves }: { dx?: number; dy?: number; moves: number },
+): Promise<void> {
+  const box = await handle.boundingBox();
+  assert.ok(box, `${called} is on screen`);
+  const [x, y] = [box.x + box.width / 2, box.y + box.height / 2];
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.mouse.move(x + dx, y + dy, { steps: moves });
+}
+
+// ---- The details panel -------------------------------------------------------------------
+
+/** The panel's sections in the order they're in now: the id of each one's
+    heading, as site.panel has them. */
+const panelOrder = (page: Page): Promise<Array<string | null>> =>
+  attributeOfEach(page.locator(PANEL_SECTIONS), "aria-labelledby");
+
+/** How far down the first section has to be dragged to change places with
+    the second, in pixels: until its middle is just past the second's,
+    whatever their heights. (The same distance back up undoes it.) */
+async function dragDistancePastTheSecondSection(page: Page): Promise<number> {
+  const sections = page.locator(PANEL_SECTIONS);
+  const [first, second] = [await sections.nth(0).boundingBox(), await sections.nth(1).boundingBox()];
+  assert.ok(first && second, "the first two sections are on screen");
+  const middleOf = (box: { y: number; height: number }) => box.y + box.height / 2;
+  return middleOf(second) - middleOf(first) + PAST_THE_MIDDLE_PX;
+}
