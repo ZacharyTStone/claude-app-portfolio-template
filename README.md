@@ -8,8 +8,8 @@ conversation about you.
 Everything the site says is in one file, `site.config.ts`. Astro builds it
 into static HTML and CSS that work with JavaScript off, plus one small
 script for the chats, menus and question card. An answer can hold more
-than text: file cards, bars, pictures, quotes, and diagrams that play one
-example through their steps. A link you choose, such as a resume in Google
+than text: file cards, bars, flows, pictures, quotes, and diagrams that
+move. A link you choose, such as a resume in Google
 Docs, can open in a viewer beside the conversation instead of a new tab.
 An optional Worker on Cloudflare, Ask, answers typed questions from your
 own answers, and quotes the lines it answered from.
@@ -291,35 +291,46 @@ the Cloudflare dashboard, under **Security → Security rules**.
 A site served under a path has that path before `/ask` in both rules.
 **Security → Events** shows what each rule has matched.
 
-## Diagrams that play, and the viewer
+## Pictures that move, and the viewer
 
-Both are set in `site.config.ts`, and `AGENTS.md` has each step by step
-("Adding a diagram that plays", "Opening a link in the viewer").
+`AGENTS.md` has each step by step ("Adding a picture that moves", "Opening
+a link in the viewer").
 
-**A diagram that plays.** A `flow` draws two to five steps in order, as
-boxes with an arrow from each to the next. Give it an `example`, and each
-step its own, and it follows one made-up case through the steps instead:
-they light up in turn, each with what the case looks like there, a visitor
-can pick a step, and a button plays it again. The sample's is "Saving a
-note", in the Pocket Notes tab:
+**A picture that moves.** A diagram is drawn by a short TypeScript file in
+`diagrams/`, with the kit in `scripts/diagram.ts`: boxes, labels, lines,
+and things that move along them. The sample's is "Saving a note", in the
+Pocket Notes tab: lines are typed into a note, each is saved in the
+browser at once, the changes wait in a queue while there's no connection,
+and go to the server when it comes back. Its file,
+`diagrams/saving-a-note.ts`, is written to be copied:
+
+```sh
+npm run diagrams                  # writes every diagram's files into public/assets
+npm run diagrams saving-a-note    # or one
+```
 
 ```ts
-flow: {
-  title: "Saving a note",
-  example: "An example: a note typed on a flight, with no Wi-Fi",
-  steps: [
-    { name: "Type", note: "saved as you go", example: "“Flights on the 14th, back on the 21st.”" },
-    // …and a step for each place the note goes, with what it looks like there
-  ],
+// site.config.ts, in an answer
+image: {
+  src: "/assets/saving-a-note.svg",
+  still: "/assets/saving-a-note-still.svg",
+  alt: "A diagram. Lines are typed into a note, and each is saved at once…",
+  width: 1600,
+  height: 540,
 },
 ```
 
-Every step and its example are in the page, so the diagram reads whole
-with JavaScript off, in print, and with motion reduced (it then plays only
-when its button is pressed). An example is an illustration: Ask and
-`llms.txt` read the steps, not the examples, so a fact belongs in the
-answer's text too. Each language needs `flowPlay` and `flowReplay` in its
-`strings`, and the build says so if one is missing.
+The motion is the picture's own (SVG animation), so it moves in a plain
+`<img>`: the page runs no script for it, the security policy allows
+nothing new, and it moves with JavaScript off. Every diagram is written
+twice, moving and still, and a visitor who has asked their computer for
+less motion is shown the still one. Commit the files with the diagram:
+`npm test` fails while they aren't what it draws. A picture is an
+illustration: Ask and `llms.txt` read its caption, so a fact belongs in
+the answer's text too.
+
+For steps in order with nothing to watch, a `flow` draws two to five boxes
+with an arrow from each to the next (the sample's is in the Globex tab).
 
 **The viewer.** A link listed in `viewer` opens in a panel beside the
 conversation (the whole screen on a phone), in a frame, instead of a new

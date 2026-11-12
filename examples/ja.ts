@@ -172,6 +172,16 @@ export default function japanese(me: Me): Language {
             a: [
               "複数のクリニック向けの予約アプリで、毎週数千人の患者が使っています。最初のプロトタイプからリリースまで、フロントエンドを率いました。",
               {
+                flow: {
+                  title: "最初のプロトタイプからリリースまで",
+                  steps: [
+                    { name: "プロトタイプ", note: "受付スタッフが試用" },
+                    { name: "パイロット", note: "1つのクリニック" },
+                    { name: "リリース", note: "すべてのクリニック" },
+                  ],
+                },
+              },
+              {
                 quote: {
                   text: "電話しなくても、患者さんが1分で予約できるようになりました。",
                   by: "クリニックの運営責任者",
@@ -207,30 +217,13 @@ export default function japanese(me: Me): Language {
             a: [
               "メモはまずブラウザに保存されるので、入力がネットワークを待つことはありません。オフラインの間の変更はたまっていき、接続が戻ると同期されます。",
               {
-                flow: {
-                  title: "メモが保存されるまで",
-                  example: "例：Wi-Fiのない機内でメモを書いた場合",
-                  steps: [
-                    { name: "入力", note: "書くそばから保存", example: "「フライトは14日、帰りは21日。」" },
-                    {
-                      name: "IndexedDB",
-                      note: "ブラウザの中",
-                      example: [
-                        "文を書き終える前に、メモはもう保存されています。タイトルの下の表示：",
-                        "**この端末に保存済み** · オンライン時に同期",
-                      ],
-                    },
-                    {
-                      name: "同期キュー",
-                      note: "接続を待つ",
-                      example: "キューに変更が1件：**Trip to Lisbon**（たった今編集）。着陸までここで待ちます。",
-                    },
-                    {
-                      name: "サーバー",
-                      example:
-                        "着陸してノートパソコンがオンラインに戻ると、変更が送信されます。キューはまた空になります。",
-                    },
-                  ],
+                image: {
+                  src: "/assets/saving-a-note-ja.svg",
+                  still: "/assets/saving-a-note-ja-still.svg",
+                  alt: "図。メモに行が入力されるたびに、ブラウザの中のIndexedDBにすぐ保存されます。変更は同期キューに入り、「オフライン」のゲートの前で待ちます。「オンライン」に変わると、変更は1件ずつサーバーに送られます。",
+                  width: 1600,
+                  height: 540,
+                  caption: "接続のないまま書いたメモは、すぐに保存され、あとで同期されます。",
                 },
               },
               {
@@ -457,8 +450,6 @@ export default function japanese(me: Me): Language {
       newChat: "新しいチャット",
       moveSection: "{name}を移動",
       resize: "タブの幅を変更",
-      flowPlay: "再生",
-      flowReplay: "もう一度再生",
       viewerOpen: "新しいタブで開く",
       viewerClose: "閉じる",
       askFrom: "「{tab}」タブより",

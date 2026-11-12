@@ -14,10 +14,10 @@
      https://…).
    - Icons are about, skills, file, contact, work and globe; panel rows and
      link cards can also be github or linkedin.
-   - A `flow` draws steps in order. Give it an `example`, and each step
-     its own, and it follows one made-up case through the steps and plays:
-     they light up in turn, and a visitor can pick a step or play it again
-     ("Saving a note", below).
+   - A `flow` draws steps in order, as boxes and arrows. A diagram that
+     moves is a picture: diagrams/ has one ("Saving a note"), `npm run
+     diagrams` writes its files, and an `image` shows them (AGENTS.md,
+     "Adding a picture that moves").
    - `viewer` lists the links that open in a panel beside the conversation,
      in a frame, instead of a new tab: a resume in Google Docs, say. The
      sample has none; there's one to uncomment under `ask`.
@@ -77,7 +77,7 @@ export default {
   // address ending /preview. The sample has none, because nothing it links
   // to can be shown in a frame: GitHub and LinkedIn refuse, and so does a
   // file on the site itself. With the resume in Google Docs, it would be
-  // the line below. See "Diagrams that play, and the viewer" in README.md.
+  // the line below. See "Pictures that move, and the viewer" in README.md.
   // viewer: { [me.resume]: "https://docs.google.com/document/d/YOUR-DOC-ID/preview" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
@@ -242,6 +242,17 @@ export default {
               a: [
                 `A booking app for a group of clinics, used by thousands of patients a week. ${me.first} led its frontend from the first prototype to launch.`,
                 {
+                  // Steps in order, as boxes and arrows.
+                  flow: {
+                    title: "From the first prototype to launch",
+                    steps: [
+                      { name: "Prototype", note: "tried by the front desk" },
+                      { name: "Pilot", note: "one clinic" },
+                      { name: "Launch", note: "every clinic" },
+                    ],
+                  },
+                },
+                {
                   quote: {
                     text: "Our patients book in a minute now, not a phone call.",
                     by: "The clinics’ operations lead",
@@ -277,38 +288,16 @@ export default {
               a: [
                 "Every note is saved in the browser first, so typing never waits for the network. Changes queue up while offline and sync when the connection comes back.",
                 {
-                  // With `example`, the flow follows one made-up case through
-                  // its steps, and plays: each step's `example` is what the
-                  // case looks like there. Without them it's boxes and arrows.
-                  flow: {
-                    title: "Saving a note",
-                    example: "An example: a note typed on a flight, with no Wi-Fi",
-                    steps: [
-                      {
-                        name: "Type",
-                        note: "saved as you go",
-                        example: "“Flights on the 14th, back on the 21st.”",
-                      },
-                      {
-                        name: "IndexedDB",
-                        note: "in the browser",
-                        example: [
-                          "The note is saved before the sentence is finished. Under its title:",
-                          "**Saved on this device** · syncs when online",
-                        ],
-                      },
-                      {
-                        name: "Sync queue",
-                        note: "waits for a connection",
-                        example:
-                          "One change is in the queue: **Trip to Lisbon**, edited just now. It waits there until landing.",
-                      },
-                      {
-                        name: "Server",
-                        example:
-                          "The plane lands, the laptop is back online, and the change is sent. The queue is empty again.",
-                      },
-                    ],
+                  // A picture that moves: diagrams/saving-a-note.ts draws it,
+                  // and `npm run diagrams` writes these two files. `still`
+                  // is what a visitor who wants less motion is shown.
+                  image: {
+                    src: "/assets/saving-a-note.svg",
+                    still: "/assets/saving-a-note-still.svg",
+                    alt: "A diagram. Lines are typed into a note, and each is saved at once in IndexedDB, in the browser. Each change then joins a sync queue, where it waits at a gate marked offline. When the gate turns to online, the changes go on to the server one at a time.",
+                    width: 1600,
+                    height: 540,
+                    caption: "A note typed with no connection, saved at once and synced later.",
                   },
                 },
                 {
@@ -564,9 +553,6 @@ export default {
         newChat: "New chat",
         moveSection: "Move {name}",
         resize: "Resize the tabs",
-        // The button that plays a flow's example, and plays it again.
-        flowPlay: "Play",
-        flowReplay: "Replay",
         // The viewer's two buttons, on a site with `viewer`.
         viewerOpen: "Open in a new tab",
         viewerClose: "Close",
