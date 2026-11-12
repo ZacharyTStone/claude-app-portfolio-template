@@ -393,6 +393,10 @@ export const PAGE_CLASSES = {
   prompts: "prompts",
   /** A figure in an answer: bars, a flow or a picture. */
   figure: "fig",
+  /** Someone else's words in an answer, with who said them. */
+  quote: "quote",
+  /** A file card: a small config file's lines under its name. */
+  fileCard: "card",
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
   menu: "menu",

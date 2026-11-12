@@ -9,6 +9,7 @@
 import { mapValues } from "es-toolkit";
 import type { Browser, Page } from "playwright";
 import { CLASS as SCRIPT_CLASS, SELECTOR } from "../../src/app/constants.ts";
+import { threadAnswerId } from "../../src/shared/ask.ts";
 import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/shared/config.ts";
 import {
   ALL_SCRIPT_STRINGS,
@@ -95,6 +96,14 @@ export type ViewerLink = {
   shown: string;
   /** What the viewer calls it. */
   title: string;
+};
+
+/** The tab with the most quotes and file cards in it: what comes in as
+    it's scrolled to (src/app/seen.ts). */
+export type ComesIntoView = {
+  tab: string;
+  /** The answer the last of them is in, as /ask names it ("about.4"). */
+  answer: string;
 };
 
 /** A picture that moves, with the still of itself that a visitor who wants
@@ -198,6 +207,9 @@ export type Site = {
   viewer: ViewerLink | null;
   /** The pictures that move. Empty on a site without one. */
   movingPictures: MovingPicture[];
+  /** Where the checks of what comes in as it's scrolled to look; null on a
+      site with no quote or file card in an answer. */
+  comesIntoView: ComesIntoView | null;
 };
 
 // ---- Reading it from the page ------------------------------------------------------------
@@ -248,6 +260,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     statusLine: (await page.locator(`${CLASS.tab} ${CLASS.status} summary b`).count()) > 0,
     viewer: await readViewerLink(page),
     movingPictures: await readMovingPictures(page),
+    comesIntoView: await readComesIntoView(page),
   };
   await context.close();
   return site;
@@ -395,6 +408,34 @@ async function readViewerLink(page: Page): Promise<ViewerLink | null> {
     shown: (await link.getAttribute(DATA.view)) ?? "",
     title: (await link.getAttribute(DATA.viewTitle)) ?? "",
   };
+}
+
+/** A quote or a file card in an answer that is shown: not one inside a
+    status line that hasn't been opened. */
+export const COMES_INTO_VIEW = `:is(${SELECTOR.comesIntoView}):not(details:not([open]) *)`;
+
+/** The tab with the most of them, and the answer its last one is in. */
+async function readComesIntoView(page: Page): Promise<ComesIntoView | null> {
+  // In the page: each tab's count, with the number of the question whose
+  // answer the last one is in (from 1, as /ask counts a thread's answers).
+  const tabs = await page.locator(BUILT_TAB).evaluateAll(
+    (tabs: PageElement[], selector) =>
+      tabs.map((tab) => {
+        let question = 0;
+        let count = 0;
+        let lastIn = 0;
+        for (const block of tab.querySelector(selector.thread)?.children ?? []) {
+          if (block.matches(selector.question)) question++;
+          const here = block.querySelectorAll(selector.comesIntoView).length;
+          if (here > 0) lastIn = question;
+          count += here;
+        }
+        return { tab: tab.id, count, lastIn };
+      }),
+    { thread: CLASS.thread, question: CLASS.question, comesIntoView: COMES_INTO_VIEW },
+  );
+  const most = tabs.toSorted((a, b) => b.count - a.count)[0];
+  return most && most.count > 0 ? { tab: most.tab, answer: threadAnswerId(most.tab, most.lastIn) } : null;
 }
 
 /** A picture that moves, as the page has it: the one thing a page puts in

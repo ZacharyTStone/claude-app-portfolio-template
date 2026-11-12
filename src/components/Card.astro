@@ -2,8 +2,10 @@
 /* A file card: a small config file of key: value lines, with comments.
    The lines are laid out in src/site/card.ts (cardRows), which works out
    the spaces that line the values and the comments up in columns.
-   Styles: src/styles/cards.css. */
+   Styles: src/styles/cards.css; its lines are written out one after
+   another as it's scrolled to (src/app/seen.ts, src/styles/motion.css). */
 import type { Card } from "../shared/content.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
 import { cardRows } from "../site/card.ts";
 
 interface Props {
@@ -14,17 +16,20 @@ const { card } = Astro.props;
 const rows = cardRows(card);
 ---
 
-<div class="card">
+<div class={PAGE_CLASSES.fileCard}>
   <p class="card-head ic i-file">
     {card.file}
     <span class="ok">✓</span>
   </p>
-  {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup. */}
+  {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup.
+      Each line is in a span of its own (.ln), which the stylesheet writes out one after another. */}
   <pre>{rows.map((row, rowIndex) => [
     rowIndex > 0 && "\n",
-    row.key && <span class="k">{row.key}:</span>,
-    row.indent,
-    <span class={row.accent ? "acc" : "str"}>{row.value}</span>,
-    row.comment && [row.beforeComment, <span class="c"># {row.comment}</span>],
+    <span class="ln">{[
+      row.key && <span class="k">{row.key}:</span>,
+      row.indent,
+      <span class={row.accent ? "acc" : "str"}>{row.value}</span>,
+      row.comment && [row.beforeComment, <span class="c"># {row.comment}</span>],
+    ]}</span>,
   ])}</pre>
 </div>

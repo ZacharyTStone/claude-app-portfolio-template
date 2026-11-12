@@ -16,6 +16,7 @@ import { root, side } from "./page.ts";
 import { initPanel, wirePanelToggle } from "./panel.ts";
 import { addPersonalTabs } from "./personal.ts";
 import { wireTitle } from "./rename.ts";
+import { initSeen } from "./seen.ts";
 import { resetThreads } from "./send.ts";
 import { initCopyDraft, wireCopy } from "./share.ts";
 import { closeDrawer, initSidebar, isAddressOnDrawer, isDrawerOpen, isWide, wireMenuButton } from "./sidebar.ts";
@@ -121,6 +122,10 @@ initCopyDraft();
 initAccount();
 initHome();
 initViewer();
+// After the personal tabs are made, so their quotes and cards wait as the
+// page's own do; before the chats come back (restoreChats below), whose
+// copies of answers are shown whole.
+initSeen();
 
 // Every tab in the page, the personal ones included, and the home screen's
 // top bar.

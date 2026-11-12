@@ -8,6 +8,7 @@
    Styles: src/styles/thread.css (paragraphs and lists) and figures.css
    (pictures side by side, a quote, a heading). */
 import type { Block, BlockParts } from "../shared/content.ts";
+import { PAGE_CLASSES } from "../shared/page-data.ts";
 import Artifact from "./Artifact.astro";
 import Bars from "./Bars.astro";
 import Card from "./Card.astro";
@@ -57,7 +58,7 @@ kindsNotDrawn satisfies Record<string, never>;
   </div>
 )}
 {quote && (
-  <figure class="quote">
+  <figure class={PAGE_CLASSES.quote}>
     <blockquote>
       <p>{quote.text}</p>
     </blockquote>
