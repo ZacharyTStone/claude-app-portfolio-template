@@ -5,8 +5,9 @@ it is:
 
 - **Plain HTML and CSS reach the browser.** Astro builds the pages; no
   framework code, `client:` directive or third-party request reaches a
-  visitor. The one script (`src/app`) only adds polish, so every tab works
-  with JavaScript off.
+  visitor. (The one exception is a page a site lists in `viewer`, which
+  loads in a frame once the visitor opens it.) The one script (`src/app`)
+  only adds polish, so every tab works with JavaScript off.
 - **The CSP stays strict.** Nothing inline (no `style` attribute, `<style>`
   or `<script>` in a component), and the browser code builds elements,
   never HTML from strings.
