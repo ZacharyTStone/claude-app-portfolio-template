@@ -3,18 +3,18 @@
    to AskGuard once the reply has gone, and logged. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { neurons, tokensIn, tokensInJson, tokensUsed } from "../../src/worker/ask/cost.ts";
-import { verdictOn } from "../../src/worker/ask/moderation.ts";
+import { neuronCost, estimateTokens, estimateJsonTokens, tokensUsed } from "../../src/worker/ask/cost.ts";
+import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import {
   DEFAULT_MODEL,
-  GUARD_MODEL,
-  GUARD_OPTIONS,
-  GUARD_PATH,
-  GUARD_PROMPT_TOKENS,
-  GUARD_REPLY,
+  LLAMA_GUARD_MODEL,
+  LLAMA_GUARD_OPTIONS,
+  ASK_GUARD_PATH,
+  LLAMA_GUARD_PROMPT_TOKENS,
+  ASK_GUARD_REPLY,
   INAPPROPRIATE,
-  PRICES,
-  UNLISTED_PRICE,
+  MODEL_PRICES,
+  UNLISTED_MODEL_PRICE,
   type Price,
 } from "../../src/worker/constants.ts";
 import {
@@ -34,12 +34,12 @@ const logs = captureLogs();
 
 // A model's price, which it must have.
 function priceOf(model: string): Price {
-  const price = PRICES.get(model);
+  const price = MODEL_PRICES.get(model);
   assert.ok(price, `${model} has a price`);
   return price;
 }
 const PICKER = priceOf(DEFAULT_MODEL);
-const GUARD = priceOf(GUARD_MODEL);
+const GUARD = priceOf(LLAMA_GUARD_MODEL);
 
 // A question whose picker read 4,000 tokens and wrote 40, and whose Llama
 // Guard read 300 and wrote 2: what the two cost at `picker`'s price.
@@ -50,7 +50,7 @@ const costAt = (picker: Price) =>
 
 // The Neurons AskGuard was told a question cost, if it was told.
 const spent = (guard: Parameters<typeof guardRequest>[0]) => {
-  const sent = guardRequest(guard, GUARD_PATH.spend)?.searchParams.get("neurons");
+  const sent = guardRequest(guard, ASK_GUARD_PATH.spend)?.searchParams.get("neurons");
   return sent == null ? undefined : Number(sent);
 };
 const near = (actual: unknown, expected: number) =>
@@ -76,18 +76,18 @@ test("tokensUsed reads what a reply says its call used, by either pair of names,
 });
 
 test("a text's tokens are counted high: a third of its bytes, so a Japanese character is one", () => {
-  assert.equal(tokensIn(""), 0);
-  assert.equal(tokensIn("abc"), 1);
-  assert.equal(tokensIn("abcd"), 2);
-  assert.equal(tokensIn("日本語"), 3);
-  assert.equal(tokensInJson({ a: "日本" }), tokensIn('{"a":"日本"}'));
-  assert.equal(tokensInJson(undefined), 0);
+  assert.equal(estimateTokens(""), 0);
+  assert.equal(estimateTokens("abc"), 1);
+  assert.equal(estimateTokens("abcd"), 2);
+  assert.equal(estimateTokens("日本語"), 3);
+  assert.equal(estimateJsonTokens({ a: "日本" }), estimateTokens('{"a":"日本"}'));
+  assert.equal(estimateJsonTokens(undefined), 0);
 });
 
 test("Neurons are tokens at the model's price for a million", () => {
-  assert.equal(neurons({ input: 1_000_000, output: 0 }, { input: 5500, output: 36400 }), 5500);
-  assert.equal(neurons({ input: 0, output: 500_000 }, { input: 5500, output: 36400 }), 18200);
-  assert.equal(neurons({ input: 0, output: 0 }, PICKER), 0);
+  assert.equal(neuronCost({ input: 1_000_000, output: 0 }, { input: 5500, output: 36400 }), 5500);
+  assert.equal(neuronCost({ input: 0, output: 500_000 }, { input: 5500, output: 36400 }), 18200);
+  assert.equal(neuronCost({ input: 0, output: 0 }, PICKER), 0);
 });
 
 test("a question's cost is what its two calls used, counted by AskGuard and logged, after the reply", async () => {
@@ -97,7 +97,7 @@ test("a question's cost is what its two calls used, counted by AskGuard and logg
   near(spent(guard), costAt(PICKER));
   assert.deepEqual(
     guard.requests.map((url) => url.pathname),
-    [GUARD_PATH.take, GUARD_PATH.spend],
+    [ASK_GUARD_PATH.take, ASK_GUARD_PATH.spend],
   );
   assert.deepEqual(lines(logs), [JSON.stringify({ ask: "skills.1", ...UNWRITTEN })]);
   assert.deepEqual(costs(logs), [Math.round(costAt(PICKER) * 10) / 10]);
@@ -111,7 +111,7 @@ test("the picker is priced as its model is: listed, not listed, or as ASK_MODEL_
   };
   const qwen = "@cf/qwen/qwen3.8-27b";
   near(await cost({ ASK_MODEL: qwen }), costAt(priceOf(qwen)));
-  near(await cost({ ASK_MODEL: "@cf/someone/some-model" }), costAt(UNLISTED_PRICE));
+  near(await cost({ ASK_MODEL: "@cf/someone/some-model" }), costAt(UNLISTED_MODEL_PRICE));
   near(
     await cost({ ASK_MODEL: "@cf/someone/some-model", ASK_MODEL_PRICE: "1000/2000" }),
     costAt({ input: 1000, output: 2000 }),
@@ -120,12 +120,12 @@ test("the picker is priced as its model is: listed, not listed, or as ASK_MODEL_
   for (const bad of ["1000", "1000/", "0/2000", "a/b", "1000/2000/3000", ""]) {
     near(await cost({ ASK_MODEL_PRICE: bad }), costAt(PICKER));
   }
-  for (const [model, price] of PRICES) {
+  for (const [model, price] of MODEL_PRICES) {
     assert.ok(
-      price.input <= UNLISTED_PRICE.input || model === GUARD_MODEL,
+      price.input <= UNLISTED_MODEL_PRICE.input || model === LLAMA_GUARD_MODEL,
       `${model} reads for no more than a model not listed`,
     );
-    assert.ok(price.output <= UNLISTED_PRICE.output, `${model} writes for no more than a model not listed`);
+    assert.ok(price.output <= UNLISTED_MODEL_PRICE.output, `${model} writes for no more than a model not listed`);
   }
 });
 
@@ -133,12 +133,12 @@ test("a call that doesn't say what it used is counted by the size of what was se
   const { env, guard, calls } = stubs({ run: models(toolCall("skills.1")) });
   await askJson(env, "Postgres?");
   const { messages, tools } = calls[0]?.input ?? {};
-  const pick = neurons(
-    { input: tokensInJson({ messages, tools }), output: tokensInJson(toolCall("skills.1")) },
+  const pick = neuronCost(
+    { input: estimateJsonTokens({ messages, tools }), output: estimateJsonTokens(toolCall("skills.1")) },
     PICKER,
   );
-  const verdict = neurons(
-    { input: GUARD_PROMPT_TOKENS + tokensIn("Postgres?"), output: GUARD_OPTIONS.max_tokens },
+  const verdict = neuronCost(
+    { input: LLAMA_GUARD_PROMPT_TOKENS + estimateTokens("Postgres?"), output: LLAMA_GUARD_OPTIONS.max_tokens },
     GUARD,
   );
   near(spent(guard), pick + verdict);
@@ -146,15 +146,15 @@ test("a call that doesn't say what it used is counted by the size of what was se
 
 test("Llama Guard too slow to say is counted as run all the same; failing, as not run", async () => {
   const never = { run: () => new Promise(() => {}) } as unknown as Ai;
-  assert.deepEqual((await verdictOn(never, "abc", 30)).tokens, {
-    input: GUARD_PROMPT_TOKENS + 1,
-    output: GUARD_OPTIONS.max_tokens,
+  assert.deepEqual((await llamaGuardVerdict(never, "abc", 30)).tokens, {
+    input: LLAMA_GUARD_PROMPT_TOKENS + 1,
+    output: LLAMA_GUARD_OPTIONS.max_tokens,
   });
   const says = { run: async () => SAFE } as unknown as Ai;
-  assert.deepEqual((await verdictOn(says, "abc", 30)).tokens, { input: 300, output: 2 });
+  assert.deepEqual((await llamaGuardVerdict(says, "abc", 30)).tokens, { input: 300, output: 2 });
   const { env, guard } = stubs({ run: models(PICK, new Error("guard down")) });
   await askJson(env, "Postgres?");
-  near(spent(guard), neurons({ input: 4000, output: 40 }, PICKER));
+  near(spent(guard), neuronCost({ input: 4000, output: 40 }, PICKER));
 });
 
 test("a question turned away for what it asks has cost as much, and is counted and logged", async () => {
@@ -166,7 +166,7 @@ test("a question turned away for what it asks has cost as much, and is counted a
 });
 
 test("nothing is counted for a question the model never got, or one it failed on", async () => {
-  for (const says of [GUARD_REPLY.spent, GUARD_REPLY.limited, GUARD_REPLY.blocked]) {
+  for (const says of [ASK_GUARD_REPLY.spent, ASK_GUARD_REPLY.limited, ASK_GUARD_REPLY.blocked]) {
     logs.mock.resetCalls();
     const { env, guard } = stubs({ guardSays: says });
     await askJson(env, "who?");

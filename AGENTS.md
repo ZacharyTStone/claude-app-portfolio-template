@@ -53,7 +53,8 @@ src/pages/        The routes: each language's page, 404, llms.txt, sitemap.xml, 
 src/layouts/      Document.astro: the <head> every page starts with
 src/components/   The page's parts, one .astro file each
 src/site/         What the pages are built from, as plain TypeScript: the site's links and addresses,
-                  the config's checks (validate.ts), its Markdown, llms.txt, Ask's answers
+                  the config's checks (validate.ts lists them; validate/ has them), its Markdown,
+                  llms.txt, Ask's answers
 src/integrations/ Astro hooks: check the config before a build, write the host's _headers after
 src/shared/       The contracts between the pages, the browser code and the Worker
 src/styles/       The stylesheet in parts; app.css imports them in order, a site's own (site.css) last
@@ -71,8 +72,9 @@ examples/         (template) Sample content to import into the config, such as a
 ## Rules
 
 - **Nothing inline, and no HTML from strings in the browser.** The CSP
-  allows only the site's own files and requires Trusted Types with no
-  policy (`trusted-types 'none'`). So a component has no `style` attribute,
+  allows only the site's own files (and, on a site with a `viewer`, frames
+  from the sites it lists) and requires Trusted Types with no policy
+  (`trusted-types 'none'`). So a component has no `style` attribute,
   no `<style>`, no `is:inline`, and no `<script>` or `set:html` but the
   three in the page: the one that brings in `src/app` (Astro writes it to a
   file) and the two JSON data blocks. In `src/app`, `innerHTML`,
@@ -116,19 +118,28 @@ examples/         (template) Sample content to import into the config, such as a
   `markdown.ts` (the config's Markdown, read one way by the pages, the
   script and the checks). Change one, and the type checker shows every
   side that has to follow.
-- **Ask says only what the site says.** The model reads every answer, says
-  what it makes of the question (its thinking, which goes to the log), then
-  picks an answer and the numbers of its lines (`src/worker/ask/pick.ts`).
-  A second, small call writes a one-sentence reply from those lines
-  (`write.ts`), and the Worker checks it word by word (`grounded.ts`):
-  every name, number and claim has to be in the lines, a "not" can't be
-  added or dropped, and "Yes" needs the lines to have what was asked. One
-  that fails is asked for once more, then dropped, and the lines are quoted
-  as they are if they're sentences (`quote.ts`); a card's row is never a
-  reply, so the page shows the answer. What the visitor typed is never a
-  source, and nothing the model writes reaches a visitor unchecked. A
-  change to what a reply may say is a change to `grounded.ts` and its
-  tests, not to the model's instructions alone.
+- **Ask answers from what the site says, and shows it.** The model reads
+  every answer, says what it makes of the question (its thinking, which
+  goes to the log), then picks an answer and the numbers of its lines
+  (`src/worker/ask/pick.ts`). A second, small call answers the question in
+  a sentence or two, in its own words, from those lines (`write.ts`). The
+  Worker checks the names, numbers and addresses in it (`grounded.ts`):
+  each has to be in the lines, their tab's name, the site's own question or
+  the owner's name, and what the visitor typed is never a source. One that
+  fails is asked for once more, then dropped, and the lines are quoted as
+  they are if they're sentences (`quote.ts`); a card's row is never a
+  reply, so the page shows the answer. A reply the model wrote goes out
+  with the lines it was written from (`cited`, in `src/shared/ask.ts`),
+  and the page quotes them under it; lines too long to quote together
+  (`MAX_CITED_LENGTH`) aren't sent, and the reply has only its tab's link. The reply's ordinary words are the
+  model's: what it's told is in `write.ts`, and what's checked is in
+  `grounded.ts` and its tests. A change to either is a change to what
+  Ask may say: make it there, with a test, and say so in the README.
+- **The template scripts run on Node alone.** `scripts/template.ts`,
+  `update-template.ts` and `sync-template.ts` import only `node:` modules
+  and each other (and the config): they run in a fresh clone of the
+  template and in the sync workflow, where nothing is installed. A package
+  import in one fails there, and a test says so first.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,
   namespaces or parameter properties, and imports name the `.ts` file. The
   tests and scripts import `src/site` and `src/shared` straight into Node.
@@ -140,23 +151,76 @@ examples/         (template) Sample content to import into the config, such as a
    has to have it too).
 2. Set it in `site.config.ts`.
 3. If it can be wrong (it names a thread, a file, an icon), check it in
-   `src/site/validate.ts`, with a test in `tests/config.test.ts`.
+   `src/site/validate/`: `language.ts` for one language's text,
+   `whole-site.ts` for a setting of the site, `blocks.ts` for a part of an
+   answer. `src/site/validate.ts` lists the checks in the order their
+   problems print. Add a test in `tests/config.test.ts`.
 4. Show it in the component it belongs to, in `src/components/`. Astro
    escapes text; the config's Markdown goes through `<Inline>`.
 5. If the script needs it, it goes through `src/shared/page-data.ts`:
    wording the script shows is a `SCRIPT_STRINGS` entry (each language's
    `strings` then needs it; the page carries it as a `data-*` on `<html>`,
-   and the script reads it as `words` in `src/app/page.ts`); another
+   and the script reads it as `words` in `src/app/page.ts`), or, for a
+   part only some sites have, an `OPTIONAL_SCRIPT_STRINGS` entry listed
+   under its part in `PART_STRINGS`, which the config's checks ask for only on
+   a site with the part; another
    `data-*` attribute is a `DATA` entry, spread onto its element
    (`{...{ [DATA.prompt]: value }}`, or `flag(DATA.copyLink)` for a bare
    one); data with a shape goes in a type there that both sides import.
 6. `npm run verify`.
 
+## Adding a diagram that plays
+
+A `flow` draws steps in order. Give it an `example` and it follows one
+case through them, and plays (`Flow` in `src/shared/content.ts` has the
+shape and a sample; `tests/sample/site.config.ts` has one that builds):
+
+```ts
+{
+  flow: {
+    title: "What happens to an order",
+    example: "An example: two coffees, ordered at 8:02",
+    steps: [
+      { name: "The till", note: "takes the order", example: "2 × flat white, to go" },
+      { name: "The kitchen", note: "makes it", example: ["Ticket 41:", "**two cups**, oat milk"] },
+      { name: "The counter", note: "calls the name", example: "“Order for Alex!”" },
+    ],
+  },
+}
+```
+
+- Every step needs an `example` (a line, or several; `**bold**` marks the
+  part to look at), and each language needs `strings.flowPlay` and
+  `strings.flowReplay`: the build says so if either is missing.
+- Write the example as one concrete, made-up case, with what it looks
+  like at each step, not a second description of the step.
+- `Flow.astro` puts every step and example in the page, so it reads whole
+  without JavaScript, with motion reduced and in print; `src/app/flow.ts`
+  only adds the playing. Ask and llms.txt read the steps, not the examples.
+- The same rules as any content: in every language, with the same steps.
+
+## Opening a link in the viewer
+
+The viewer shows a link's page in a panel beside the conversation, in a
+frame, instead of a new tab. List the link in the config's `viewer`: its
+`href` exactly as a link card, a picture or a panel row has it, and the
+address to show in the frame (a Google Doc's ends `/preview`).
+
+- The build adds that address's site to the policy's `frame-src`
+  (`frameOrigins` in `src/shared/headers.ts`), and nothing else changes in
+  the policy. It refuses an address that isn't `https://`, one on the site
+  itself (its pages refuse to be framed), and a link nothing links to.
+- It's the one thing a page loads from another site, and only once a
+  visitor opens it. If the site says it loads nothing from elsewhere (a
+  README, an answer about privacy), make that sentence true again.
+- Each language needs `strings.viewerOpen` and `strings.viewerClose`.
+- Not every site lets itself be framed: open the viewer once and look.
+
 ## Adding a browser check
 
 - Add `{ name, url, device?, skip?, allowAsk?, test(page) }` to the list in
   the `tests/browser/checks/` file for its area (`home`, `ask`, `chats`,
-  `sidebar`, `views`); a new area is a new file there, listed in `run.ts`.
+  `sidebar`, `figures`, `viewer`, `views`); a new area is a new file there, listed in `run.ts`.
 - Find what to look for through `site` (`tests/browser/site.ts`): its
   threads (`A`, `B`, `C`), `words`, `questions`, `languages`, `ask`. When a
   site might not have the thing, set `skip` to say why.

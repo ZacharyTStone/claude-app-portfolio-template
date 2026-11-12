@@ -1,21 +1,36 @@
 ---
 /* Amounts as bars from one baseline, the longest the same length whatever
    the unit, each with its value at its tip as text. The page allows no
-   inline styles, so a bar's length is an SVG attribute. */
+   inline styles, so a bar's length is an SVG attribute.
+   Styles: src/styles/figures.css. */
 import type { Bars } from "../shared/content.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 import { barLength } from "../site/bars.ts";
 
 interface Props {
+  /** The figure, as an answer's `bars` block has it. */
   bars: Bars;
 }
 const { title, rows, note } = Astro.props.bars;
-const most = Math.max(...rows.map((row) => row.amount));
-const bars = rows.map((row) => ({ ...row, length: `${barLength(row.amount, most)}%` }));
-/** A bar's drawing, in CSS pixels: a row's height, the bar's thickness,
-    the radius of its tip, and how far from the tip its value is written. */
-const BAR = { row: 26, thick: 10, tip: 4, gap: 8 } as const;
-const y = (BAR.row - BAR.thick) / 2;
+
+/** A bar's drawing, in CSS pixels. */
+const BAR_PX = {
+  /** The height of a row: the bar, and the room above and below it. */
+  rowHeight: 26,
+  /** How thick the bar is. */
+  thickness: 10,
+  /** The radius of the bar's rounded tip. */
+  tipRadius: 4,
+  /** How far past the tip the value is written. */
+  valueGap: 8,
+} as const;
+/** Where a bar's top edge is, to sit in the middle of its row. */
+const barTop = (BAR_PX.rowHeight - BAR_PX.thickness) / 2;
+
+// Each row with its bar's length, as a share of the drawing's width: the
+// largest amount gets the longest bar, and the others are to its scale.
+const largestAmount = Math.max(...rows.map((row) => row.amount));
+const drawnRows = rows.map((row) => ({ ...row, length: `${barLength(row.amount, largestAmount)}%` }));
 ---
 
 <figure class={`${PAGE_CLASSES.figure} bars`}>
@@ -29,18 +44,18 @@ const y = (BAR.row - BAR.thick) / 2;
     )}
   </figcaption>
   <dl>
-    {bars.map((bar) => (
-      <div class={bar.accent ? "accent" : undefined}>
-        <dt>{bar.label}</dt>
+    {drawnRows.map((row) => (
+      <div class={row.accent ? "accent" : undefined}>
+        <dt>{row.label}</dt>
         <dd>
-          <svg role="img" aria-label={bar.value} focusable="false" width="100%" height={BAR.row}>
+          <svg role="img" aria-label={row.value} focusable="false" width="100%" height={BAR_PX.rowHeight}>
             {/* Square at the baseline: a stub the width of the radius covers the rounded corners there. */}
             <g class="bar">
-              <rect y={y} width={BAR.tip} height={BAR.thick} />
-              <rect y={y} width={bar.length} height={BAR.thick} rx={BAR.tip} />
+              <rect y={barTop} width={BAR_PX.tipRadius} height={BAR_PX.thickness} />
+              <rect y={barTop} width={row.length} height={BAR_PX.thickness} rx={BAR_PX.tipRadius} />
             </g>
-            <text x={bar.length} y={BAR.row / 2} dx={BAR.gap} dominant-baseline="central">
-              {bar.value}
+            <text x={row.length} y={BAR_PX.rowHeight / 2} dx={BAR_PX.valueGap} dominant-baseline="central">
+              {row.value}
             </text>
           </svg>
         </dd>

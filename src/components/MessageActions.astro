@@ -1,13 +1,16 @@
 ---
-/* The buttons under a thread's last answer. */
+/* The buttons under a thread's last answer: for now one, which copies a
+   link to the tab. They need JavaScript, so they're hidden without it.
+   Styles: src/styles/cards.css. */
 import type { Strings } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
 import { flag } from "./attributes.ts";
 
 interface Props {
+  /** The page's wording, for the button's label and tooltip. */
   strings: Strings;
 }
-const s = Astro.props.strings;
+const { strings } = Astro.props;
 ---
 
 <div class={PAGE_CLASSES.messageActions} data-js-only>
@@ -15,7 +18,7 @@ const s = Astro.props.strings;
     class="icon-btn ic i-copy"
     type="button"
     {...flag(DATA.copyLink)}
-    aria-label={s.copyTab}
-    title={s.copyTitle}
+    aria-label={strings.copyTab}
+    title={strings.copyTitle}
   ></button>
 </div>

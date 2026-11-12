@@ -1,19 +1,21 @@
 ---
 /* The bar across the top of the home screen and of every tab: the button
    that shows the tabs on a phone, then the slot (a tab's title), then the
-   actions, the panel toggle first. */
+   actions, the panel toggle first (a tab's share button goes after it, in
+   the "actions" slot). Styles: src/styles/thread.css. */
 import type { Strings } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
 import { flag } from "./attributes.ts";
 
 interface Props {
+  /** The page's wording, for the two buttons' labels. */
   strings: Strings;
 }
-const s = Astro.props.strings;
+const { strings } = Astro.props;
 ---
 
 <header class="topbar">
-  <a class={`${PAGE_CLASSES.menu} btn-ghost ic i-sidebar`} href={`#${PAGE_IDS.tabs}`} aria-label={s.showTabs}></a>
+  <a class={`${PAGE_CLASSES.menu} btn-ghost ic i-sidebar`} href={`#${PAGE_IDS.tabs}`} aria-label={strings.showTabs}></a>
   <slot />
   <span class="actions">
     <button
@@ -22,8 +24,8 @@ const s = Astro.props.strings;
       data-js-only
       {...flag(DATA.panelToggle)}
       aria-controls={PAGE_IDS.details}
-      aria-label={s.panelToggle}
-      title={s.panelToggleTitle}
+      aria-label={strings.panelToggle}
+      title={strings.panelToggleTitle}
     ></button>
     <slot name="actions" />
   </span>

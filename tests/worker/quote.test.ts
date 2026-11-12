@@ -5,7 +5,6 @@ import { test } from "node:test";
 import { MAX_REPLY_LENGTH, isLabel, labelled } from "../../src/shared/ask.ts";
 import {
   BETWEEN_LINES,
-  MAX_QUOTED,
   neededFor,
   numbered,
   piecesOf,
@@ -13,7 +12,7 @@ import {
   quote,
   withNumbers,
 } from "../../src/worker/ask/quote.ts";
-import { NONE } from "../../src/worker/constants.ts";
+import { MAX_QUOTED_LINES, NONE } from "../../src/worker/constants.ts";
 import { EN, JA, UNWRITTEN, askJson, captureLogs, lines, models, okLeft, stubs, toolCall } from "./fixtures.ts";
 
 const logs = captureLogs();
@@ -172,7 +171,7 @@ test("a quote is the sentences named, in the answer's order, in its own words", 
 
 test("no numbers is no reply asked for; numbers it can't read, or out of range, are dropped", () => {
   for (const none of [undefined, null, []]) assert.equal(quote(TEXT, none), null);
-  const tooMany = Array.from({ length: MAX_QUOTED + 1 }, (_, i) => i + 1);
+  const tooMany = Array.from({ length: MAX_QUOTED_LINES + 1 }, (_, i) => i + 1);
   for (const unreadable of ["2", 2, [1.5], [-1], ["1"], tooMany]) {
     assert.deepEqual(quote(TEXT, unreadable), { outcome: "dropped", check: "unreadable" }, JSON.stringify(unreadable));
   }

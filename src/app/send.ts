@@ -59,8 +59,12 @@ function keepReply(typed: TypedQuestion, reply: AskResponse | null, asked: HTMLE
   } else if (reply && "limited" in reply) typed.limited = reply.limit;
   else {
     typed.answer = reply?.id && isAnswer(reply.id) ? reply.id : null;
-    // The reply it wrote with the answer, kept with it too.
-    if (typed.answer && reply && "reply" in reply && reply.reply) typed.reply = reply.reply;
+    // The reply it wrote with the answer, kept with it too, and the lines
+    // of the site that reply was written from.
+    if (typed.answer && reply && "reply" in reply && reply.reply) {
+      typed.reply = reply.reply;
+      if (reply.cited) typed.cited = reply.cited;
+    }
   }
 }
 

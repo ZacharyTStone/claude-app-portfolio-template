@@ -28,12 +28,19 @@ const REPLY = "In short, yes, from the answer below. <b>This stays text</b>.";
 // A link, clicked in the page.
 type Clickable = { click(): void; ownerDocument: { querySelectorAll(selector: string): { length: number } } };
 
-// The parts of an answer that came with a reply, in order.
-const REPLY_PARTS = [CLASS.reply, CLASS.from].map((selector) => selector.slice(1));
+// The site's own lines a reply was written from, as /ask sends them with a
+// reply it wrote. What looks like a tag in them must stay text too.
+const CITED = ["The first line the reply was written from.", "A second line. <i>This stays text</i>."];
 
-/** The answer that came with a reply, in `scope`: the reply as text and the
-    line `from`, and no more (the answer itself is in its tab). */
-async function checkReplied(page: Page, scope: string, from: { text: string; href: string }) {
+// The parts of an answer that came with a reply, in order: the reply, the
+// lines it cites if /ask sent any, and where it's from.
+const replyParts = (cited: string[]) =>
+  [CLASS.reply, ...(cited.length ? [CLASS.cited] : []), CLASS.from].map((selector) => selector.slice(1));
+
+/** The answer that came with a reply, in `scope`: the reply as text, the
+    lines it `cited` quoted under it (when /ask sent them), and the line
+    `from`, and no more (the answer itself is in its tab). */
+async function checkReplied(page: Page, scope: string, from: { text: string; href: string }, cited: string[] = []) {
   // Sent just now (.added), or shown again with a chat.
   const replied = page
     .locator(`${scope} ${CLASS.thread} > ${CLASS.answer}`)
@@ -43,14 +50,22 @@ async function checkReplied(page: Page, scope: string, from: { text: string; hre
   const parts = await replied.evaluate((el: { children: ArrayLike<{ className: string }> }) =>
     Array.from(el.children, (child) => child.className),
   );
-  assert.deepEqual(parts, REPLY_PARTS);
+  assert.deepEqual(parts, replyParts(cited));
   const reply = replied.locator(`:scope > ${CLASS.reply}`);
   assert.equal(await reply.textContent(), REPLY, "the reply, as it was sent");
   assert.equal(await reply.locator("*").count(), 0, "as text: nothing in it is markup");
   const line = replied.locator(`:scope > ${CLASS.from}`);
   assert.equal(squash(await line.textContent()), squash(from.text));
   assert.equal(await line.locator(`a[href="${from.href}"]`).count(), 1, "linking to its tab");
-  assert.equal(squash(await replied.textContent()), squash(`${REPLY}${from.text}`), "and nothing of the answer");
+  // The lines it cites: each as it was sent, quoted, as text.
+  const quoted = replied.locator(`:scope > ${CLASS.cited} > p`);
+  assert.deepEqual(await quoted.allTextContents(), cited, "the site's lines, as they were sent");
+  assert.equal(await quoted.locator("*").count(), 0, "as text: nothing in them is markup");
+  assert.equal(
+    squash(await replied.textContent()),
+    squash(`${REPLY}${cited.join("")}${from.text}`),
+    "and nothing more of the answer",
+  );
 }
 
 export default (site: Site): Check[] => {
@@ -140,6 +155,42 @@ export default (site: Site): Check[] => {
         await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
         await checkReplied(page, OPEN_CHAT, from);
+      },
+    },
+    {
+      name: "a reply /ask wrote shows the site's lines it was written from under it, and a chat keeps them",
+      url: "./",
+      skip: noAsk,
+      async test(page) {
+        await askReturns(page, askUrl, { id: threadAnswerId(B.id, 1), reply: REPLY, cited: CITED });
+        await askInNewChat(page, "A question with a reply and its source");
+        const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
+        await checkReplied(page, OPEN_CHAT, from, CITED);
+        await revisit(page, site.url("./"));
+        await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
+        await checkReplied(page, OPEN_CHAT, from, CITED);
+      },
+    },
+    {
+      name: "lines that aren't plain text, or come without a reply, aren't shown",
+      url: `#${A.id}`,
+      skip: noAsk,
+      async test(page) {
+        // Not lines at all; then lines with no reply to go under: the answer shows, as it always did.
+        await askReturns(page, askUrl, [
+          { id: threadAnswerId(B.id, 1), reply: REPLY, cited: "one string, not a list" as unknown as string[] },
+          { id: threadAnswerId(B.id, 1), cited: CITED },
+        ]);
+        await askIn(page, A.id, "First?");
+        const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
+        await checkReplied(page, `#${A.id}`, from);
+        await askIn(page, A.id, "Second?");
+        await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.sent}${CLASS.answer}`).nth(1).waitFor();
+        assert.equal(
+          await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.cited}`).count(),
+          0,
+          "no lines without a reply",
+        );
       },
     },
     {

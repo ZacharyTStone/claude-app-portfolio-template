@@ -1,24 +1,34 @@
 ---
 /* The sidebar: the name and the language switch, "New tab" and the rows at
-   the top, the groups of tabs, and the account row at the bottom. */
+   the top, the groups of tabs, and the account row at the bottom
+   (Account.astro). It's drawn from the language's `sidebar` in the config.
+   Styles: src/styles/sidebar.css, and narrow.css where it's a drawer. */
 import { DATA, groupId, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
 import type { Page } from "../site/site.ts";
 import Account from "./Account.astro";
 import { flag } from "./attributes.ts";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code, lang } = page;
-const { config, codes } = site;
-const s = lang.strings;
+const { site, code: pageLanguage, lang } = page;
+const { config, codes: languageCodes } = site;
+const { strings } = lang;
 const { newTab, nav, groups } = lang.sidebar;
 // On a page in another language, the name is marked as its own.
-const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang : undefined;
+const nameLang = config.nameLang && config.nameLang !== pageLanguage ? config.nameLang : undefined;
+// The language switch, on a site with more than one language: this page's
+// language as plain text, and each other one as a link to its page.
+const hasLanguageSwitch = languageCodes.length > 1;
+const languageSwitch = languageCodes.map((code) => {
+  const { label, name } = site.lang(code);
+  return { code, label, name, href: site.path(code), isThisPage: code === pageLanguage };
+});
 ---
 
-<nav class="side" id={PAGE_IDS.tabs} aria-label={s.tabs}>
+<nav class="side" id={PAGE_IDS.tabs} aria-label={strings.tabs}>
   <div class="brand">
     <button
       class="icon-btn ic i-sidebar side-toggle"
@@ -27,20 +37,20 @@ const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang :
       {...flag(DATA.sideToggle)}
       aria-controls={PAGE_IDS.tabs}
       aria-expanded="true"
-      aria-label={s.hideTabs}
-      title={s.hideTabs}
+      aria-label={strings.hideTabs}
+      title={strings.hideTabs}
     ></button>
     <a class={PAGE_CLASSES.wordmark} href="./" lang={nameLang}>
       {config.name}
     </a>
-    {codes.length > 1 && (
+    {hasLanguageSwitch && (
       <span class={PAGE_CLASSES.lang}>
-        {codes.map((c) =>
-          c === code ? (
-            <span aria-current="true">{site.lang(c).label}</span>
+        {languageSwitch.map((language) =>
+          language.isThisPage ? (
+            <span aria-current="true">{language.label}</span>
           ) : (
-            <a href={site.path(c)} hreflang={c} lang={c} {...{ [DATA.name]: site.lang(c).name }}>
-              {site.lang(c).label}
+            <a href={language.href} hreflang={language.code} lang={language.code} {...{ [DATA.name]: language.name }}>
+              {language.label}
             </a>
           ),
         )}
@@ -49,7 +59,7 @@ const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang :
     <a
       class={`${PAGE_CLASSES.drawerClose} btn-ghost ic i-close`}
       href={`#${PAGE_IDS.top}`}
-      aria-label={s.closeTabs}
+      aria-label={strings.closeTabs}
     ></a>
   </div>
 
@@ -59,10 +69,10 @@ const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang :
         {newTab}
       </a>
     </li>
-    {nav.map((row) => (
+    {nav.map((navRow) => (
       <li>
-        <a class={`ic i-${row.icon}`} href={`#${row.tab}`}>
-          {row.label}
+        <a class={`ic i-${navRow.icon}`} href={`#${navRow.tab}`}>
+          {navRow.label}
         </a>
       </li>
     ))}
@@ -74,19 +84,19 @@ const nameLang = config.nameLang && config.nameLang !== code ? config.nameLang :
         {group.label}
       </p>
       <ul class={PAGE_CLASSES.tabs} aria-labelledby={groupId(group.id)}>
-        {group.tabs.map((row) => (
+        {group.tabs.map((tabRow) => (
           <li>
-            <a href={`#${row.tab}`}>
+            <a href={`#${tabRow.tab}`}>
               <span class={PAGE_CLASSES.rowName}>
-                {row.title}
-                {row.live && (
+                {tabRow.title}
+                {tabRow.live && (
                   <>
                     {" "}
-                    <span class="live" title={row.live} />
+                    <span class="live" title={tabRow.live} />
                   </>
                 )}
               </span>
-              <span class={PAGE_CLASSES.rowHint}>{row.subtitle}</span>
+              <span class={PAGE_CLASSES.rowHint}>{tabRow.subtitle}</span>
             </a>
           </li>
         ))}

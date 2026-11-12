@@ -1,35 +1,42 @@
 /* Who's asking: the address Cloudflare gives, an IPv6 one as its /64 (what
    one home or phone is given), and only ever kept or sent on hashed. */
+import ipaddr from "ipaddr.js";
+import {
+  IPV6_NETWORK_GROUPS,
+  UNKNOWN_VISITOR_ADDRESS,
+  VISITOR_ADDRESS_HEADER,
+  VISITOR_HASH_BYTES,
+} from "../constants.ts";
 
-/** The visitor's address as Cloudflare gives it: IPv4, or IPv6 cut to the
-    network it's in ("2001:db8:1:2::/64"). */
+/** The visitor's address as the limits count it. What this returns is
+    hashed into the keys their rate limit, count and block are kept under,
+    so each kind of address has to go on reading as it does:
+    - an IPv4 address, as Cloudflare gives it ("203.0.113.9");
+    - an IPv4 address written as IPv6 ("::ffff:203.0.113.9"), as the IPv4
+      address, so it's the same visitor either way;
+    - any other IPv6 address, as the network it's in ("2001:db8:1:2::/64"):
+      every address in a /64 is one visitor;
+    - anything else (no address, or text that isn't one), as it is. */
 export function visitorAddress(request: Request): string {
-  const address = request.headers.get("CF-Connecting-IP") ?? "unknown";
-  return address.includes(":") ? network64(address) : address;
+  const address = request.headers.get(VISITOR_ADDRESS_HEADER) ?? UNKNOWN_VISITOR_ADDRESS;
+  if (!ipaddr.IPv6.isValid(address)) return address;
+  const ipv6 = ipaddr.IPv6.parse(address);
+  return ipv6.isIPv4MappedAddress() ? ipv6.toIPv4Address().toString() : network64(ipv6);
 }
 
-// The first four groups of an IPv6 address, written out in full; an IPv4
-// address in IPv6 ("::ffff:203.0.113.9") is the IPv4 one. Anything that
-// isn't an IPv6 address is left as it is.
-function network64(address: string): string {
-  const ipv4 = /^::ffff:(\d+\.\d+\.\d+\.\d+)$/i.exec(address);
-  if (ipv4?.[1]) return ipv4[1];
-  const halves = address.toLowerCase().split("::");
-  if (halves.length > 2) return address;
-  const [head = [], tail = []] = halves.map((half) => (half ? half.split(":") : []));
-  const zeros = halves.length === 2 ? 8 - head.length - tail.length : 0;
-  if (zeros < 0) return address;
-  const groups = [...head, ...Array<string>(zeros).fill("0"), ...tail];
-  if (groups.length !== 8 || !groups.every((group) => /^[0-9a-f]{1,4}$/.test(group))) return address;
-  const network = groups.slice(0, 4).map((group) => group.replace(/^0+(?=.)/, ""));
-  return `${network.join(":")}::/64`;
+// The /64 an IPv6 address is in: its first four groups in lower-case hex
+// with no leading zeros, then "::/64". 2001:0DB8:1:2:aaaa:bbbb:cccc:dddd is
+// in "2001:db8:1:2::/64", and ::1 in "0:0:0:0::/64".
+function network64(ipv6: ipaddr.IPv6): string {
+  const networkGroups = ipv6.parts.slice(0, IPV6_NETWORK_GROUPS).map((group) => group.toString(16));
+  return `${networkGroups.join(":")}::/64`;
 }
 
 /** An address as 32 hex characters (the first half of a salted SHA-256). */
 export async function hashAddress(address: string, salt: string): Promise<string> {
   const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}${address}`));
   return [...new Uint8Array(digest)]
-    .slice(0, 16)
+    .slice(0, VISITOR_HASH_BYTES)
     .map((byte) => byte.toString(16).padStart(2, "0"))
     .join("");
 }

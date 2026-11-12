@@ -18,8 +18,10 @@ import { chromium } from "playwright";
 import config from "../../site.config.ts";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";
+import figures from "./checks/figures.ts";
 import home from "./checks/home.ts";
 import sidebar from "./checks/sidebar.ts";
+import viewer from "./checks/viewer.ts";
 import views from "./checks/views.ts";
 import { desktop, skip, VISITOR_ZONE, type Check } from "./helpers.ts";
 import { basePath } from "../../src/shared/url.ts";
@@ -30,7 +32,7 @@ const server = await serve({ base: basePath(config.url) });
 const browser = await chromium.launch();
 const site = await readSite(browser, server.home);
 
-const checks: Check[] = [home, ask, chats, sidebar, views].flatMap((group) => group(site));
+const checks: Check[] = [home, ask, chats, sidebar, figures, viewer, views].flatMap((group) => group(site));
 let skipped = 0;
 if (!site.languages.length) {
   skipped++;

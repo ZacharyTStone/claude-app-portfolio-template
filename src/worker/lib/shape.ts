@@ -1,6 +1,7 @@
-/* Reading values whose shape isn't known yet (a model's reply, a request's
-   JSON) one step at a time. The checks themselves are in
-   src/shared/guards.ts. */
+/* Reading values whose shape isn't known yet, one step at a time: a model's
+   reply comes in one of several shapes, and each part of it is taken only
+   if it's there. (A value with one known shape, like a request's body or
+   /ask.json, is checked whole against a valibot schema instead.) */
 import { isRecord } from "../../shared/guards.ts";
 
 /** The value at `path` (`get(reply, "choices", 0)` is `reply.choices[0]`),
@@ -16,7 +17,7 @@ export function get(value: unknown, ...path: (string | number)[]): unknown {
 }
 
 /** The value if it's an array, else an empty one. */
-export const list = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
+export const arrayOrEmpty = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
 /** The number a setting or a query says, if it's one above 0 (and not
     Infinity); else null. */

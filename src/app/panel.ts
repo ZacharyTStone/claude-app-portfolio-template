@@ -8,6 +8,7 @@ import { reducedMotion } from "./lib/motion.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
 import { app, panel, words } from "./page.ts";
+import { closeViewer, isViewerOpen } from "./viewer.ts";
 
 const isHidden = () => app.classList.contains(CLASS.noPanel);
 
@@ -18,10 +19,15 @@ function setPanel(hidden: boolean): void {
   }
 }
 
-/** A button that shows or hides the panel. */
+/** A button that shows or hides the panel. While the viewer is in the
+    panel's place, it brings the panel back instead. */
 export function wirePanelToggle(button: HTMLElement): void {
   button.setAttribute("aria-expanded", String(!isHidden()));
-  button.addEventListener("click", () => setPanel(!isHidden()));
+  button.addEventListener("click", () => {
+    if (!isViewerOpen()) return setPanel(!isHidden());
+    closeViewer({ keepFocus: true });
+    setPanel(false);
+  });
 }
 
 // ---- Dragging its sections ---------------------------------------------------------

@@ -1,7 +1,13 @@
 ---
 /* One part of an answer: a paragraph, a list, a file card, a link, a
-   figure, a picture, a quote or a heading (src/shared/content.ts). */
-import type { Block } from "../shared/content.ts";
+   figure, a picture, a quote or a heading (src/shared/content.ts's Block).
+   A paragraph is a string and a list an array; anything else is an object
+   named for its kind ({ card: … }, { quote: … }), drawn by the component
+   for that kind.
+
+   Styles: src/styles/thread.css (paragraphs and lists) and figures.css
+   (pictures side by side, a quote, a heading). */
+import type { Block, BlockParts } from "../shared/content.ts";
 import Artifact from "./Artifact.astro";
 import Bars from "./Bars.astro";
 import Card from "./Card.astro";
@@ -13,9 +19,15 @@ interface Props {
   block: Block;
 }
 const { block } = Astro.props;
-// A paragraph is a string and a list an array; anything else is an object
-// named for its kind.
-const part = typeof block === "object" && !Array.isArray(block) ? block : undefined;
+
+// What a block that's an object holds, under each kind's name: one of
+// these is set, and the others are undefined (all of them, for a paragraph
+// or a list).
+const namedParts: Partial<BlockParts> = typeof block === "object" && !Array.isArray(block) ? block : {};
+const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = namedParts;
+// Every kind is drawn below. One added to Block and not taken out on the
+// line above would be left in here, and this line would be a type error.
+kindsNotDrawn satisfies Record<string, never>;
 ---
 
 {typeof block === "string" && (
@@ -32,33 +44,33 @@ const part = typeof block === "object" && !Array.isArray(block) ? block : undefi
     ))}
   </ul>
 )}
-{part && "card" in part && <Card card={part.card} />}
-{part && "link" in part && <Artifact link={part.link} />}
-{part && "bars" in part && <Bars bars={part.bars} />}
-{part && "flow" in part && <Flow flow={part.flow} />}
-{part && "image" in part && <Picture picture={part.image} />}
-{part && "images" in part && (
+{card && <Card card={card} />}
+{link && <Artifact link={link} />}
+{bars && <Bars bars={bars} />}
+{flow && <Flow flow={flow} />}
+{image && <Picture picture={image} />}
+{images && (
   <div class="gallery">
-    {part.images.map((picture) => (
+    {images.map((picture) => (
       <Picture picture={picture} />
     ))}
   </div>
 )}
-{part && "quote" in part && (
+{quote && (
   <figure class="quote">
     <blockquote>
-      <p>{part.quote.text}</p>
+      <p>{quote.text}</p>
     </blockquote>
-    <figcaption>{part.quote.by}</figcaption>
+    <figcaption>{quote.by}</figcaption>
   </figure>
 )}
-{part && "heading" in part && (
+{heading && (
   <h3>
-    {part.heading.label && (
+    {heading.label && (
       <>
-        <span>{part.heading.label}</span>{" "}
+        <span>{heading.label}</span>{" "}
       </>
     )}
-    {part.heading.title}
+    {heading.title}
   </h3>
 )}

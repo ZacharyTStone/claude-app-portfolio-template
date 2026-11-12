@@ -1,6 +1,8 @@
 ---
-/* A conversation: each question and its answer. A question can have a
-   status line ("Read experience/acme.md ▸") that opens onto a file card. */
+/* A conversation, in a tab of its own (Tab.astro): each question and its
+   answer. A question can have a status line ("Read experience/acme.md ▸")
+   that opens onto a file card. The buttons under an answer are only under
+   the last one. Styles: src/styles/thread.css. */
 import type { Thread } from "../shared/config.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 import type { Page } from "../site/site.ts";
@@ -11,29 +13,31 @@ import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
+  /** The thread, from the language's `threads` in the config. */
   thread: Thread;
 }
 const { page, thread } = Astro.props;
-const s = page.lang.strings;
+const { strings } = page.lang;
 // "Read {file}": the words around the file's name.
-const [before, after = ""] = s.status.split("{file}");
-const last = thread.messages.length - 1;
+const [statusBeforeFile, statusAfterFile = ""] = strings.status.split("{file}");
+const lastMessageIndex = thread.messages.length - 1;
 ---
 
 <Tab page={page} id={thread.id} title={thread.title} pill={thread.pill}>
-  {thread.messages.map((message, i) => (
+  {thread.messages.map((message, messageIndex) => (
     <>
       <p class={PAGE_CLASSES.question}>
-        <span class={PAGE_CLASSES.srOnly}>{s.question}</span>
+        <span class={PAGE_CLASSES.srOnly}>{strings.question}</span>
         <Inline text={message.q} />
       </p>
       {message.read && (
         <details class={PAGE_CLASSES.status}>
           <summary>
-            {before}
+            {statusBeforeFile}
             <b>{message.read.file}</b>
-            {after}
+            {statusAfterFile}
           </summary>
           <Card card={message.read.card} />
         </details>
@@ -42,7 +46,7 @@ const last = thread.messages.length - 1;
         {message.a.map((block) => (
           <Block block={block} />
         ))}
-        {i === last && <MessageActions strings={s} />}
+        {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>
     </>
   ))}

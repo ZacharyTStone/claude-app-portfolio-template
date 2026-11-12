@@ -1,7 +1,10 @@
 ---
 /* The home screen, shown when no tab is open: a greeting, a line about
    you, and the app's box for a question with a few to start with. Without
-   JavaScript the box is hidden, and the hint points at the tabs. */
+   JavaScript the box is hidden, and the hint points at the tabs. It's
+   drawn from the language's `home` in the config, and the question card's
+   own question and "send" (so the box and the card say the same).
+   Styles: src/styles/greeting.css (the greeting) and home.css. */
 import { MAX_QUESTION_LENGTH } from "../shared/ask.ts";
 import { DATA, HOURS, PAGE_CLASSES, PAGE_IDS, type GreetingPart } from "../shared/page-data.ts";
 import type { Page } from "../site/site.ts";
@@ -9,25 +12,26 @@ import Inline from "./Inline.astro";
 import Topbar from "./Topbar.astro";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
 }
 const { lang } = Astro.props.page;
-const s = lang.strings;
+const { strings } = lang;
 const { greeting, intro, hint, tagline, prompts = [] } = lang.home;
 // The box asks what the question card asks, and its button is the card's.
-const { ask, ui } = lang.questions;
+const { ask: cardQuestion, ui: cardWords } = lang.questions;
 // For the script: a greeting for each part of the visitor's day, and who
 // this is in a line.
-const parts = Object.keys(HOURS.greeting) as GreetingPart[];
-const words = {
-  ...Object.fromEntries(parts.map((part) => [DATA.greet(part), greeting[part]])),
+const greetingParts = Object.keys(HOURS.greeting) as GreetingPart[];
+const wordingForScript = {
+  ...Object.fromEntries(greetingParts.map((part) => [DATA.greet(part), greeting[part]])),
   ...(tagline ? { [DATA.tagline]: tagline } : {}),
 };
 ---
 
 <section class="home" id={PAGE_IDS.top} aria-labelledby={PAGE_IDS.hello}>
-  <Topbar strings={s} />
-  <div class="hello-wrap" {...words}>
+  <Topbar strings={strings} />
+  <div class="hello-wrap" {...wordingForScript}>
     <h1 class="hello" id={PAGE_IDS.hello}>
       {greeting.default}
     </h1>
@@ -38,13 +42,18 @@ const words = {
       <div class={PAGE_CLASSES.composer}>
         <input
           type="text"
-          placeholder={ask}
-          aria-label={ask}
+          placeholder={cardQuestion}
+          aria-label={cardQuestion}
           maxlength={MAX_QUESTION_LENGTH}
           autocomplete="off"
           enterkeyhint="send"
         />
-        <button class={`${PAGE_CLASSES.homeSend} ic i-up`} type="button" aria-label={ui.send} title={ui.send}></button>
+        <button
+          class={`${PAGE_CLASSES.homeSend} ic i-up`}
+          type="button"
+          aria-label={cardWords.send}
+          title={cardWords.send}
+        ></button>
       </div>
       {prompts.length > 0 && (
         <ul class={PAGE_CLASSES.prompts}>
@@ -60,7 +69,7 @@ const words = {
     </div>
     {hint && <p class="hint ic i-back">{hint}</p>}
     <p class="under">
-      <span class="credit">{s.credit}</span>
+      <span class="credit">{strings.credit}</span>
     </p>
   </div>
 </section>

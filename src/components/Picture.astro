@@ -1,25 +1,31 @@
 ---
 /* A picture, in a figure's frame: loaded when it's near the screen, at a
-   size the page already knows. With `href`, it links there. */
+   size the page already knows. With `href`, it links there (in the viewer,
+   if the config's `viewer` lists it, named by its caption).
+   Styles: src/styles/figures.css. */
 import type { Picture } from "../shared/content.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 import { site } from "../site/current.ts";
 import { external } from "../shared/markdown.ts";
+import { viewerLink } from "./attributes.ts";
 
 interface Props {
+  /** The picture, as an answer's `image` block, or one of its `images`,
+      has it. */
   picture: Picture;
 }
 const { src, alt, width, height, caption, href, round } = Astro.props.picture;
-const image = { src: site.link(src), alt, width, height, loading: "lazy", decoding: "async" } as const;
+// The same <img> whether or not a link is around it.
+const imageAttributes = { src: site.link(src), alt, width, height, loading: "lazy", decoding: "async" } as const;
 ---
 
 <figure class:list={[PAGE_CLASSES.figure, "shot", { round }]}>
   {href ? (
-    <a href={site.link(href)} {...external(href)}>
-      <img {...image} />
+    <a href={site.link(href)} {...external(href)} {...viewerLink(href, caption ?? alt)}>
+      <img {...imageAttributes} />
     </a>
   ) : (
-    <img {...image} />
+    <img {...imageAttributes} />
   )}
   {caption && <figcaption>{caption}</figcaption>}
 </figure>

@@ -1,23 +1,28 @@
 ---
 /* A row of the details panel: an icon, a label and a note, and a link if
-   it has an href. */
+   it has an href (one the config's `viewer` lists opens in the viewer). A
+   row with no href is the same row in a <span>.
+   Styles: src/styles/panel.css. */
 import type { PanelRow } from "../shared/config.ts";
 import { site } from "../site/current.ts";
 import { external } from "../shared/markdown.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { viewerLink } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
 
 interface Props {
+  /** The row, as the config's panel.outputs or panel.context has it. */
   row: PanelRow;
 }
 const { label, meta, icon, href } = Astro.props.row;
-const Row = href ? "a" : "span";
-const link = href ? { href: site.link(href), ...external(href) } : {};
+// A link's element and its attributes, or a plain element with none.
+const RowElement = href ? "a" : "span";
+const linkAttributes = href ? { href: site.link(href), ...external(href), ...viewerLink(href, label) } : {};
 ---
 
-<Row class={iconClass(icon)} {...link}>
+<RowElement class={iconClass(icon)} {...linkAttributes}>
   <Logo icon={icon} hidden />
   {label}
   <span class={PAGE_CLASSES.rowMeta}>{meta}</span>
-</Row>
+</RowElement>

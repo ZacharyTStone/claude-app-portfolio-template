@@ -1,7 +1,10 @@
 ---
 /* A tab: an <article> that :target shows, with its title and Share in the
    bar across the top, the conversation (the slot), and the composer under
-   it. */
+   it. Every thread is one (Thread.astro), and so is "Something else"
+   (Asked.astro), which the script copies for each chat and personal
+   answer. Styles: src/styles/thread.css, and composer.css for the
+   composer. */
 import type { Pill } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES, PAGE_IDS, titleId } from "../shared/page-data.ts";
 import type { Page } from "../site/site.ts";
@@ -9,18 +12,21 @@ import { flag } from "./attributes.ts";
 import Topbar from "./Topbar.astro";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
   /** The tab's address: #id. */
   id: string;
+  /** The tab's name, in the bar across its top. */
   title: string;
+  /** A label beside the title, if the thread has one. */
   pill?: Pill;
 }
 const { page, id, title, pill } = Astro.props;
-const s = page.lang.strings;
+const { strings } = page.lang;
 ---
 
 <article class={PAGE_CLASSES.tab} id={id} aria-labelledby={titleId(id)}>
-  <Topbar strings={s}>
+  <Topbar strings={strings}>
     <h2 class={`${PAGE_CLASSES.title} ${PAGE_CLASSES.iconAfter}`} id={titleId(id)}>
       {title}
     </h2>
@@ -31,7 +37,7 @@ const s = page.lang.strings;
       </span>
     )}
     <button slot="actions" class="btn-ghost ic i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
-      <span class={PAGE_CLASSES.label}>{s.share}</span>
+      <span class={PAGE_CLASSES.label}>{strings.share}</span>
     </button>
   </Topbar>
   <div class={PAGE_CLASSES.scroll}>
@@ -43,12 +49,12 @@ const s = page.lang.strings;
   <div class="dock">
     <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.top}`}>
       <span class="ic i-plus" aria-hidden="true"></span>
-      <span class="ph">{s.followUpPlaceholder}</span>
+      <span class="ph">{strings.followUpPlaceholder}</span>
     </a>
     <p class="under">
-      <span class="credit">{s.credit}</span>
+      <span class="credit">{strings.credit}</span>
       <span class="model">
-        {page.site.config.name} <em>{s.model}</em>
+        {page.site.config.name} <em>{strings.model}</em>
       </span>
     </p>
   </div>

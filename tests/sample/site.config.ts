@@ -1,17 +1,29 @@
 /* A made-up site for tests/sample-site.test.ts to build: a GitHub project site
    (served under /portfolio/, on a host that reads no _headers file), in
-   two languages, with one of each kind of figure. */
+   two languages, with one of each kind of figure, a flow that follows an
+   example, and a link that opens in the viewer. */
 import type { Language, SiteConfig, Strings } from "../../src/shared/config.ts";
 import { PAGE_STRINGS } from "../../src/shared/config.ts";
 import { SCRIPT_STRINGS } from "../../src/shared/page-data.ts";
 import { ICONS } from "../../src/site/constants.ts";
 
-// Every picture is a file every site has, so the sample builds in any repo.
-const image = ICONS.appleTouch;
-const picture = { src: image, alt: "Sam's icon", width: 180, height: 180 };
+/** The one picture the sample uses, for its social card too: a file every
+    site has, so the sample builds in any repo. */
+const icon = ICONS.appleTouch;
+/** That file's width and height, in pixels. */
+const ICON_SIZE = 180;
+const iconPicture = { src: icon, alt: "Sam's icon", width: ICON_SIZE, height: ICON_SIZE };
 
-function language(label: string, locale: string): Language {
-  const strings = Object.fromEntries([...PAGE_STRINGS, ...SCRIPT_STRINGS].map((key) => [key, key]));
+/** A document on another site: the address the sample's link card has, and
+    the address that shows the document in the viewer's frame. */
+const notes = { href: "https://docs.example.com/d/notes/edit", inFrame: "https://docs.example.com/d/notes/preview" };
+
+/** One language of the sample. Its wording is the same in each: only the
+    label and the locale tell them apart. */
+function sampleLanguage(label: string, locale: string): Language {
+  // Every string says its own key, but for the ones set below.
+  const everyKey = [...PAGE_STRINGS, ...SCRIPT_STRINGS];
+  const strings = Object.fromEntries(everyKey.map((key) => [key, key]));
   return {
     label,
     name: label,
@@ -25,7 +37,7 @@ function language(label: string, locale: string): Language {
     person: { name: "Sam Sample", jobTitle: "Engineer" },
     home: {
       greeting: { default: "Hi", morning: "Morning", afternoon: "Afternoon", evening: "Evening", late: "Late" },
-      intro: `Sam builds things. Here's [the icon](${image}).`,
+      intro: `Sam builds things. Here's [the icon](${icon}).`,
       hint: "Pick a tab.",
       prompts: [{ q: "What does Sam do?", answer: "work.1" }],
     },
@@ -48,7 +60,7 @@ function language(label: string, locale: string): Language {
             read: { file: "work.md", card: { file: "role.yaml", lines: [["role", "Engineer", "for now"]] } },
             a: [
               { card: { file: "skills.yaml", lines: [["skills", ["TypeScript", "Astro"]]] } },
-              { link: { name: "The icon", kind: "Image", href: image, icon: "file" } },
+              { link: { name: "The icon", kind: "Image", href: icon, icon: "file" } },
               {
                 bars: {
                   title: "Time to load",
@@ -60,8 +72,20 @@ function language(label: string, locale: string): Language {
                 },
               },
               { flow: { title: "The pipeline", steps: [{ name: "Draft", note: "by hand" }, { name: "Publish" }] } },
-              { image: { ...picture, caption: "Sam's icon.", href: image } },
-              { images: [picture, { ...picture, round: true }] },
+              {
+                flow: {
+                  title: "What happens to a post",
+                  example: "An example: one post about **Astro**",
+                  steps: [
+                    { name: "Draft", note: "by hand", example: "“Astro builds the page ahead of time.”" },
+                    { name: "Review", example: ["Read by a friend:", "**ahead of time** is the part to keep."] },
+                    { name: "Publish", note: "on a Friday", example: "It’s on the site." },
+                  ],
+                },
+              },
+              { link: { name: "Sam's notes", kind: "Document", href: notes.href, icon: "file" } },
+              { image: { ...iconPicture, caption: "Sam's icon.", href: icon } },
+              { images: [iconPicture, { ...iconPicture, round: true }] },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
             ],
@@ -81,7 +105,7 @@ function language(label: string, locale: string): Language {
     },
     panel: {
       progress: { title: "Career", steps: [{ tab: "work", title: "Work", when: "2020", now: true }] },
-      outputs: { title: "Files", rows: [{ label: "The icon", meta: "Image", icon: "file", href: image }] },
+      outputs: { title: "Files", rows: [{ label: "The icon", meta: "Image", icon: "file", href: icon }] },
       context: {
         title: "Links",
         rows: [{ label: "GitHub", meta: "example", icon: "github", href: "https://github.com/example" }],
@@ -115,7 +139,14 @@ function language(label: string, locale: string): Language {
       ui: { else: "Else", elseLabel: "Else", send: "Send", back: "Back", step: "{n} of {total}", followUp: "More" },
     },
     notFound: { title: "Not found.", text: "Nothing here.", back: "Back" },
-    strings: { ...strings, status: "Read {file}" } as Strings,
+    strings: {
+      ...strings,
+      status: "Read {file}",
+      viewerOpen: "Open in a new tab",
+      viewerClose: "Close",
+      flowPlay: "Play",
+      flowReplay: "Replay",
+    } as Strings,
   };
 }
 
@@ -129,10 +160,12 @@ const config: SiteConfig = {
     github: "https://github.com/example",
     linkedin: "https://www.linkedin.com/in/example",
   },
-  social: { image, width: 180, height: 180 },
+  social: { image: icon, width: ICON_SIZE, height: ICON_SIZE },
   themeColor: "#191919",
+  // Sam's notes open in the viewer, at the address that shows them in a frame.
+  viewer: { [notes.href]: notes.inFrame },
   llms: { summary: "A sample.", about: "Sam is a sample." },
-  languages: { en: language("EN", "en_US"), fr: language("FR", "fr_FR") },
+  languages: { en: sampleLanguage("EN", "en_US"), fr: sampleLanguage("FR", "fr_FR") },
 };
 
 export default config;

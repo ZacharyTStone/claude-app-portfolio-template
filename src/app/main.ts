@@ -7,6 +7,7 @@ import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccount } from "./account.ts";
 import { initCard, toggleCard, wireComposer } from "./card.ts";
 import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } from "./chats.ts";
+import { initFlows } from "./flow.ts";
 import { foldable } from "./folding.ts";
 import { greet } from "./greeting.ts";
 import { focusHome, initHome } from "./home.ts";
@@ -21,6 +22,7 @@ import { closeDrawer, drawerOpen, initSidebar, isWide, wireMenuButton } from "./
 import { currentTab, clearHash, finishOpening, sync } from "./tabs.ts";
 import { addRowMenu, addTitleMenu, initThreadMenus } from "./thread-menu.ts";
 import { initToast } from "./toast.ts";
+import { closeViewer, initViewer, isViewerOpen, viewerCoversScreen } from "./viewer.ts";
 
 /** Everything a tab has: its top bar's buttons, title and composer. A chat
     gets it too, from chats.ts, which can't import what it needs itself. */
@@ -67,6 +69,8 @@ initCard();
 initCopyDraft();
 initAccount();
 initHome();
+initViewer();
+initFlows();
 
 // Every tab in the page, the personal ones included, and the home screen's
 // top bar.
@@ -89,10 +93,11 @@ onClick(find(side, SELECTOR.wordmark), () => {
 onClick(find(side, SELECTOR.newTab), newChat);
 onClick(find(document, SELECTOR.skip), () => sync(true));
 
-// Escape closes the open menu, or else the phone drawer.
+// Escape closes the open menu, or else the viewer, or else the phone drawer.
 addEventListener("keydown", (event) => {
   if (event.key !== "Escape" || isComposing(event)) return;
   if (isMenuOpen()) closeMenu(true);
+  else if (isViewerOpen()) closeViewer();
   else if (drawerOpen()) closeDrawer();
 });
 
@@ -107,6 +112,9 @@ restoreChats();
 // follows it, and then whatever opened the tab finishes.
 addEventListener("hashchange", () => {
   closeMenu(false);
+  // Over the whole screen, the viewer would hide the tab just gone to (Back
+  // on a phone, say); beside the conversation it stays.
+  if (viewerCoversScreen()) closeViewer({ keepFocus: true });
   const toDrawer = side.matches(":target");
   if (!toDrawer) side.classList.remove(CLASS.drawerOpen);
   resetThreads();

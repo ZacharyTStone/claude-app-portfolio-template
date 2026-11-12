@@ -4,14 +4,15 @@
    look for these, never for one site's content, so they run on any
    site.config.ts. */
 import type { Browser, Page } from "playwright";
+import { threadAnswerId } from "../../src/shared/ask.ts";
 import { CLOCK_MOODS, type ClockMood } from "../../src/shared/config.ts";
 import {
+  ALL_SCRIPT_STRINGS,
   DATA,
   HOURS,
   LOCAL_ZONE,
   PAGE_CLASSES,
   PAGE_IDS,
-  SCRIPT_STRINGS,
   dataAttribute,
   type GreetingPart,
   type PersonalAnswer,
@@ -90,7 +91,71 @@ export type Site = {
   } | null;
   /** Whether a thread has a status line ("Read …"). */
   statusLine: boolean;
+  /** The first link in a thread that opens in the viewer (the config's
+      `viewer`), or null on a site without one: the tab it's in, where it
+      links, the address the viewer shows it at, and what the viewer calls
+      it. */
+  viewer: { tab: string; href: string; shown: string; title: string } | null;
+  /** The flows that follow an example, the one with the fewest steps
+      first: the tab each is in and its place among that tab's, the answer
+      it's part of ("work.2"), and how many steps it has. */
+  exampleFlows: ExampleFlow[];
 };
+
+export type ExampleFlow = { tab: string; index: number; answer: string; steps: number };
+
+/** A tab, as far as finding the flows in its thread goes. */
+type FlowTab = {
+  id: string;
+  querySelector(selector: string): { children: Iterable<FlowNode> } | null;
+};
+type FlowNode = {
+  matches(selector: string): boolean;
+  querySelectorAll(selector: string): Iterable<{ querySelectorAll(selector: string): { length: number } }>;
+};
+
+/** A link, as far as finding the tab it's in goes. */
+type InTab = { closest(selector: string): Attributed | null };
+
+// Each flow that follows an example, with the number of the question whose
+// answer it's in, counted as /ask counts them.
+async function readExampleFlows(page: Page): Promise<ExampleFlow[]> {
+  const found = await page.locator(`article${CLASS.tab}`).evaluateAll(
+    (tabs: FlowTab[], names) =>
+      tabs.flatMap((tab) => {
+        const flows: Array<{ tab: string; index: number; question: number; steps: number }> = [];
+        let question = 0;
+        for (const node of tab.querySelector(names.thread)?.children ?? []) {
+          if (node.matches(names.question)) question++;
+          for (const flow of node.querySelectorAll(names.flow)) {
+            flows.push({
+              tab: tab.id,
+              index: flows.length,
+              question,
+              steps: flow.querySelectorAll(names.steps).length,
+            });
+          }
+        }
+        return flows;
+      }),
+    { thread: CLASS.thread, question: CLASS.question, flow: `[${DATA.flowExample}]`, steps: "ol > li" },
+  );
+  return found
+    .map(({ tab, index, question, steps }) => ({ tab, index, answer: threadAnswerId(tab, question), steps }))
+    .sort((a, b) => a.steps - b.steps);
+}
+
+// The first link in a thread that the viewer opens.
+async function readViewerLink(page: Page): Promise<Site["viewer"]> {
+  const link = page.locator(`article${CLASS.tab} a[${DATA.view}]`).first();
+  if (!(await link.count())) return null;
+  return {
+    tab: await link.evaluate((a: InTab) => a.closest("article")?.getAttribute("id") ?? ""),
+    href: (await link.getAttribute("href")) ?? "",
+    shown: (await link.getAttribute(DATA.view)) ?? "",
+    title: (await link.getAttribute(DATA.viewTitle)) ?? "",
+  };
+}
 
 async function attribute(page: Page, selector: string, name: string): Promise<string | null> {
   const el = page.locator(selector).first();
@@ -124,7 +189,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
   const html = (name: string) => attribute(page, "html", name);
 
   const words = {} as ScriptStrings;
-  for (const key of SCRIPT_STRINGS) words[key] = (await html(`data-${dataAttribute(key)}`)) ?? "";
+  for (const key of ALL_SCRIPT_STRINGS) words[key] = (await html(`data-${dataAttribute(key)}`)) ?? "";
 
   const threads: Thread[] = [];
   const rows = `${ID.tabs} ${CLASS.nav} a[href^='#'], ${ID.tabs} ${CLASS.tabs} > li > a`;
@@ -214,6 +279,8 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     languageLink: await attribute(page, `[${DATA.langLink}]`, "href"),
     clock,
     statusLine: (await page.locator(`${CLASS.tab} .status summary b`).count()) > 0,
+    viewer: await readViewerLink(page),
+    exampleFlows: await readExampleFlows(page),
   };
   await context.close();
   return site;

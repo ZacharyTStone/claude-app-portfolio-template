@@ -1,6 +1,8 @@
 ---
-/* The details panel on the right: the career at a glance, files and
-   links. Each section is optional. */
+/* The details panel on the right: the career at a glance (`progress`),
+   then files and links as rows (`outputs` and `context`). It's drawn from
+   the language's `panel` in the config, where each section is optional:
+   one that's left out isn't drawn. Styles: src/styles/panel.css. */
 import { DATA, PAGE_IDS } from "../shared/page-data.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
@@ -8,23 +10,29 @@ import PanelRow from "./PanelRow.astro";
 import PanelSection from "./PanelSection.astro";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
 }
-const { lang } = Astro.props.page;
-const s = lang.strings;
-const { progress } = lang.panel;
-const lists = (["outputs", "context"] as const).map((name) => ({ name, list: lang.panel[name] }));
+const { strings, panel } = Astro.props.page.lang;
+const { progress } = panel;
+/** The sections that are lists of rows, in the order they're drawn. */
+const LIST_SECTION_NAMES = ["outputs", "context"] as const;
+// Those of them the config has.
+const listSections = LIST_SECTION_NAMES.flatMap((name) => {
+  const section = panel[name];
+  return section ? [{ name, title: section.title, rows: section.rows }] : [];
+});
 ---
 
-<aside class="panel" id={PAGE_IDS.details} aria-label={s.panel}>
+<aside class="panel" id={PAGE_IDS.details} aria-label={strings.panel}>
   <button
     class="icon-btn ic i-close panel-close"
     type="button"
     data-js-only
     {...flag(DATA.panelToggle)}
     aria-controls={PAGE_IDS.details}
-    aria-label={s.closePanel}
-    title={s.closePanelTitle}
+    aria-label={strings.closePanel}
+    title={strings.closePanelTitle}
   ></button>
   {progress && (
     <PanelSection name="progress" title={progress.title}>
@@ -43,18 +51,15 @@ const lists = (["outputs", "context"] as const).map((name) => ({ name, list: lan
       </ol>
     </PanelSection>
   )}
-  {lists.map(
-    ({ name, list }) =>
-      list && (
-        <PanelSection name={name} title={list.title}>
-          <ul class="rows">
-            {list.rows.map((row) => (
-              <li>
-                <PanelRow row={row} />
-              </li>
-            ))}
-          </ul>
-        </PanelSection>
-      ),
-  )}
+  {listSections.map((section) => (
+    <PanelSection name={section.name} title={section.title}>
+      <ul class="rows">
+        {section.rows.map((row) => (
+          <li>
+            <PanelRow row={row} />
+          </li>
+        ))}
+      </ul>
+    </PanelSection>
+  ))}
 </aside>

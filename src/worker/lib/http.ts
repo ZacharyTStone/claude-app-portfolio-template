@@ -1,7 +1,19 @@
 /* JSON replies. None is ever cached, and none is ever read as anything but
    JSON. */
 
-export function json(data: unknown, status = 200, headers: Record<string, string> = {}): Response {
+/** The HTTP statuses /ask replies with, by name. */
+export const HTTP_STATUS = {
+  ok: 200,
+  badRequest: 400,
+  methodNotAllowed: 405,
+  payloadTooLarge: 413,
+  unsupportedMediaType: 415,
+  tooManyRequests: 429,
+} as const;
+
+/** A reply with `data` as its JSON body, that no cache keeps and no browser
+    reads as another type. `headers` are added to those. */
+export function json(data: unknown, status: number = HTTP_STATUS.ok, headers: Record<string, string> = {}): Response {
   return new Response(JSON.stringify(data), {
     status,
     headers: {

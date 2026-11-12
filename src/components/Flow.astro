@@ -1,23 +1,67 @@
 ---
 /* Steps in order: a box each, and (in the stylesheet) an arrow from each
-   to the next. */
-import type { Flow } from "../shared/content.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+   to the next. A flow that follows an example is drawn down the page, a
+   step a row, each with what the example looks like there: all of it is in
+   the page, and the script plays it a step at a time (src/app/flow.ts).
+   The two are different markup, so each has its own <figure> below.
+   Styles: src/styles/figures.css. */
+import type { Flow, FlowStep } from "../shared/content.ts";
+import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
+import { flag } from "./attributes.ts";
+import Inline from "./Inline.astro";
 
 interface Props {
+  /** The figure, as an answer's `flow` block has it. */
   flow: Flow;
 }
-const { title, steps } = Astro.props.flow;
+const { title, steps, example: followedExample } = Astro.props.flow;
+/** A step's example as lines: the one line it is, each of several, or
+    none for a step without one. */
+function exampleLines({ example }: FlowStep): string[] {
+  const lines = example ?? [];
+  return Array.isArray(lines) ? lines : [lines];
+}
 ---
 
-<figure class={`${PAGE_CLASSES.figure} flow`}>
-  <figcaption>{title}</figcaption>
-  <ol>
-    {steps.map(({ name, note }) => (
-      <li>
-        <b>{name}</b>
-        {note && <span>{note}</span>}
-      </li>
-    ))}
-  </ol>
-</figure>
+{followedExample ? (
+  <figure class={`${PAGE_CLASSES.figure} flow follow`} {...flag(DATA.flowExample)}>
+    <figcaption>{title}</figcaption>
+    <p class="following">
+      <Inline text={followedExample} />
+    </p>
+    <ol>
+      {steps.map((step) => (
+        <li>
+          <div class={PAGE_CLASSES.flowStep}>
+            <b>{step.name}</b>
+            {step.note && (
+              <>
+                {" "}
+                <span>{step.note}</span>
+              </>
+            )}
+          </div>
+          <div class={PAGE_CLASSES.flowStepExample}>
+            {exampleLines(step).map((line) => (
+              <p>
+                <Inline text={line} />
+              </p>
+            ))}
+          </div>
+        </li>
+      ))}
+    </ol>
+  </figure>
+) : (
+  <figure class={`${PAGE_CLASSES.figure} flow`}>
+    <figcaption>{title}</figcaption>
+    <ol>
+      {steps.map((step) => (
+        <li>
+          <b>{step.name}</b>
+          {step.note && <span>{step.note}</span>}
+        </li>
+      ))}
+    </ol>
+  </figure>
+)}

@@ -5,4 +5,7 @@
 import config from "../../site.config.ts";
 import { makeSite } from "./site.ts";
 
+/** The site being built. Components and routes import this one; code that
+    has to work on any config (the checks, the tests) takes a Site as an
+    argument instead. */
 export const site = makeSite(config);

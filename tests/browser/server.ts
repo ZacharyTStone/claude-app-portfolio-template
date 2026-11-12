@@ -11,7 +11,7 @@ import { extname, join, resolve, sep } from "node:path";
 import siteConfig from "../../site.config.ts";
 import { OUTPUT, ROOT } from "../../src/site/constants.ts";
 import type { SiteConfig } from "../../src/shared/config.ts";
-import { securityHeaders } from "../../src/shared/headers.ts";
+import { frameOrigins, securityHeaders } from "../../src/shared/headers.ts";
 import { DATA } from "../../src/shared/page-data.ts";
 
 // As SiteConfig, so a field this site leaves out (hsts) reads as undefined.
@@ -50,7 +50,7 @@ export async function serve({
 }: { root?: string; base?: string } = {}): Promise<Served> {
   const root = resolve(folder);
   const ask = hasAsk(readFileSync(join(root, "index.html"), "utf8"));
-  const headers = Object.fromEntries(securityHeaders({ ask, hsts: config.hsts }));
+  const headers = Object.fromEntries(securityHeaders({ ask, frames: frameOrigins(config.viewer), hsts: config.hsts }));
 
   const send = (res: ServerResponse, status: number, file: string) => {
     res.writeHead(status, { ...headers, "Content-Type": TYPES[extname(file)] ?? "application/octet-stream" });

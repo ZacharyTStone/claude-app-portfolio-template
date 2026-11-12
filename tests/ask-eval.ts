@@ -1,18 +1,22 @@
 /* How well /ask picks, and what it replies, against a deployed site or a preview:
      node tests/ask-eval.ts https://<the site or a preview> [questions.json]
-   It doesn't fail on misses: what's good enough is your call. */
+   It doesn't fail on misses: what's good enough is your call. A reply the
+   model wrote is printed with the lines it was written from, to read one
+   against the other: the Worker checks its names and numbers, not whether
+   its other words say what the lines do. */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isReplyText, type AskRequest } from "../src/shared/ask.ts";
+import { isCitedLines, isReplyText, type AskRequest } from "../src/shared/ask.ts";
 import { isArrayOf, isRecord, isString } from "../src/shared/guards.ts";
 
 type Question = { q: string; lang: string; expect: string | string[] };
 type Verdict = "right" | "wrong" | "saidNone" | "falseAnswer" | "falseBlock" | "missedBlock";
 
 /** What /ask said: the id picked ("none", "blocked"), why there was none,
-    and the reply quoted with it; or why the run can't go on. */
-export type Said = { id: string; why?: string; reply?: string } | { stop: string };
+    the reply sent with it and, when that reply was written (not quoted),
+    the lines it was written from; or why the run can't go on. */
+export type Said = { id: string; why?: string; reply?: string; cited?: string[] } | { stop: string };
 
 /** /ask's reply, read as the eval counts it. Past the visitor's limit, or
     the site's (or with the guard down), every later question would get the
@@ -24,7 +28,9 @@ export function readSaid(data: unknown): Said {
   if (data.why === "budget") return { stop: "the site's questions for today are used up, or AskGuard is down" };
   const why = isString(data.why) ? data.why : undefined;
   const reply = isReplyText(data.reply) ? data.reply : undefined;
-  return { id: isString(data.id) ? data.id : "none", why, reply };
+  // As the page reads it: the lines a reply cites only ever come with one.
+  const cited = reply !== undefined && isCitedLines(data.cited) ? data.cited : undefined;
+  return { id: isString(data.id) ? data.id : "none", why, reply, cited };
 }
 
 const expected = (item: Question) => [item.expect].flat();
@@ -115,7 +121,7 @@ async function main(site: string, file: string): Promise<void> {
       console.log(`Expected, but not on the site (tests/ask-questions.json is out of date):\n${stale.join("\n")}\n`);
   }
 
-  const tally: Record<Verdict | "errors" | "picks" | "replies" | "asked", number> = {
+  const tally: Record<Verdict | "errors" | "picks" | "replies" | "written" | "asked", number> = {
     right: 0,
     wrong: 0,
     saidNone: 0,
@@ -125,6 +131,7 @@ async function main(site: string, file: string): Promise<void> {
     errors: 0,
     picks: 0,
     replies: 0,
+    written: 0,
     asked: 0,
   };
   let stopped = "";
@@ -138,14 +145,20 @@ async function main(site: string, file: string): Promise<void> {
       stopped = said.stop;
       break;
     }
-    const { id, why, reply } = said;
+    const { id, why, reply, cited } = said;
     tally.asked++;
     if (why === "off" || why === "error" || why === "busy") tally.errors++;
-    // Every answer picked, and the sentences quoted with it (or none).
+    // Every answer picked, and the reply sent with it (or none): one the
+    // model wrote, with the lines it was written from under it to read it
+    // against, or the lines themselves, quoted.
     if (id !== "none" && id !== "blocked") {
       tally.picks++;
       if (reply) tally.replies++;
-      console.log(`${id.padEnd(24)} ${item.q}\n${"".padEnd(24)} ${reply ? `→ ${reply}` : "no quote"}`);
+      if (cited) tally.written++;
+      const indent = "".padEnd(24);
+      const replied = reply ? `→ ${reply}${cited ? "" : "  (quoted)"}` : "no reply";
+      const from = (cited ?? []).map((line) => `\n${indent}   from: ${line}`).join("");
+      console.log(`${id.padEnd(24)} ${item.q}\n${indent} ${replied}${from}`);
     }
     const expects = expected(item);
     const verdict = verdictOf(expects, id);
@@ -165,7 +178,7 @@ Said none:                ${tally.saidNone}   they get "Something else" though a
 Answered, expected none:  ${tally.falseAnswer}
 Blocked a real question:  ${tally.falseBlock}   (and locked this address out, so later ones read "blocked")
 Not blocked:              ${tally.missedBlock}   rude or a jailbreak, but answered or none
-With a quote:             ${tally.replies} of ${tally.picks} picks   (the rest show the answer on its own)
+With a reply:             ${tally.replies} of ${tally.picks} picks   (${tally.written} written, ${tally.replies - tally.written} quoted; the rest show the answer on its own)
 ${tally.errors ? `Off, failed or rate limited: ${tally.errors} (counted as none above)` : ""}`);
 }
 

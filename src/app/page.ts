@@ -2,10 +2,10 @@
    says. Each page carries its own wording and question card, so one script
    serves every language. */
 import {
+  ALL_SCRIPT_STRINGS,
   DATA,
   HOURS,
   PAGE_IDS,
-  SCRIPT_STRINGS,
   dataAttribute,
   type Choice,
   type GreetingPart,
@@ -21,9 +21,10 @@ import { byId, parentOf } from "./lib/dom.ts";
 
 export const root = document.documentElement;
 
-/** The script's wording, in the page's language. */
+/** The script's wording, in the page's language. An optional string the
+    page doesn't carry (for a part the site doesn't have) is "". */
 export const words = Object.fromEntries(
-  SCRIPT_STRINGS.map((key) => [key, root.getAttribute(`data-${dataAttribute(key)}`) ?? ""]),
+  ALL_SCRIPT_STRINGS.map((key) => [key, root.getAttribute(`data-${dataAttribute(key)}`) ?? ""]),
 ) as ScriptStrings;
 
 /** Where a typed question goes (/ask), or "" when Ask is off. */
