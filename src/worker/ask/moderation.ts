@@ -1,36 +1,46 @@
 /* Llama Guard's verdict on a question, beside the picker's own judgement
    (it can call a question "inappropriate"): either turns it away. Llama
    Guard has no category for an attempt to redirect the model; the picker does. */
-import { GUARD_MODEL, GUARD_OPTIONS, GUARD_PROMPT_TOKENS, GUARD_TIMEOUT } from "../constants.ts";
+import {
+  LLAMA_GUARD_MODEL,
+  LLAMA_GUARD_OPTIONS,
+  LLAMA_GUARD_PROMPT_TOKENS,
+  LLAMA_GUARD_TIMEOUT_MS,
+} from "../constants.ts";
 import { get } from "../lib/shape.ts";
-import { NO_TOKENS, tokensIn, tokensUsed, type Tokens } from "./cost.ts";
+import { withinTime } from "../lib/time.ts";
+import { NO_TOKENS, estimateTokens, tokensUsed, type Tokens } from "./cost.ts";
+
+/** Llama Guard's verdict on a question, and the tokens its call used. */
+export type Verdict = { isUnsafe: boolean; tokens: Tokens };
 
 // Its verdict comes as text ("safe", "unsafe\nS10") or as { safe, categories }.
-function isUnsafeVerdict(result: unknown): boolean {
-  const verdict = get(result, "response");
+// No verdict at all (it was too slow to give one) isn't "unsafe".
+function isUnsafeVerdict(modelReply: unknown): boolean {
+  const verdict = get(modelReply, "response");
   if (typeof verdict === "string") return verdict.trim().toLowerCase().startsWith("unsafe");
   return get(verdict, "safe") === false;
 }
 
-/** Llama Guard's verdict on a question, and the tokens its call used. */
-export type Verdict = { unsafe: boolean; tokens: Tokens };
-
-/** `unsafe` if Llama Guard calls the question that within `timeout` ms. If
-    it can't say by then, the picker's judgement stands. */
-export async function verdictOn(ai: Ai, question: string, timeout: number = GUARD_TIMEOUT): Promise<Verdict> {
+/** `isUnsafe` if Llama Guard calls the question that within `timeoutMs`.
+    If it can't say by then, or fails, the picker's judgement stands. */
+export async function llamaGuardVerdict(
+  ai: Ai,
+  question: string,
+  timeoutMs: number = LLAMA_GUARD_TIMEOUT_MS,
+): Promise<Verdict> {
   // What a call is counted as when it doesn't say what it used, or is still
   // running when the time is up: it is paid for all the same.
-  const assumed: Tokens = { input: GUARD_PROMPT_TOKENS + tokensIn(question), output: GUARD_OPTIONS.max_tokens };
-  let timer: number | null = null;
+  const assumedTokens: Tokens = {
+    input: LLAMA_GUARD_PROMPT_TOKENS + estimateTokens(question),
+    output: LLAMA_GUARD_OPTIONS.max_tokens,
+  };
   try {
-    const run = ai.run(GUARD_MODEL, { messages: [{ role: "user", content: question }], ...GUARD_OPTIONS });
-    run.catch(() => {}); // still running when the time is up: its failure is no one's
-    const late = new Promise<undefined>((done) => (timer = setTimeout(done, timeout)));
-    const result: unknown = await Promise.race([run, late]);
-    return { unsafe: isUnsafeVerdict(result), tokens: tokensUsed(result) ?? assumed };
+    const call = ai.run(LLAMA_GUARD_MODEL, { messages: [{ role: "user", content: question }], ...LLAMA_GUARD_OPTIONS });
+    const modelReply: unknown = await withinTime(call, timeoutMs);
+    return { isUnsafe: isUnsafeVerdict(modelReply), tokens: tokensUsed(modelReply) ?? assumedTokens };
   } catch {
-    return { unsafe: false, tokens: NO_TOKENS };
-  } finally {
-    clearTimeout(timer);
+    // A call that failed wasn't run, so it isn't paid for.
+    return { isUnsafe: false, tokens: NO_TOKENS };
   }
 }

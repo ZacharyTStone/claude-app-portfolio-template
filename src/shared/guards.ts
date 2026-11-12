@@ -9,6 +9,7 @@ export type Guard<T> = (value: unknown) => value is T;
 export const isRecord: Guard<Record<string, unknown>> = (value): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+/** A string. */
 export const isString: Guard<string> = (value): value is string => typeof value === "string";
 
 /** Absent, or a string. */

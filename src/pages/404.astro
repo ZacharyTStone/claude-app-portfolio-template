@@ -7,27 +7,36 @@ import { site } from "../site/current.ts";
 
 const { config, codes, main } = site;
 const { dir, meta, notFound } = site.lang(main);
-const title = notFound.title.replace(/[.。!！]$/, "");
-// The other languages' lines are marked as theirs.
-const langOf = (code: string) => (code === main ? undefined : code);
+
+/** The full stop or exclamation mark a heading ends with, as Latin or CJK
+    text writes it: the "." of "Not found." */
+const LAST_PUNCTUATION = /[.。!！]$/;
+// The window's title goes on after the heading's words ("Not found — Alex
+// Example"), so it leaves the heading's last mark out.
+const titleWords = notFound.title.replace(LAST_PUNCTUATION, "");
+
+/** The `lang` attribute for a line in the language `code`: the other
+    languages' lines are marked as theirs, and the main one's are the
+    page's own. */
+const langAttribute = (code: string) => (code === main ? undefined : code);
 ---
 
 <Document lang={main} dir={dir} preload={meta.preload}>
   <Fragment slot="head">
-    <title>{title} — {config.name}</title>
+    <title>{titleWords} — {config.name}</title>
     <meta name="robots" content="noindex" />
   </Fragment>
   <main class="lost">
     <p class="code">404</p>
     <h1 class="hello">{notFound.title}</h1>
     {codes.map((code) => (
-      <p class="intro" lang={langOf(code)}>
+      <p class="intro" lang={langAttribute(code)}>
         {site.lang(code).notFound.text}
       </p>
     ))}
     <p class="lost-links">
       {codes.map((code) => (
-        <a href={site.path(code)} hreflang={langOf(code)} lang={langOf(code)}>
+        <a href={site.path(code)} hreflang={langAttribute(code)} lang={langAttribute(code)}>
           {site.lang(code).notFound.back}
         </a>
       ))}

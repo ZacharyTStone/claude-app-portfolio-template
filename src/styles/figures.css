@@ -1,5 +1,6 @@
 /* ---- Figures in an answer ------------------------------------------- */
-/* What an answer can show better than say (src/build/render/figure.ts):
+/* What an answer can show better than say (src/components: Bars.astro,
+   Flow.astro, Picture.astro):
    amounts as bars, steps in order, a picture. Each is in the
    same quiet frame as an artifact card, and lays itself out by its own
    width, not the window's: the column narrows with the sidebar and the
@@ -69,6 +70,7 @@
 /* A picture of the thing itself, edge to edge in the frame, with its
    caption under it. */
 .shot { overflow: hidden; }
+.shot picture { display: block; }
 .shot img { display: block; width: 100%; height: auto; }
 .shot a { display: block; }
 .shot figcaption { padding: 8px 14px 10px; }

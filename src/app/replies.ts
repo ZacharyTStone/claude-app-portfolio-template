@@ -1,7 +1,7 @@
 /* What's sent into a thread, and the reply it gets: the site's own answers,
    copied from the page (a thread's, the one /ask picked, or "Something
    else"), or /ask's reply when it sent one (src/shared/ask.ts). */
-import { isReplyText } from "../shared/ask.ts";
+import { isCitedLines, isReplyText } from "../shared/ask.ts";
 import { ID } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
@@ -19,6 +19,9 @@ export type TypedQuestion = {
   answer?: string | null;
   /** The reply /ask sent with that answer, if it sent one. */
   reply?: string;
+  /** The site's own lines that reply was written from, which /ask sends
+      with a reply it wrote itself: they're shown under it. */
+  cited?: string[];
   /** The visitor is blocked: nothing they type is shown back. */
   blocked?: true;
   /** They're past the day's limit, of this many questions. */
@@ -45,7 +48,8 @@ export function questionFor(source: Source): string | null {
   return q ? questionText(q) : null;
 }
 
-// A message to send again: without its buttons, or ids the page already has.
+// A message to send again: without its buttons, or ids the page already
+// has.
 function copyMessage(node: Element): Element {
   const copy = clone(node);
   copy.querySelectorAll(SELECTOR.messageActions).forEach((actions) => actions.remove());
@@ -80,19 +84,27 @@ function findAnswer(id: string): { tab: HTMLElement; q: Element } | null {
 /** Whether an answer's id names one of the page's answers. */
 export const isAnswer = (id: string): boolean => findAnswer(id) !== null;
 
+// The site's own lines a reply was written from, quoted under it: what the
+// site itself says, word for word, beside what the model made of it.
+const citedLines = (lines: string[]): HTMLElement =>
+  make("blockquote", { class: CLASS.cited }, ...lines.map((line) => make("p", {}, line)));
+
 /** One answer as /ask names it, word for word, ending with a link to its
-    tab. With a reply from /ask, the reply instead, and the link to the tab
-    the rest is in (a personal answer gets one too). Null for an id that
-    names none. */
-export function answerFor(id: string, reply?: string): Element[] | null {
+    tab. With a reply from /ask, the reply instead, then the lines it was
+    written from (`cited`, when /ask sent them), and the link to the tab the
+    rest is in (a personal answer gets one too). Null for an id that names
+    none. */
+export function answerFor(id: string, reply?: string, cited: string[] = []): Element[] | null {
   const found = findAnswer(id);
   if (!found) return null;
   const { tab, q } = found;
   const personal = isPersonalTab(tab.id);
   if (reply !== undefined) {
-    // The reply as text; the answer it's from is a click away, in its tab.
+    // The reply as text, then its source; the whole answer is a click
+    // away, in its tab.
     const from = fromLine(tab, personal ? words.askFromPersonal : words.askFrom);
-    return [make("div", { class: PAGE_CLASSES.answer }, make("p", { class: CLASS.reply }, reply), from)];
+    const source = cited.length ? [citedLines(cited)] : [];
+    return [make("div", { class: PAGE_CLASSES.answer }, make("p", { class: CLASS.reply }, reply), ...source, from)];
   }
   const answer: Element[] = [];
   for (let node = q.nextElementSibling; node && !node.matches(SELECTOR.question); node = node.nextElementSibling) {
@@ -157,8 +169,10 @@ export function messagesFor(source: Source): { question: string; answer: Element
     const reminder = make("p", {}, ...rich(words.askLimited.replace("{limit}", String(source.limited))));
     return { question, answer: [make("div", { class: PAGE_CLASSES.answer }, reminder)] };
   }
-  // A reply kept with a chat is checked again: it may have been edited.
+  // A reply kept with a chat is checked again, as are the lines it cites:
+  // either may have been edited. The lines only ever come with a reply.
   const reply = isReplyText(source.reply) ? source.reply : undefined;
-  const picked = source.answer ? answerFor(source.answer, reply) : null;
+  const cited = reply !== undefined && isCitedLines(source.cited) ? source.cited : [];
+  const picked = source.answer ? answerFor(source.answer, reply, cited) : null;
   return { question, answer: picked ?? [somethingElse(question, source.blocked === true)] };
 }

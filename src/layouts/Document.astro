@@ -1,6 +1,8 @@
 ---
 /* What every page starts with, the 404 page too: the first lines of the
-   <head>, the icons, the fonts loaded up front and the stylesheet. */
+   <head>, the icons, the fonts loaded up front and the stylesheet. The
+   page's own <head> lines go in the "head" slot, and its <body> in the
+   default one. */
 import "../styles/app.css";
 import { REFERRER_POLICY } from "../shared/headers.ts";
 import { ICONS } from "../site/constants.ts";
@@ -8,27 +10,30 @@ import { site } from "../site/current.ts";
 import { pagePolicy } from "../site/hosts.ts";
 
 interface Props {
+  /** The page's language, as a code: "en". */
   lang: string;
+  /** Its text direction ("ltr" if left out). */
   dir?: string;
-  /** Fonts the page loads up front. */
+  /** Fonts the page loads up front: paths on the site. */
   preload: string[];
-  /** Attributes for <html>. */
-  data?: Record<string, string>;
+  /** Attributes for <html>: what the page hands the script. */
+  htmlAttributes?: Record<string, string>;
 }
-const { lang, dir = "ltr", preload, data = {} } = Astro.props;
+const { lang, dir = "ltr", preload, htmlAttributes = {} } = Astro.props;
 // Where the host sends no headers, the page carries the policy itself,
-// ahead of everything it covers, and the referrer policy.
-const policy = pagePolicy(site);
+// ahead of everything it covers, and the referrer policy. Null where the
+// host sends them.
+const policyForMetaTag = pagePolicy(site);
 ---
 
 <!doctype html>
-<html lang={lang} dir={dir} {...data}>
+<html lang={lang} dir={dir} {...htmlAttributes}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    {policy && (
+    {policyForMetaTag && (
       <>
-        <meta http-equiv="Content-Security-Policy" content={policy} />
+        <meta http-equiv="Content-Security-Policy" content={policyForMetaTag} />
         <meta name="referrer" content={REFERRER_POLICY} />
       </>
     )}
@@ -38,8 +43,8 @@ const policy = pagePolicy(site);
     <link rel="icon" href={site.link(ICONS.svg)} type="image/svg+xml" />
     <link rel="icon" href={site.link(ICONS.png)} type="image/png" sizes="32x32" />
     <link rel="apple-touch-icon" href={site.link(ICONS.appleTouch)} />
-    {preload.map((href) => (
-      <link rel="preload" href={site.link(href)} as="font" type="font/woff2" crossorigin />
+    {preload.map((fontPath) => (
+      <link rel="preload" href={site.link(fontPath)} as="font" type="font/woff2" crossorigin />
     ))}
   </head>
   <body>

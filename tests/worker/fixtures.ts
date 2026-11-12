@@ -4,7 +4,14 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import type { AskAnswer, AskIndex } from "../../src/shared/ask.ts";
-import { ASK_INDEX_PATH, GUARD_MODEL, GUARD_PATH, GUARD_REPLY, PICK_TOOL } from "../../src/worker/constants.ts";
+import {
+  ASK_GUARD_PATH,
+  ASK_GUARD_REPLY,
+  ASK_INDEX_PATH,
+  LLAMA_GUARD_MODEL,
+  PICK_TOOL_NAME,
+  VISITOR_ADDRESS_HEADER,
+} from "../../src/worker/constants.ts";
 import type { Env } from "../../src/worker/env.ts";
 import worker from "../../src/worker/index.ts";
 
@@ -93,9 +100,9 @@ export type Call = { model: string; input: ModelInput };
 type Run = (model: string, input: ModelInput) => unknown;
 
 /** "ok <left>", as AskGuard says it to /take. */
-export const okLeft = (left: number) => `${GUARD_REPLY.ok} ${left}`;
+export const okLeft = (left: number) => `${ASK_GUARD_REPLY.ok} ${left}`;
 
-// The AskGuard object: what /take says (okLeft(), one of GUARD_REPLY, or
+// The AskGuard object: what /take says (okLeft(), one of ASK_GUARD_REPLY, or
 // "down" when it can't be reached; /block and /spend get "ok"), and the
 // requests it got.
 export type GuardStub = {
@@ -113,7 +120,7 @@ export function guardStub(says = okLeft(25), status = 200): GuardStub {
         if (says === "down") throw new Error("Durable Object unavailable");
         stub.last = { id, options };
         stub.requests.push(new URL(url));
-        return new Response(new URL(url).pathname === GUARD_PATH.take ? says : GUARD_REPLY.ok, { status });
+        return new Response(new URL(url).pathname === ASK_GUARD_PATH.take ? says : ASK_GUARD_REPLY.ok, { status });
       },
     }),
   };
@@ -128,7 +135,7 @@ export const guardRequest = (guard: GuardStub, path: string) => guard.requests.f
 export const models =
   (pick: unknown, guard: unknown = { response: "safe" }): Run =>
   (model) => {
-    if (model !== GUARD_MODEL) return pick;
+    if (model !== LLAMA_GUARD_MODEL) return pick;
     if (guard instanceof Error) throw guard;
     return guard;
   };
@@ -206,13 +213,13 @@ export function stubs({
     AI: {
       run: async (name: string, input: ModelInput) => {
         // The writer is the call to the picker's model with no tool.
-        if (name !== GUARD_MODEL && !input.tools) {
+        if (name !== LLAMA_GUARD_MODEL && !input.tools) {
           writeCalls.push({ model: name, input });
           const said = writes[Math.min(writeCalls.length, writes.length) - 1];
           if (said instanceof Error) throw said;
           return said;
         }
-        (name === GUARD_MODEL ? guardCalls : calls).push({ model: name, input });
+        (name === LLAMA_GUARD_MODEL ? guardCalls : calls).push({ model: name, input });
         return run(name, input);
       },
     },
@@ -230,7 +237,10 @@ export const toolCall = (id: string, sentences?: unknown, thinking?: unknown) =>
     {
       message: {
         tool_calls: [
-          { type: "function", function: { name: PICK_TOOL, arguments: JSON.stringify({ thinking, id, sentences }) } },
+          {
+            type: "function",
+            function: { name: PICK_TOOL_NAME, arguments: JSON.stringify({ thinking, id, sentences }) },
+          },
         ],
       },
     },
@@ -260,7 +270,7 @@ export const ask = (
     env,
     new Request(url, {
       method,
-      headers: { "Content-Type": type, "CF-Connecting-IP": ADDRESS, ...headers },
+      headers: { "Content-Type": type, [VISITOR_ADDRESS_HEADER]: ADDRESS, ...headers },
       body: method === "POST" ? (typeof body === "string" ? body : JSON.stringify(body)) : undefined,
     }),
   );

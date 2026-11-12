@@ -1,6 +1,8 @@
 /* Whether the answer the model picked covers what was asked: a question
    that names something specific (a tool, a company, a place: "Vercel",
-   "AWS", "Google") is answered only by an answer that names it too. */
+   "AWS", "Google") is answered only by an answer that names it too. One
+   that doesn't is not shown (handler.ts): it would read as a "no" the site
+   never said. */
 
 import type { AskAnswer } from "../../shared/ask.ts";
 
@@ -18,53 +20,67 @@ const PLAIN_WORDS = new Set(
 );
 
 // A word as it's written in a question or an answer: letters and digits,
-// and the dots, dashes, pluses and hashes inside names ("Node.js", "C#").
+// and the dots, dashes, pluses and hashes inside names ("Node.js", "C#",
+// "front-end", "Alex's").
 const WORD = /[\p{Script=Latin}\p{N}](?:[\p{Script=Latin}\p{N}+#]|[.'’-](?=[\p{Script=Latin}\p{N}]))*/gu;
 
-const lower = (word: string) => word.toLowerCase().replace(/['’]s$/, "");
+// A word as it's compared: in lower case, and without a possessive ending
+// ("Alex's" as "alex").
+const comparable = (word: string) => word.toLowerCase().replace(/['’]s$/, "");
 
-// The first word of a sentence: at the start, or after a full stop,
-// question or exclamation mark (and any opening quote or bracket).
-const startsSentence = (text: string, index: number) => /(?:^|[.!?。？！]\s*)["'“‘(（「]*$/.test(text.slice(0, index));
+// What comes before the first word of a sentence: the text's start, or a
+// full stop, question or exclamation mark, then any opening quote or
+// bracket. Matches `He said. "` before the Why in `He said. "Why?"`.
+const SENTENCE_START = /(?:^|[.!?。？！]\s*)["'“‘(（「]*$/;
+
+// Whether the word at `index` is the first of a sentence.
+const startsSentence = (text: string, index: number) => SENTENCE_START.test(text.slice(0, index));
+
+/** The shortest word that can name something: a single letter never does. */
+const MIN_NAME_LENGTH = 2;
 
 /** The specific things a question names: a word with a capital after its
     first letter ("AWS", "GraphQL", "iOS"), a word with letters and digits
     ("S3", "ES6"), or a capitalised word that doesn't just start a sentence
     ("Vercel" in "Does he use Vercel?"), but not the owner's name or words
-    any question starts with. Lower case is read as plain words. */
+    any question starts with. Lower case is read as plain words. Each comes
+    back as it's compared (`comparable`). */
 export function namedIn(question: string, owner: string): string[] {
-  const own = new Set(
+  const ownerWords = new Set(
     owner
       .split(/[\s・]+/)
       .filter(Boolean)
-      .map(lower),
+      .map(comparable),
   );
+  const text = question.normalize("NFKC");
   const named = new Set<string>();
-  for (const match of question.normalize("NFKC").matchAll(WORD)) {
+  for (const match of text.matchAll(WORD)) {
     const word = match[0];
-    const key = lower(word);
-    if (key.length < 2 || own.has(key) || PLAIN_WORDS.has(key)) continue;
-    const capitalInside = /\p{Lu}/u.test(word.slice(1));
-    const lettersAndDigits = /\p{L}/u.test(word) && /\p{N}/u.test(word);
-    const capitalised = /^\p{Lu}/u.test(word) && !startsSentence(question.normalize("NFKC"), match.index);
-    if (capitalInside || lettersAndDigits || capitalised) named.add(key);
+    const term = comparable(word);
+    if (term.length < MIN_NAME_LENGTH || ownerWords.has(term) || PLAIN_WORDS.has(term)) continue;
+    const hasCapitalInside = /\p{Lu}/u.test(word.slice(1));
+    const hasLettersAndDigits = /\p{L}/u.test(word) && /\p{N}/u.test(word);
+    const isCapitalisedMidSentence = /^\p{Lu}/u.test(word) && !startsSentence(text, match.index);
+    if (hasCapitalInside || hasLettersAndDigits || isCapitalisedMidSentence) named.add(term);
   }
   return [...named];
 }
 
-type Answer = Pick<AskAnswer, "text" | "title" | "q">;
+/** What of an answer may name what a question does: its text, its tab's
+    name and its own question. */
+type AnswerWords = Pick<AskAnswer, "text" | "title" | "q">;
 
-// All an answer says of itself: its text, its tab's name and its question.
-const textOf = ({ text, title, q }: Answer) => [text, title, q].join("\n").normalize("NFKC");
+// All an answer says of itself, as one text.
+const everythingSaid = ({ text, title, q }: AnswerWords) => [text, title, q].join("\n").normalize("NFKC");
 
-// The words an answer has, in lower case, and their parts ("node.js" also
-// as "node" and "js").
-function wordsOf(text: string): Set<string> {
+// The words a text has, as they're compared, and their parts ("node.js"
+// also as "node" and "js").
+function wordsIn(text: string): Set<string> {
   const words = new Set<string>();
   for (const [word] of text.matchAll(WORD)) {
-    const key = lower(word);
-    words.add(key);
-    for (const part of key.split(/[.-]/)) if (part) words.add(part);
+    const whole = comparable(word);
+    words.add(whole);
+    for (const part of whole.split(/[.-]/)) if (part) words.add(part);
   }
   return words;
 }
@@ -77,14 +93,16 @@ const SAME_THING_ENDINGS = ["s", "es", "js", "ql", "sql"];
 
 // A name without the dots and dashes some write in it: "nodejs" for
 // "Node.js", "frontend" for "front-end".
-const plain = (word: string) => word.replace(/[.-]/g, "");
+const withoutDotsAndDashes = (word: string) => word.replace(/[.-]/g, "");
 
-// Whether the answer's word names what the question's term does.
-const same = (term: string, word: string): boolean =>
-  word === term ||
-  plain(word) === plain(term) ||
-  term.replace(/s$/, "") === word ||
-  SAME_THING_ENDINGS.some((ending) => word === `${term}${ending}`);
+// Whether a word of the answer's names what the question's term does: the
+// same word, the same without its dots and dashes, the term's singular
+// ("worker" for "workers"), or the term with one of SAME_THING_ENDINGS.
+const namesSameThing = (term: string, answerWord: string): boolean =>
+  answerWord === term ||
+  withoutDotsAndDashes(answerWord) === withoutDotsAndDashes(term) ||
+  term.replace(/s$/, "") === answerWord ||
+  SAME_THING_ENDINGS.some((ending) => answerWord === `${term}${ending}`);
 
 // Short forms a visitor may use for what an answer spells out: a short
 // list, to add to when the eval shows a miss.
@@ -106,14 +124,15 @@ const SPELLED_OUT: Record<string, string[]> = {
 
 /** Whether `answer` (its text, question and tab) names everything the
     question does. A question that names nothing is covered by any answer. */
-export function covers(answer: Answer, question: string, owner: string): boolean {
-  const named = namedIn(question, owner);
-  if (!named.length) return true;
-  const text = textOf(answer);
-  const words = [...wordsOf(text)];
-  const lowered = text.toLowerCase();
-  return named.every(
+export function covers(answer: AnswerWords, question: string, owner: string): boolean {
+  const namedTerms = namedIn(question, owner);
+  if (!namedTerms.length) return true;
+  const answerText = everythingSaid(answer);
+  const answerWords = [...wordsIn(answerText)];
+  const answerTextLowered = answerText.toLowerCase();
+  return namedTerms.every(
     (term) =>
-      words.some((word) => same(term, word)) || (SPELLED_OUT[term] ?? []).some((long) => lowered.includes(long)),
+      answerWords.some((answerWord) => namesSameThing(term, answerWord)) ||
+      (SPELLED_OUT[term] ?? []).some((spelledOut) => answerTextLowered.includes(spelledOut)),
   );
 }

@@ -6,31 +6,42 @@ import { browserFollows, external, spans } from "../../shared/markdown.ts";
 import type { Span } from "../../shared/markdown.ts";
 import { make } from "./dom.ts";
 
-// A leading emoji (and the variation selector that can follow it).
-const EMOJI = /^(\p{Extended_Pictographic}️?)\s*/u;
+/** What an element is given to hold: elements, and plain text. */
+type Children = Array<Node | string>;
+
+// An emoji at the start of a line (with the variation selector, U+FE0F,
+// that can follow it) and the space after it: the "🎸 " of "🎸 Plays
+// guitar". Its first group is the emoji alone.
+const LEADING_EMOJI = /^(\p{Extended_Pictographic}\uFE0F?)\s*/u;
 
 /** A line's words, code, bold, italic and links. */
-export const rich = (text: Markdown): Array<Node | string> => spans(text).flatMap(nodes);
+export const rich = (text: Markdown): Children => spans(text).flatMap(renderSpan);
 
-function nodes(span: Span): Array<Node | string> {
+/** One piece of a line: its words as they are, or the element for it. */
+function renderSpan(span: Span): Children {
   if (typeof span === "string") return [span];
   if (span.type === "code") return [make("code", {}, span.text)];
-  const inner = span.spans.flatMap(nodes);
-  if (span.type !== "link") return [make(span.type, {}, ...inner)];
-  return browserFollows(span.href) ? [make("a", { href: span.href, ...external(span.href) }, ...inner)] : inner;
+  const inside = span.spans.flatMap(renderSpan);
+  if (span.type !== "link") return [make(span.type, {}, ...inside)];
+  return browserFollows(span.href) ? [make("a", { href: span.href, ...external(span.href) }, ...inside)] : inside;
 }
 
 /** A line. A leading emoji is decoration: screen readers skip it. */
-export function line(text: Markdown): Array<Node | string> {
-  const emoji = text.match(EMOJI);
-  if (!emoji) return rich(text);
-  return [make("span", { "aria-hidden": "true" }, emoji[1] ?? ""), " ", ...rich(text.slice(emoji[0].length))];
+export function renderLine(text: Markdown): Children {
+  const leading = text.match(LEADING_EMOJI);
+  if (!leading) return rich(text);
+  const [emojiAndSpace, emoji = ""] = leading;
+  return [make("span", { "aria-hidden": "true" }, emoji), " ", ...rich(text.slice(emojiAndSpace.length))];
 }
 
 /** A paragraph, or a list of lines. A list whose items all start with an
     emoji drops its bullets. */
-export function block(part: Markdown | Markdown[]): HTMLElement {
-  if (!Array.isArray(part)) return make("p", {}, ...line(part));
-  const plain = part.every((item) => EMOJI.test(item));
-  return make("ul", { class: plain ? "plain" : null }, ...part.map((item) => make("li", {}, ...line(item))));
+export function renderBlock(part: Markdown | Markdown[]): HTMLElement {
+  if (!Array.isArray(part)) return make("p", {}, ...renderLine(part));
+  const everyLineStartsWithEmoji = part.every((line) => LEADING_EMOJI.test(line));
+  return make(
+    "ul",
+    { class: everyLineStartsWithEmoji ? "plain" : null },
+    ...part.map((line) => make("li", {}, ...renderLine(line))),
+  );
 }

@@ -75,12 +75,26 @@ export const CLASS = {
   show: "show",
   /** The line under a reply: the tab it's from, or the questions left. */
   from: "from",
-  /** Under a typed question, the reply /ask sent (src/shared/ask.ts). */
+  /** Under a typed question, the reply /ask sent (src/shared/ask.ts), and
+      under that the site's own lines it was written from. */
   reply: "reply",
+  cited: "cited",
   /** The goodbye "Log out" shows: its contact links, and "Log back in". */
   bye: "bye",
   byeLinks: "bye-links",
   byeBack: "bye-back",
+  /** The viewer (viewer.ts): the panel, its bar, the name of what it shows,
+      its "Open in a new tab" and "Close" buttons, and where its frame goes;
+      on the shell while it's open; on the frame's place until its page has
+      loaded. */
+  viewer: "viewer",
+  viewerBar: "viewer-bar",
+  viewerTitle: "viewer-title",
+  viewerOpen: "viewer-open",
+  viewerClose: "viewer-close",
+  viewerFrame: "viewer-frame",
+  viewing: "viewing",
+  viewerLoading: "loading",
 } as const;
 
 const has = (attribute: string) => `[${attribute}]`;
@@ -172,6 +186,9 @@ export const SELECTOR = {
   rowMeta: `.${PAGE_CLASSES.rowMeta}`,
   languageLink: has(DATA.langLink),
   logout: has(DATA.logout),
+
+  // A link that opens in the viewer.
+  viewLink: `a${has(DATA.view)}`,
 } as const;
 
 /** In milliseconds. */
@@ -220,4 +237,7 @@ export const SIZE = {
       renamed (both in characters). */
   nameMax: 60,
   nameBox: 6,
+  /** From this width the viewer is beside the conversation, in the panel's
+      place; below it, it covers the screen (the stylesheet's breakpoint). */
+  viewerBeside: 1200,
 } as const;

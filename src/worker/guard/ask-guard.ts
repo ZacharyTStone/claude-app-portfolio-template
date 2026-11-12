@@ -2,40 +2,81 @@
    Neurons the site's have cost, and the visitors blocked. The site has one,
    and it handles one request at a time, so the counts are exact. client.ts
    says what it answers. */
-import { isRecord } from "../../shared/guards.ts";
+import { chunk } from "es-toolkit";
+import * as v from "valibot";
 import {
-  DELETE_BATCH,
-  GUARD_KEYS,
-  GUARD_PATH,
-  GUARD_REPLY,
+  ASK_GUARD_KEYS,
+  ASK_GUARD_PATH,
+  ASK_GUARD_REPLY,
+  MAX_KEYS_PER_DELETE,
+  MS_PER_HOUR,
   type BlockQuery,
   type SpendQuery,
   type TakeQuery,
 } from "../constants.ts";
 import { positiveNumber } from "../lib/shape.ts";
 
-type SiteCount = { day: string; used: number; neurons?: number };
-type VisitorCount = { day: string; asked: number };
+// ---- What it keeps (ASK_GUARD_KEYS has the keys) -----------------------------------
 
-const isSiteCount = (value: unknown, day: string): value is SiteCount =>
-  isRecord(value) &&
-  value.day === day &&
-  typeof value.used === "number" &&
-  (value.neurons === undefined || typeof value.neurons === "number");
-const isVisitorCount = (value: unknown, day: string): value is VisitorCount =>
-  isRecord(value) && value.day === day && typeof value.asked === "number";
-const holds = (until: unknown, now: number) => typeof until === "number" && until > now;
+/** Under `today`: the site's questions on one day. */
+const SiteCountSchema = v.object({
+  /** The day (UTC) the count is for: "2026-01-31". */
+  day: v.string(),
+  /** How many questions went to the model that day. */
+  used: v.number(),
+  /** What they cost, in Neurons. A count stored before costs were counted
+      has none, and reads as 0. */
+  neurons: v.optional(v.number()),
+});
+type SiteCount = v.InferOutput<typeof SiteCountSchema>;
 
-const countKey = (who: string) => `${GUARD_KEYS.count}${who}`;
-const blockKey = (who: string) => `${GUARD_KEYS.block}${who}`;
+/** Under `count:` and a visitor's hash: that visitor's questions on one day. */
+const VisitorCountSchema = v.object({
+  /** The day (UTC) the count is for. */
+  day: v.string(),
+  /** How many questions they asked that day. */
+  asked: v.number(),
+});
+type VisitorCount = v.InferOutput<typeof VisitorCountSchema>;
 
-const HOUR = 3_600_000;
+// What's stored, if it's the site's count for `day`. A count for another
+// day, or anything else, is none: the day starts from 0.
+const siteCountOn = (day: string, stored: unknown): SiteCount | undefined =>
+  v.is(SiteCountSchema, stored) && stored.day === day ? stored : undefined;
+
+// The same for one visitor's count.
+const visitorCountOn = (day: string, stored: unknown): VisitorCount | undefined =>
+  v.is(VisitorCountSchema, stored) && stored.day === day ? stored : undefined;
+
+// Under `block:` and a visitor's hash is when their block runs out (ms
+// since 1970): whether what's stored is a time still to come.
+const isStillBlocked = (blockedUntil: unknown, now: number) => typeof blockedUntil === "number" && blockedUntil > now;
+
+const countKey = (visitorHash: string) => `${ASK_GUARD_KEYS.count}${visitorHash}`;
+const blockKey = (visitorHash: string) => `${ASK_GUARD_KEYS.block}${visitorHash}`;
 
 // The day (UTC) a moment is in: "2026-01-31".
 const dayOf = (now: number) => new Date(now).toISOString().slice(0, 10);
 
-const badRequest = () => new Response("bad request", { status: 400 });
+// ---- What it's asked ---------------------------------------------------------------
 
+/** The day's allowances, as a /take request gives them. */
+type DayLimits = {
+  /** The most questions the whole site may be asked today. */
+  siteLimit: number;
+  /** The most one visitor may ask today. */
+  visitorLimit: number;
+  /** The most Neurons the day's questions may cost. */
+  neuronBudget: number;
+};
+
+type QueryName = keyof TakeQuery | keyof BlockQuery | keyof SpendQuery;
+
+const ok = () => new Response(ASK_GUARD_REPLY.ok);
+const badRequest = () => new Response("bad request", { status: 400 });
+const notFound = () => new Response("not found", { status: 404 });
+
+/** The Durable Object that keeps the day's counts and the blocks. */
 export class AskGuard implements DurableObject {
   private readonly storage: DurableObjectStorage;
 
@@ -45,76 +86,95 @@ export class AskGuard implements DurableObject {
 
   async fetch(request: Request): Promise<Response> {
     const url = new URL(request.url);
-    const query = (name: keyof TakeQuery | keyof BlockQuery | keyof SpendQuery) => url.searchParams.get(name);
+    const query = (name: QueryName) => url.searchParams.get(name);
     const now = Date.now();
-    if (url.pathname === GUARD_PATH.spend) {
-      const amount = positiveNumber(query("neurons"));
-      if (amount === null) return badRequest();
-      await this.spend(amount, now);
-      return new Response(GUARD_REPLY.ok);
+    if (url.pathname === ASK_GUARD_PATH.spend) {
+      const neurons = positiveNumber(query("neurons"));
+      if (neurons === null) return badRequest();
+      await this.spendNeurons(neurons, now);
+      return ok();
     }
-    const who = query("who");
-    if (!who) return badRequest();
-    if (url.pathname === GUARD_PATH.block) {
+    const visitorHash = query("who");
+    if (!visitorHash) return badRequest();
+    if (url.pathname === ASK_GUARD_PATH.block) {
       const hours = positiveNumber(query("hours"));
       if (hours === null) return badRequest();
-      await this.storage.put(blockKey(who), now + hours * HOUR);
-      return new Response(GUARD_REPLY.ok);
+      await this.storage.put(blockKey(visitorHash), now + hours * MS_PER_HOUR);
+      return ok();
     }
-    if (url.pathname === GUARD_PATH.take) {
-      const limit = positiveNumber(query("limit"));
-      const each = positiveNumber(query("each"));
+    if (url.pathname === ASK_GUARD_PATH.take) {
+      const siteLimit = positiveNumber(query("limit"));
+      const visitorLimit = positiveNumber(query("each"));
       // A request without a budget has none, as before there was one.
-      const budget = query("budget") === null ? Infinity : positiveNumber(query("budget"));
-      if (limit === null || each === null || budget === null) return badRequest();
-      return new Response(await this.take(who, { limit, each, budget }, now));
+      const neuronBudget = query("budget") === null ? Infinity : positiveNumber(query("budget"));
+      if (siteLimit === null || visitorLimit === null || neuronBudget === null) return badRequest();
+      return new Response(await this.takeQuestion(visitorHash, { siteLimit, visitorLimit, neuronBudget }, now));
     }
-    return new Response("not found", { status: 404 });
+    return notFound();
   }
 
-  private async take(
-    who: string,
-    { limit, each, budget }: { limit: number; each: number; budget: number },
+  // Counts one question against the site's day and the visitor's, unless
+  // the visitor is blocked or either allowance is used up. What it returns
+  // is the reply to /take: "ok" and how many the visitor has left, or
+  // which of those stopped it.
+  private async takeQuestion(
+    visitorHash: string,
+    { siteLimit, visitorLimit, neuronBudget }: DayLimits,
     now: number,
   ): Promise<string> {
-    const until = await this.storage.get(blockKey(who));
-    if (holds(until, now)) return GUARD_REPLY.blocked;
-    if (until !== undefined) await this.storage.delete(blockKey(who));
+    if (await this.isBlocked(visitorHash, now)) return ASK_GUARD_REPLY.blocked;
     const day = dayOf(now);
-    const today = await this.storage.get(GUARD_KEYS.today);
-    if (today !== undefined && !isSiteCount(today, day)) await this.forget(now);
-    const used = isSiteCount(today, day) ? today.used : 0;
-    const neurons = isSiteCount(today, day) ? (today.neurons ?? 0) : 0;
+    const { used, neurons } = await this.siteCountFor(day, now);
     // The budget is checked before a question and counted after it, so the
     // questions on their way when it's reached take the day a little past.
-    if (used >= limit || neurons >= budget) return GUARD_REPLY.spent;
-    const theirs = await this.storage.get(countKey(who));
-    const asked = isVisitorCount(theirs, day) ? theirs.asked : 0;
-    if (asked >= each) return GUARD_REPLY.limited;
-    await this.storage.put(GUARD_KEYS.today, { day, used: used + 1, neurons } satisfies SiteCount);
-    await this.storage.put(countKey(who), { day, asked: asked + 1 } satisfies VisitorCount);
-    return `${GUARD_REPLY.ok} ${each - asked - 1}`;
+    if (used >= siteLimit || neurons >= neuronBudget) return ASK_GUARD_REPLY.spent;
+    const asked = visitorCountOn(day, await this.storage.get(countKey(visitorHash)))?.asked ?? 0;
+    if (asked >= visitorLimit) return ASK_GUARD_REPLY.limited;
+    await this.storage.put(ASK_GUARD_KEYS.today, { day, used: used + 1, neurons } satisfies SiteCount);
+    await this.storage.put(countKey(visitorHash), { day, asked: asked + 1 } satisfies VisitorCount);
+    return `${ASK_GUARD_REPLY.ok} ${visitorLimit - asked - 1}`;
+  }
+
+  // Whether the visitor's block still holds. One that has run out is
+  // deleted.
+  private async isBlocked(visitorHash: string, now: number): Promise<boolean> {
+    const blockedUntil = await this.storage.get(blockKey(visitorHash));
+    if (isStillBlocked(blockedUntil, now)) return true;
+    if (blockedUntil !== undefined) await this.storage.delete(blockKey(visitorHash));
+    return false;
+  }
+
+  // The site's questions on `day` so far, and what they've cost. When
+  // what's stored is an earlier day's, that day is over: its counts are
+  // deleted, and this one starts from nothing.
+  private async siteCountFor(day: string, now: number): Promise<Required<SiteCount>> {
+    const stored = await this.storage.get(ASK_GUARD_KEYS.today);
+    const count = siteCountOn(day, stored);
+    if (count) return { day, used: count.used, neurons: count.neurons ?? 0 };
+    if (stored !== undefined) await this.deleteWhatHasRunOut(now);
+    return { day, used: 0, neurons: 0 };
   }
 
   // Adds a question's cost to the day it was asked on. One asked just before
   // midnight and counted just after belongs to neither day, and is dropped.
-  private async spend(amount: number, now: number): Promise<void> {
-    const today = await this.storage.get(GUARD_KEYS.today);
-    if (!isSiteCount(today, dayOf(now))) return;
-    await this.storage.put(GUARD_KEYS.today, {
+  private async spendNeurons(neurons: number, now: number): Promise<void> {
+    const today = siteCountOn(dayOf(now), await this.storage.get(ASK_GUARD_KEYS.today));
+    if (!today) return;
+    await this.storage.put(ASK_GUARD_KEYS.today, {
       ...today,
-      neurons: (today.neurons ?? 0) + amount,
+      neurons: (today.neurons ?? 0) + neurons,
     } satisfies SiteCount);
   }
 
-  // Every visitor's count (all from an earlier day), and the blocks that
-  // have run out.
-  private async forget(now: number): Promise<void> {
-    const counts = [...(await this.storage.list({ prefix: GUARD_KEYS.count })).keys()];
-    const blocks = [...(await this.storage.list({ prefix: GUARD_KEYS.block }))]
-      .filter(([, until]) => !holds(until, now))
+  // Deletes every visitor's count (all from an earlier day), and the blocks
+  // that have run out.
+  private async deleteWhatHasRunOut(now: number): Promise<void> {
+    const visitorCounts = [...(await this.storage.list({ prefix: ASK_GUARD_KEYS.count })).keys()];
+    const expiredBlocks = [...(await this.storage.list({ prefix: ASK_GUARD_KEYS.block }))]
+      .filter(([, blockedUntil]) => !isStillBlocked(blockedUntil, now))
       .map(([key]) => key);
-    const stale = [...counts, ...blocks];
-    for (let i = 0; i < stale.length; i += DELETE_BATCH) await this.storage.delete(stale.slice(i, i + DELETE_BATCH));
+    for (const keys of chunk([...visitorCounts, ...expiredBlocks], MAX_KEYS_PER_DELETE)) {
+      await this.storage.delete(keys);
+    }
   }
 }

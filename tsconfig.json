@@ -18,6 +18,7 @@
     "src/integrations",
     "src/shared",
     "scripts",
+    "diagrams",
     "tests"
   ],
   // Checked with the Workers types, by src/worker/tsconfig.test.json.

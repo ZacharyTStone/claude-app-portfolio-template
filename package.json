@@ -17,6 +17,7 @@
     "test:browser": "node tests/browser/run.ts",
     "fonts": "node scripts/fonts.ts",
     "fonts:check": "node scripts/fonts.ts --check",
+    "diagrams": "node scripts/diagrams.ts",
     "format": "prettier --write \"**/*.{ts,json,astro}\"",
     "lint": "prettier --check \"**/*.{ts,json,astro}\"",
     "lint:html": "html-validate dist"
@@ -31,5 +32,10 @@
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
     "typescript": "6.0.3"
+  },
+  "dependencies": {
+    "es-toolkit": "1.53.2",
+    "ipaddr.js": "2.5.0",
+    "valibot": "1.5.0"
   }
 }

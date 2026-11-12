@@ -1,10 +1,11 @@
 ---
 /* Steps in order: a box each, and (in the stylesheet) an arrow from each
-   to the next. */
+   to the next. Styles: src/styles/figures.css. */
 import type { Flow } from "../shared/content.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 
 interface Props {
+  /** The figure, as an answer's `flow` block has it. */
   flow: Flow;
 }
 const { title, steps } = Astro.props.flow;
@@ -13,10 +14,10 @@ const { title, steps } = Astro.props.flow;
 <figure class={`${PAGE_CLASSES.figure} flow`}>
   <figcaption>{title}</figcaption>
   <ol>
-    {steps.map(({ name, note }) => (
+    {steps.map((step) => (
       <li>
-        <b>{name}</b>
-        {note && <span>{note}</span>}
+        <b>{step.name}</b>
+        {step.note && <span>{step.note}</span>}
       </li>
     ))}
   </ol>

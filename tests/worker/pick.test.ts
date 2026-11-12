@@ -5,15 +5,16 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AskIndex } from "../../src/shared/ask.ts";
-import { MAX_THOUGHT_LENGTH, readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
-import { MAX_QUOTED } from "../../src/worker/ask/quote.ts";
+import { readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
 import {
   DEFAULT_MODEL,
   INAPPROPRIATE,
   MAX_PICK_TOKENS,
   MAX_PLAIN_PICK_TOKENS,
+  MAX_QUOTED_LINES,
+  MAX_THOUGHT_LENGTH,
   NONE,
-  PICK_TOOL,
+  PICK_TOOL_NAME,
 } from "../../src/worker/constants.ts";
 import {
   EN,
@@ -51,14 +52,14 @@ test("a pick comes back as its id, from the model the settings name", async () =
   assert.deepEqual(input.chat_template_kwargs, { enable_thinking: false });
 });
 
-test("pick_answer takes its thinking first, then the id and at most MAX_QUOTED line numbers, and must be given all three", async () => {
+test("pick_answer takes its thinking first, then the id and at most MAX_QUOTED_LINES line numbers, and must be given all three", async () => {
   const { env, calls } = stubs();
   await ask(env, { question: "who?", lang: "en" });
   const parameters = toolParameters(calls);
   assert.deepEqual(Object.keys(parameters?.properties ?? {}), ["thinking", "id", "sentences"]);
   assert.equal(parameters?.properties.thinking.type, "string");
   assert.equal(parameters?.properties.sentences.type, "array");
-  assert.equal(parameters?.properties.sentences.maxItems, MAX_QUOTED);
+  assert.equal(parameters?.properties.sentences.maxItems, MAX_QUOTED_LINES);
   assert.deepEqual(parameters?.required, ["thinking", "id", "sentences"]);
 });
 
@@ -204,7 +205,7 @@ test("the model failing (or over the day's allowance) is null, not an error", as
 });
 
 test("readToolCall reads both shapes of a tool call, with its line numbers and its thinking", () => {
-  const flat = { tool_calls: [{ name: PICK_TOOL, arguments: { id: "notes.2", sentences: [1] } }] };
+  const flat = { tool_calls: [{ name: PICK_TOOL_NAME, arguments: { id: "notes.2", sentences: [1] } }] };
   assert.deepEqual(readToolCall(flat), { id: "notes.2", sentences: [1], thought: undefined });
   assert.deepEqual(readToolCall(toolCall(" contact.1 ", [2], " By email. ")), {
     id: "contact.1",

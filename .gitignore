@@ -16,3 +16,6 @@ node_modules
 # Astro: what it builds, and its own cache
 dist
 .astro
+
+# Python: what it caches when a script is imported
+__pycache__

@@ -3,59 +3,87 @@
    how to reach them, and every answer, in the words /ask reads (answers.ts). */
 
 import type { AskAnswer } from "../shared/ask.ts";
-import type { PanelRow } from "../shared/config.ts";
-import type { Site } from "./site.ts";
+import type { SiteConfig } from "../shared/config.ts";
 import { plainAnswers } from "./answers.ts";
+import { panelRows } from "./panel.ts";
+import type { Site } from "./site.ts";
 
-// Each answer under its question, a paragraph for each of its blocks, the
-// questions under their tab's name (a thread's answers share one; a
-// personal answer has its own).
-function answered(answers: AskAnswer[]): string {
-  const parts: string[] = [];
-  let title: string | null = null;
-  for (const answer of answers) {
-    if (answer.title !== title) parts.push(`### ${answer.title}`);
-    title = answer.title;
-    parts.push(`**${answer.q}**`, ...answer.text.split("\n"));
-  }
-  return parts.join("\n\n");
+/** What sets one paragraph or heading of llms.txt apart from the next: an
+    empty line, as in Markdown. */
+const BLANK_LINE = "\n\n";
+
+/** A section of llms.txt: its heading, and what's under it. */
+const section = (heading: string, body: string): string => `## ${heading}${BLANK_LINE}${body}`;
+
+/** llms.txt, as the text of the file. It's in the main language, and the
+    same whether Ask is on or off. */
+export function llmsTxt(site: Site): string {
+  const { config, main } = site;
+  const links = panelLinks(site);
+  const everyAnswer = questionsAndAnswers(plainAnswers(site, main));
+  const parts = [
+    `# ${site.lang(main).meta.title}`,
+    `> ${config.llms.summary}`,
+    section("About", config.llms.about),
+    section("Pages", pageList(site)),
+    // A site whose panel links nowhere has no Links section.
+    ...(links.length ? [section("Links", links.join("\n"))] : []),
+    section("Contact", contactList(config.links)),
+    section(
+      "Questions and answers",
+      `Every question the site answers, with its answer as plain text.${BLANK_LINE}${everyAnswer}`,
+    ),
+  ];
+  return `${parts.join(BLANK_LINE)}\n`;
 }
 
-export function llms(site: Site): string {
-  const { config, codes, main } = site;
-  const { email, github, linkedin } = config.links;
-  const { panel, meta } = site.lang(main);
-  const contact = [`mailto:${email}`, github, linkedin];
-  // A link as an address of its own: one to a thread or a file on the site
-  // is under the site's.
-  const absolute = (href: string) =>
-    href.startsWith("#") ? site.url(main) + href : href.startsWith("/") ? site.address(href) : href;
-  // The details panel's links (the resume, a project's site), but for the
-  // contact links, which have their own section.
-  const rows: PanelRow[] = [...(panel.outputs?.rows ?? []), ...(panel.context?.rows ?? [])];
-  const links = rows.flatMap(({ label, meta, href }) =>
-    href && !contact.includes(href) ? [`- [${label}](${absolute(href)}): ${meta}`] : [],
-  );
-  return `# ${meta.title}
+/** Each language's page, a line each: "- [Portfolio (EN)](https://example.com/)". */
+const pageList = (site: Site): string =>
+  site.codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.url(code)})`).join("\n");
 
-> ${config.llms.summary}
+/** The details panel's links (the resume, a project's site), a line each,
+    but for the contact links, which have their own section. */
+function panelLinks(site: Site): string[] {
+  const { email, github, linkedin } = site.config.links;
+  const contactHrefs = [`mailto:${email}`, github, linkedin];
+  const links: string[] = [];
+  for (const { label, meta, href } of panelRows(site.lang(site.main).panel)) {
+    if (!href || contactHrefs.includes(href)) continue;
+    links.push(`- [${label}](${fullAddress(site, href)}): ${meta}`);
+  }
+  return links;
+}
 
-## About
+/** A link as an address of its own, for a reader with no page to follow it
+    from: a link to a thread ("#about") is under the main page's address, a
+    file on the site ("/resume.pdf") under the site's, and any other link
+    is a full address already. */
+function fullAddress(site: Site, href: string): string {
+  if (href.startsWith("#")) return site.url(site.main) + href;
+  if (href.startsWith("/")) return site.address(href);
+  return href;
+}
 
-${config.llms.about}
+/** How to reach the owner, a line each: the email, then the profiles the
+    config has. */
+function contactList({ email, github, linkedin }: SiteConfig["links"]): string {
+  const lines = [`- Email: ${email}`];
+  if (github) lines.push(`- GitHub: ${github}`);
+  if (linkedin) lines.push(`- LinkedIn: ${linkedin}`);
+  return lines.join("\n");
+}
 
-## Pages
-
-${codes.map((c) => `- [Portfolio (${c.toUpperCase()})](${site.url(c)})`).join("\n")}
-${links.length ? `\n## Links\n\n${links.join("\n")}\n` : ""}
-## Contact
-
-- Email: ${email}${github ? `\n- GitHub: ${github}` : ""}${linkedin ? `\n- LinkedIn: ${linkedin}` : ""}
-
-## Questions and answers
-
-Every question the site answers, with its answer as plain text.
-
-${answered(plainAnswers(site, main))}
-`;
+/** Every answer under its question (in bold), a paragraph for each of the
+    answer's lines, and the questions under their tab's name as a heading.
+    A thread's answers share a tab, so its name is written once, over the
+    first; a personal answer has a tab of its own. */
+function questionsAndAnswers(answers: AskAnswer[]): string {
+  const paragraphs: string[] = [];
+  let previousTitle: string | null = null;
+  for (const answer of answers) {
+    if (answer.title !== previousTitle) paragraphs.push(`### ${answer.title}`);
+    previousTitle = answer.title;
+    paragraphs.push(`**${answer.q}**`, ...answer.text.split("\n"));
+  }
+  return paragraphs.join(BLANK_LINE);
 }

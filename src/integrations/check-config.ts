@@ -1,29 +1,33 @@
 /* Checks the config before anything is built: every thread, icon and
    link it points at exists, and its languages match (src/site/validate.ts).
    A problem stops the build, and the message lists each one. */
-import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
 import type { SiteConfig } from "../shared/config.ts";
 import { makeSite } from "../site/site.ts";
-import { iconsIn, validate } from "../site/validate.ts";
+import { iconsIn, readStylesheet, STYLES_FOLDER } from "../site/stylesheet.ts";
+import { validate } from "../site/validate.ts";
 
-/** `name` is the config's file, for the message. */
-export function checkConfig(config: SiteConfig, name: string): AstroIntegration {
+/** The Astro integration that checks `config` as a build, or the dev
+    server, starts. `configFileName` is the config's file as it was named
+    ("site.config.ts"), which the message starts with. */
+export function checkConfig(config: SiteConfig, configFileName: string): AstroIntegration {
   return {
     name: "check-config",
     hooks: {
-      "astro:config:setup": ({ config: astro, logger }) => {
-        // The icons a config can name are the .i-* classes in the stylesheet.
-        const styles = fileURLToPath(new URL("src/styles", astro.root));
-        const css = readdirSync(styles)
-          .map((file) => readFileSync(join(styles, file), "utf8"))
-          .join("\n");
-        const { problems, notes } = validate(makeSite(config), iconsIn(css));
+      "astro:config:setup": ({ config: astroConfig, logger }) => {
+        const stylesFolder = join(fileURLToPath(astroConfig.root), STYLES_FOLDER);
+        const stylesheetIcons = iconsIn(readStylesheet(stylesFolder));
+        const { problems, notes } = validate(makeSite(config), stylesheetIcons);
         for (const note of notes) logger.warn(`${note}.`);
-        if (problems.length) throw new Error(`${name} has problems:\n- ${problems.join("\n- ")}`);
+        if (problems.length) throw new Error(problemsMessage(configFileName, problems));
       },
     },
   };
 }
+
+/** What the build prints as it stops: the config's file, then each problem
+    on a line of its own. */
+const problemsMessage = (configFileName: string, problems: string[]): string =>
+  `${configFileName} has problems:\n- ${problems.join("\n- ")}`;

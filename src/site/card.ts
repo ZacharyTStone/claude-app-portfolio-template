@@ -3,49 +3,77 @@
 
 import type { Card, CardValue } from "../shared/content.ts";
 
-/** One line as it's drawn: its key (a list's later lines have none), the
-    spaces before the value, the value and whether it's in the accent
-    colour, and its comment with the spaces before it. */
+/** One line of a card as it's drawn in the <pre>, left to right. */
 export type CardRow = {
+  /** The line's key, before its colon. A list's later lines have none. */
   key?: string;
+  /** The spaces before the value, which bring it to the values' column. */
   indent: string;
+  /** Whether the value is drawn in the accent colour. */
   accent: boolean;
+  /** The value: all of it, or one line of a list. */
   value: string;
+  /** The comment after the value, without its "#", if the line has one. */
   comment?: string;
+  /** The spaces between the value and the comment. */
   beforeComment: string;
 };
 
-// What shows on a key's own line: the value, a list's first line, or the accent.
-const shown = (value: CardValue): string =>
-  typeof value === "string" ? value : Array.isArray(value) ? (value[0] ?? "") : value.accent;
+/** The spaces between the longest key's colon and the values, when the card
+    doesn't set its own `gap`. */
+const DEFAULT_GAP = 1;
 
-const spaces = (n: number) => " ".repeat(n);
+/** The colon after a key takes one column. */
+const COLON_WIDTH = 1;
 
-export function cardRows({ lines, gap = 1 }: Card): CardRow[] {
-  // The values start `gap` spaces after the longest key and its colon.
-  const column = Math.max(...lines.map(([key]) => key.length + 1)) + gap;
-  // Comments line up when every value before one is plain ASCII, a column
-  // to a character. Wide characters (CJK) take two, so with any of those
-  // the comments just follow their value, two spaces on.
-  const commented = lines.filter(([, , comment]) => comment).map(([, value]) => shown(value));
-  const aligned = commented.every((value) => /^[\x20-\x7e]*$/.test(value));
-  const commentColumn = Math.max(0, ...commented.map((value) => value.length)) + 2;
+/** The spaces between a value and its comment: after the longest commented
+    value when the comments line up, after each value when they don't. */
+const COMMENT_GAP = 2;
+
+/** Only printable ASCII: "Acme, Inc.", and not "アクメ". */
+const ONLY_ASCII = /^[\x20-\x7e]*$/;
+
+const spaces = (count: number): string => " ".repeat(count);
+
+/** What shows on a key's own line: the value, a list's first line, or the
+    accented value. */
+function firstLineOf(value: CardValue): string {
+  if (typeof value === "string") return value;
+  if (Array.isArray(value)) return value[0] ?? "";
+  return value.accent;
+}
+
+/** A card's lines as they're drawn: a row for each line, and one more for
+    each later line of a list, under the list's first. */
+export function cardRows({ lines, gap = DEFAULT_GAP }: Card): CardRow[] {
+  // Every value starts in one column, `gap` spaces after the longest key and its colon.
+  const widestKeyAndColon = Math.max(...lines.map(([key]) => key.length + COLON_WIDTH));
+  const valueColumn = widestKeyAndColon + gap;
+
+  // The comments start in one column too, when every value before one is
+  // plain ASCII, a column to a character. Wide characters (CJK) take two, so
+  // with any of those each comment just follows its own value.
+  const commentedValues = lines.filter(([, , comment]) => comment).map(([, value]) => firstLineOf(value));
+  const commentsLineUp = commentedValues.every((value) => ONLY_ASCII.test(value));
+  const commentColumn = Math.max(0, ...commentedValues.map((value) => value.length)) + COMMENT_GAP;
 
   return lines.flatMap(([key, value, comment]) => {
-    const text = shown(value);
-    const first: CardRow = {
+    const firstLine = firstLineOf(value);
+    const keyRow: CardRow = {
       key,
-      indent: spaces(column - key.length - 1),
+      indent: spaces(valueColumn - key.length - COLON_WIDTH),
       accent: typeof value === "object" && !Array.isArray(value),
-      value: text,
+      value: firstLine,
       comment,
-      beforeComment: aligned ? spaces(Math.max(0, commentColumn - text.length)) : "  ",
+      beforeComment: spaces(commentsLineUp ? Math.max(0, commentColumn - firstLine.length) : COMMENT_GAP),
     };
-    // A list's other lines, under its first.
-    const rest = Array.isArray(value) ? value.slice(1) : [];
-    return [
-      first,
-      ...rest.map((more): CardRow => ({ indent: spaces(column), accent: false, value: more, beforeComment: "" })),
-    ];
+    const laterLines = Array.isArray(value) ? value.slice(1) : [];
+    const laterRows = laterLines.map((line): CardRow => ({
+      indent: spaces(valueColumn),
+      accent: false,
+      value: line,
+      beforeComment: "",
+    }));
+    return [keyRow, ...laterRows];
   });
 }

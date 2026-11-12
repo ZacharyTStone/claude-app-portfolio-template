@@ -1,10 +1,13 @@
 ---
 /* One language's page: the app's three columns (the sidebar, every tab,
    the details panel). Every tab is in the page, so it all works without
-   JavaScript; the script adds the rest. */
+   JavaScript; the script adds the rest. It hands the script what it needs
+   in three places: its wording as data-* attributes on <html>, the
+   question card as JSON, and the names in src/shared/page-data.ts.
+   Styles: src/styles/layout.css (the columns). */
 import Document from "../layouts/Document.astro";
 import { ASK_PATH } from "../shared/ask.ts";
-import { DATA, dataAttribute, PAGE_CLASSES, PAGE_IDS, SCRIPT_STRINGS } from "../shared/page-data.ts";
+import { ALL_SCRIPT_STRINGS, DATA, dataAttribute, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
 import { site } from "../site/current.ts";
 import { scriptJson } from "../site/script-json.ts";
 import { makePage } from "../site/site.ts";
@@ -22,17 +25,24 @@ interface Props {
 }
 const page = makePage(site, Astro.props.code);
 const { code, lang } = page;
-const { ask } = site.config;
-// The script's wording, one data-* attribute each, and where Ask is.
-const words = Object.fromEntries(SCRIPT_STRINGS.map((key) => [`data-${dataAttribute(key)}`, lang.strings[key]]));
-if (ask) words[DATA.ask] = site.link(ASK_PATH);
+const { strings } = lang;
+
+// What <html> carries for the script: its wording, one data-* attribute
+// each (an optional string the language doesn't have is left off), and
+// where /ask is, when Ask is on.
+const scriptAttributes: Record<string, string> = {};
+for (const key of ALL_SCRIPT_STRINGS) {
+  const wording = strings[key];
+  if (wording !== undefined) scriptAttributes[`data-${dataAttribute(key)}`] = wording;
+}
+if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
 ---
 
-<Document lang={code} dir={lang.dir} preload={lang.meta.preload} data={words}>
+<Document lang={code} dir={lang.dir} preload={lang.meta.preload} htmlAttributes={scriptAttributes}>
   <PageMeta slot="head" page={page} />
 
   <a class={PAGE_CLASSES.skip} href={`#${PAGE_IDS.main}`} data-js-only>
-    {lang.strings.skip}
+    {strings.skip}
   </a>
   <PrintHead page={page} />
 

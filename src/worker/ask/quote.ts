@@ -1,8 +1,9 @@
 /* The lines of a picked answer that say what was asked, chosen by number:
    a sentence of a paragraph, an item of a list, a row of a card, a figure.
-   A reply is written from them (write.ts) and checked against them
-   (grounded.ts); when none can be written, they're quoted as they are, the
-   owner's own words.
+   A reply is written from them (write.ts), its names and numbers checked
+   against them (grounded.ts), and they're sent with it as the lines it
+   cites; when none can be written, they're quoted as they are, the owner's
+   own words.
 
    A reply is read with nothing around it, so it has to make sense that way.
    A sentence that opens by pointing back at the one before it ("It shipped
@@ -10,13 +11,10 @@
    all (`neededFor`). */
 import { isLabel, isReplyText, MAX_REPLY_LENGTH } from "../../shared/ask.ts";
 import { isArrayOf, isCount } from "../../shared/guards.ts";
-
-/** The most lines the model may name for a reply. One that can't be read
-    without the sentence before it brings that along (`neededFor`). */
-export const MAX_QUOTED = 2;
+import { MAX_QUOTED_LINES } from "../constants.ts";
 
 /** Why a quote asked for wasn't sent: the numbers aren't a list of at most
-    MAX_QUOTED, one names no numbered line, the lines (and the ones they
+    MAX_QUOTED_LINES, one names no numbered line, the lines (and the ones they
     can't be read without) are the whole answer, which the page shows as it
     is, with no reply, or together they're too long; or one is a card's row,
     a list's item or a figure where only a sentence will do (`rows`). */
@@ -30,16 +28,28 @@ export type Quoted =
 
 const dropped = (check: QuoteCheck): Quoted => ({ outcome: "dropped", check });
 
-/** A piece of an answer's text: a sentence, or a line that isn't one (a
-    list's item, a card's row, a figure, a label, what's left of a paragraph
-    after its last sentence), and its number if it may be quoted. */
-export type Piece = { text: string; sentence: boolean; n?: number };
+/** A piece of an answer's text. */
+export type Piece = {
+  /** Its words, trimmed. */
+  text: string;
+  /** Whether it's a sentence. One that isn't is a list's item, a card's
+      row, a figure, a label, or what's left of a paragraph after its last
+      sentence. */
+  sentence: boolean;
+  /** The number the model names it by (from 1), if it may be quoted. */
+  n?: number;
+};
 
-const ENDS = new Set([".", "!", "?", "。", "！", "？"]);
+// ---- An answer's text, cut into pieces ---------------------------------------------
+
+// The marks a sentence ends with.
+const SENTENCE_ENDS = new Set([".", "!", "?", "。", "！", "？"]);
 // Japanese ends a sentence with no space after it; the others need one.
-const WIDE_ENDS = new Set(["。", "！", "？"]);
-const OPENS = new Set(["(", "（", "“", "「", "『"]);
-const CLOSES = new Set([")", "）", "”", "」", "』"]);
+const JAPANESE_ENDS = new Set(["。", "！", "？"]);
+// What opens a quote or a bracket, and what closes one. A full stop between
+// the two doesn't end the sentence they're in.
+const OPENING_MARKS = new Set(["(", "（", "“", "「", "『"]);
+const CLOSING_MARKS = new Set([")", "）", "”", "」", "』"]);
 // A full stop that ends a word, not a sentence: "e.g. React".
 const ABBREVIATION = /(?:^|[\s(（])(?:e\.g|i\.e|vs|cf|approx|Mr|Mrs|Ms|Dr|St|Jr|Sr)\.$/i;
 // A bracket just after a sentence belongs to it: "…the team.” (A coworker)".
@@ -60,55 +70,65 @@ export const piecesOf = (text: string): Piece[] =>
 // and brackets: in Japanese (。！？) right there, unless it closes a quote
 // the sentence goes on from; otherwise only before a space and something
 // other than a lower-case letter, and not after an abbreviation.
-function piecesOfLine(text: string): Piece[] {
+function piecesOfLine(line: string): Piece[] {
   const pieces: Piece[] = [];
-  const add = (piece: string, sentence: boolean) => {
-    if (piece.trim()) pieces.push({ text: piece.trim(), sentence });
+  const addPiece = (text: string, sentence: boolean) => {
+    if (text.trim()) pieces.push({ text: text.trim(), sentence });
   };
-  let start = 0;
-  let depth = 0;
-  for (let i = 0; i < text.length; i++) {
-    const char = text.charAt(i);
-    if (OPENS.has(char)) depth++;
-    else if (CLOSES.has(char)) depth = Math.max(0, depth - 1);
-    else if (ENDS.has(char)) {
-      const end = sentenceEnd(text, i, depth);
-      if (end === null) continue;
-      add(text.slice(start, end), true);
-      start = end;
-      depth = 0;
-      i = end - 1;
+  let sentenceStart = 0;
+  // How many quotes and brackets are open where `at` is.
+  let nesting = 0;
+  for (let at = 0; at < line.length; at++) {
+    const char = line.charAt(at);
+    if (OPENING_MARKS.has(char)) nesting++;
+    else if (CLOSING_MARKS.has(char)) nesting = Math.max(0, nesting - 1);
+    else if (SENTENCE_ENDS.has(char)) {
+      const sentenceEnd = sentenceEndAfter(line, at, nesting);
+      if (sentenceEnd === null) continue;
+      addPiece(line.slice(sentenceStart, sentenceEnd), true);
+      sentenceStart = sentenceEnd;
+      nesting = 0;
+      at = sentenceEnd - 1;
     }
   }
-  add(text.slice(start), false);
+  // What's left after the last sentence isn't one.
+  addPiece(line.slice(sentenceStart), false);
   return pieces;
 }
 
-// Where the sentence whose mark is at `i` ends, or null if it doesn't.
-function sentenceEnd(text: string, i: number, depth: number): number | null {
-  const quoted = depth > 0;
-  let end = i + 1;
-  for (; end < text.length; end++) {
-    const char = text.charAt(end);
-    if (CLOSES.has(char)) depth = Math.max(0, depth - 1);
-    else if (!ENDS.has(char)) break;
+// Where the sentence ends whose mark is at `markAt`, `nesting` quotes and
+// brackets deep: past the mark, any marks, quotes and brackets that close
+// with it, and a bracket that trails it. Null if the mark doesn't end a
+// sentence.
+function sentenceEndAfter(line: string, markAt: number, nesting: number): number | null {
+  const isInsideQuote = nesting > 0;
+  let stillOpen = nesting;
+  let end = markAt + 1;
+  for (; end < line.length; end++) {
+    const char = line.charAt(end);
+    if (CLOSING_MARKS.has(char)) stillOpen = Math.max(0, stillOpen - 1);
+    else if (!SENTENCE_ENDS.has(char)) break;
   }
-  if (depth > 0) return null;
-  const rest = text.slice(end);
-  const spaced = rest === "" || /^\s/.test(rest);
-  if (WIDE_ENDS.has(text.charAt(i))) {
+  // A quote or a bracket is still open: what it's in goes on.
+  if (stillOpen > 0) return null;
+  const rest = line.slice(end);
+  const isBeforeSpaceOrEnd = rest === "" || /^\s/.test(rest);
+  if (JAPANESE_ENDS.has(line.charAt(markAt))) {
     // "「好き。」と言った": the sentence goes on after the quote.
-    if (quoted && !spaced) return null;
-  } else if (!spaced || /^\s*\p{Ll}/u.test(rest) || ABBREVIATION.test(text.slice(0, i + 1))) return null;
+    if (isInsideQuote && !isBeforeSpaceOrEnd) return null;
+  } else {
+    const startsLowerCase = /^\s*\p{Ll}/u.test(rest);
+    if (!isBeforeSpaceOrEnd || startsLowerCase || ABBREVIATION.test(line.slice(0, markAt + 1))) return null;
+  }
   return end + (TRAILING_BRACKET.exec(rest)?.[0].length ?? 0);
 }
 
 // What an answer says itself: its pieces but for the labels.
-const said = (pieces: Piece[]) => pieces.filter(({ text }) => !isLabel(text));
+const ownLines = (pieces: Piece[]) => pieces.filter(({ text }) => !isLabel(text));
 
 // Words as a sentence starts with them: with a capital or without ("It",
 // "it"), never all in capitals ("IT was his first job.").
-const starting = (words: string) =>
+const asSentenceOpening = (words: string) =>
   words
     .split(" ")
     .map((word) => `[${word.charAt(0).toUpperCase()}${word.charAt(0)}]${word.slice(1)}`)
@@ -124,14 +144,16 @@ const starting = (words: string) =>
 // demonstrative that points at nothing said before: the site itself ("This
 // site runs on…"), "these days", "those who…".
 const THE_SITE = "(?! (?:site|page|portfolio)\\b)";
-const AFTER = starting(
+const PREPOSITIONS = asSentenceOpening(
   "about across after alongside among at before besides beyond by despite during for from in into like of on " +
     "onto over since through to under unlike until with within without",
 );
 const POINTS_BACK = [
   new RegExp(`^(?:[Ii]ts?|[Tt]his${THE_SITE}|[Tt]hat|[Tt]hese(?! days\\b)|[Tt]hose(?! who\\b))\\b`),
-  new RegExp(`^(?:${AFTER}) (?:this${THE_SITE}|that|these|those|it|them|then|there)\\b`),
-  new RegExp(`^(?:${starting("and but also then instead both however meanwhile otherwise")}|[Ss]o(?! far\\b))\\b`),
+  new RegExp(`^(?:${PREPOSITIONS}) (?:this${THE_SITE}|that|these|those|it|them|then|there)\\b`),
+  new RegExp(
+    `^(?:${asSentenceOpening("and but also then instead both however meanwhile otherwise")}|[Ss]o(?! far\\b))\\b`,
+  ),
   /^(?:[Ff]or (?:example|instance)|[Ii]n addition|[Aa]s a result)\b/,
   /^(?:これ(?!まで)|それ(?!ぞれ)|この(?!サイト|ページ|ポートフォリオ)|その|こうして|こうした|そこで|また、|さらに|そして|しかし|ただし|なお、|同時に|同様に|同じく|同社|加えて|あわせて|たとえば|例えば|つまり)/u,
 ];
@@ -169,14 +191,14 @@ function isQuotable(pieces: Piece[], at: number): boolean {
   const piece = pieces[at];
   if (!piece || isLabel(piece.text) || LEADS_IN.test(piece.text)) return false;
   const needed = neededFor(pieces, at);
-  return needed !== null && isReplyText(joined(needed.flatMap((i) => pieces[i] ?? [])));
+  return needed !== null && isReplyText(joinPieces(needed.flatMap((i) => pieces[i] ?? [])));
 }
 
 /** The answer's pieces, the ones that may be quoted numbered from 1. An
     answer that says one thing has nothing to quote. */
 export function numbered(text: string): Piece[] {
   const pieces = piecesOf(text);
-  if (said(pieces).length < 2) return pieces;
+  if (ownLines(pieces).length < 2) return pieces;
   let n = 0;
   return pieces.map((piece, at) => (isQuotable(pieces, at) ? { ...piece, n: ++n } : piece));
 }
@@ -188,7 +210,13 @@ export const withNumbers = (text: string): string =>
     .map(({ text, n }) => (n === undefined ? text : `[${n}] ${text}`))
     .join(" ");
 
-const squashed = (text: string) => text.replace(/\s+/g, "");
+// The pieces' words run together, to tell whether two lists of pieces say
+// the same whatever is between them.
+const textWithoutSpaces = (pieces: Piece[]) =>
+  pieces
+    .map((piece) => piece.text)
+    .join("")
+    .replace(/\s+/g, "");
 
 /** What goes between two lines that aren't sentences, quoted side by side. */
 export const BETWEEN_LINES = " · ";
@@ -196,19 +224,23 @@ export const BETWEEN_LINES = " · ";
 // What goes after a piece when another follows: nothing after a Japanese
 // sentence, a space after any other, and a dot after a line that isn't one
 // (a list's item, a card's row), which would run into the next.
-const gap = ({ text, sentence }: Piece) => (!sentence ? BETWEEN_LINES : WIDE_ENDS.has(text.at(-1) ?? "") ? "" : " ");
+const gap = ({ text, sentence }: Piece) =>
+  !sentence ? BETWEEN_LINES : JAPANESE_ENDS.has(text.at(-1) ?? "") ? "" : " ";
 
-function joined(pieces: Piece[]): string {
+/** The pieces as one text, as a reply quotes them and as the model that
+    writes a reply reads them: each followed by what keeps it apart from
+    the next (`gap`). */
+export function joinPieces(pieces: Piece[]): string {
   return pieces.reduce((before, piece, i) => `${before}${piece.text}${i < pieces.length - 1 ? gap(piece) : ""}`, "");
 }
 
-const noneGiven = (numbers: unknown) =>
+const gaveNoNumbers = (numbers: unknown) =>
   numbers === undefined || numbers === null || (Array.isArray(numbers) && !numbers.length);
 
 // The pieces `numbers` names, each with the sentences it can't be read
 // without, in the answer's order; or why they can't be told.
-function chosenBy(pieces: Piece[], numbers: unknown): Piece[] | QuoteCheck {
-  if (!isArrayOf(numbers, isCount) || numbers.length > MAX_QUOTED) return "unreadable";
+function piecesNumbered(pieces: Piece[], numbers: unknown): Piece[] | QuoteCheck {
+  if (!isArrayOf(numbers, isCount) || numbers.length > MAX_QUOTED_LINES) return "unreadable";
   const places = new Set<number>();
   for (const n of numbers) {
     const at = pieces.findIndex((item) => item.n === n);
@@ -219,16 +251,20 @@ function chosenBy(pieces: Piece[], numbers: unknown): Piece[] | QuoteCheck {
   return [...places].sort((a, b) => a - b).flatMap((place) => pieces[place] ?? []);
 }
 
-/** The lines a reply is written from (write.ts): the ones `numbers` names,
+/** The pieces a reply is written from (write.ts): the ones `numbers` names,
     each with what it needs, however long together; or all an answer says
-    when it says one thing, which has no numbers to name. Null when there's
-    nothing to go by. */
-export function cited(text: string, numbers: unknown): string | null {
+    when it says one thing, which has no numbers to name. Never a label.
+    Null when there's nothing to go by. */
+export function citedPieces(text: string, numbers: unknown): Piece[] | null {
   const pieces = numbered(text);
-  if (!pieces.some(({ n }) => n !== undefined)) return joined(said(pieces)) || null;
-  if (noneGiven(numbers)) return null;
-  const chosen = chosenBy(pieces, numbers);
-  return typeof chosen === "string" ? null : joined(chosen);
+  const hasNumberedPieces = pieces.some(({ n }) => n !== undefined);
+  if (!hasNumberedPieces) {
+    const everythingSaid = ownLines(pieces);
+    return everythingSaid.length ? everythingSaid : null;
+  }
+  if (gaveNoNumbers(numbers)) return null;
+  const chosen = piecesNumbered(pieces, numbers);
+  return typeof chosen === "string" ? null : chosen;
 }
 
 /** The reply quoting the pieces `numbers` names, each with the sentences it
@@ -237,15 +273,14 @@ export function cited(text: string, numbers: unknown): string | null {
     reply is written from, and no reply itself, so where one was to be
     written and wasn't, the page shows the answer instead. */
 export function quote(text: string, numbers: unknown, { sentencesOnly = false } = {}): Quoted {
-  if (noneGiven(numbers)) return null;
+  if (gaveNoNumbers(numbers)) return null;
   const pieces = numbered(text);
-  const chosen = chosenBy(pieces, numbers);
+  const chosen = piecesNumbered(pieces, numbers);
   if (typeof chosen === "string") return dropped(chosen);
   if (sentencesOnly && chosen.some(({ sentence }) => !sentence)) return dropped("rows");
   // All the answer says: the page shows the answer itself, as it's written.
-  const texts = (list: Piece[]) => squashed(list.map((piece) => piece.text).join(""));
-  if (texts(chosen) === texts(said(pieces))) return dropped("whole");
-  const reply = joined(chosen);
+  if (textWithoutSpaces(chosen) === textWithoutSpaces(ownLines(pieces))) return dropped("whole");
+  const reply = joinPieces(chosen);
   if (reply.length > MAX_REPLY_LENGTH) return dropped("length");
   return { outcome: "sent", reply };
 }

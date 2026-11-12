@@ -1,17 +1,22 @@
 /* The sidebar: on a phone, a drawer; on wider screens it can be hidden and
    resized. Arrow keys move between its rows. */
+import { clamp } from "es-toolkit";
 import { PAGE_IDS } from "../shared/page-data.ts";
 import { CLASS, SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { byId, find, findAll, make } from "./lib/dom.ts";
+import { followPointer } from "./lib/drag.ts";
+import { isFocusOn, stepFocus } from "./lib/focus.ts";
 import { local } from "./lib/storage.ts";
-import { app, side, words } from "./page.ts";
+import { MENU } from "./menus.ts";
+import { shell, side, words } from "./page.ts";
 import { clearHash, currentTab } from "./tabs.ts";
 
-const wide = matchMedia(`(min-width: ${SIZE.wide}px)`);
-const sideToggle = find(side, SELECTOR.sideToggle);
+const widerThanPhone = matchMedia(`(min-width: ${SIZE.wide}px)`);
+/** The button before the name, which hides the sidebar on wider screens. */
+const hideButton = find(side, SELECTOR.sideToggle);
 
 /** Wider than a phone, where the sidebar is beside the tab, not a drawer. */
-export const isWide = (): boolean => wide.matches;
+export const isWide = (): boolean => widerThanPhone.matches;
 
 // ---- The phone drawer ------------------------------------------------------------
 // Without JavaScript the menu button targets the sidebar, which hides the
@@ -19,31 +24,40 @@ export const isWide = (): boolean => wide.matches;
 // open because the address is #tabs (from before this file ran, or the
 // back button); closing it then clears the address.
 
-export const drawerOpen = (): boolean => side.classList.contains(CLASS.drawerOpen) || side.matches(":target");
+/** Whether the address names the sidebar (#tabs): that alone opens the
+    drawer, as it does without JavaScript. */
+export const isAddressOnDrawer = (): boolean => side.matches(":target");
 
+/** Whether the phone drawer is open: by its class, or by the address. */
+export const isDrawerOpen = (): boolean => side.classList.contains(CLASS.drawerOpen) || isAddressOnDrawer();
+
+/** Opens the drawer, with focus on the open tab's row, or else its first row. */
 function openDrawer(): void {
   side.classList.add(CLASS.drawerOpen);
   const row = side.querySelector('[aria-current="page"]') ?? side.querySelector(SELECTOR.navRow);
   if (row instanceof HTMLElement) row.focus();
 }
 
-// The top bar's button that opens the drawer, or brings the sidebar back.
-const menuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.top), SELECTOR.menuButton);
+/** The menu button of the top bar that's showing (the open tab's, or the
+    home screen's): it opens the drawer, or brings the sidebar back. */
+const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.top), SELECTOR.menuButton);
 
+/** Closes the drawer. Focus, if it was in the drawer, goes back to the
+    menu button. */
 export function closeDrawer(): void {
   const hadFocus = side.contains(document.activeElement);
   side.classList.remove(CLASS.drawerOpen);
-  if (side.matches(":target")) clearHash();
-  if (hadFocus) menuButton().focus();
+  if (isAddressOnDrawer()) clearHash();
+  if (hadFocus) shownMenuButton().focus();
 }
 
 // ---- Hiding it -------------------------------------------------------------------
 // On wider screens the button before the name hides the sidebar, and the
 // top bar's button brings it back. It shows again on every visit.
 
-function setSide(hidden: boolean): void {
-  app.classList.toggle(CLASS.noSide, hidden);
-  sideToggle.setAttribute("aria-expanded", String(!hidden));
+function setSidebarHidden(isHidden: boolean): void {
+  shell.classList.toggle(CLASS.noSide, isHidden);
+  hideButton.setAttribute("aria-expanded", String(!isHidden));
 }
 
 /** A top bar's menu button: opens the drawer, or brings the sidebar back. */
@@ -51,23 +65,29 @@ export function wireMenuButton(button: HTMLElement): void {
   button.addEventListener("click", (event) => {
     event.preventDefault();
     if (!isWide()) return openDrawer();
-    setSide(false);
-    sideToggle.focus();
+    setSidebarHidden(false);
+    hideButton.focus();
   });
 }
 
 // ---- Arrow keys between its rows (but not out of a menu) ------------------------
 
-const ROWS = [SELECTOR.navRow, `${SELECTOR.group} ${SELECTOR.foldButton}`, SELECTOR.tabRow, SELECTOR.me].join(", ");
+/** A group's heading: the button in it that folds the group (folding.ts). */
+const GROUP_HEADING = `${SELECTOR.group} ${SELECTOR.foldButton}`;
+
+/** The rows the arrow keys move between: "New tab" and the rows beside it,
+    each group's heading, each tab's row, and the account row. */
+const ARROW_KEY_ROWS = [SELECTOR.navRow, GROUP_HEADING, SELECTOR.tabRow, SELECTOR.me].join(", ");
 
 function moveBetweenRows(event: KeyboardEvent): void {
   if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-  if (event.defaultPrevented || !(event.target instanceof Element) || event.target.closest('[role="menu"]')) return;
-  const rows = findAll(side, ROWS).filter((row) => !row.closest("[hidden]"));
-  const at = rows.findIndex((row) => row === document.activeElement);
-  if (at === -1) return;
+  // A menu in the sidebar has arrow keys of its own.
+  if (event.defaultPrevented || !(event.target instanceof Element) || event.target.closest(MENU)) return;
+  // The rows of a folded group are skipped.
+  const rowsShowing = findAll(side, ARROW_KEY_ROWS).filter((row) => !row.closest("[hidden]"));
+  if (!isFocusOn(rowsShowing)) return;
   event.preventDefault();
-  rows[(at + (event.key === "ArrowDown" ? 1 : rows.length - 1)) % rows.length]?.focus();
+  stepFocus(rowsShowing, event.key === "ArrowDown" ? 1 : -1);
 }
 
 // ---- Resizing ----------------------------------------------------------------------
@@ -75,84 +95,111 @@ function moveBetweenRows(event: KeyboardEvent): void {
 // keys, or double-clicked to go back to the default width. Remembered per
 // browser.
 
-// The stylesheet's sidebar width.
-const WIDTH = "--sidebar-w";
-const maxWidth = () => Math.max(SIZE.sidebarMin, Math.min(SIZE.sidebarMax, innerWidth - SIZE.sidebarRoom));
+/** The stylesheet's sidebar width: a custom property, set on the shell. */
+const WIDTH_PROPERTY = "--sidebar-w";
 
-// The edge follows the pointer. A click that doesn't move leaves the width
-// as it was, and unsaved.
-function dragEdge(edge: HTMLElement, down: PointerEvent, setWidth: (px: number, remember: boolean) => void): void {
-  const left = side.getBoundingClientRect().left;
-  let moved = false;
-  const move = (e: PointerEvent) => {
-    moved = true;
-    setWidth(e.clientX - left, false);
-  };
-  const end = () => {
-    app.classList.remove(CLASS.resizing);
-    edge.removeEventListener("pointermove", move);
-    edge.removeEventListener("pointerup", end);
-    edge.removeEventListener("pointercancel", end);
-    if (moved) setWidth(side.getBoundingClientRect().width, true);
-  };
-  app.classList.add(CLASS.resizing);
-  edge.setPointerCapture(down.pointerId);
-  edge.addEventListener("pointermove", move);
-  edge.addEventListener("pointerup", end);
-  edge.addEventListener("pointercancel", end);
+/** The sidebar's edge. To screen readers it's a separator whose value is
+    the sidebar's width. */
+const resizer = make("div", {
+  class: CLASS.resizer,
+  role: "separator",
+  tabindex: "0",
+  "aria-orientation": "vertical",
+  "aria-controls": PAGE_IDS.tabs,
+  "aria-label": words.resize,
+  "aria-valuemin": String(SIZE.sidebarMin),
+});
+
+/** The widest the sidebar can be in the window as it is now: SIZE.sidebarMax,
+    or less where that would leave the rest under SIZE.sidebarRoom (but
+    never less than SIZE.sidebarMin). */
+const widestNow = (): number => clamp(innerWidth - SIZE.sidebarRoom, SIZE.sidebarMin, SIZE.sidebarMax);
+
+/** How wide the sidebar is showing now, in pixels. */
+const widthShowing = (): number => side.getBoundingClientRect().width;
+
+/** Sets the sidebar's width, kept within its narrowest and its widest now;
+    null goes back to the stylesheet's own. Tells screen readers where the
+    edge now is, and returns the width in whole pixels. */
+function setWidth(px: number | null): number {
+  if (px === null) shell.style.removeProperty(WIDTH_PROPERTY);
+  else shell.style.setProperty(WIDTH_PROPERTY, `${Math.round(clamp(px, SIZE.sidebarMin, widestNow()))}px`);
+  const widthNow = Math.round(widthShowing());
+  resizer.setAttribute("aria-valuemax", String(widestNow()));
+  resizer.setAttribute("aria-valuenow", String(widthNow));
+  return widthNow;
 }
 
+/** Sets the width, and remembers it for the next visit ("" for the
+    stylesheet's own). */
+function setAndRememberWidth(px: number | null): void {
+  const widthNow = setWidth(px);
+  local.set(STORAGE.sidebarWidth, px === null ? "" : String(widthNow));
+}
+
+/** The width this browser remembers, kept within the room the window
+    leaves as it changes. */
+function restoreWidth(): void {
+  const remembered = Number(local.get(STORAGE.sidebarWidth));
+  setWidth(remembered > 0 ? remembered : null);
+}
+
+/** The edge follows the pointer. A click that doesn't move leaves the width
+    as it was, and unsaved. */
+function dragResizer(down: PointerEvent): void {
+  const sidebarLeft = side.getBoundingClientRect().left;
+  let hasMoved = false;
+  const moveEdgeToPointer = (move: PointerEvent) => {
+    hasMoved = true;
+    setWidth(move.clientX - sidebarLeft);
+  };
+  const letGo = () => {
+    shell.classList.remove(CLASS.resizing);
+    if (hasMoved) setAndRememberWidth(widthShowing());
+  };
+  shell.classList.add(CLASS.resizing);
+  followPointer(resizer, down, moveEdgeToPointer, letGo);
+}
+
+/** How far an arrow key moves the edge: left narrows the sidebar, right
+    widens it. 0 for any other key. */
+function arrowKeyStep(key: string): number {
+  if (key === "ArrowLeft") return -SIZE.sidebarStep;
+  if (key === "ArrowRight") return SIZE.sidebarStep;
+  return 0;
+}
+
+/** Puts the edge beside the sidebar, at the width this browser remembers. */
 function addResizer(): void {
-  const edge = make("div", {
-    class: CLASS.resizer,
-    role: "separator",
-    tabindex: "0",
-    "aria-orientation": "vertical",
-    "aria-controls": PAGE_IDS.tabs,
-    "aria-label": words.resize,
-    "aria-valuemin": String(SIZE.sidebarMin),
-  });
-  side.after(edge);
+  side.after(resizer);
+  restoreWidth();
+  addEventListener("resize", restoreWidth);
 
-  // null for the default width.
-  const setWidth = (px: number | null, remember: boolean) => {
-    if (px === null) app.style.removeProperty(WIDTH);
-    else app.style.setProperty(WIDTH, `${Math.round(Math.min(maxWidth(), Math.max(SIZE.sidebarMin, px)))}px`);
-    const now = Math.round(side.getBoundingClientRect().width);
-    edge.setAttribute("aria-valuemax", String(maxWidth()));
-    edge.setAttribute("aria-valuenow", String(now));
-    if (remember) local.set(STORAGE.sidebarWidth, px === null ? "" : String(now));
-  };
-  // The saved width, kept within the room the window leaves as it changes.
-  const restore = () => {
-    const saved = Number(local.get(STORAGE.sidebarWidth));
-    setWidth(saved > 0 ? saved : null, false);
-  };
-  restore();
-  addEventListener("resize", restore);
-
-  edge.addEventListener("pointerdown", (event) => {
-    if (event.button !== 0) return;
+  resizer.addEventListener("pointerdown", (event) => {
+    const isMainButton = event.button === 0;
+    if (!isMainButton) return;
     event.preventDefault();
-    dragEdge(edge, event, setWidth);
+    dragResizer(event);
   });
-  edge.addEventListener("dblclick", () => setWidth(null, true));
-  edge.addEventListener("keydown", (event) => {
-    const step = event.key === "ArrowLeft" ? -SIZE.sidebarStep : event.key === "ArrowRight" ? SIZE.sidebarStep : 0;
+  resizer.addEventListener("dblclick", () => setAndRememberWidth(null));
+  resizer.addEventListener("keydown", (event) => {
+    const step = arrowKeyStep(event.key);
     if (!step) return;
     event.preventDefault();
-    setWidth(side.getBoundingClientRect().width + step, true);
+    setAndRememberWidth(widthShowing() + step);
   });
 }
 
+/** Wires the sidebar's own buttons, the arrow keys between its rows, and
+    its edge. (A top bar's menu button is wired with its tab: wireMenuButton.) */
 export function initSidebar(): void {
-  sideToggle.addEventListener("click", () => {
-    setSide(true);
-    menuButton().focus();
+  hideButton.addEventListener("click", () => {
+    setSidebarHidden(true);
+    shownMenuButton().focus();
   });
   // A tap on the dimmed page behind the drawer (the shell's ::after) closes it.
-  app.addEventListener("click", (event) => {
-    if (event.target === app) closeDrawer();
+  shell.addEventListener("click", (event) => {
+    if (event.target === shell) closeDrawer();
   });
   find(side, SELECTOR.drawerClose).addEventListener("click", (event) => {
     event.preventDefault();

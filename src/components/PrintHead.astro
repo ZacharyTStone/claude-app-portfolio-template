@@ -1,23 +1,27 @@
 ---
 /* Printed (or saved as a PDF) the page leaves out the sidebar and the
    panel, so it starts with who this is and how to reach them. Hidden on
-   screen. */
+   screen. Styles: src/styles/print.css. */
 import type { Page } from "../site/site.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 import { shortUrl } from "../site/url.ts";
 
 interface Props {
+  /** The language's page this is part of. */
   page: Page;
 }
-const { site, code, lang } = Astro.props.page;
+const { site, code: pageLanguage, lang } = Astro.props.page;
 const { config } = site;
 const { email, github, linkedin } = config.links;
-const name = lang.person.name === config.name ? config.name : `${lang.person.name} (${config.name})`;
-const contacts = [email, site.url(code), github, linkedin].filter((contact) => contact !== undefined);
+// Where a language writes the name its own way, both: "アレックス (Alex Example)".
+const nameInThisLanguage = lang.person.name;
+const printedName = nameInThisLanguage === config.name ? config.name : `${nameInThisLanguage} (${config.name})`;
+// The email, this page's address, and the profiles the config has.
+const contacts = [email, site.url(pageLanguage), github, linkedin].filter((contact) => contact !== undefined);
 ---
 
 <div class={PAGE_CLASSES.printHead}>
-  <p class="print-name">{name}</p>
+  <p class="print-name">{printedName}</p>
   <p>{lang.meta.description}</p>
   <p>{contacts.map(shortUrl).join(" · ")}</p>
 </div>

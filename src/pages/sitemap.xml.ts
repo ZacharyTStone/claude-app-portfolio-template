@@ -1,5 +1,6 @@
 /* /sitemap.xml, with every page's hreflang pairs. */
-import { sitemap } from "../site/sitemap.ts";
 import { site } from "../site/current.ts";
+import { sitemapXml } from "../site/sitemap.ts";
 
-export const GET = () => new Response(sitemap(site));
+/** The file, written once as the site is built. */
+export const GET = () => new Response(sitemapXml(site));

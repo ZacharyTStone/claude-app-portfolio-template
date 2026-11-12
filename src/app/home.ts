@@ -10,31 +10,44 @@ import { send } from "./send.ts";
 import { isWide } from "./sidebar.ts";
 import { currentTab } from "./tabs.ts";
 
-const input = document.querySelector<HTMLInputElement>(SELECTOR.homeInput);
+/** The box to type a question in. A page without one has no home screen
+    to wire. */
+const homeInput = document.querySelector<HTMLInputElement>(SELECTOR.homeInput);
 
-// Into a new chat, without the question card that a new chat opens with.
-const ask = (source: Source) => newChat(false, (tab) => void send(tab, source));
+/** Sends a question into a new chat, without the question card that a new
+    chat opens with. */
+function askInNewChat(source: Source): void {
+  // Back from the chat returns to the home screen: it isn't replaced.
+  const replaceInHistory = false;
+  newChat(replaceInHistory, (chatTab) => void send(chatTab, source));
+}
 
-function submit(): void {
-  const question = input?.value.trim();
-  if (!input || !question) return input?.focus();
-  input.value = "";
-  ask({ question });
+/** Sends what's typed in the box, and empties it. With nothing typed, the
+    cursor goes to the box instead. */
+function sendTypedQuestion(): void {
+  const question = homeInput?.value.trim();
+  if (!homeInput || !question) return homeInput?.focus();
+  homeInput.value = "";
+  askInNewChat({ question });
 }
 
 /** The cursor in the box, where the home screen shows (not on a phone,
     where it would bring up the keyboard). */
 export function focusHome(): void {
-  if (isWide() && !currentTab()) input?.focus({ preventScroll: true });
+  const isHomeShowing = !currentTab();
+  if (isWide() && isHomeShowing) homeInput?.focus({ preventScroll: true });
 }
 
+/** Wires the box and its send button, and the questions to start with
+    under it: each sends its own words, with the answer the page names for
+    it (DATA.prompt). */
 export function initHome(): void {
-  if (!input) return;
-  onEnter(input, submit);
-  query(document, SELECTOR.homeSend)?.addEventListener("click", submit);
-  for (const prompt of findAll(document, SELECTOR.prompt)) {
-    const question = prompt.textContent.trim();
-    const answer = prompt.getAttribute(DATA.prompt);
-    if (question && answer) prompt.addEventListener("click", () => ask({ question, answer }));
+  if (!homeInput) return;
+  onEnter(homeInput, sendTypedQuestion);
+  query(document, SELECTOR.homeSend)?.addEventListener("click", sendTypedQuestion);
+  for (const starter of findAll(document, SELECTOR.prompt)) {
+    const question = starter.textContent.trim();
+    const answer = starter.getAttribute(DATA.prompt);
+    if (question && answer) starter.addEventListener("click", () => askInNewChat({ question, answer }));
   }
 }

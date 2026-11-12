@@ -3,19 +3,23 @@ import { CLASS, TIMING } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
+// A status, so screen readers say each message as it shows.
 const toast = make("div", { class: CLASS.toast, role: "status" });
-let timer = 0;
+/** The timer that hides the message that's showing. */
+let hideTimer = 0;
 
+/** Puts the toast in the page, empty and out of sight until something's said. */
 export function initToast(): void {
   document.body.append(toast);
 }
 
+/** Shows a message for TIMING.toast, in place of one that's still showing. */
 export function say(message: string): void {
   toast.textContent = message;
   toast.classList.add(CLASS.show);
-  clearTimeout(timer);
-  timer = setTimeout(() => toast.classList.remove(CLASS.show), TIMING.toast);
+  clearTimeout(hideTimer);
+  hideTimer = setTimeout(() => toast.classList.remove(CLASS.show), TIMING.toast);
 }
 
 /** Says whether something was copied. */
-export const sayCopied = (ok: boolean): void => say(ok ? words.copied : words.copyFailed);
+export const sayCopied = (wasCopied: boolean): void => say(wasCopied ? words.copied : words.copyFailed);

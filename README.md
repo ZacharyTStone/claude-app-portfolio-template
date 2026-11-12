@@ -7,8 +7,12 @@ conversation about you.
 
 Everything the site says is in one file, `site.config.ts`. Astro builds it
 into static HTML and CSS that work with JavaScript off, plus one small
-script for the chats, menus and question card. An optional Worker on
-Cloudflare, Ask, answers typed questions by quoting your own answers.
+script for the chats, menus and question card. An answer can hold more
+than text: file cards, bars, flows, pictures, quotes, and diagrams that
+move. A link you choose, such as a resume in Google
+Docs, can open in a viewer beside the conversation instead of a new tab.
+An optional Worker on Cloudflare, Ask, answers typed questions from your
+own answers, and quotes the lines it answered from.
 
 ## Quick start
 
@@ -142,24 +146,29 @@ host.
 With Ask on, a small model on Cloudflare Workers AI reads every answer on
 your site, notes what the visitor wants to know, then picks the answer
 that says it and the one or two lines in it that answer most directly (a
-sentence, an item of a list, a row of a card). From those lines it writes
-a one-sentence reply to the question as it was asked: "Does Alex know
-Svelte?" gets "Yes, Alex knows Svelte / SvelteKit.", not the list Svelte
-is in.
+sentence, an item of a list, a row of a card). From those lines it
+answers the question as it was asked, in its own words, in a sentence or
+two: "Does Alex know React?" gets "Yes, Alex knows React.", not the row of
+the card React is in.
 
-The Worker (`src/worker`) checks that reply word by word before anyone
-sees it (`src/worker/ask/grounded.ts`). Every name, number and claim has
-to be in the lines it was written from; only plain grammar and a few
-verbs that claim little ("know", "use", "work", "have") may be added. A
-"not" can't be added or dropped, "Yes" needs the lines to have what was
-asked about, and what the visitor typed is never a source. A reply that
-fails is asked for once more, then thrown away: the lines are quoted as
-they are if they're sentences, and otherwise the page shows the whole
-answer. So nothing the model writes reaches a visitor unchecked, and
-nothing it writes can say what your site doesn't. Under the reply is a
-link to the tab it's from. No good fit, or Ask over its limits, and the
-reply is "Something else". Llama Guard reads every question; an
-inappropriate one blocks that visitor for a day.
+The Worker (`src/worker`) checks the names, numbers and addresses in that
+reply before anyone sees it (`src/worker/ask/grounded.ts`). Each has to be
+in the lines it was written from, their tab's name, your site's own
+question or your name, and never only in what the visitor typed. A reply
+that fails is asked for once more, then thrown away: the lines are quoted
+as they are if they're sentences, and otherwise the page shows the whole
+answer.
+
+The reply's ordinary words are not checked, and neither is what the check
+can't tell from one: a name that only starts a sentence, a name in kana or
+kanji, a number in kanji. Keeping to what the lines say is only the
+model's instruction (`src/worker/ask/write.ts`), so a reply can still put
+something wrongly: "No" where the lines mean yes. That is why the page
+quotes the lines a reply was written from under it, then links to the tab
+they're in: what your site itself says is beside what the model made of
+it. No good fit, or Ask over its limits, and the reply is "Something
+else". Llama Guard reads every question; an inappropriate one blocks that
+visitor for a day.
 
 The check reads English and Japanese. On a page in another language no
 reply is written, and the lines are quoted.
@@ -193,14 +202,17 @@ it on, the `thought` in a line tells you why Ask answered as it did.
 
 To see how well it picks, put questions about you in
 `tests/ask-questions.json`, raise `ASK_VISITOR_LIMIT` above their number,
-and run `node tests/ask-eval.ts https://<your site>`. The ones that should
-be blocked run last, and block your address for a day.
+and run `node tests/ask-eval.ts https://<your site>`. It prints each reply
+the model wrote with the lines it was written from, to read one against
+the other. The ones that should be blocked run last, and block your
+address for a day.
 
 ### What Ask can cost
 
 Ask keeps count of what the day's questions cost. Each question makes two
-model calls (the pick with GLM-4.7-Flash, and Llama Guard), each reports
-the tokens it used, and the Worker prices them in Neurons. Past
+model calls (the pick with GLM-4.7-Flash, and Llama Guard) and, when
+there's a reply to write, one or two more. Each reports the tokens it
+used, and the Worker prices them in Neurons. Past
 `ASK_DAILY_NEURONS` (9,000, inside Workers AI's free 10,000 a day) no more
 are asked until midnight UTC. What one question costs depends on how much
 your site says, since the model reads every answer: each log line has it,
@@ -278,6 +290,72 @@ the Cloudflare dashboard, under **Security → Security rules**.
 
 A site served under a path has that path before `/ask` in both rules.
 **Security → Events** shows what each rule has matched.
+
+## Pictures that move, and the viewer
+
+`AGENTS.md` has each step by step ("Adding a picture that moves", "Opening
+a link in the viewer").
+
+**A picture that moves.** A diagram is drawn by a short TypeScript file in
+`diagrams/`, with the kit in `scripts/diagram.ts`: boxes, labels, lines,
+and things that move along them. The sample's is "Saving a note", in the
+Pocket Notes tab: lines are typed into a note, each is saved in the
+browser at once, the changes wait in a queue while there's no connection,
+and go to the server when it comes back. Its file,
+`diagrams/saving-a-note.ts`, is written to be copied:
+
+```sh
+npm run diagrams                  # writes every diagram's files into public/assets
+npm run diagrams saving-a-note    # or one
+```
+
+```ts
+// site.config.ts, in an answer
+image: {
+  src: "/assets/saving-a-note.svg",
+  still: "/assets/saving-a-note-still.svg",
+  alt: "A diagram. Lines are typed into a note, and each is saved at once…",
+  width: 1600,
+  height: 540,
+},
+```
+
+The motion is the picture's own (SVG animation), so it moves in a plain
+`<img>`: the page runs no script for it, the security policy allows
+nothing new, and it moves with JavaScript off. Every diagram is written
+twice, moving and still, and a visitor who has asked their computer for
+less motion is shown the still one. Commit the files with the diagram:
+`npm test` fails while they aren't what it draws. A picture is an
+illustration: Ask and `llms.txt` read its caption, so a fact belongs in
+the answer's text too.
+
+For steps in order with nothing to watch, a `flow` draws two to five boxes
+with an arrow from each to the next (the sample's is in the Globex tab).
+
+**The viewer.** A link listed in `viewer` opens in a panel beside the
+conversation (the whole screen on a phone), in a frame, instead of a new
+tab:
+
+```ts
+viewer: {
+  "https://docs.google.com/document/d/YOUR-DOC-ID/edit": "https://docs.google.com/document/d/YOUR-DOC-ID/preview",
+},
+```
+
+Each entry is a link's `href`, exactly as a link card, a picture or a row
+of the details panel has it, then the address the frame shows. A Google
+Doc, Sheet or Slides deck that anyone with the link can view is shown at
+its address ending `/preview`. Not every site lets itself be shown in a
+frame (GitHub and LinkedIn don't, and neither does a file on your own
+site): open the viewer once and look. The build refuses an address that
+isn't `https://`, and a link that nothing links to. With JavaScript off,
+or clicked with a modifier key, the link opens as any link does. Each
+language needs `viewerOpen` and `viewerClose` in its `strings`.
+
+The sample has no viewer, because it links to nothing that can be shown in
+a frame; `site.config.ts` has one commented out. Setting one is the only
+thing that makes a page of yours load anything from another site: see
+[Protections](#protections).
 
 ## Languages and fonts
 
@@ -364,7 +442,9 @@ The numbers are the defaults, from `wrangler.jsonc`. See
 - The Content-Security-Policy is `default-src 'none'`, with only the site's
   own scripts, styles, images and fonts. Nothing inline runs, the page may
   fetch only from the site itself, and only with Ask on, and there is no
-  `<base>`, no form post and no framing.
+  `<base>` and no form post. No other site can show the pages in a frame,
+  and the pages show none themselves, unless you set `viewer`: then
+  `frame-src` names the sites the viewer shows, and no other.
 - Trusted Types is required with no policy, so the script can't turn a
   string into markup. It builds elements, and shows a reply from `/ask` as
   text.
@@ -376,10 +456,16 @@ The numbers are the defaults, from `wrangler.jsonc`. See
   `Cross-Origin-Opener-Policy: same-origin`. A host that reads no `_headers`
   file gets the Content-Security-Policy and the referrer policy in `<meta>`
   tags, and the rest are yours to set there (see [Deploy](#deploy)).
-- The site has no analytics, no cookies and no third-party requests: the
-  fonts and icons are its own files. Chats and layout are kept in
-  `localStorage`, in the visitor's browser only. A link to another site
-  opens with `noopener noreferrer`.
+- The site has no analytics and no cookies, and loads nothing from another
+  site by itself: the fonts and icons are its own files. The one exception
+  is the viewer, and only on a site that sets `viewer` (the sample
+  doesn't): when a visitor opens a link in it, that page loads from its
+  own site, in a frame, and that site sees the visitor as any site they
+  open does. The policy allows frames from the sites `viewer` names and no
+  other; the frame is sandboxed so it can't navigate the page, is sent no
+  referrer, and is thrown away when the viewer closes. Chats and layout
+  are kept in `localStorage`, in the visitor's browser only. A link to
+  another site opens with `noopener noreferrer`.
 - The build checks the config. It stops on a link that isn't a web, mailto,
   #tab or site address (so no `javascript:`), and on a value that doesn't
   look like what it's used as. The config's Markdown is bold, italic, code
@@ -392,14 +478,21 @@ nothing below to protect)
   (which a page on another site can't send) or a body over 2,048 bytes is
   refused before anything is spent on it, and a question is cut to 300
   characters.
-- The model can't say what your site doesn't. It names one of your
-  answers, from a fixed list, and numbers at most two of its lines, then
-  writes one sentence from them. The Worker checks that sentence word by
-  word: anything but plain grammar has to be in those lines (never in what
-  the visitor typed), a "not" can't be added or dropped, and it's shown as
-  text, 240 characters at most. One that fails twice isn't shown: the
-  lines are quoted instead, or the whole answer. What the model makes of
-  the question goes to the log, if you log questions, and nowhere else.
+- A reply is the model's own sentence or two, held to your site in two
+  ways. It names one of your answers, from a fixed list, and numbers at
+  most two of its lines, then answers from them. The Worker checks the
+  names, numbers and addresses in the reply against those lines, their
+  tab's name, your site's own question and your name (never against what
+  the visitor typed), and it's shown as text, 240 characters at most. One
+  that fails twice isn't shown: the lines are quoted instead, or the whole
+  answer. And the page quotes the lines a reply was written from under it
+  (lines of more than 800 characters together are too long to quote: the
+  reply then has only the link to their tab). The reply's ordinary words
+  are not checked, so it can still put something wrongly ("No" where the
+  lines mean yes): the quoted lines are what a visitor has to go by, and
+  they are your site's own. What the model makes of the question goes to
+  the log, if you log questions, and nowhere else. The check reads English
+  and Japanese; a page in another language is quoted.
 - A pick has to cover the question. One that doesn't name the tool, company
   or place the question names is dropped, so a near miss doesn't read as a
   "no".
@@ -417,8 +510,8 @@ nothing below to protect)
 - A visitor may ask 10 questions a minute and 30 a day.
 - The site may answer 200 questions a day and spend 9,000 Neurons a day,
   counted from the tokens each question's model calls used.
-- The model calls are kept small: the picker may write 512 tokens, and Llama
-  Guard 10.
+- The model calls are kept small: the picker may write 512 tokens, the
+  reply's writer 320 a try, two tries at most, and Llama Guard 10.
 - Ask fails closed. With the rate limiter, the Durable Object or a model
   missing or failing, no model is called, and the visitor gets the
   "Something else" reply.

@@ -1,30 +1,35 @@
 ---
 /* A line of the config's Markdown (src/shared/markdown.ts), as elements.
-   Its words are text, which Astro escapes, so no HTML gets through. */
+   Its words are text, which Astro escapes, so no HTML gets through. Bold,
+   italic and a link hold pieces of their own, which this draws by using
+   itself. */
 import { external, spans, type Span } from "../shared/markdown.ts";
 import { site } from "../site/current.ts";
 
+/** A line as it's written (`text`), or one already read into its pieces
+    (`spans`), which is what this hands itself for what's inside bold,
+    italic or a link. */
 type Props = { text: string } | { spans: Span[] };
 
-const list = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spans;
+const pieces = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spans;
 ---
 
-{list.map((span) =>
-  typeof span === "string" ? (
-    span
-  ) : span.type === "code" ? (
-    <code>{span.text}</code>
-  ) : span.type === "strong" ? (
+{pieces.map((piece) =>
+  typeof piece === "string" ? (
+    piece
+  ) : piece.type === "code" ? (
+    <code>{piece.text}</code>
+  ) : piece.type === "strong" ? (
     <strong>
-      <Astro.self spans={span.spans} />
+      <Astro.self spans={piece.spans} />
     </strong>
-  ) : span.type === "em" ? (
+  ) : piece.type === "em" ? (
     <em>
-      <Astro.self spans={span.spans} />
+      <Astro.self spans={piece.spans} />
     </em>
   ) : (
-    <a href={site.link(span.href)} {...external(span.href)}>
-      <Astro.self spans={span.spans} />
+    <a href={site.link(piece.href)} {...external(piece.href)}>
+      <Astro.self spans={piece.spans} />
     </a>
   ),
 )}

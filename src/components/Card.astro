@@ -1,9 +1,13 @@
 ---
-/* A file card: a small config file of key: value lines, with comments. */
+/* A file card: a small config file of key: value lines, with comments.
+   The lines are laid out in src/site/card.ts (cardRows), which works out
+   the spaces that line the values and the comments up in columns.
+   Styles: src/styles/cards.css. */
 import type { Card } from "../shared/content.ts";
 import { cardRows } from "../site/card.ts";
 
 interface Props {
+  /** The card, as an answer's `card` block or a status line has it. */
   card: Card;
 }
 const { card } = Astro.props;
@@ -16,8 +20,8 @@ const rows = cardRows(card);
     <span class="ok">✓</span>
   </p>
   {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup. */}
-  <pre>{rows.map((row, i) => [
-    i > 0 && "\n",
+  <pre>{rows.map((row, rowIndex) => [
+    rowIndex > 0 && "\n",
     row.key && <span class="k">{row.key}:</span>,
     row.indent,
     <span class={row.accent ? "acc" : "str"}>{row.value}</span>,
