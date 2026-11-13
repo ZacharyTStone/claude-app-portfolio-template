@@ -181,6 +181,21 @@ for (const frameAddress of ["http://docs.example.com/d/notes/preview", "/assets/
   });
 }
 
+for (const frameAddress of [
+  "https://*/doc",
+  "https://docs.example.com;script-src/d/notes",
+  "https://a;b.example.com/d",
+]) {
+  test(`the viewer can't show "${frameAddress}", whose host isn't a plain domain name`, () => {
+    assert.deepEqual(
+      problemsAfter((sample) => (sample.viewer = { [VIEWER_LINK]: frameAddress })),
+      [
+        `viewer shows "${VIEWER_LINK}" at "${frameAddress}", whose host should be a plain domain name, like "docs.google.com"`,
+      ],
+    );
+  });
+}
+
 test("Ask runs where the host is Cloudflare, named or left out", () => {
   const ask = { role: "an engineer" };
   assert.deepEqual(problemsIn(sampleConfig({ ask, host: undefined })), []);

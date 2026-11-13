@@ -29,6 +29,16 @@ export const isWebAddress = looksLike(/^https?:\/\/[^\s"'<>\\]+$/);
 export const isHttpsAddress = (address: string): boolean =>
   isWebAddress(address) && URL.canParse(address) && new URL(address).protocol === "https:";
 
+/** "docs.google.com": names of letters, digits and inner hyphens, between
+    dots. Not "*", which a policy reads as any site, and nothing with a ";",
+    which ends a policy's directive. */
+const PLAIN_DOMAIN_NAME = /^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)*[a-z0-9]([a-z0-9-]*[a-z0-9])?$/i;
+
+/** An https:// address whose host is a plain domain name, safe to write
+    into the policy as a site the page may frame. */
+export const isFrameableAddress = (address: string): boolean =>
+  isHttpsAddress(address) && PLAIN_DOMAIN_NAME.test(new URL(address).hostname);
+
 /** "https://example.com", "https://alex.github.io/portfolio/": a web
     address with no query and no #, and no empty step in its path. Not
     "https://example.com//": every link on that site would start "//",

@@ -12,6 +12,7 @@ import type { Site } from "../site.ts";
 import {
   isColour,
   isEmailAddress,
+  isFrameableAddress,
   isHttpsAddress,
   isLanguageCode,
   isPathOnSite,
@@ -207,6 +208,10 @@ const checkViewer: SiteCheck = (site, problemUnless) => {
     );
     const isHttps = isHttpsAddress(frameAddress);
     problemUnless(isHttps, `viewer shows "${href}" at "${frameAddress}", which should be an https:// address`);
+    problemUnless(
+      !isHttps || isFrameableAddress(frameAddress),
+      `viewer shows "${href}" at "${frameAddress}", whose host should be a plain domain name, like "docs.google.com"`,
+    );
     problemUnless(
       !isHttps || new URL(frameAddress).origin !== ownOrigin,
       `viewer shows "${href}" at "${frameAddress}", a page of this site, and this site's pages refuse to be shown in a frame`,
