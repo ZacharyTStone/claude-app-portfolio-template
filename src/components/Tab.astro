@@ -9,6 +9,7 @@ import type { Pill } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS, titleId } from "../contracts/page-ids.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Topbar from "./Topbar.astro";
@@ -56,7 +57,7 @@ const { strings } = page.language;
     <p class="under">
       <span class="credit">{strings.credit}</span>
       <span class="model">
-        {page.site.config.name} <em>{strings.model}</em>
+        {site.config.name} <em>{strings.model}</em>
       </span>
     </p>
   </div>

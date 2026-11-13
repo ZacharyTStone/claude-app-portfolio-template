@@ -9,6 +9,7 @@ import type { LinkCard } from "../config/blocks.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { shortUrl } from "../site/url.ts";
 import { flag } from "./attributes.ts";
@@ -23,7 +24,7 @@ interface Props {
 }
 const { page } = Astro.props;
 const { strings, asked } = page.language;
-const { email, linkedin } = page.site.config.links;
+const { email, linkedin } = site.config.links;
 
 // A function as the replacement, so a "$" in the question is just a "$".
 const withSampleQuestion = (template: string) => template.replaceAll("{question}", () => asked.q);

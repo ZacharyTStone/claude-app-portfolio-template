@@ -11,6 +11,7 @@ import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { newTabAttributes } from "../contracts/links.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Logo from "./Logo.astro";
@@ -19,7 +20,7 @@ interface Props {
   /** The language's page this is part of. */
   page: Page;
 }
-const { site, code: pageLanguage, language } = Astro.props.page;
+const { code: pageLanguage, language } = Astro.props.page;
 const { email, github } = site.config.links;
 const {
   initial,

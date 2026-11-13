@@ -1,7 +1,7 @@
 /* schema.org Person data, for search engines: who the site is about. */
 
 import { JSON_INDENT, scriptJson } from "./json.ts";
-import type { Page } from "./site.ts";
+import type { Page, Site } from "./site.ts";
 
 /** The schema.org Person's id, after the site's address:
     "https://example.com/#person". */
@@ -12,7 +12,7 @@ const PERSON_FRAGMENT = "#person";
     page's language, and what the config's `person` and `links` say. The
     Person has one id on every page, so search engines read the languages'
     pages as being about one person. */
-export function structuredData({ site, code, language }: Page): string {
+export function structuredData(site: Site, { code, language }: Page): string {
   const { config, codes } = site;
   const person = config.person ?? {};
   const nameInThisLanguage = language.person.name;
