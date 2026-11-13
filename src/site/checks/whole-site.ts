@@ -5,7 +5,7 @@
 
 import { isEqual } from "es-toolkit";
 import type { Language } from "../../config/language.ts";
-import { ASK_HOST, MAX_TOPICS } from "../constants.ts";
+import type { Host } from "../../config/site-config.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
 import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
@@ -21,6 +21,13 @@ import {
   isTimeZone,
   isWebAddress,
 } from "./formats.ts";
+
+/** The one host that runs Ask's Worker (src/worker): Cloudflare Workers. */
+const ASK_HOST: Host = "cloudflare";
+
+/** The question card's first step reads best with this many topics or
+    fewer (plus "Something else"), on a phone above all. */
+const MAX_TOPICS = 4;
 
 /** What has to be the same in every language: the ids, counts and order of
     everything an answer's id, a topic or a home prompt can name. Never the

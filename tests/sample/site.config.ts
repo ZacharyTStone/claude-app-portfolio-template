@@ -6,16 +6,16 @@ import type { Language } from "../../src/config/language.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import type { Strings } from "../../src/config/strings.ts";
 import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES } from "../../src/config/strings.ts";
-import { ICONS } from "../../src/site/constants.ts";
+import { FAVICONS } from "../../src/site/icons.ts";
 
 /** The one picture the sample uses, for its social card too: a file every
     site has, so the sample builds in any repo. */
-const icon = ICONS.appleTouch;
+const icon = FAVICONS.appleTouch;
 /** That file's width and height, in pixels. */
 const ICON_SIZE = 180;
 const iconPicture = { src: icon, alt: "Sam's icon", width: ICON_SIZE, height: ICON_SIZE };
 /** Another file every site has, standing in for a moving picture's still. */
-const stillIcon = ICONS.png;
+const stillIcon = FAVICONS.png;
 
 /** A document on another site: the address the sample's link card has, and
     the address that shows the document in the viewer's frame. */

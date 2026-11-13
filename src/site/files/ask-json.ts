@@ -2,7 +2,7 @@
    (../plain-answers.ts). */
 
 import type { AskIndex } from "../../contracts/ask.ts";
-import { JSON_INDENT } from "../constants.ts";
+import { JSON_INDENT } from "../json.ts";
 import { plainAnswers } from "../plain-answers.ts";
 import type { Site } from "../site.ts";
 

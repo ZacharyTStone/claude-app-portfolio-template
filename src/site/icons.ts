@@ -1,8 +1,15 @@
-/* The icons a config can name: the stylesheet's .i-* classes, read from
-   its source. */
+/* Icons: the ones a config can name (the stylesheet's .i-* classes, read
+   from its source), and the ones every page has in its <head>. */
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+
+/** The icons every page has, paths on the site (each site's own files). */
+export const FAVICONS = {
+  svg: "/assets/favicon.svg",
+  png: "/assets/favicon-32.png",
+  appleTouch: "/assets/apple-touch-icon.png",
+} as const;
 
 /** Where the stylesheet's parts are, from the repo's root. */
 export const STYLES_FOLDER = "src/styles";

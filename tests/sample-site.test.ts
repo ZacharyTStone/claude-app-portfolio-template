@@ -14,8 +14,9 @@ import { frameOrigins } from "../src/site/security-headers.ts";
 import { escapeRegExp } from "es-toolkit";
 import { DATA, REDUCED_MOTION } from "../src/contracts/page-attributes.ts";
 import { basePath } from "../src/site/url.ts";
-import { HEADERS_FILE, ICONS, ROOT } from "../src/site/constants.ts";
-import { pagePolicy } from "../src/site/files/headers-file.ts";
+import { HEADERS_FILE, pagePolicy } from "../src/site/files/headers-file.ts";
+import { FAVICONS } from "../src/site/icons.ts";
+import { ROOT } from "../src/site/repo.ts";
 import { makeSite } from "../src/site/site.ts";
 import sampleConfig from "./sample/site.config.ts";
 
@@ -133,7 +134,7 @@ test("the page's policy lets frames come from the viewer's site and no other, an
 });
 
 test("a picture with a still offers it to a visitor who wants less motion, ahead of the moving one", () => {
-  const still = makeSite(sampleConfig).link(ICONS.png);
+  const still = makeSite(sampleConfig).link(FAVICONS.png);
   for (const file of languagePageFiles) {
     const html = readBuiltFile(file);
     const picture = html.match(/<picture>.*?<\/picture>/s)?.[0] ?? "";

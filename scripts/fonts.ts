@@ -11,7 +11,7 @@
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import config from "../site.config.ts";
-import { ROOT } from "../src/site/constants.ts";
+import { ROOT } from "../src/site/repo.ts";
 
 /** The script that reads the built pages and cuts or checks the fonts. */
 const FONT_SCRIPT = join(ROOT, "scripts", "ja-font.py");

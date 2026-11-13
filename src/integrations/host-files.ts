@@ -4,8 +4,7 @@ import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
 import type { SiteConfig } from "../config/site-config.ts";
-import { HEADERS_FILE } from "../site/constants.ts";
-import { headersFile } from "../site/files/headers-file.ts";
+import { HEADERS_FILE, headersFile } from "../site/files/headers-file.ts";
 import { makeSite } from "../site/site.ts";
 
 /** The Astro integration that adds the security headers' file to a

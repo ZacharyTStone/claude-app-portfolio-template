@@ -17,7 +17,7 @@
 import { chromium } from "playwright";
 import config from "../../site.config.ts";
 import { basePath } from "../../src/site/url.ts";
-import { ROOT } from "../../src/site/constants.ts";
+import { ROOT } from "../../src/site/repo.ts";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";
 import figures from "./checks/figures.ts";
