@@ -7,14 +7,22 @@
    It needs git, and a working tree with nothing uncommitted. It commits nothing: `git diff` shows what it did.
 
    It imports only Node's own modules and scripts/template.ts, so that it runs where no package is installed:
-   `npm ci` is what it tells you to run next. */
+   `npm ci` is what it tells you to run next, once you've read what it changed. */
 import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { applyChanges, changesBetween, describeChanges, sharedListOf, TEMPLATE, type SharedList } from "./template.ts";
+import {
+  applyChanges,
+  changesBetween,
+  describeChanges,
+  sharedListOf,
+  TEMPLATE,
+  type SharedFileChanges,
+  type SharedList,
+} from "./template.ts";
 
 const SITE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -67,7 +75,27 @@ function takeSharedFilesFrom(templateClone: string): void {
   console.log(`${changeLines.join("\n")}\n`);
   applyChanges(templateClone, SITE_ROOT, changes);
   console.log(`${changeLines.length} shared files now match the template.`);
-  console.log("Next: `npm ci`, then `npm run verify`. `git diff` shows what changed; commit it once it passes.");
+  for (const line of [...whatToReadFirst(changes), WHAT_IS_NEXT]) console.log(line);
+}
+
+/** The review comes before `npm ci`, which runs whatever the new package.json says to. */
+const WHAT_IS_NEXT =
+  "Next: read what changed before you run any of it (`git status` lists the new files, `git diff` shows the " +
+  "rest). Then `npm ci` and `npm run verify`, and commit once it passes.";
+
+const PACKAGE_FILES = ["package.json", "package-lock.json"];
+const WORKFLOWS_FOLDER = ".github/workflows/";
+
+/** Names the files of an update that run with more than the site's pages do, when it touches any. */
+function whatToReadFirst({ added, changed, removed }: SharedFileChanges): string[] {
+  const touched = [...added, ...changed, ...removed];
+  const packageFiles = touched.filter((file) => PACKAGE_FILES.includes(file));
+  const workflows = touched.filter((file) => file.startsWith(WORKFLOWS_FOLDER));
+  if (packageFiles.length + workflows.length === 0) return [];
+  return [
+    `Read these first: ${[...packageFiles, ...workflows].join(", ")}. ` +
+      "`npm ci` runs what package.json says to, and a workflow runs with your repository's secrets.",
+  ];
 }
 
 /** The template's list, not this site's: it may share files this site's older list doesn't know of. But what

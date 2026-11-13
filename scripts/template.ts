@@ -79,7 +79,7 @@ const EVERY_SITES_OWN = ["site.config.ts", "wrangler.jsonc", "README.md", "diagr
 /** A list is the template's word for what an update may overwrite and delete, so it's held to the repo, and
     kept off what's a site's own: every path in it is a plain one, from the repo's root down, and none it
     shares is, holds or is inside a site's own. */
-export function refuseUnsafeList({ shared, retired, own }: SharedList): void {
+function refuseUnsafeList({ shared, retired, own }: SharedList): void {
   for (const path of [...shared, ...retired, ...own]) refuseUnlessPlain(path);
   for (const path of [...shared, ...retired]) refuseIfASitesOwn(path, own);
 }

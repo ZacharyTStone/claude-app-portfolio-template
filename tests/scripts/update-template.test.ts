@@ -134,6 +134,16 @@ test("an update says what to do next", () => {
   assert.match(update.stdout, /npm run verify/);
 });
 
+test("an update says to read what changed before running any of it, and how to see new files", () => {
+  const next = update.stdout.slice(update.stdout.indexOf("Next:"));
+  assert.ok(next.indexOf("read what changed") < next.indexOf("npm ci"), next);
+  assert.match(next, /`git status` lists the new files/);
+});
+
+test("an update that touches neither package.json nor a workflow names nothing to read first", () => {
+  assert.doesNotMatch(update.stdout, /Read these first/);
+});
+
 test("an update says so when there's nothing to take", () => {
   const upToDate = repoOf("site-same", { ...UPDATE_SCRIPTS, ...TEMPLATE_FILES });
   const result = runUpdate(upToDate, templateRepo("template-same"));
@@ -269,4 +279,19 @@ test("an address that starts with a dash is given to git as an address, not as a
   const result = runUpdateWith(siteRepo("site-dash"), ["--", "--upload-pack=anything"]);
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /repository '--upload-pack=anything' does not exist/);
+});
+
+/** The audit's proof B, in part: a new package.json (whose scripts `npm ci` runs) and a new workflow, which
+    `git diff` alone doesn't show. Both are the template's to replace, so the update says to read them first. */
+test("an update that replaces package.json or a workflow names them as what to read first", () => {
+  const toolingFiles = { "package.json": "{}", ".github/workflows/check.yml": "name: Check" };
+  const mine = repoOf("site-tooling", { ...SITE_OWN_FILES, ...UPDATE_SCRIPTS, ...toolingFiles });
+  const newTooling = templateSharing("template-tooling", ["package.json", ".github/workflows"], {
+    "package.json": '{ "scripts": { "postinstall": "anything" } }',
+    ".github/workflows/check.yml": "name: Check",
+    ".github/workflows/release.yml": "name: Release",
+  });
+  const result = runUpdate(mine, newTooling);
+  assert.equal(result.status, 0, result.stderr);
+  assert.match(result.stdout, /Read these first: package\.json, \.github\/workflows\/release\.yml\. `npm ci` runs/);
 });
