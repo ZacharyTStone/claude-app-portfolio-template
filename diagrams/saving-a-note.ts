@@ -1,4 +1,4 @@
-/* A worked example of a picture that moves: copy it, rename it, and draw your own.
+/* A worked example of a picture that moves: copy it, rename it, and draw your own (docs/diagrams.md says how).
 
    Moving: three lines are typed into a note. Each is saved in the browser as it's typed (a dot runs to
    IndexedDB), and a change joins the sync queue, where it waits at a gate marked "offline". The connection

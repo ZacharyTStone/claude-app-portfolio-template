@@ -3,6 +3,9 @@
    serif. */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
+import { DATA } from "../../src/contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 
 /** The built pages the fonts are cut for, each as its HTML: the Japanese page, and 404.html if the site has
     one. */
@@ -11,11 +14,13 @@ export type BuiltPages = { japanese: string; notFound?: string };
 const HOME_PAGE = "index.html";
 const NOT_FOUND_PAGE = "404.html";
 
-/** What the stylesheet sets in var(--serif), by class (src/styles), and the data-* attributes that hold what
-    the browser code shows there (the greeting's other times of day, the goodbye's title). A hand copy: a
-    class newly set in the serif has to be added here, or its Japanese shows in another font. */
-const SERIF_CLASSES = ["hello", "wordmark", "clock-time", "print-name"];
-const SERIF_DATA_ATTRIBUTES = ["data-greet-", "data-bye-title"];
+/** What the stylesheet sets in var(--serif), by class, and the data-* attributes that hold what the browser
+    code shows there: the greeting's other times of day, the goodbye's title. Which classes those are is the
+    stylesheet's to say (src/styles), and it can't be imported: a class newly set in the serif has to be added
+    here, or its Japanese shows in another font. */
+const SERIF_CLASSES = [PAGE_CLASSES.hello, PAGE_CLASSES.wordmark, PAGE_CLASSES.clockTime, PAGE_CLASSES.printName];
+const GREETING_PARTS = Object.keys(HOURS.greeting) as GreetingPart[];
+const SERIF_DATA_ATTRIBUTES = [...GREETING_PARTS.map(DATA.greet), DATA.byeTitle];
 
 /** A language code that means Japanese: "ja", or Japanese with a region or script ("ja-JP"), but not another
     language that starts the same ("jam"). */
