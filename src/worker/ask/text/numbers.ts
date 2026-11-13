@@ -53,11 +53,9 @@ export function numberIn(word: string): string | undefined {
 }
 
 // "385ms", "1.04s", "5k". The first group is the number.
-const NUMBER_WITH_UNIT = /^(\p{Nd}[\p{Nd}.,]*)\p{Ll}+$/u;
+const NUMBER_WITH_UNIT = /^(\p{Nd}[\p{Nd}.]*)\p{Ll}+$/u;
 
-/** The number of one with its unit written on to it, as it's compared:
-    "385" for "385ms". Undefined for a number without one. */
-export function numberBeforeUnit(number: string): string | undefined {
-  const digits = NUMBER_WITH_UNIT.exec(number)?.[1];
-  return digits === undefined ? undefined : withoutCommasOrPlus(digits);
-}
+/** The number of one with its unit written on to it: "385" for "385ms".
+    `number` is as it's compared (`numberIn`), so it has no commas. Undefined
+    for a number without a unit. */
+export const numberBeforeUnit = (number: string): string | undefined => NUMBER_WITH_UNIT.exec(number)?.[1];

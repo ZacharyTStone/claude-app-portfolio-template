@@ -69,7 +69,7 @@ const BETWEEN_WORDS = /[\s/—–・]+/;
 
 // Quotation marks, brackets, and what ends a clause. The "+" of "C++" and
 // the "#" of "C#" are part of the name, and stay.
-const PUNCTUATION_ROUND_A_WORD = /^["'“”«»()[\]{}<>,.;:!?…-]+|["'“”«»()[\]{}<>,.;:!?…-]+$/g;
+const PUNCTUATION_ROUND_A_WORD = /^["'“”«»()[\]{}<>,.;:!?-]+|["'“”«»()[\]{}<>,.;:!?-]+$/g;
 
 const WITH_ENDING = new RegExp(`^(.+)(${ENDINGS.join("|")})$`);
 

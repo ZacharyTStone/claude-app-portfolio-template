@@ -7,7 +7,6 @@ import {
   compoundParts,
   dottedParts,
   hasCapitalInside,
-  hasLetter,
   latinWordsIn,
   startsWithCapital,
   type Found,
@@ -54,7 +53,7 @@ const GRAMMAR = new Set(
     "yet if as at by for from in into of on onto to with within without about across after before between " +
     "during over under through until since than then also too both either neither each every all any some " +
     "most many much more less few several such only just even still already always never often sometimes " +
-    "usually yes yeah yep no nope not none nothing ok okay sure right correct exactly absolutely indeed " +
+    "usually yes yeah yep no nope not none nothing okay sure right correct exactly absolutely indeed " +
     "actually basically currently mostly mainly primarily probably maybe perhaps unfortunately sorry well now " +
     "today however though although because while whereas besides instead otherwise meanwhile overall"
   ).split(" "),
@@ -63,7 +62,6 @@ const GRAMMAR = new Set(
 const isGrammar = (lowered: string): boolean => GRAMMAR.has(lowered) || lowered.endsWith("n't");
 
 function isName(word: string, { isFirstOfSentence, isEveryLatinWordAName, namedInQuestion }: WordReading): boolean {
-  if (!hasLetter(word)) return false;
   const lowered = word.toLowerCase();
   // "OK" is no name, however it's written.
   if (lowered === "ok") return false;
