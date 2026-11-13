@@ -49,7 +49,7 @@
   .bye { animation: bye-in 0.35s var(--ease); }
   @keyframes bye-in { from { opacity: 0; } }
   /* A quote and a file card that were out of sight come in when they're
-     scrolled to (src/app/seen.ts marks them, and only with the script).
+     scrolled to (src/app/reveal-on-scroll.ts marks them, and only with the script).
      A quote's rule shows first, in the accent, then its words, then who
      said them. A card's tick lands, then its lines are written out one
      after another, as a file being read. When several arrive together

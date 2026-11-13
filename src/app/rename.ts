@@ -5,7 +5,7 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { find, isComposing, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
-import { renameChat } from "./chats.ts";
+import { renameChat } from "./conversation/chats.ts";
 import { root, words } from "./page.ts";
 import { givenNameFrom, givenNamesIn, rowTextFor } from "./tab-names.ts";
 import { currentTab, isChat, rowFor, setTitle } from "./tabs.ts";

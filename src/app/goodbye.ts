@@ -5,7 +5,7 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, findAll, make } from "./lib/dom.ts";
-import { goHome } from "./chats.ts";
+import { goHome } from "./conversation/chats.ts";
 import { detailsPanel } from "./page.ts";
 
 /** The rows of the config's panel.context. */

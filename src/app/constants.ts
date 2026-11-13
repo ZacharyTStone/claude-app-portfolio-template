@@ -27,7 +27,7 @@ export const TIMING = {
       hold on it is let go: the slide is over by then. */
   settle: 200,
   /** How long after a page starts to load it's still arriving: until then
-      what's on screen may come in as what's scrolled to does (seen.ts). */
+      what's on screen may come in as what's scrolled to does (reveal-on-scroll.ts). */
   pageArrives: 700,
   /** How long a played picture takes to give way to its still once it
       stops (the stylesheet fades it for as long). */

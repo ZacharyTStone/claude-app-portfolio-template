@@ -10,7 +10,7 @@ import { SIZE } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
-import { deleteChat } from "./chats.ts";
+import { deleteChat } from "./conversation/chats.ts";
 import { asMenu, menuRow, toggleMenu } from "./menu.ts";
 import { questionText, sidebar, words } from "./page.ts";
 import { popupAttributes } from "./popup.ts";

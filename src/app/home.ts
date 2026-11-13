@@ -3,10 +3,10 @@
    the answer the page names for it, so nothing is asked of /ask. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { newChat } from "./chats.ts";
+import { newChat } from "./conversation/chats.ts";
 import { findAll, onEnter, query } from "./lib/dom.ts";
-import type { Source } from "./replies.ts";
-import { send } from "./send.ts";
+import type { Source } from "./conversation/replies.ts";
+import { send } from "./conversation/send.ts";
 import { isWide } from "./sidebar.ts";
 import { currentTab } from "./tabs.ts";
 

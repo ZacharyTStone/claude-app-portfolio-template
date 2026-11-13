@@ -9,7 +9,7 @@
       "count": 2
     }
   },
-  "src/app/card.ts": {
+  "src/app/question-card/card.ts": {
     "complexity": {
       "count": 2
     },
@@ -17,12 +17,12 @@
       "count": 5
     }
   },
-  "src/app/replies.ts": {
+  "src/app/conversation/replies.ts": {
     "complexity": {
       "count": 2
     }
   },
-  "src/app/send.ts": {
+  "src/app/conversation/send.ts": {
     "complexity": {
       "count": 3
     }

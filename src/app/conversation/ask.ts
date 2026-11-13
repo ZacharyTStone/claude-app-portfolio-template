@@ -1,11 +1,11 @@
 /* Ask: a question typed in goes to /ask (the Worker; src/contracts/ask.ts has
    what it says), checked here, not trusted. Once it says the visitor is
    blocked or out of questions, this browser tab stops asking. */
-import type { AskRequest, AskResponse } from "../contracts/ask.ts";
-import { STORAGE, TIMING } from "./constants.ts";
-import { lockFor, lockedResponse, parseAskResponse } from "./conversation/ask-response.ts";
-import { session } from "./lib/storage.ts";
-import { askUrl, root } from "./page.ts";
+import type { AskRequest, AskResponse } from "../../contracts/ask.ts";
+import { STORAGE, TIMING } from "../constants.ts";
+import { lockFor, lockedResponse, parseAskResponse } from "./ask-response.ts";
+import { session } from "../lib/storage.ts";
+import { askUrl, root } from "../page.ts";
 
 /** What /ask says about a question; null when it can't be asked. */
 export async function ask(question: string): Promise<AskResponse | null> {

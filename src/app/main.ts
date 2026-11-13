@@ -4,19 +4,19 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccountMenu } from "./account-menu.ts";
-import { initCard, toggleCard, wireComposer } from "./card.ts";
-import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } from "./chats.ts";
+import { initCard, toggleCard, wireComposer } from "./question-card/card.ts";
+import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } from "./conversation/chats.ts";
 import { foldable } from "./folding.ts";
 import { greet } from "./greeting.ts";
 import { focusHome, initHome } from "./home.ts";
 import { root, sidebar } from "./page.ts";
 import { initPanel, tellPanelToggles } from "./panel.ts";
-import { addPersonalTabs } from "./personal.ts";
+import { addPersonalTabs } from "./personal-tabs.ts";
 import { initPlay } from "./play.ts";
 import { closePopup, closePopupAndReturnFocus, initPopup, isPopupOpen } from "./popup.ts";
 import { wireTitle } from "./rename.ts";
-import { initSeen } from "./seen.ts";
-import { resetThreads } from "./send.ts";
+import { initSeen } from "./reveal-on-scroll.ts";
+import { resetThreads } from "./conversation/send.ts";
 import { initShare } from "./share.ts";
 import {
   closeDrawer,

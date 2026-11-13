@@ -215,7 +215,7 @@ const ADDED_BY_THE_SCRIPT = {
   viewerFrame: "viewer-frame",
   viewing: "viewing",
   viewerLoading: "viewer-loading",
-  /** A quote or a file card that comes in when it's scrolled to (seen.ts):
+  /** A quote or a file card that comes in when it's scrolled to (reveal-on-scroll.ts):
       while it's out of sight; once it has come in; and, when several come
       into view together, how far behind the first each one is. */
   waiting: "waiting",

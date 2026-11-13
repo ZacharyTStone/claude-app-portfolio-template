@@ -92,7 +92,7 @@ export type ViewerLink = {
 };
 
 /** The tab with the most quotes and file cards in it: what comes in as
-    it's scrolled to (src/app/seen.ts). */
+    it's scrolled to (src/app/reveal-on-scroll.ts). */
 export type ComesIntoView = {
   tab: string;
   /** The answer the last of them is in, as /ask names it ("about.4"). */

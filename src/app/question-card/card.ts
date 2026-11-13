@@ -1,18 +1,18 @@
 /* The question card, over the composer of the tab you're in: topics that
    open a tab (or first ask which), and a box for a question of your own.
    In a chat a choice is sent as a message; elsewhere it opens its tab. */
-import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
-import { PAGE_IDS, personalTabId } from "../contracts/page-ids.ts";
-import { type Topic } from "../config/question-card.ts";
-import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { asButton, find, findAll, make, onEnter, parentOf } from "./lib/dom.ts";
-import { stepFocus } from "./lib/focus.ts";
-import { closePopup, closePopupAndReturnFocus, popupAttributes, togglePopup } from "./popup.ts";
-import { questionCard } from "./page.ts";
-import { questionFor, type Source } from "./replies.ts";
-import { send } from "./send.ts";
-import { isChat, rowFor } from "./tabs.ts";
+import { MAX_QUESTION_LENGTH } from "../../contracts/ask.ts";
+import { PAGE_IDS, personalTabId } from "../../contracts/page-ids.ts";
+import { type Topic } from "../../config/question-card.ts";
+import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
+import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
+import { asButton, find, findAll, make, onEnter, parentOf } from "../lib/dom.ts";
+import { stepFocus } from "../lib/focus.ts";
+import { closePopup, closePopupAndReturnFocus, popupAttributes, togglePopup } from "../popup.ts";
+import { questionCard } from "../page.ts";
+import { questionFor, type Source } from "../conversation/replies.ts";
+import { send } from "../conversation/send.ts";
+import { isChat, rowFor } from "../tabs.ts";
 
 // ---- The card's choices ------------------------------------------------------------
 

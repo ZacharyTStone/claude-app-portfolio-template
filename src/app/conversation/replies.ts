@@ -1,18 +1,18 @@
 /* What's sent into a thread, and the reply it gets: the site's own answers,
    copied from the page (a thread's, the one /ask picked, or "Something
    else"), or /ask's reply when it sent one (src/contracts/ask.ts). */
-import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.ts";
-import { ID_PATTERN } from "../config/language.ts";
-import { DATA } from "../contracts/page-attributes.ts";
-import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
-import type { Source, TypedQuestion } from "./conversation/saved-chats.ts";
-import { clone, find, make } from "./lib/dom.ts";
-import { restStill } from "./play.ts";
-import { showWhole } from "./seen.ts";
-import { rich } from "./lib/markdown.ts";
-import { askedTab, questionText, words } from "./page.ts";
-import { isPersonalTab } from "./personal.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText } from "../../contracts/ask.ts";
+import { ID_PATTERN } from "../../config/language.ts";
+import { DATA } from "../../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../../contracts/page-selectors.ts";
+import type { Source, TypedQuestion } from "./saved-chats.ts";
+import { clone, find, make } from "../lib/dom.ts";
+import { restStill } from "../play.ts";
+import { showWhole } from "../reveal-on-scroll.ts";
+import { rich } from "../lib/markdown.ts";
+import { askedTab, questionText, words } from "../page.ts";
+import { isPersonalTab } from "../personal-tabs.ts";
 
 export type { Source, TypedQuestion };
 

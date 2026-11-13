@@ -1,21 +1,21 @@
 /* Chats: "New tab" opens one, an empty thread with the question card open.
    Once something is sent in it, it's listed under "Chats" and saved (in
    this browser, per language) until it's deleted or the page is refreshed. */
-import { CHATS_GROUP, groupId, ID_PREFIX } from "../contracts/page-ids.ts";
-import { DATA } from "../contracts/page-attributes.ts";
-import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { STORAGE } from "./constants.ts";
-import { readSavedChats, type SavedChat } from "./conversation/saved-chats.ts";
-import { clone, find, make } from "./lib/dom.ts";
-import { local } from "./lib/storage.ts";
-import { foldable } from "./folding.ts";
-import { isPopupOpenFrom } from "./popup.ts";
-import { askedTab, main, root, sidebar, siteName, tagline, words } from "./page.ts";
+import { CHATS_GROUP, groupId, ID_PREFIX } from "../../contracts/page-ids.ts";
+import { DATA } from "../../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
+import { STORAGE } from "../constants.ts";
+import { readSavedChats, type SavedChat } from "./saved-chats.ts";
+import { clone, find, make } from "../lib/dom.ts";
+import { local } from "../lib/storage.ts";
+import { foldable } from "../folding.ts";
+import { isPopupOpenFrom } from "../popup.ts";
+import { askedTab, main, root, sidebar, siteName, tagline, words } from "../page.ts";
 import { bubble, messagesFor, questionFor, type Source } from "./replies.ts";
-import { closeDrawerAndReturnFocus, isWide } from "./sidebar.ts";
-import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "./tabs.ts";
-import { say } from "./toast.ts";
+import { closeDrawerAndReturnFocus, isWide } from "../sidebar.ts";
+import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "../tabs.ts";
+import { say } from "../toast.ts";
 
 const SAVED = `${STORAGE.chats}${root.lang}`;
 
