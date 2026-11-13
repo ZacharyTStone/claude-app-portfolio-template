@@ -1,0 +1,10 @@
+{
+  // The browser checks, run by Node: Node's types, and the DOM's for the
+  // callbacks that run in the page.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2023", "dom", "dom.iterable"],
+    "types": ["node"]
+  },
+  "include": ["."]
+}
