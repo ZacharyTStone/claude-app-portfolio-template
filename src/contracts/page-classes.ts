@@ -1,7 +1,7 @@
 /* Every class the browser code (src/app) or the browser checks
-   (tests/browser) count on. The stylesheet (src/styles) has the values
-   typed out, as it can't import them: change one here, and change it
-   there. A class only the stylesheet needs isn't here.
+   (tests/browser) count on. The stylesheet has the values typed out, as it
+   can't import them, and tests/styles/names.test.ts holds the two
+   together. A class only the stylesheet needs isn't here.
 
    A class's key is its name in whole words: `rowName` is "row-name"
    (tests/contracts/page-classes.test.ts). A comment says what the name

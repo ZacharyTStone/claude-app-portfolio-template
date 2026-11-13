@@ -20,6 +20,7 @@
     "tests/sample",
     "tests/scripts",
     "tests/site",
+    "tests/styles",
     "tests/app",
     "tests/contracts",
     "tests/worker",

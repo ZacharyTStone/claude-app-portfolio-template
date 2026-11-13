@@ -35,8 +35,7 @@
   --column: 824px;
   --gutter: 24px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
-  /* How long a played picture takes to come in over its still, and to give
-     way to it again (TIMING.playFade in src/app/constants.ts is the same). */
+  /* A played picture comes in over its still, and gives way to it again, for this long. */
   --play-fade: 300ms;
 
   --sans: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
