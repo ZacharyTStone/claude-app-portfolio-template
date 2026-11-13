@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { HOSTS, type SiteConfig } from "../../../src/config/site-config.ts";
-import { sampleConfig } from "../sample.ts";
+import { languageOf, sampleConfig } from "../sample.ts";
 import {
   findingsIn,
   inEveryLanguage,
@@ -14,7 +14,10 @@ import {
   testEachProblem,
 } from "./problems.ts";
 
-const LANGUAGES_DO_NOT_MATCH = `fr: its threads, questions and home prompts don't match en's (same ids, as many questions, same order)`;
+/** How a problem says that French isn't made as English is: these words, then the first thing that differs. */
+const frenchDiffers = (firstDifference: string): string[] => [
+  `fr: its threads, questions and home prompts don't match en's (same ids, as many questions, same order): ${firstDifference}`,
+];
 const NOT_THE_SITES_ADDRESS = `url should be the site's address, like "https://example.com"`;
 
 /** Something that would end the attribute it's written into, and start another. */
@@ -27,27 +30,39 @@ testEachProblem([
   {
     wrong: "one language has its threads in another order",
     change: inFrench((french) => french.threads.reverse()),
-    problems: [LANGUAGES_DO_NOT_MATCH],
+    problems: frenchDiffers(`the 1st thread is "work" (1 question) in fr and "about" (1 question) in en`),
   },
   {
     wrong: "one language's thread answers one more question",
     change: inFrench((french) => french.threads[1]?.messages.push({ q: "and?", a: ["More."] })),
-    problems: [LANGUAGES_DO_NOT_MATCH],
+    problems: frenchDiffers(`the 2nd thread is "work" (2 questions) in fr and "work" (1 question) in en`),
   },
   {
     wrong: "one language has a topic fewer",
     change: inFrench((french) => french.questions.topics.pop()),
-    problems: [LANGUAGES_DO_NOT_MATCH],
+    problems: frenchDiffers(`the 2nd topic is missing in fr and "work" in en`),
   },
   {
     wrong: "one language has a personal answer more",
     change: inFrench((french) => french.questions.personal.push({ id: "food", q: "food?", a: ["Bread."] })),
-    problems: [LANGUAGES_DO_NOT_MATCH],
+    problems: frenchDiffers(`the 2nd personal answer is "food" in fr and missing in en`),
   },
   {
     wrong: "one language has no questions to start with",
     change: inFrench((french) => (french.home.prompts = [])),
-    problems: [LANGUAGES_DO_NOT_MATCH],
+    problems: frenchDiffers(`the 1st home prompt is missing in fr and for "work.1" in en`),
+  },
+  {
+    wrong: "one language's topic lists the personal answers where the other's offers threads",
+    change: (sample) => {
+      languageOf(sample, "en").questions.topics.push({
+        label: "More",
+        ask: "Which?",
+        choices: [{ tab: "about" }, { tab: "work" }],
+      });
+      languageOf(sample, "fr").questions.topics.push({ label: "More", ask: "Which?", personal: true });
+    },
+    problems: frenchDiffers(`the 3rd topic is the personal answers in fr and a choice of "about", "work" in en`),
   },
   {
     wrong: "a language's code is a path",

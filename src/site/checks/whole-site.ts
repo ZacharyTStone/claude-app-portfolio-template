@@ -1,9 +1,10 @@
 /* The checks of the site as a whole: that its languages match, and the
    settings every language shares. */
 
-import { isEqual } from "es-toolkit";
+import { range } from "es-toolkit";
 import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Language } from "../../config/language.ts";
+import type { Topic } from "../../config/question-card.ts";
 import type { Host, SiteConfig } from "../../config/site-config.ts";
 import { isRecord } from "../../contracts/guards.ts";
 import { panelRows } from "../panel.ts";
@@ -23,20 +24,62 @@ import type { ProblemUnless } from "./reporting.ts";
 
 type SiteCheck = (site: Site, problemUnless: ProblemUnless) => void;
 
-/** What has to be the same in every language: the ids, counts and order of
-    everything an answer's id, a topic or a home prompt can name. Never the
+/** What has to be the same in every language, in the order a difference
+    is looked for: each part under the name a problem calls it by, each of
+    its items as the problem describes it. The ids, counts and order of
+    everything an answer's id, a topic or a home prompt can name; never the
     wording. */
-function outlineOf(language: Language): unknown {
+type Outline = Record<"thread" | "topic" | "personal answer" | "home prompt", string[]>;
+
+const quoted = (id: string): string => `"${id}"`;
+
+function whatATopicOpens(topic: Topic): string {
+  const choices = (topic.choices ?? []).map((choice) => quoted(choice.tab));
+  const opened = [
+    ...(topic.tab ? [quoted(topic.tab)] : []),
+    ...(topic.personal ? ["the personal answers"] : []),
+    ...(choices.length ? [`a choice of ${choices.join(", ")}`] : []),
+  ];
+  return opened.join(" and ") || "nothing to open";
+}
+
+function outlineOf(language: Language): Outline {
   return {
-    threads: language.threads.map((thread) => [thread.id, thread.messages.length]),
-    topics: language.questions.topics.map((topic) => ({
-      tab: topic.tab,
-      personal: Boolean(topic.personal),
-      choices: (topic.choices ?? []).map((choice) => choice.tab),
-    })),
-    personal: language.questions.personal.map((personalAnswer) => personalAnswer.id),
-    prompts: (language.home.prompts ?? []).map((prompt) => prompt.answer),
+    thread: language.threads.map(
+      ({ id, messages }) => `${quoted(id)} (${messages.length} ${messages.length === 1 ? "question" : "questions"})`,
+    ),
+    topic: language.questions.topics.map(whatATopicOpens),
+    "personal answer": language.questions.personal.map(({ id }) => quoted(id)),
+    "home prompt": (language.home.prompts ?? []).map(({ answer }) => `for ${quoted(answer)}`),
   };
+}
+
+const ORDINAL_ENDINGS: Record<Intl.LDMLPluralRule, string> = {
+  zero: "th",
+  one: "st",
+  two: "nd",
+  few: "rd",
+  many: "th",
+  other: "th",
+};
+const ordinalRules = new Intl.PluralRules("en", { type: "ordinal" });
+
+/** "1st", "2nd", "3rd", "11th". */
+const ordinal = (position: number): string => `${position}${ORDINAL_ENDINGS[ordinalRules.select(position)]}`;
+
+/** Where one language's outline first differs from the main one's, as a
+    problem says it: `the 2nd thread is "work" (2 questions) in fr and
+    "work" (1 question) in en`. Undefined when they match. */
+function firstDifference(code: string, outline: Outline, main: string, mainOutline: Outline): string | undefined {
+  for (const [part, items] of Object.entries(outline) as Array<[keyof Outline, string[]]>) {
+    const mainItems = mainOutline[part];
+    const at = range(Math.max(items.length, mainItems.length)).find((index) => items[index] !== mainItems[index]);
+    if (at === undefined) continue;
+    const here = items[at] ?? "missing";
+    const there = mainItems[at] ?? "missing";
+    return `the ${ordinal(at + 1)} ${part} is ${here} in ${code} and ${there} in ${main}`;
+  }
+  return undefined;
 }
 
 /** An answer's id ("work.2") has to name the same answer in every language:
@@ -45,10 +88,12 @@ function outlineOf(language: Language): unknown {
     tab's #id. */
 const checkLanguagesMatch: SiteCheck = (site, problemUnless) => {
   const { codes, main } = site;
+  const mainOutline = outlineOf(site.language(main));
   for (const code of codes.slice(1)) {
+    const difference = firstDifference(code, outlineOf(site.language(code)), main, mainOutline);
     problemUnless(
-      isEqual(outlineOf(site.language(code)), outlineOf(site.language(main))),
-      `${code}: its threads, questions and home prompts don't match ${main}'s (same ids, as many questions, same order)`,
+      difference === undefined,
+      `${code}: its threads, questions and home prompts don't match ${main}'s (same ids, as many questions, same order): ${difference}`,
     );
   }
 };
