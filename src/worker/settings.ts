@@ -69,8 +69,8 @@ export const SETTINGS = {
   /** The questions the whole site may be asked in a day. */
   dailyLimit: numberAboveZero("ASK_DAILY_LIMIT", 200),
   /** The Neurons a day's questions may cost, the whole site's. Workers AI's
-      free allowance is 10,000 a day: the rest is room for the questions
-      already on their way when the budget is reached. */
+      free allowance is 10,000 a day: the rest is room for the last
+      question, which may take the day a little past the budget. */
   neuronBudget: numberAboveZero("ASK_DAILY_NEURONS", 9000),
   /** The questions one visitor may ask in a day. */
   visitorLimit: numberAboveZero("ASK_VISITOR_LIMIT", 30),

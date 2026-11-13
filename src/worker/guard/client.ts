@@ -8,7 +8,9 @@ export type Guard = {
   takeQuestion(asker: Asker): Promise<Gate>;
   /** Blocks the visitor from /ask for ASK_BLOCK_HOURS. */
   blockVisitor(visitorHash: string): Promise<void>;
-  /** Adds what a question's model calls cost, in Neurons, to the day's. */
+  /** Pays for a question that was taken with what its model calls cost,
+      in Neurons. One that failed is paid for with nothing: until it's
+      paid for, AskGuard counts it at the most a question has cost. */
   spendNeurons(neurons: number): Promise<void>;
 };
 
@@ -73,10 +75,8 @@ export function guardFor(namespace: DurableObjectNamespace | undefined, settings
       }
     },
     async spendNeurons(neurons) {
-      const isACost = neurons > 0;
-      if (!isACost) return;
       try {
-        await ask({ ask: "spend", neurons });
+        await ask({ ask: "spend", neurons: neurons > 0 ? neurons : 0 });
       } catch {
         // The question is answered all the same; only its cost goes uncounted.
       }

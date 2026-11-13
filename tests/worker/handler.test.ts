@@ -166,7 +166,7 @@ test("a question turned away for what it asks has cost as much, and is counted a
   assert.deepEqual(costs(logged), [Math.round(costAt(PICKER) * 10) / 10]);
 });
 
-test("nothing is counted for a question the model never got, or one it failed on", async () => {
+test("nothing is counted for a question the model never got, and one it failed on is paid for with nothing", async () => {
   for (const says of [ASK_GUARD_REPLY.spent, ASK_GUARD_REPLY.limited, ASK_GUARD_REPLY.blocked]) {
     const { askJson, guard, logged } = stubs({ guardSays: says });
     await askJson("who?");
@@ -179,5 +179,5 @@ test("nothing is counted for a question the model never got, or one it failed on
     },
   });
   await failing.askJson("who?");
-  assert.equal(spent(failing.guard), undefined);
+  assert.equal(spent(failing.guard), 0);
 });

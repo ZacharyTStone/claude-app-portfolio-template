@@ -1,9 +1,12 @@
 /* AskGuard (src/worker/guard/): the Durable Object that counts the day's
-   questions, the site's and each visitor's, and what the site's cost, and
-   keeps the blocks; what /ask says to it; and how /ask reads what it says
-   back. Past any limit, or with the guard down, the model isn't asked. */
+   questions, the site's and each visitor's, and what the site's cost and
+   may yet, and keeps the blocks; what /ask says to it; and how /ask reads
+   what it says back. Past any limit, or with the guard down, the model
+   isn't asked. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { setImmediate as nextTurn } from "node:timers/promises";
+import { sum } from "es-toolkit";
 import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
 import { ASK_GUARD_KEYS, AskGuard, MAX_KEYS_PER_DELETE } from "../../src/worker/guard/ask-guard.ts";
 import {
@@ -20,9 +23,9 @@ import {
 import { limitsFrom } from "../../src/worker/guard/client.ts";
 import { VISITOR_ADDRESS_HEADER } from "../../src/worker/lib/visitor.ts";
 import { SETTINGS, readSettings } from "../../src/worker/settings.ts";
-import { firstAsked, guardStub, okLeft, realGuard, storageOver, type Stored } from "./support/guard.ts";
-import { models, toolCall } from "./support/models.ts";
-import { stubs } from "./support/worker.ts";
+import { askedOf, firstAsked, guardStub, okLeft, realGuard, storageOver, type Stored } from "./support/guard.ts";
+import { models, toolCall, using } from "./support/models.ts";
+import { costs, stubs } from "./support/worker.ts";
 
 test("what /ask asks of the guard reads back as it was asked", () => {
   const asked: Asked[] = [
@@ -34,6 +37,7 @@ test("what /ask asks of the guard reads back as it was asked", () => {
     },
     { ask: "block", visitorHash: "abc", hours: 24 },
     { ask: "spend", neurons: 21.25 },
+    { ask: "spend", neurons: 0 },
   ];
   assert.deepEqual(
     asked.map((one) => readAsked(new URL(urlAsking(one)))),
@@ -187,11 +191,19 @@ const ROOMY = { hourly: 999, shared: 999 };
 const used = (stored: Stored) => (stored.get(ASK_GUARD_KEYS.today) as { used: number } | undefined)?.used;
 const spent = (stored: Stored) => (stored.get(ASK_GUARD_KEYS.today) as { neurons?: number } | undefined)?.neurons;
 
+/** Has the guard take a question and, as the Worker does once it has
+    answered one, pays for it: the next isn't held back for it. */
+async function takenAndPaid(call: ReturnType<typeof guardOver>, query: Record<string, string | number>) {
+  const taken = await call(ASK_GUARD_PATH.take, query);
+  if (String(taken).startsWith(ASK_GUARD_REPLY.ok)) await call(ASK_GUARD_PATH.spend, { neurons: 1 });
+  return taken;
+}
+
 /** A guard over `stored`, and a way to have it take a question from `who`. */
 function taking(stored: Stored = new Map()) {
   const call = guardOver(stored);
   const take = (who: string, limit: number, each: number) =>
-    call(ASK_GUARD_PATH.take, { limit, each, ...ROOMY, budget: 9000, who, net: who });
+    takenAndPaid(call, { limit, each, ...ROOMY, budget: 9000, who, net: who });
   return { stored, call, take };
 }
 
@@ -225,7 +237,7 @@ test("in an hour the site takes no more than the hour's share, and takes again i
   t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T14:10:00Z") });
   const call = guardOver(new Map());
   const take = (who: string) =>
-    call(ASK_GUARD_PATH.take, { limit: 99, hourly: 2, each: 30, shared: 99, budget: 9000, who, net: who });
+    takenAndPaid(call, { limit: 99, hourly: 2, each: 30, shared: 99, budget: 9000, who, net: who });
   const thisHour = [await take("a"), await take("b"), await take("c")];
   t.mock.timers.setTime(Date.parse("2026-01-31T15:00:00Z"));
   assert.deepEqual([...thisHour, await take("c")], [okLeft(29), okLeft(29), ASK_GUARD_REPLY.spent, okLeft(29)]);
@@ -234,7 +246,7 @@ test("in an hour the site takes no more than the hour's share, and takes again i
 test("addresses in one network share its allowance, and another network has its own", async () => {
   const call = guardOver(new Map());
   const take = (who: string, net: string) =>
-    call(ASK_GUARD_PATH.take, { limit: 99, hourly: 99, each: 30, shared: 2, budget: 9000, who, net });
+    takenAndPaid(call, { limit: 99, hourly: 99, each: 30, shared: 2, budget: 9000, who, net });
   assert.deepEqual(
     [await take("a", "office"), await take("b", "office"), await take("c", "office"), await take("d", "home")],
     [okLeft(1), okLeft(0), ASK_GUARD_REPLY.limited, okLeft(1)],
@@ -305,6 +317,72 @@ test("at the budget it takes no more, whoever asks, and nothing of theirs is cou
   assert.equal(await take("c"), ASK_GUARD_REPLY.spent);
   assert.equal(used(stored), 2);
   assert.equal(stored.has(`${ASK_GUARD_KEYS.count}c`), false);
+});
+
+test("a question not yet paid for is counted at the most one has cost, and is no longer once it's paid for", async () => {
+  const { call, take } = budgeting();
+  await take("a");
+  await call(ASK_GUARD_PATH.spend, { neurons: 40 });
+  // 40 spent, and two more at 40 each would pass 100: there's no room for a third.
+  assert.deepEqual(
+    [await take("b"), await take("c"), await take("d")],
+    [okLeft(29), okLeft(29), ASK_GUARD_REPLY.spent],
+  );
+  await call(ASK_GUARD_PATH.spend, { neurons: 40 });
+  assert.equal(await take("d"), ASK_GUARD_REPLY.spent, "80 spent, and one more on its way");
+  await call(ASK_GUARD_PATH.spend, { neurons: 0 });
+  assert.equal(await take("d"), okLeft(29), "the other failed, and was paid for with nothing");
+});
+
+test("before any question has been paid for they're taken one at a time, as after one that failed", async () => {
+  const { call, take } = budgeting();
+  assert.deepEqual([await take("a"), await take("b")], [okLeft(29), ASK_GUARD_REPLY.spent]);
+  await call(ASK_GUARD_PATH.spend, { neurons: 0 });
+  assert.deepEqual([await take("b"), await take("c")], [okLeft(29), ASK_GUARD_REPLY.spent]);
+  await call(ASK_GUARD_PATH.spend, { neurons: 10 });
+  assert.deepEqual([await take("c"), await take("d")], [okLeft(29), okLeft(29)]);
+});
+
+test("the next day none is unpaid, and the most a question has cost is still known", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T23:50:00Z") });
+  const { call, take } = budgeting();
+  await take("a");
+  await call(ASK_GUARD_PATH.spend, { neurons: 40 });
+  await take("b");
+  t.mock.timers.setTime(Date.parse("2026-02-01T00:10:00Z"));
+  // At 40 each, 100 Neurons have room for three at once.
+  assert.deepEqual(
+    [await take("c"), await take("d"), await take("e"), await take("f")],
+    [okLeft(29), okLeft(29), okLeft(29), ASK_GUARD_REPLY.spent],
+  );
+});
+
+test("a burst asked all at once stops within a question's cost of the day's Neurons", async () => {
+  const BUDGET = 1000;
+  const guard = realGuard();
+  let letTheModelsAnswer = () => {};
+  let held: Promise<void> = Promise.resolve();
+  const world = stubs({
+    guard,
+    vars: { ASK_DAILY_NEURONS: String(BUDGET) },
+    run: async (...call) => {
+      await held;
+      return models(using(toolCall("about.1"), 7000, 150))(...call);
+    },
+  });
+  const askFrom = (address: string) =>
+    world.ask({ question: "who?", lang: "en" }, { headers: { [VISITOR_ADDRESS_HEADER]: address } });
+  await askFrom("192.0.2.77");
+  const each = Number(costs(world.logged)[0]);
+
+  held = new Promise((resolve) => (letTheModelsAnswer = resolve));
+  const burst = Array.from({ length: 40 }, (_, n) => askFrom(`198.51.${n}.1`));
+  while (askedOf(guard).filter((asked) => asked.ask === "take").length <= burst.length) await nextTurn();
+  letTheModelsAnswer();
+  await Promise.all(burst);
+
+  const counted = sum(costs(world.logged).filter((cost) => typeof cost === "number"));
+  assert.ok(counted > BUDGET - each && counted < BUDGET + each, `${counted} Neurons, at ${each} a question`);
 });
 
 test("a larger budget lets the day go on, and a request with none has no limit", async () => {

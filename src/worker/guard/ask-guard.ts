@@ -1,21 +1,24 @@
 /* AskGuard: the day's (UTC) questions, the site's, each visitor's and each
-   network's, the site's this hour, the Neurons the site's have cost, and
-   the visitors blocked. The site has one, and it handles one request at a
-   time, so the counts are exact. */
+   network's, the site's this hour, the Neurons the site's have cost and
+   may yet, and the visitors blocked. The site has one, and it handles one
+   request at a time, so the counts are exact. */
 import { chunk } from "es-toolkit";
 import * as v from "valibot";
 import { ASK_GUARD_REPLY, readAsked, sayTaken, type Asked, type DayLimits, type Taken } from "./wire.ts";
 
 /** What it keeps. These keys are the deployed site's state, so they stay:
-    - today: { day, used, neurons }, the site's questions on that day, and
-      the Neurons they cost (not there before the first is counted);
+    - today: { day, used, neurons, unpaid }, the site's questions on that
+      day, the Neurons they cost, and how many of them aren't paid for yet
+      (neither of the last two is there before it's first counted);
     - hour: { hour, used }, the site's questions in that hour;
+    - dearest: the most Neurons one question has cost, on any day;
     - count + who: { day, asked }, one visitor's;
     - network + which: { day, asked }, one network's;
     - block + who: when their block runs out (ms since 1970). */
 export const ASK_GUARD_KEYS = {
   today: "today",
   hour: "hour",
+  dearest: "dearest",
   count: "count:",
   network: "network:",
   block: "block:",
@@ -32,9 +35,11 @@ const SiteCountSchema = v.object({
   day: v.string(),
   /** How many questions went to the model that day. */
   used: v.number(),
-  /** What they cost, in Neurons. A count stored before costs were counted
-      has none, and reads as 0. */
-  neurons: v.optional(v.number()),
+  /** What those paid for so far cost, in Neurons. A count stored before
+      costs were counted has none. */
+  neurons: v.optional(v.number(), 0),
+  /** How many of them aren't paid for yet: they're still being answered. */
+  unpaid: v.optional(v.number(), 0),
 });
 type SiteCount = v.InferOutput<typeof SiteCountSchema>;
 
@@ -55,8 +60,10 @@ type VisitorCount = v.InferOutput<typeof VisitorCountSchema>;
 
 // What's stored, if it's the site's count for `day`. A count for another
 // day, or anything else, is none: the day starts from 0.
-const siteCountOn = (day: string, stored: unknown): SiteCount | undefined =>
-  v.is(SiteCountSchema, stored) && stored.day === day ? stored : undefined;
+function siteCountOn(day: string, stored: unknown): SiteCount | undefined {
+  const count = v.safeParse(SiteCountSchema, stored);
+  return count.success && count.output.day === day ? count.output : undefined;
+}
 
 const hourCountIn = (hour: string, stored: unknown): HourCount | undefined =>
   v.is(HourCountSchema, stored) && stored.hour === hour ? stored : undefined;
@@ -76,15 +83,24 @@ const dayOf = (now: number) => new Date(now).toISOString().slice(0, 10);
 const hourOf = (now: number) => new Date(now).toISOString().slice(0, 13);
 
 /** What has been asked so far: of the site today and this hour, by the
-    visitor and from their network today; and what the site's have cost. */
-type Counts = { used: number; neurons: number; usedThisHour: number; asked: number; networkAsked: number };
+    visitor and from their network today; and the most a question has
+    cost, once one has been paid for. */
+type Counts = { site: SiteCount; usedThisHour: number; asked: number; networkAsked: number; dearest?: number };
+
+// A question is paid for only once it's answered, so each one that isn't
+// yet is counted at the most one has cost: a burst takes the day past its
+// budget by little more than one question's cost. Before any has been paid
+// for there's nothing to count them at, and they're taken one at a time.
+function isBudgetSpent({ site, dearest }: Counts, neuronBudget: number): boolean {
+  if (site.neurons >= neuronBudget) return true;
+  const roomFor = dearest === undefined ? 1 : (neuronBudget - site.neurons) / dearest;
+  return site.unpaid >= roomFor;
+}
 
 // The site's limits come first: a visitor is told they've asked all they
 // may only while the site still takes questions.
 function refusalAt(counts: Counts, limits: DayLimits): "spent" | "limited" | undefined {
-  // The budget is checked before a question and counted after it, so the
-  // questions on their way when it's reached take the day a little past.
-  const isDaySpent = counts.used >= limits.siteLimit || counts.neurons >= limits.neuronBudget;
+  const isDaySpent = counts.site.used >= limits.siteLimit || isBudgetSpent(counts, limits.neuronBudget);
   if (isDaySpent || counts.usedThisHour >= limits.hourLimit) return "spent";
   const isLimited = counts.asked >= limits.visitorLimit || counts.networkAsked >= limits.networkLimit;
   return isLimited ? "limited" : undefined;
@@ -121,13 +137,15 @@ export class AskGuard implements DurableObject {
     const { visitorHash, networkHash, limits } = take;
     if (await this.isBlocked(visitorHash, now)) return { state: "blocked" };
     const [day, hour] = [dayOf(now), hourOf(now)];
-    const { used, neurons } = await this.siteCountFor(day, now);
+    const site = await this.siteCountFor(day, now);
     const usedThisHour = hourCountIn(hour, await this.storage.get(ASK_GUARD_KEYS.hour))?.used ?? 0;
     const asked = visitorCountOn(day, await this.storage.get(countKey(visitorHash)))?.asked ?? 0;
     const networkAsked = visitorCountOn(day, await this.storage.get(networkKey(networkHash)))?.asked ?? 0;
-    const refusal = refusalAt({ used, neurons, usedThisHour, asked, networkAsked }, limits);
+    const dearest = await this.dearestQuestion();
+    const refusal = refusalAt({ site, usedThisHour, asked, networkAsked, dearest }, limits);
     if (refusal) return { state: refusal };
-    await this.storage.put(ASK_GUARD_KEYS.today, { day, used: used + 1, neurons } satisfies SiteCount);
+    const taken: SiteCount = { ...site, used: site.used + 1, unpaid: site.unpaid + 1 };
+    await this.storage.put(ASK_GUARD_KEYS.today, taken);
     await this.storage.put(ASK_GUARD_KEYS.hour, { hour, used: usedThisHour + 1 } satisfies HourCount);
     await this.storage.put(countKey(visitorHash), { day, asked: asked + 1 } satisfies VisitorCount);
     await this.storage.put(networkKey(networkHash), { day, asked: networkAsked + 1 } satisfies VisitorCount);
@@ -145,23 +163,29 @@ export class AskGuard implements DurableObject {
 
   // When what's stored is an earlier day's, that day is over: its counts
   // are deleted, and this one starts from nothing.
-  private async siteCountFor(day: string, now: number): Promise<Required<SiteCount>> {
+  private async siteCountFor(day: string, now: number): Promise<SiteCount> {
     const stored = await this.storage.get(ASK_GUARD_KEYS.today);
     const count = siteCountOn(day, stored);
-    if (count) return { day, used: count.used, neurons: count.neurons ?? 0 };
+    if (count) return count;
     if (stored !== undefined) await this.deleteWhatHasRunOut(now);
-    return { day, used: 0, neurons: 0 };
+    return { day, used: 0, neurons: 0, unpaid: 0 };
   }
 
-  // Adds a question's cost to the day it was asked on. One asked just before
-  // midnight and counted just after belongs to neither day, and is dropped.
+  private async dearestQuestion(): Promise<number | undefined> {
+    const dearest = await this.storage.get(ASK_GUARD_KEYS.dearest);
+    return typeof dearest === "number" ? dearest : undefined;
+  }
+
+  // Pays for a question on the day it was asked: its cost is added to the
+  // day's, and it's no longer counted as unpaid. One asked just before
+  // midnight and paid for just after belongs to neither day, and is dropped.
   private async spendNeurons(neurons: number, now: number): Promise<void> {
     const today = siteCountOn(dayOf(now), await this.storage.get(ASK_GUARD_KEYS.today));
     if (!today) return;
-    await this.storage.put(ASK_GUARD_KEYS.today, {
-      ...today,
-      neurons: (today.neurons ?? 0) + neurons,
-    } satisfies SiteCount);
+    const paid: SiteCount = { ...today, neurons: today.neurons + neurons, unpaid: Math.max(today.unpaid - 1, 0) };
+    await this.storage.put(ASK_GUARD_KEYS.today, paid);
+    const dearest = (await this.dearestQuestion()) ?? 0;
+    if (neurons > dearest) await this.storage.put(ASK_GUARD_KEYS.dearest, neurons);
   }
 
   // Every visitor's count and every network's is an earlier day's by now.

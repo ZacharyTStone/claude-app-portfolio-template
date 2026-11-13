@@ -21,7 +21,8 @@ export type DayLimits = {
 export type Asker = { visitorHash: string; networkHash: string };
 
 /** What AskGuard is asked: to take one question from the day's allowances,
-    to block a visitor, or to add what a question cost to the day's. */
+    to block a visitor, or to pay for a question it took with what that
+    cost (nothing, for one that failed). */
 export type Asked =
   | ({ ask: "take"; limits: DayLimits } & Asker)
   | { ask: "block"; visitorHash: string; hours: number }
@@ -77,7 +78,8 @@ function readBlock(query: URLSearchParams): Asked | undefined {
 }
 
 function readSpend(query: URLSearchParams): Asked | undefined {
-  const neurons = positiveNumber(query.get("neurons"));
+  const said = query.get("neurons");
+  const neurons = said === "0" ? 0 : positiveNumber(said);
   return neurons === null ? undefined : { ask: "spend", neurons };
 }
 
