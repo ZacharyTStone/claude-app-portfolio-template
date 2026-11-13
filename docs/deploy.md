@@ -2,7 +2,7 @@
 
 Nothing built is committed. Any host that can run `npm run build` and
 publish `dist/` works: connect the repo, and the host builds the site from
-source on every push. It needs the Node version in `.node-version`.
+source on every push. It needs Node 24, the version in `.node-version`.
 
 Two fields in `site.config.ts` say where the site is going:
 
@@ -10,9 +10,12 @@ Two fields in `site.config.ts` say where the site is going:
   GitHub project site), put the path in it:
   `"https://you.github.io/portfolio/"`. Every link then starts with it.
 - `host` is who serves it. It tells the build how the security headers
-  ([Security](security.md)) reach the browser: Cloudflare and Netlify read
-  a `_headers` file the build writes; on any other host, each page carries
-  its Content-Security-Policy and referrer policy in `<meta>` tags.
+  ([Security](security.md)) reach the browser. Every page carries its
+  Content-Security-Policy and referrer policy in `<meta>` tags, whatever
+  the host; Cloudflare and Netlify also read a `_headers` file the build
+  writes, with every header in it.
+- Paths elsewhere in the config (`"/assets/og.png"`) are from the site's
+  own root, wherever that is.
 
 ## Cloudflare (recommended)
 
@@ -27,10 +30,13 @@ Pages → Create → Import a repository**; it deploys on every push to
 `main`), or deploy from your machine:
 
 ```sh
-npx wrangler deploy   # runs npm run build, then uploads dist/
+npm run deploy   # runs npm run build, then uploads dist/
 ```
 
-`npx wrangler dev` serves it locally as Cloudflare would.
+`npm run deploy` runs one pinned version of Wrangler, Cloudflare's tool;
+`npm run wrangler -- dev` serves the site locally as Cloudflare would.
+With a custom domain, set `"workers_dev": false` in `wrangler.jsonc`, so
+the site isn't also served at its `workers.dev` address.
 
 ## Netlify, Vercel, or any static host
 
@@ -61,15 +67,15 @@ jobs:
     runs-on: ubuntu-latest
     environment: github-pages
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@v4
+      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
         with:
           path: dist
-      - uses: actions/deploy-pages@v4
+      - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 ```

@@ -23,12 +23,17 @@ answered from.
    card React is in.
 3. **The Worker checks.** Before anyone sees the reply, the Worker
    (`src/worker`) checks the names, numbers and addresses in it
-   (`src/worker/ask/grounded.ts`). Each has to be in the lines it was
-   written from, their tab's name, your site's own question or your name,
-   and never only in what the visitor typed. A reply that fails is asked
-   for once more, then thrown away: the lines are quoted as they are if
-   they're sentences, and otherwise the page shows the whole answer.
-4. **The page shows its source.** The reply is shown as text, 240
+   (`src/worker/ask/checks/grounded.ts`). Each has to be in the lines it
+   was written from, their tab's name, your site's own question or your
+   name, and never only in what the visitor typed. The check also refuses
+   a reply with a character no reader can see, or a letter from a script
+   the page's language doesn't use. Any word with a dot (`t.me/x`,
+   `Site.com/cv`) is an address the lines must have whole, and a
+   number's unit ("5K") and a sentence's first word are checked too. A
+   reply that fails is asked for once more, then thrown away: the lines
+   are quoted as they are if they're sentences, and otherwise the page
+   shows the whole answer.
+4. **The page shows its source.** The reply is shown as text, 400
    characters at most, with the lines it was written from quoted under
    it, then a link to the tab they're in. Lines of more than 800
    characters together are too long to quote: the reply then has only the
@@ -44,10 +49,11 @@ it was typed.
 ### What isn't checked
 
 The reply's ordinary words are not checked, and neither is what the check
-can't tell from one: a name that only starts a sentence, a name in kana or
-kanji, a number in kanji. Keeping to what the lines say is only the
-model's instruction (`src/worker/ask/write.ts`), so a reply can still put
-something wrongly: "No" where the lines mean yes. That is why the page
+can't tell from one: a name in kana or kanji, a number in kanji. So a
+claim written entirely in ordinary lower-case words is not caught by this
+design. Keeping to what the lines say is only the model's instruction
+(`src/worker/ask/prompts/reply.ts`), so a reply can still put something
+wrongly: "No" where the lines mean yes. That is why the page
 quotes the lines under every reply: what your site itself says is beside
 what the model made of it.
 
@@ -58,7 +64,10 @@ reply is written, and the lines are quoted.
 
 Two models read every question. The picker flags a rude one, or one that
 tries to give it other orders, and Llama Guard reads each question too.
-Either blocks that visitor from Ask for 24 hours.
+Either blocks that visitor's address from Ask for an hour
+(`ASK_BLOCK_HOURS`), or until midnight UTC if that comes first: an
+address can be a whole office's, and a model can be wrong about a
+question.
 
 ## Write answers Ask can use
 
@@ -78,10 +87,10 @@ First check which plan your Cloudflare account is on:
 2. In `wrangler.jsonc`, uncomment the Ask block and the two lines marked
    "Ask" in `"assets"`.
 3. Set a salt for hashing visitors' addresses:
-   `npx wrangler secret put ASK_SALT`. Without it, a salt anyone can read
-   in the code is used.
-4. Deploy. Workers AI, the rate limit and the Durable Object are set up
-   from `wrangler.jsonc`.
+   `npm run wrangler -- secret put ASK_SALT`. Without it, a salt anyone
+   can read in the code is used ([Security](security.md#ask)).
+4. Deploy (`npm run deploy`, or a push to a connected repo). Workers AI,
+   the rate limit and the Durable Object are set up from `wrangler.jsonc`.
 
 To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 `wrangler.jsonc` and deploy.
@@ -90,7 +99,9 @@ To pause it without a code change, set `ASK_ENABLED` to `"false"` in
 
 One line is logged per question, under the Worker's Observability tab:
 which answer was picked and what it cost in Neurons, or why the question
-was turned away. The visitor's address is never logged. What was asked,
+was turned away. The visitor's address is never logged, and Cloudflare's
+own line for each request, which has it among the headers, is off
+(`invocation_logs` in `wrangler.jsonc`). What was asked,
 what the model made of it and what was sent back are logged only if you
 set `ASK_LOG_QUESTIONS` to `"true"`; if you do, say so on your site. With
 it on, the `thought` in a line tells you why Ask answered as it did.
@@ -105,7 +116,7 @@ node tests/ask-eval.ts https://your-site.example
 
 It prints each reply the model wrote with the lines it was written from,
 to read one against the other. The questions that should be blocked run
-last, and block your address for a day.
+last, and block your address for an hour.
 
 ## What Ask can cost
 
@@ -117,9 +128,18 @@ most, and Llama Guard 10. Each reports the tokens it used, and the Worker prices
 Neurons. Past `ASK_DAILY_NEURONS` (9,000, inside Workers AI's free 10,000
 a day) no more are asked until midnight UTC. What one question costs
 depends on how much your site says, since the model reads every answer:
-each log line has it, as `neurons`. The site also takes at most 200
-questions a day (`ASK_DAILY_LIMIT`), and one visitor 10 a minute and 30 a
-day. All of these are in `wrangler.jsonc`.
+each log line has it, as `neurons`. A question still being answered is
+counted at the most one has cost, so a burst of them takes the day past
+its budget by one question's cost at most.
+
+The site also takes at most 200 questions a day (`ASK_DAILY_LIMIT`), and
+no hour more than a third of them (67 of 200), so a flood ends Ask for the
+rest of that hour, not of the day. One visitor may ask 10 a minute and 30
+a day (`ASK_VISITOR_LIMIT`), and the addresses of one network (an IPv4
+/24, an IPv6 /48) twice that between them. A pick that takes longer than
+6 seconds counts as an error, and the visitor gets the "Something else"
+reply. All of these are set in `wrangler.jsonc`, and the Worker's
+defaults are in `src/worker/settings.ts`.
 
 Ask fails closed. With the rate limiter, the Durable Object or a model
 missing or failing, no model is called, and the visitor gets the
@@ -151,7 +171,7 @@ ways:
    before you connect the repo, or deploy to it from your machine:
 
    ```sh
-   CLOUDFLARE_ACCOUNT_ID=<the new account's id> npx wrangler deploy
+   CLOUDFLARE_ACCOUNT_ID=<the new account's id> npm run deploy
    ```
 
 2. **Or leave Ask off.** Then there is no Worker at all, every request is

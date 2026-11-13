@@ -13,8 +13,7 @@ five boxes with an arrow from each to the next, and needs none of this
 
 ```ts
 // diagrams/order.ts
-import { arrowhead, box, label, levelCurve, line, loopOf, moving } from "../scripts/diagram.ts";
-import type { Diagram } from "../scripts/diagrams.ts";
+import { arrowhead, box, label, levelCurve, line, loopOf, moving, type Diagram } from "../scripts/diagram.ts";
 
 type Words = { till: string; kitchen: string };
 
@@ -60,7 +59,9 @@ diagram: `npm test` fails while they aren't what it draws
 
 ## What the kit has
 
-Each is documented where it's defined, in `scripts/diagram.ts`.
+`scripts/diagram.ts` is the kit's one entry: a diagram imports from it
+and nothing else, and each name is documented in the module behind it, in
+`scripts/diagram/`.
 
 - **Shapes.**
   - To draw: `box`, `label`, `dot`, `line`, `arrowhead`, `bar` (it stands
@@ -69,13 +70,18 @@ Each is documented where it's defined, in `scripts/diagram.ts`.
     number in one).
   - Where things go: `Place`, `centreOf`, `rightOf`; `aroundOrigin` and
     `placed`, for what turns or grows about its own middle.
-  - Room for text: `textWidth`, `sizeToFit`, `baselineAround`.
+  - Room for text: `textWidth(text, size, { mono, weight })`,
+    `sizeToFit`, `baselineAround`.
+  - Colours and type: `COLOR`, `FONT`.
   - Together: `group`, `moving` (a shape with motion on it),
     `onlyWhenMoving`.
 - **Motion**, from `loopOf(seconds)`.
   - A value changing: `loop.track` (any attribute), `loop.transform`,
     `loop.shown`, `loop.changing` (one text after another).
-  - A line: `loop.draw` draws it, `loop.along` moves a shape along one.
+  - A line: `loop.draw` draws it, and
+    `loop.along(path, from, to, { back, pace })` moves a shape along one
+    (`pace` is `"smooth"`, the default, or `"even"`; `back` runs it end to
+    start).
   - Passing through: `loop.traveller` (a dot) and `loop.carried` (any
     shapes) along a path, `loop.ripple`.
   - A light: `loop.flash`, `loop.light` (over anything), `loop.edgeLight`
@@ -87,7 +93,9 @@ Each is documented where it's defined, in `scripts/diagram.ts`.
   - Coming to stay: `loop.since`, or by `loop.popping`, `loop.rising` or
     `loop.gliding` into place.
   - Starting over: `loop.fromTheStart` (what the loop changes),
-    `loop.untilClear` (what something else brought in).
+    `loop.untilClear` (what something else brought in). `justBefore(seconds)`
+    is the moment just before one, so that a value held until then changes
+    all at once.
 
 ## How to draw one well
 

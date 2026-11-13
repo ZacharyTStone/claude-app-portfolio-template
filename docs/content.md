@@ -6,10 +6,13 @@ add, change or remove a thing. The fields themselves are documented where
 their types are, in `src/config/`, and an editor shows that text as you
 hover over a field or complete one.
 
-`npm run dev` shows the site as you edit. `npm run build` checks what a
-type can't: it stops, and names the row, when something points at a
-thread, an icon or a file that isn't there. `npm run typecheck` names a
-field that is missing or misspelt.
+`npm run dev` shows the site as you edit. Both it and `npm run build`
+type-check `site.config.ts` first and print the compiler's line for a
+field that is missing or misspelt; the dev server checks again each time
+you save, in its terminal. The file ends `satisfies SiteConfig`, which is
+what gives it that check: keep it. The build then checks what a type
+can't: it stops, and names the row, when something points at a thread, an
+icon or a file that isn't there.
 
 ## Start with `me`
 
@@ -24,11 +27,11 @@ a fact.
 | On the page | In the config | Its type is in |
 | --- | --- | --- |
 | The address, the host, your name, links and time zone | the top level | `src/config/site-config.ts` |
-| The home screen: greeting, intro, questions to start with | `home` | `src/config/language.ts` |
-| The sidebar's rows and groups | `sidebar` | `src/config/language.ts` |
+| The home screen: greeting, intro, questions to start with | `home` | `src/config/home.ts` |
+| The sidebar's rows and groups | `sidebar` | `src/config/sidebar.ts` |
 | The tabs, each a short conversation | `threads` | `src/config/language.ts` |
 | The question card under every thread, and the personal answers | `questions` | `src/config/question-card.ts` |
-| "Something else", the reply to a question the site can't answer | `asked` | `src/config/language.ts` |
+| "Something else", the reply to a question the site can't answer | `asked` | `src/config/asked.ts` |
 | The details panel on the right | `panel` | `src/config/language.ts` |
 | The account menu and its clock | `account` | `src/config/language.ts` |
 | The 404 page | `notFound` | `src/config/language.ts` |
@@ -38,6 +41,20 @@ a fact.
 Everything from `home` down belongs to one language: it is inside
 `languages.en`, and again inside each other language
 ([Languages](languages.md)).
+
+## Wording
+
+English has defaults for every string (`src/config/english-strings.ts`),
+so an English page's `strings` states only the ones it changes; the
+starter config changes one, `askLimited`. A page in any other language
+states every string itself, and the build names one that is missing.
+
+The home screen's greeting is picked by the visitor's time of day:
+`morning` from 5:00, `afternoon` from 12:00, `evening` from 18:00 and
+`late` from 23:00. The page is built with `default`, which is what shows
+without JavaScript. The account menu's clock says what you're likely
+doing by your own time: `morning` from 5:00, `day` from 10:00, `evening`
+from 18:00 and `late` from 23:00.
 
 ## Threads
 
@@ -108,6 +125,13 @@ A question a visitor types gets the `asked` reply, "Something else": how
 to reach you, with their question in an email and a message to copy.
 With [Ask](ask.md) on, it gets an answer first where the site has one.
 
+In `asked.email` and `asked.message.text`, `{question}` is what the
+visitor asked. On an English page with Ask on it is said to you ("Do
+you…?" for "Does Alex…?"); otherwise it is the question as they typed it,
+about you rather than to you, and for a visitor who has been blocked it is
+empty. So give it a line of its own ("A question from your portfolio:",
+then `{question}`) rather than a place in a sentence.
+
 ## The viewer
 
 A link listed in `viewer` opens in a panel beside the conversation (the
@@ -126,10 +150,11 @@ its address ending `/preview`. Not every site lets itself be shown in a
 frame (GitHub and LinkedIn don't, and neither does a file on your own
 site): open the viewer once and look.
 
-The build refuses an address that isn't `https://`, one on the site
-itself, and a link that nothing links to. With JavaScript off, or clicked
-with a modifier key, the link opens as any link does. Each language needs
-`viewerOpen` and `viewerClose` in its `strings`.
+The build refuses an address that isn't `https://` with a plain domain
+name as its host, one on the site itself, and a link that nothing links
+to. With JavaScript off, or clicked with a modifier key, the link opens as
+any link does. Its two buttons are `viewerOpen` and `viewerClose` in
+`strings`: English has them, and another language states its own.
 
 A viewer is the one thing that makes a page of yours load anything from
 another site: [Security](security.md) says what that changes. If your site

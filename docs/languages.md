@@ -11,7 +11,7 @@ and import it:
 
 ```ts
 // site.config.ts
-import japanese from "./ja.ts";
+import japanese from "./examples/ja.ts";
 
 export default {
   // …
@@ -22,7 +22,10 @@ export default {
 It needs the same thread ids as the main language, as many answers in
 each thread, and the same personal answers and home prompts, in the same
 order: the build says so when it doesn't. Its `strings` are its own
-wording of the interface. With more than one language, each also needs
+wording of the interface, every one of them: the defaults in
+`src/config/english-strings.ts` are English only, and the build names a
+string a page in another language leaves out. `examples/ja.ts` is the
+sample's whole page in Japanese, to copy. With more than one language, each also needs
 `account.language`, the name of the menu row that switches. A
 right-to-left language sets `dir: "rtl"`.
 
@@ -38,13 +41,15 @@ changing Japanese text, cut them again:
 
 ```sh
 npm run build   # the fonts are cut from the built page
-npm run fonts   # needs Python: pip install fonttools brotli
+npm run fonts   # downloads the pinned source fonts, and cuts them
 npm run build
 ```
 
-`npm run fonts:check`, a step of `npm run verify`, fails while the page
-uses a character the fonts lack. A site with no Japanese page needs none
-of this, and no Python.
+The fonts are cut in TypeScript (`scripts/fonts.ts`, `scripts/fonts/`),
+so this needs nothing but `npm ci`. `npm run fonts:check`, a step of
+`npm run verify`, fails while the built page uses a character the fonts
+lack; it reads `dist/`, and says so when there is no build. A site with
+no Japanese page needs none of this.
 
 ## Letters the bundled fonts lack
 
