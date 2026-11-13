@@ -15,7 +15,7 @@ import { addPersonalTabs } from "./personal-tabs.ts";
 import { initPlay } from "./play.ts";
 import { closePopup, closePopupAndReturnFocus, initPopup, isPopupOpen } from "./popup.ts";
 import { wireTitle } from "./rename.ts";
-import { initSeen } from "./reveal-on-scroll.ts";
+import { initRevealOnScroll } from "./reveal-on-scroll.ts";
 import { resetThreads } from "./conversation/send.ts";
 import { initShare } from "./share.ts";
 import {
@@ -73,7 +73,7 @@ function startFeatures(): void {
   initAccountMenu();
   initHome();
   initViewer();
-  initSeen();
+  initRevealOnScroll();
   initPlay();
   initPanel();
   handleLinksHere();

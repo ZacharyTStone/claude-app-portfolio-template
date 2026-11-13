@@ -3,9 +3,11 @@
    included, folds what's under it. Remembered per browser. */
 import { isArrayOf, isString } from "../contracts/guards.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { STORAGE } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
+
+/** localStorage: the ids of the headings left folded. */
+const FOLDED_KEY = "portfolio:folded";
 
 /** A heading that folds what's under it. */
 type Fold = {
@@ -18,7 +20,7 @@ type Fold = {
 
 /** The ids of the headings this browser left folded. */
 function readFoldedIds(): Set<string> {
-  const saved = local.getJson(STORAGE.folded);
+  const saved = local.getJson(FOLDED_KEY);
   return new Set(isArrayOf(saved, isString) ? saved : []);
 }
 
@@ -40,7 +42,7 @@ function setFold(fold: Fold, isOpen: boolean): void {
   showFold(fold, isOpen);
   if (isOpen) foldedIds.delete(fold.heading.id);
   else foldedIds.add(fold.heading.id);
-  local.setJson(STORAGE.folded, [...foldedIds]);
+  local.setJson(FOLDED_KEY, [...foldedIds]);
 }
 
 /** Makes a heading fold the element after it. */

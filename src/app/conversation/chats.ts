@@ -5,7 +5,6 @@ import { CHATS_GROUP, groupId, ID_PREFIX } from "../../contracts/page-ids.ts";
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
-import { STORAGE } from "../constants.ts";
 import type { Exchange } from "./exchange.ts";
 import { messagesOf, questionOf } from "./messages.ts";
 import { readExchange, readSavedChats, toSaved, withChat, withoutChat, type SavedChat } from "./saved-chats.ts";
@@ -18,7 +17,9 @@ import { closeDrawerAndReturnFocus, isWide } from "../sidebar.ts";
 import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "../tabs.ts";
 import { say } from "../toast.ts";
 
-const SAVED = `${STORAGE.chats}${root.lang}`;
+/** localStorage: the chats of each language, under this and the language. */
+const SAVED_CHATS_PREFIX = "portfolio:chats:";
+const SAVED = `${SAVED_CHATS_PREFIX}${root.lang}`;
 
 type Chat = SavedChat & { tab: HTMLElement; row: HTMLElement | null };
 
@@ -224,7 +225,7 @@ export function dropEmptyChat(): void {
 }
 
 /** Forgets the chats saved in this browser, in every language. */
-export const forgetChats = (): void => local.clear(STORAGE.chats);
+export const forgetChats = (): void => local.clear(SAVED_CHATS_PREFIX);
 
 /** The chats saved in this browser, back in the sidebar, newest at the top. */
 export function restoreChats(): void {
