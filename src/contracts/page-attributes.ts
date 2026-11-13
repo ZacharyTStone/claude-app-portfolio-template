@@ -1,102 +1,84 @@
-/* The data-* attributes the components (src/components) write into the
-   page, the browser code (src/app) finds there or makes more of, and the
-   browser checks (tests/browser) look for; and the values some of them
-   have. The script's wording has attributes of its own
+/* The data-* attributes the page's parts have, and the values some of them
+   take. The script's wording has attributes of its own
    (src/config/strings.ts). */
 
 import type { ClockMood } from "../config/language.ts";
 import type { GreetingPart } from "./day-parts.ts";
 
-/** The data-* attributes, as the page has them. Each comment says which
-    element has it and what its value is. One with no value only marks its
-    element for the browser code to find: a component writes it with `flag`
-    (src/components/attributes.ts). */
+/** Each comment says which element has the attribute and what its value
+    is. One with no value only marks its element for the browser code to
+    find: a component writes it with `flag` (src/components/attributes.ts). */
 export const DATA = {
   /** On <html>: where /ask is, when Ask is on. A page without it sends no
       question anywhere. */
   ask: "data-ask",
   /** Around the home screen's greeting: the greeting for each part of the
-      visitor's day (HOURS.greeting), as data-greet-morning and so on. The
-      browser code shows the one for the hour. */
+      visitor's day, as data-greet-morning and so on. */
   greet: (part: GreetingPart) => `data-greet-${part}` as const,
-  /** On the same element: who this is, in one line (the config's
-      home.tagline). A new chat shows it under your name. */
+  /** On the same element: the config's home.tagline, which a new chat
+      shows under your name. */
   tagline: "data-tagline",
-  /** On a question to start with, on the home screen: the answer it gets
-      ("work.2"). */
+  /** On a question to start with: the answer it gets ("work.2"). */
   prompt: "data-prompt",
-  /** No value. Marks the button in the sidebar that hides the sidebar. */
+  /** No value: the sidebar's button that hides it. */
   sideToggle: "data-side-toggle",
-  /** No value. Marks each button that shows or hides the details panel:
-      the one in every top bar, and the panel's own close button. */
+  /** No value: each button that shows or hides the details panel, the
+      panel's own close button among them. */
   panelToggle: "data-panel-toggle",
-  /** No value. Marks the share button in a tab's top bar, and the copy
-      icon under an answer: both copy the tab's address. */
+  /** No value: the share button in a tab's top bar, and the copy icon
+      under an answer. Both copy the tab's address. */
   copyLink: "data-copy-link",
   /** On a language's link in the sidebar: the language's name, in itself. */
   languageName: "data-name",
-  /** On a chat's tab (the browser code makes chats): the chat's id. The
-      stylesheet looks for it too. */
+  /** On a chat's tab: the chat's id. The stylesheet looks for it too. */
   chat: "data-chat",
   /** On a menu row: the letter that picks it (MENU_KEYS). */
   menuKey: "data-key",
-  /** No value. Marks the account menu's clock, which also has the next
-      four: the wording the browser code writes the clock's note from. */
+  /** No value: the account menu's clock, which carries the next four for
+      the note the browser code writes under its times. */
   clock: "data-clock",
-  /** On the clock: what it says when your time and the visitor's are the
-      same. */
+  /** The config's clock.same, clock.ahead and clock.behind. */
   clockSame: "data-same",
-  /** On the clock: what it says when your time is ahead of the visitor's,
-      with {n} for the hours between. */
   clockAhead: "data-ahead",
-  /** On the clock: what it says when your time is behind theirs. */
   clockBehind: "data-behind",
-  /** On the clock: what you're likely doing at each part of your day
-      (HOURS.mood), as data-mood-morning and so on. */
+  /** The config's clock.moods, as data-mood-morning and so on. */
   mood: (mood: ClockMood) => `data-mood-${mood}` as const,
-  /** A time in the clock: your time zone, or LOCAL_ZONE. */
+  /** On each of the clock's times: your time zone, or LOCAL_ZONE. */
   zone: "data-zone",
-  /** No value. Marks the account menu's link to the other language's page. */
+  /** No value: the account menu's link to the other language's page. */
   langLink: "data-lang-link",
-  /** No value. Marks "Log out" in the account menu, which also has the
-      next three: the wording of the goodbye it shows. */
+  /** No value: "Log out" in the account menu, which carries the next three
+      for the goodbye it shows. */
   logout: "data-logout",
-  /** On "Log out": the goodbye's heading. */
+  /** The config's logout.title, logout.text and logout.back. */
   byeTitle: "data-bye-title",
-  /** On "Log out": the goodbye's line of text. */
   byeText: "data-bye-text",
-  /** On "Log out": the label of the button that brings the page back. */
   byeBack: "data-bye-back",
-  /** In "Something else", on the link that opens an email: the email's
-      body as the config has it, before the question is put in. It is also
-      how the browser code finds the link. */
+  /** In "Something else", on the link that opens an email: the config's
+      asked.email, before the question is put in. It is also how the
+      browser code finds the link. */
   emailBody: "data-mail",
-  /** On the same link: the email's subject. */
+  /** On the same link: the config's asked.subject. */
   emailSubject: "data-subject",
-  /** In "Something else", around the LinkedIn message to copy: its text as
-      the config has it, before the question is put in. */
+  /** Around the LinkedIn message to copy: the config's asked.message.text,
+      before the question is put in. */
   messageDraft: "data-draft",
-  /** No value. Marks that message's copy button. */
+  /** No value: that message's copy button. */
   copyDraft: "data-copy-draft",
-  /** On a link that opens in the viewer (the config's `viewer`): the
-      address the viewer shows in its frame. */
+  /** On a link that opens in the viewer: the address its frame shows, and
+      what the viewer calls it. */
   viewerAddress: "data-view",
-  /** On the same link: what the viewer calls what it shows. */
   viewerTitle: "data-view-title",
-  /** On the Play button of a picture a visitor plays (a link to the
-      picture as it moves, which is where it goes without JavaScript): how
-      many seconds it plays, as the picture's own file says. */
+  /** On a played picture's Play button: how many seconds it plays, as the
+      picture's own file says. */
   play: "data-play",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */
 export const LOCAL_ZONE = "local";
 
-/** The letters that pick the rows of a thread's menus. */
 export const MENU_KEYS = { rename: "r", copyLink: "c", delete: "d" } as const;
 
-/** The media query that's true for a visitor whose computer asks for less
-    motion: a picture that moves shows its still to them (Picture.astro),
-    and the script moves nothing (src/app/lib/motion.ts). The stylesheet
-    has it typed out. */
+/** The stylesheet has it typed out. To such a visitor a picture that moves
+    shows its still, and the script moves nothing. */
 export const REDUCED_MOTION = "(prefers-reduced-motion: reduce)";

@@ -1,7 +1,5 @@
-/* The page's ids, classes and data attributes as CSS selectors, made here
-   once for the browser code (src/app) and the browser checks
-   (tests/browser). The names themselves are PAGE_IDS, PAGE_CLASSES and
-   DATA: a class goes on an element by its name, and is found by its
+/* The page's ids, classes and data attributes as CSS selectors: a class
+   goes on an element by its name (PAGE_CLASSES), and is found by its
    selector. */
 
 import { mapValues, omit } from "es-toolkit";

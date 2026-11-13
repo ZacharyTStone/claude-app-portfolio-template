@@ -1,43 +1,35 @@
-/* The ids the components (src/components) write into the page, the browser
-   code (src/app) finds there or makes more of, and the browser checks
-   (tests/browser) look for. The values are part of the built page, and the
-   stylesheet (src/styles) has them typed out, as it can't import them:
-   change one here, and change it there. */
+/* The ids the page's parts have. A key says what the part is; its value is
+   the id the built pages and the stylesheet (src/styles) have, which can't
+   import it: change one here, and change it there. */
 
 import type { Panel } from "../config/language.ts";
 
-/** Ids the page and the browser code use themselves. No thread can take
-    one (src/site/checks), since a thread's id is its tab's. */
+/** No thread can take one of these (src/site/checks), since a thread's id
+    is its tab's. */
 export const PAGE_IDS = {
-  /** The home screen. A link to #top closes the open tab, since the home
-      screen shows whenever no tab is the address's target: the drawer's
-      close button and the composer under every tab are such links. */
+  /** A link to #top closes the open tab: the home screen shows whenever
+      no tab is the address's target. */
   home: "top",
-  /** The sidebar. A top bar's menu button links to #tabs, which opens the
-      sidebar as a drawer on a phone, without JavaScript too. */
+  /** A top bar's menu button links to #tabs, which opens the sidebar as a
+      drawer on a phone, without JavaScript too. */
   sidebar: "tabs",
   /** The <main> every tab is in: where "Skip to content" goes. */
   main: "main",
-  /** The details panel: what its toggles say they control. */
   panel: "details",
-  /** The home screen's greeting, which the browser code rewrites for the
-      visitor's time of day. */
   greeting: "hello",
   /** The "Something else" tab. The browser code copies it for that reply,
       and for each personal answer's tab. */
   asked: "asked",
   /** The <script> that holds the question card's JSON. */
   questionCardData: "questions",
-  /** The account menu, which the account row opens. */
   accountMenu: "account-menu",
-  /** Not in the built page; the browser code makes it: a thread's menu,
-      under the chevron beside its title. */
+  /** No built page has the rest: the browser code makes them. A thread's
+      menu, under the chevron beside its title. */
   titleMenu: "title-menu",
-  /** Made by the browser code: the shorter menu on a thread's sidebar row. */
+  /** The shorter menu on a thread's sidebar row. */
   rowMenu: "row-menu",
-  /** Made by the browser code: the question card. */
   questionCard: "follow-up",
-  /** Made by the browser code: the heading of the goodbye "Log out" shows. */
+  /** The heading of the goodbye "Log out" shows. */
   byeTitle: "bye-title",
 } as const;
 
@@ -55,19 +47,15 @@ export const ID_PREFIX = {
   panel: "panel-",
 } as const;
 
-/** A tab title's id, which names the tab: titleId("about") is "about-title". */
-export const titleId = (id: string): string => `${id}-title`;
-
-/** Every ID_PREFIX, for the build to keep threads off. */
 export const ID_PREFIXES = Object.values(ID_PREFIX);
 
-/** A sidebar group's id: groupId("work") is "group-work". */
+/** A tab's title names the tab: titleId("about") is "about-title". */
+export const titleId = (id: string): string => `${id}-title`;
+
 export const groupId = (id: string): string => `${ID_PREFIX.group}${id}`;
 
-/** A panel section's id: panelId("context") is "panel-context". */
 export const panelId = (key: keyof Panel): string => `${ID_PREFIX.panel}${key}`;
 
-/** A personal answer's tab: personalTabId("food") is "personal-food". */
 export const personalTabId = (id: string): string => `${ID_PREFIX.personal}${id}`;
 
 /** The sidebar group the browser code adds for the visitor's chats. No group
