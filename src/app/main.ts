@@ -5,7 +5,7 @@
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
-import { initAccount } from "./account.ts";
+import { initAccountMenu } from "./account-menu.ts";
 import { initCard, toggleCard, wireComposer } from "./card.ts";
 import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } from "./chats.ts";
 import { foldable } from "./folding.ts";
@@ -128,7 +128,7 @@ initThreadMenus();
 // after the sidebar's rows as the page has them.
 initCard();
 initCopyDraft();
-initAccount();
+initAccountMenu();
 initHome();
 initViewer();
 // After the personal tabs are made, so their quotes and cards wait as the
