@@ -6,7 +6,7 @@
 import { ownerNames, type Choices } from "./answers.ts";
 import { checkSameQuestion, type Refused } from "./checks/same-question.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
-import { callForText, ranOutOfRoom, textIn, type Called } from "./model.ts";
+import { callForText, ranOutOfRoom, textIn, type Called, type Prompt } from "./model.ts";
 import { askForRewrite, isRewrittenLanguage, type Rewriting } from "./prompts/to-owner.ts";
 
 /** The question over again, which is a line or two at its longest. */
@@ -48,10 +48,10 @@ export async function rewriteToOwner(
   timeoutMs: number = TO_OWNER_TIMEOUT_MS,
 ): Promise<SaidToOwner> {
   const { question, owner } = rewriting;
+  const prompt: Prompt = { messages: askForRewrite(rewriting), temperature: 0 };
   let called: Called;
   try {
-    const limits = { maxTokens: MAX_TO_OWNER_TOKENS, timeoutMs };
-    called = await callForText(ai, model, { messages: askForRewrite(rewriting), temperature: 0 }, limits);
+    called = await callForText(ai, model, prompt, { maxTokens: MAX_TO_OWNER_TOKENS, timeoutMs });
   } catch {
     // A call that failed wasn't run, so it isn't paid for.
     return { outcome: "dropped", why: "error", tokens: NO_TOKENS };

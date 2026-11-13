@@ -36,10 +36,11 @@ export type Asked = {
 export async function replyFrom(ai: Ai, model: string, asked: Asked, choices: Choices): Promise<Reply> {
   const { answer, lineNumbers } = asked;
   const { lang } = choices;
-  const lines = writesIn(lang) ? linesToWriteFrom(answer.text, lineNumbers) : null;
-  // No reply is written when the picker named no lines, or the page is in a
-  // language the check can't read: any line named is quoted.
-  if (lines === null || !writesIn(lang)) return quotedOrNone({}, quote(answer.text, lineNumbers));
+  // No reply is written on a page in a language the check can't read, or
+  // when the picker named no lines: any line named is quoted.
+  if (!writesIn(lang)) return quotedOrNone({}, quote(answer.text, lineNumbers));
+  const lines = linesToWriteFrom(answer.text, lineNumbers);
+  if (lines === null) return quotedOrNone({}, quote(answer.text, lineNumbers));
   const written = await write(ai, model, writingFrom(asked, lines, { ...choices, lang }));
   // A card's row or a figure is what a reply is written from, and no reply
   // itself: with none written, the page shows the answer instead.

@@ -257,6 +257,13 @@ test("no call is made when an answer is shown, the question is turned away, or t
   assert.deepEqual(await french.askJson(QUESTION, "fr"), { id: null, toOwner: TO_OWNER });
 });
 
+test("on a Japanese page the question goes as it was typed, and nothing is logged of a rewrite", async () => {
+  const { askJson, logged, rewriteCalls } = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(TO_OWNER)] });
+  assert.deepEqual(await askJson("Vueは使えますか？", "ja"), { id: null });
+  assert.equal(rewriteCalls.length, 0);
+  assert.deepEqual(lines(logged), [JSON.stringify({ ask: NONE })]);
+});
+
 test("on a page in the site's second language, the owner's name is as that language writes it, and either may be left out", async () => {
   const index = { ...INDEX, main: "ja", names: { en: "Alex Example" }, name: "山田 太郎" };
   const { askJson, rewriteCalls } = stubs({
