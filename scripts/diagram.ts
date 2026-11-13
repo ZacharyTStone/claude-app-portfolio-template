@@ -2,16 +2,7 @@
    modules beside it. A name that leaves here leaves every site's diagrams without it. */
 export { COLOR, FONT } from "./diagram/palette.ts";
 export { aroundOrigin, centreOf, rightOf, type Place, type Point } from "./diagram/places.ts";
-export {
-  PLAYS_ATTRIBUTE,
-  rounded,
-  shape,
-  svgOf,
-  type Attributes,
-  type Diagram,
-  type Drawing,
-  type Shape,
-} from "./diagram/svg.ts";
+export { rounded, shape, svgOf, type Attributes, type Diagram, type Drawing, type Shape } from "./diagram/svg.ts";
 export {
   arrowhead,
   ARROWHEAD_LENGTH,

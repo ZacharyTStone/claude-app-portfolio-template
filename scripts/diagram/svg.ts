@@ -1,3 +1,4 @@
+import { PLAYS_ATTRIBUTE } from "../../src/contracts/picture-files.ts";
 import { COLOR, FONT } from "./palette.ts";
 
 /** One element of a picture: its SVG tag, attributes and what's inside. */
@@ -37,10 +38,6 @@ export type Diagram<Words> = {
   words: Record<string, Words>;
   draw(words: Words): Drawing;
 };
-
-/** Where a moving picture's file says how long it plays, on its <svg>. The build reads it there under the same
-    name (src/site/pictures.ts): tests/diagrams.test.ts holds the two together. */
-export const PLAYS_ATTRIBUTE = "data-plays";
 
 const MOTION_TAGS = new Set(["animate", "animateTransform", "animateMotion", "set"]);
 
