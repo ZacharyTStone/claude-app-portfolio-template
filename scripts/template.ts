@@ -4,7 +4,7 @@
    This file imports only Node's own modules, and has to stay that way: a site's older copy of the update imports
    the template's copy of it from a fresh clone, where nothing is installed. */
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
-import { dirname, join, relative, sep } from "node:path";
+import { dirname, join, posix, relative, sep, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const TEMPLATE = "https://github.com/ZacharyTStone/claude-app-portfolio-template";
@@ -63,12 +63,33 @@ export type SharedFileChanges = {
 
 /** Every shared file in the repo at `root`: the files the list names and those in its folders, less each
     site's own. */
-export function sharedFiles(root: string, { shared, retired, own }: SharedList): string[] {
-  const ownFiles = new Set(own);
-  return [...shared, ...retired]
+export function sharedFiles(root: string, list: SharedList): string[] {
+  refuseUnsafeList(list);
+  const ownFiles = new Set(list.own);
+  return [...list.shared, ...list.retired]
     .flatMap((sharedPath) => filesAt(root, sharedPath))
     .map(withForwardSlashes)
     .filter((file) => !ownFiles.has(file));
+}
+
+/** A list is the template's word for what an update may overwrite and delete, so it's held to the repo: every
+    path in it is a plain one, from the repo's root down. */
+export function refuseUnsafeList({ shared, retired, own }: SharedList): void {
+  for (const path of [...shared, ...retired, ...own]) refuseUnlessPlain(path);
+}
+
+/** How Windows also spells a folder's name: with dots or spaces after it, or by its short name. */
+const isGitFolder = (name: string): boolean => [".git", "git~1"].includes(name.toLowerCase().replace(/[. ]+$/, ""));
+
+/** Refuses a path that could lead out of the repo, or into its .git: one with "..", one that starts from the
+    system's root or a drive, one with a backslash (the lists write "/"). */
+function refuseUnlessPlain(path: string): void {
+  const names = path.split("/");
+  const startsElsewhere = posix.isAbsolute(path) || win32.isAbsolute(path) || /[\\:]/.test(path);
+  const staysInside = names.every((name) => name !== "" && name !== "." && name !== "..");
+  if (startsElsewhere || !staysInside)
+    throw new Error(`"${path}" isn't a plain path inside the repo: an update follows no other.`);
+  if (names.some(isGitFolder)) throw new Error(`"${path}" is in a repo's .git, which an update never touches.`);
 }
 
 /** The files a shared path stands for: the file itself, every file in and under a folder, or none when the
@@ -114,6 +135,7 @@ function ownFilesToStartFrom(sourceRoot: string, targetRoot: string, { own }: Sh
 }
 
 export function applyChanges(sourceRoot: string, targetRoot: string, changes: SharedFileChanges): void {
+  for (const file of [...changes.added, ...changes.changed, ...changes.removed]) refuseUnlessPlain(file);
   for (const file of [...changes.added, ...changes.changed]) {
     mkdirSync(dirname(join(targetRoot, file)), { recursive: true });
     cpSync(join(sourceRoot, file), join(targetRoot, file));

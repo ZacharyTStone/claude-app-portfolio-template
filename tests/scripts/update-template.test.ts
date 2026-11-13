@@ -171,3 +171,22 @@ test("an update runs nothing of the template's: code in its scripts/template.ts 
   assert.equal(result.status, 0, result.stderr);
   assert.ok(!existsSync(mark), "the template's code ran");
 });
+
+/** A template that shares what `TEMPLATE_LIST` does, and these paths too. */
+const templateSharing = (name: string, paths: string[], files: Files = {}) =>
+  repoOf(name, {
+    ...TEMPLATE_FILES,
+    ...files,
+    [SHARED_LIST_FILE]: JSON.stringify({ ...TEMPLATE_LIST, shared: [...TEMPLATE_LIST.shared, ...paths] }),
+  });
+
+/** The audit's proof B, in part: the list mirrors a folder beside the site, so what's there is deleted. */
+test("an update refuses a list that reaches outside the site, and changes nothing", () => {
+  const reached = siteRepo("site-reached");
+  const beside = folderOf("beside-the-site", { "thesis.txt": "the owner's other work" });
+  const result = runUpdate(reached, templateSharing("template-reaching", ["../beside-the-site"]));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /"\.\.\/beside-the-site" isn't a plain path inside the repo/);
+  assert.equal(readText(beside, "thesis.txt"), "the owner's other work");
+  assert.equal(readText(reached, "src/app.ts"), "old");
+});

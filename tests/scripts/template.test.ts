@@ -163,3 +163,54 @@ test("the changes are described a line a file, what happens to it first", () => 
 test("no changes are described with no lines", () => {
   assert.deepEqual(describeChanges(NO_CHANGES), []);
 });
+
+/** A list that shares `path`, and nothing else. */
+const sharing = (path: string) => ({ shared: [path], retired: [], own: [] });
+const NOT_PLAIN = /isn't a plain path inside the repo/;
+
+for (const path of [
+  "../beside-the-site",
+  "src/../../beside",
+  "/etc/passwd",
+  "C:/Users",
+  "src\\..\\..",
+  "",
+  ".",
+  "src//a",
+]) {
+  test(`a list that names ${JSON.stringify(path)} is refused: it isn't a plain path inside the repo`, () => {
+    assert.throws(() => sharedFiles(folderOf("plain", {}), sharing(path)), NOT_PLAIN);
+  });
+}
+
+test("a retired path, or one of a site's own, is held to the repo as a shared one is", () => {
+  const root = folderOf("plain-lists", {});
+  assert.throws(() => sharedFiles(root, { shared: [], retired: ["../gone"], own: [] }), NOT_PLAIN);
+  assert.throws(() => sharedFiles(root, { shared: [], retired: [], own: ["../mine"] }), NOT_PLAIN);
+});
+
+for (const path of [".git", ".git/config", "src/.git/hooks", ".GIT/config", ".git./config", "GIT~1/config"]) {
+  test(`a list that names ${JSON.stringify(path)} is refused: an update never touches a .git`, () => {
+    assert.throws(() => sharedFiles(folderOf("git", {}), sharing(path)), /\.git, which an update never touches/);
+  });
+}
+
+/** The audit's proof B, in part: a list that mirrors a folder beside the site would delete what's there. */
+test("nothing outside the two repos is read or deleted through a path with ..", () => {
+  const beside = folderOf("beside-the-site", { "thesis.txt": "the owner's other work" });
+  const template = folderOf("reaching-template", { "src/a.ts": "a" });
+  const reachedSite = folderOf("reached-site", { "src/a.ts": "a" });
+  const list = { shared: ["src", "../beside-the-site"], retired: [], own: [] };
+  assert.throws(() => changesBetween(template, reachedSite, list), NOT_PLAIN);
+  assert.equal(readText(beside, "thesis.txt"), "the owner's other work");
+});
+
+test("changes made by hand are held to the repo too, when they're applied", () => {
+  const from = folderOf("by-hand-source", { "a.txt": "a" });
+  const to = folderOf("by-hand-target", {});
+  folderOf("by-hand-beside", { "thesis.txt": "kept" });
+  assert.throws(
+    () => applyChanges(from, to, { added: [], changed: [], removed: ["../by-hand-beside/thesis.txt"] }),
+    NOT_PLAIN,
+  );
+});
