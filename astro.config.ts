@@ -7,7 +7,8 @@ import { hostFiles } from "./src/integrations/host-files.ts";
 import { loadSiteConfig } from "./src/site/load-site-config.ts";
 import { basePath } from "./src/site/url.ts";
 
-const { fileName, filePath, config } = await loadSiteConfig();
+const loaded = await loadSiteConfig();
+const { filePath, config } = loaded;
 
 /** The address Astro is given when the config's own isn't one, so that this
     file loads and the config's check can report the address, in words. */
@@ -33,6 +34,6 @@ export default defineConfig({
     // the config being built.
     resolve: { alias: [{ find: IMPORT_OF_SITE_CONFIG, replacement: filePath }] },
   },
-  integrations: [checkConfig(config, fileName), hostFiles(config)],
+  integrations: [checkConfig(loaded), hostFiles(config)],
   devToolbar: { enabled: false },
 });
