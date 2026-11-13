@@ -4,6 +4,7 @@
    the language's `panel` in the config, where each section is optional:
    one that's left out isn't drawn. Styles: src/styles/panel.css. */
 import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
@@ -54,7 +55,7 @@ const listSections = LIST_SECTION_NAMES.flatMap((name) => {
   )}
   {listSections.map((section) => (
     <PanelSection name={section.name} title={section.title}>
-      <ul class="rows">
+      <ul class={PAGE_CLASSES.panelRows}>
         {section.rows.map((row) => (
           <li>
             <PanelRow row={row} />

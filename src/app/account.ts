@@ -130,7 +130,7 @@ function goodbyeLink(link: HTMLElement): HTMLElement {
 
 /** The details panel's contact links: the rows of the config's
     panel.context. */
-const PANEL_CONTACT_LINKS = `section[aria-labelledby="${panelId("context")}"] .rows a`;
+const PANEL_CONTACT_LINKS = `section[aria-labelledby="${panelId("context")}"] ${CLASS_SELECTOR.panelRows} a`;
 
 /** Your contact links, for the goodbye: the panel's own, or else your email. */
 function contactLinks(accountMenu: HTMLElement): HTMLElement[] {
