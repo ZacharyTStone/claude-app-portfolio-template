@@ -70,31 +70,6 @@
       "count": 8
     }
   },
-  "src/worker/ask/grounded.ts": {
-    "no-warning-comments": {
-      "count": 5
-    }
-  },
-  "src/worker/ask/lines.ts": {
-    "no-nested-ternary": {
-      "count": 1
-    }
-  },
-  "src/worker/ask/text/sentences.ts": {
-    "complexity": {
-      "count": 1
-    }
-  },
-  "src/worker/ask/to-owner.ts": {
-    "no-warning-comments": {
-      "count": 5
-    }
-  },
-  "src/worker/ask/write.ts": {
-    "no-warning-comments": {
-      "count": 2
-    }
-  },
   "tests/browser/checks/ask.ts": {
     "max-params": {
       "count": 1
@@ -143,27 +118,6 @@
     }
   },
   "tests/site.test.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "no-warning-comments": {
-      "count": 2
-    }
-  },
-  "tests/worker/quote.test.ts": {
-    "max-depth": {
-      "count": 3
-    },
-    "no-warning-comments": {
-      "count": 4
-    }
-  },
-  "tests/worker/to-owner.test.ts": {
-    "no-warning-comments": {
-      "count": 3
-    }
-  },
-  "tests/worker/write.test.ts": {
     "complexity": {
       "count": 1
     },
