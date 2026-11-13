@@ -3,7 +3,7 @@
    site's question over them or the owner's name. Its ordinary words are
    its own. Each table is a rule, and each row a reply. */
 import assert from "node:assert/strict";
-import { checkReply, type Sources } from "../../../src/worker/ask/grounded.ts";
+import { checkReply, type Sources } from "../../../src/worker/ask/checks/grounded.ts";
 import { eachRow } from "../rows.ts";
 
 const OWNER = "Alex Example アレックス・イグザンプル";

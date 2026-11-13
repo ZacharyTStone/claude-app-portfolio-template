@@ -10,7 +10,7 @@
    was written from (handler.ts), for the page to show under it. */
 import { isReplyText } from "../../contracts/ask.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
-import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./grounded.ts";
+import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./checks/grounded.ts";
 import { callForText, ranOutOfRoom, textIn, type Called, type Message, type Prompt } from "./model.ts";
 import { NONE, firstName, languageName } from "./prompts/wording.ts";
 
