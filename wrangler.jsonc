@@ -64,8 +64,10 @@
   //   // network (an IPv4 /24, an IPv6 /48) may ask twice this between them.
   //   "ASK_VISITOR_LIMIT": "30",
   //   // How long an address (hashed) can't use /ask after an inappropriate
-  //   // question.
-  //   "ASK_BLOCK_HOURS": "24",
+  //   // question. An address can be a whole office's or a phone network's,
+  //   // and a model can be wrong about a question: an hour is enough to
+  //   // stop someone trying things, and short for everyone else behind it.
+  //   "ASK_BLOCK_HOURS": "1",
   //   // Where AskGuard is created: a Durable Object location hint. It is
   //   // near Workers AI in North America; it stays where it was first
   //   // created, so changing this later doesn't move it.

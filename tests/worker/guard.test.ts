@@ -142,6 +142,20 @@ test("addresses in seven networks use up the site's hour, not its day: Ask is ba
   );
 });
 
+test("a flagged question blocks its address for an hour, and whoever shares it can ask again after that", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T14:10:00Z") });
+  const guard = realGuard();
+  assert.deepEqual(await stubs({ guard, run: models(toolCall(INAPPROPRIATE)) }).askJson("rude"), {
+    blocked: true,
+    flagged: true,
+  });
+  const colleague = stubs({ guard });
+  t.mock.timers.setTime(Date.parse("2026-01-31T15:09:00Z"));
+  const withinTheHour = await colleague.askJson("who?");
+  t.mock.timers.setTime(Date.parse("2026-01-31T15:11:00Z"));
+  assert.deepEqual([withinTheHour, await colleague.askJson("who?")], [{ blocked: true }, { id: "about.1" }]);
+});
+
 test("the site's daily allowance spent, or its counter down or unreadable: no model call", async () => {
   for (const guard of [
     guardStub(ASK_GUARD_REPLY.spent),

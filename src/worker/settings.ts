@@ -74,8 +74,11 @@ export const SETTINGS = {
   neuronBudget: numberAboveZero("ASK_DAILY_NEURONS", 9000),
   /** The questions one visitor may ask in a day. */
   visitorLimit: numberAboveZero("ASK_VISITOR_LIMIT", 30),
-  /** How long a visitor is blocked for after an inappropriate question, in hours. */
-  blockHours: numberAboveZero("ASK_BLOCK_HOURS", 24),
+  /** How long a visitor is blocked for after an inappropriate question, in
+      hours. One model's word sets a block, and an address can be a whole
+      office's or a phone network's: an hour stops whoever is trying
+      things without shutting the rest out for a day. */
+  blockHours: numberAboveZero("ASK_BLOCK_HOURS", 1),
   /** Where AskGuard is created. */
   guardLocation: {
     variable: "ASK_GUARD_LOCATION",
