@@ -9,8 +9,6 @@ export const STORAGE = {
   folded: "portfolio:folded",
   /** localStorage: the sidebar's width, once it's been resized. */
   sidebarWidth: "portfolio:sidebar",
-  /** localStorage: the order the panel's sections were left in. */
-  panelOrder: "portfolio:panel-order",
   /** sessionStorage: what /ask said that stops asking for the visit. */
   askLock: "portfolio:ask-locked",
 } as const;
@@ -34,9 +32,8 @@ export const TIMING = {
   flash: 900,
   /** How long a submenu stays after the mouse leaves it. */
   submenuLinger: 250,
-  /** How long a panel section slides as it's dragged past another, and
-      when it settles after. */
-  slide: 180,
+  /** How long after a panel section starts to slide into place the drag's
+      hold on it is let go: the slide is over by then. */
   settle: 200,
   /** How long after a page starts to load it's still arriving: until then
       what's on screen may come in as what's scrolled to does (seen.ts). */

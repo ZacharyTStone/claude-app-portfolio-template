@@ -62,7 +62,7 @@ function makeViewer(): Viewer {
     "aria-label": words.viewerClose,
     title: words.viewerClose,
   });
-  closeButton.addEventListener("click", () => closeViewer());
+  closeButton.addEventListener("click", closeViewerAndReturnFocus);
   const bar = make("header", { class: PAGE_CLASSES.viewerBar }, title, openInNewTab, closeButton);
   const framePlace = make("div", { class: PAGE_CLASSES.viewerFrame });
   const panel = make("aside", { class: PAGE_CLASSES.viewer, hidden: "" }, bar, framePlace);
@@ -102,16 +102,22 @@ function openInViewer(link: HTMLAnchorElement): void {
   title.focus();
 }
 
-/** Closes the viewer and throws its frame away. The focus goes back to the
-    link that opened it, unless `keepFocus` says it's already somewhere
-    better (the tab the visitor just went to). */
-export function closeViewer({ keepFocus = false }: { keepFocus?: boolean } = {}): void {
+/** Closes the viewer and throws its frame away. The focus stays where it
+    is: on the tab the visitor just went to, say. */
+export function closeViewer(): void {
   if (!viewer || !isViewerOpen()) return;
   viewer.framePlace.replaceChildren();
   viewer.panel.hidden = true;
   shell.classList.remove(PAGE_CLASSES.viewing);
-  if (!keepFocus && openedFrom?.isConnected) openedFrom.focus();
   openedFrom = null;
+}
+
+/** For a viewer closed from inside it (its Close button, Escape): the
+    focus goes back to the link that opened it. */
+export function closeViewerAndReturnFocus(): void {
+  const link = openedFrom;
+  closeViewer();
+  if (link?.isConnected) link.focus();
 }
 
 /** From now on, a plain click on a link the page marks for the viewer opens

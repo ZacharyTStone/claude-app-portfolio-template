@@ -12,7 +12,7 @@ import { foldable } from "./folding.ts";
 import { greet } from "./greeting.ts";
 import { focusHome, initHome } from "./home.ts";
 import { root, side } from "./page.ts";
-import { initPanel, wirePanelToggle } from "./panel.ts";
+import { initPanel, tellPanelToggles } from "./panel.ts";
 import { initPlay } from "./play.ts";
 import { closePopup, closePopupAndReturnFocus, initPopup, isPopupOpen } from "./popup.ts";
 import { addPersonalTabs } from "./personal.ts";
@@ -24,13 +24,7 @@ import { closeDrawer, initSidebar, isAddressOnDrawer, isDrawerOpen, isWide, wire
 import { currentTab, clearHash, finishOpening, sync } from "./tabs.ts";
 import { addRowMenu, addTitleMenu, initThreadMenus } from "./thread-menu.ts";
 import { initToast } from "./toast.ts";
-import { closeViewer, initViewer, isViewerOpen, viewerCoversScreen } from "./viewer.ts";
-
-/** The panel's toggles that are in no tab: the home screen's, and the
-    panel's own close button. */
-const PANEL_TOGGLES_OUTSIDE_TABS = [ID_SELECTOR.home, ID_SELECTOR.panel]
-  .map((place) => `${place} ${ATTRIBUTE_SELECTOR.panelToggle}`)
-  .join(", ");
+import { closeViewer, closeViewerAndReturnFocus, initViewer, isViewerOpen, viewerCoversScreen } from "./viewer.ts";
 
 /** Everything a tab has: its top bar's buttons, title and composer. A chat
     gets it too, from chats.ts, which can't import what it needs itself. */
@@ -39,7 +33,7 @@ function wireTab(tab: HTMLElement): void {
   wireTitle(tab);
   addTitleMenu(tab);
   for (const composer of findAll(tab, CLASS_SELECTOR.composer)) wireComposer(composer, tab);
-  findAll(tab, ATTRIBUTE_SELECTOR.panelToggle).forEach(wirePanelToggle);
+  tellPanelToggles(tab);
   for (const copyButton of findAll(tab, ATTRIBUTE_SELECTOR.copyLink)) wireCopy(copyButton, tab);
   // What's sent into the thread, and its reply, are read out by screen
   // readers as they go in.
@@ -79,7 +73,7 @@ function wasPageRefreshed(): boolean {
 function closeTopmostOnEscape(event: KeyboardEvent): void {
   if (event.key !== "Escape" || isComposing(event)) return;
   if (isPopupOpen()) closePopupAndReturnFocus();
-  else if (isViewerOpen()) closeViewer();
+  else if (isViewerOpen()) closeViewerAndReturnFocus();
   else if (isDrawerOpen()) closeDrawer();
 }
 
@@ -89,7 +83,7 @@ function followAddress(): void {
   closePopup();
   // Over the whole screen, the viewer would hide the tab just gone to (Back
   // on a phone, say); beside the conversation it stays.
-  if (viewerCoversScreen()) closeViewer({ keepFocus: true });
+  if (viewerCoversScreen()) closeViewer();
   // The address can be the drawer's own (#tabs): then the drawer is what
   // opened, and focus isn't taken from it. Any other address closes it.
   const openedDrawer = isAddressOnDrawer();
@@ -143,7 +137,6 @@ initPlay();
 // top bar.
 findAll(document, CLASS_SELECTOR.tab).forEach(wireTab);
 findAll(document, `${ID_SELECTOR.home} ${CLASS_SELECTOR.menuButton}`).forEach(wireMenuButton);
-findAll(document, PANEL_TOGGLES_OUTSIDE_TABS).forEach(wirePanelToggle);
 
 // The sidebar's groups, the panel, and a "…" on each row.
 findAll(side, CLASS_SELECTOR.groupHeading).forEach(foldable);

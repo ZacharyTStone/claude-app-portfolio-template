@@ -91,6 +91,16 @@ export function parentOf(element: Element): HTMLElement {
 export const closestFrom = (target: EventTarget | null, selector: string): Element | null =>
   target instanceof Element ? target.closest(selector) : null;
 
+/** Runs `handle` for each click on, or inside, an element that matches:
+    one the page has now, or one added to it later (a chat's tab, a copy of
+    an answer). */
+export function onClick(selector: string, handle: (element: HTMLElement, event: MouseEvent) => void): void {
+  document.addEventListener("click", (event) => {
+    const element = closestFrom(event.target, selector);
+    if (element instanceof HTMLElement) handle(element, event);
+  });
+}
+
 /** Whether a click is a plain one: with a modifier key or another button,
     the visitor is asking the browser for a new tab or window themselves. */
 export const isPlainClick = (event: MouseEvent): boolean =>
