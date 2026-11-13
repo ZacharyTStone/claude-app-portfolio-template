@@ -5,13 +5,13 @@ import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
 import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import {
   ASK_GUARD_PATH,
   ASK_GUARD_REPLY,
   DEFAULT_VISITOR_SALT,
   INAPPROPRIATE,
   LLAMA_GUARD_OPTIONS,
-  NONE,
   VISITOR_ADDRESS_HEADER,
 } from "../../src/worker/constants.ts";
 import { DEFAULTS } from "../../src/worker/env.ts";

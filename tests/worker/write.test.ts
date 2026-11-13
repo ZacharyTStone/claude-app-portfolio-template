@@ -6,9 +6,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
-import { write, writesIn, type Writing } from "../../src/worker/ask/write.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
+import {
+  MAX_WRITE_TOKENS,
+  MAX_WRITE_TRIES,
+  MAX_WRITTEN_LENGTH,
+  write,
+  writesIn,
+  type Writing,
+} from "../../src/worker/ask/write.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
-import { MAX_WRITE_TOKENS, MAX_WRITTEN_LENGTH, NONE, MAX_WRITE_TRIES } from "../../src/worker/constants.ts";
 import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, writer, wrote } from "./fixtures.ts";
 
 const logs = captureLogs();

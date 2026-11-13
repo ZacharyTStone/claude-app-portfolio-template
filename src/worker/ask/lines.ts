@@ -7,8 +7,12 @@
    all (`neededFor`). */
 import { isLabel, isReplyText } from "../../contracts/ask.ts";
 import { isArrayOf, isCount } from "../../contracts/guards.ts";
-import { MAX_QUOTED_LINES } from "../constants.ts";
 import { JAPANESE_ENDS, piecesOf, type Piece as PieceOfText } from "./text/sentences.ts";
+
+/** The most lines of an answer the picker may name for a reply. One that
+    can't be read without the sentence before it brings that along
+    (`neededFor`). */
+export const MAX_QUOTED_LINES = 2;
 
 /** A piece of an answer's text, with the number the model names it by
     (from 1) if it may be quoted. */

@@ -17,7 +17,7 @@
 
    Every reply is an AskResponse, or a 4xx. */
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
-import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, NONE, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
+import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
 import { readSettings, type Env, type Settings } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
@@ -29,6 +29,7 @@ import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
 import type { QuoteCheck } from "./quote.ts";
+import { NONE } from "./prompts/wording.ts";
 import { NO_REPLY, replyFrom } from "./reply.ts";
 import { readAskRequest, refuseUnlessJsonPost, type CheckedAskRequest } from "./request.ts";
 import { sayToOwner, type NotSaid } from "./to-owner.ts";

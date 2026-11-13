@@ -6,16 +6,18 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
-import { rewriteToOwner, saysToOwnerIn, checkAddressed, type Rewriting } from "../../src/worker/ask/to-owner.ts";
+import {
+  MAX_TO_OWNER_TOKENS,
+  checkAddressed,
+  rewriteToOwner,
+  saysToOwnerIn,
+  type Rewriting,
+} from "../../src/worker/ask/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
-import {
-  ASK_GUARD_REPLY,
-  INAPPROPRIATE,
-  MAX_ADDRESS_TOKENS,
-  MAX_WRITE_TOKENS,
-  NONE,
-} from "../../src/worker/constants.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
+import { MAX_WRITE_TOKENS } from "../../src/worker/ask/write.ts";
+import { ASK_GUARD_REPLY, INAPPROPRIATE } from "../../src/worker/constants.ts";
 import {
   INDEX,
   UNADDRESSED,
@@ -214,7 +216,7 @@ test("the model is told whose site it is, to say the question to them and to cha
   assert.ok(!system?.content.includes(ADDRESSING.question), "the question is no part of its instructions");
   assert.deepEqual(user, { role: "user", content: ADDRESSING.question });
   assert.equal(sent[0]?.temperature, 0);
-  assert.equal(sent[0]?.max_completion_tokens, MAX_ADDRESS_TOKENS);
+  assert.equal(sent[0]?.max_completion_tokens, MAX_TO_OWNER_TOKENS);
   assert.deepEqual(sent[0]?.chat_template_kwargs, reasoningOptionsOf(DEFAULT_MODEL).chat_template_kwargs);
 });
 
@@ -289,7 +291,7 @@ test("past its time, there's no rewrite, and the call is counted as if it wrote 
   const { messages, temperature } = sent[0] ?? { messages: [] };
   assert.deepEqual(addressed.tokens, {
     input: estimateJsonTokens({ messages, temperature }),
-    output: MAX_ADDRESS_TOKENS,
+    output: MAX_TO_OWNER_TOKENS,
   });
 });
 
@@ -410,5 +412,5 @@ test("what the rewrite used is on the question's bill with the rest", async () =
 });
 
 test("the stand-in tells the two calls for text apart by how much each may write", () => {
-  assert.notEqual(MAX_ADDRESS_TOKENS, MAX_WRITE_TOKENS);
+  assert.notEqual(MAX_TO_OWNER_TOKENS, MAX_WRITE_TOKENS);
 });

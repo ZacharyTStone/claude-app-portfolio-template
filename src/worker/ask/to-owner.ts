@@ -32,11 +32,19 @@
    at all, or changes nothing leaves the question as it was typed
    (handler.ts sends no `toOwner`). */
 import { isQuestionToOwner } from "../../contracts/ask.ts";
-import { ADDRESS_TIMEOUT_MS, MAX_ADDRESS_TOKENS } from "../constants.ts";
 import { ownerNames, type Choices } from "./answers.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { callForText, ranOutOfRoom, textIn, type Called, type Prompt } from "./model.ts";
-import { firstName, languageName } from "./wording.ts";
+import { firstName, languageName } from "./prompts/wording.ts";
+
+/** The most the model may write when it says a question to the owner: the
+    question over again, which is a line or two at its longest. One cut off
+    at it isn't used. */
+export const MAX_TO_OWNER_TOKENS = 120;
+
+/** How long that may take, in milliseconds. The visitor waits for it, and
+    it's asked once: past it, the question goes as it was typed. */
+const TO_OWNER_TIMEOUT_MS = 3000;
 
 /** What a question is said to the owner from. */
 export type Rewriting = {
@@ -329,7 +337,7 @@ export async function rewriteToOwner(
   ai: Ai,
   model: string,
   rewriting: Rewriting,
-  timeoutMs: number = ADDRESS_TIMEOUT_MS,
+  timeoutMs: number = TO_OWNER_TIMEOUT_MS,
 ): Promise<SaidToOwner> {
   const { question, owner } = rewriting;
   const prompt: Prompt = {
@@ -341,7 +349,7 @@ export async function rewriteToOwner(
   };
   let called: Called;
   try {
-    called = await callForText(ai, model, prompt, { maxTokens: MAX_ADDRESS_TOKENS, timeoutMs });
+    called = await callForText(ai, model, prompt, { maxTokens: MAX_TO_OWNER_TOKENS, timeoutMs });
   } catch {
     // A call that failed wasn't run, so it isn't paid for.
     return { outcome: "dropped", why: "error", tokens: NO_TOKENS };
@@ -350,7 +358,7 @@ export async function rewriteToOwner(
   if (modelReply === undefined) return { outcome: "dropped", why: "late", tokens };
   const rewrite = withoutQuotesAround(textIn(modelReply), question);
   if (!rewrite) return { outcome: "dropped", why: "empty", tokens };
-  // Cut off by MAX_ADDRESS_TOKENS, it isn't all of the question.
+  // Cut off by MAX_TO_OWNER_TOKENS, it isn't all of the question.
   if (ranOutOfRoom(modelReply)) return { outcome: "dropped", why: "long", rewrite, tokens };
   const checked = checkAddressed(rewrite, question, owner);
   if (checked.toOwner === undefined) return { outcome: "dropped", why: checked.why, rewrite, tokens };

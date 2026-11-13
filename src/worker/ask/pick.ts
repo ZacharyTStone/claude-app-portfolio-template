@@ -9,9 +9,7 @@ import {
   INAPPROPRIATE,
   MAX_PICK_TOKENS,
   MAX_PLAIN_PICK_TOKENS,
-  MAX_QUOTED_LINES,
   MAX_THOUGHT_LENGTH,
-  NONE,
   PICK_TOOL_NAME,
 } from "../constants.ts";
 import { get } from "../lib/shape.ts";
@@ -19,8 +17,8 @@ import type { Choices } from "./answers.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { hasReasoningOff, reasoningOptionsOf } from "./known-models.ts";
 import { callModel, ranOutOfRoom, rawTextIn, toolCallArguments } from "./model.ts";
-import { withNumbers } from "./lines.ts";
-import { firstName, languageName } from "./wording.ts";
+import { MAX_QUOTED_LINES, withNumbers } from "./lines.ts";
+import { NONE, firstName, languageName } from "./prompts/wording.ts";
 
 /** What the model picked. */
 export type Picked = {

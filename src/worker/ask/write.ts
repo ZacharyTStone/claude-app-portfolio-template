@@ -9,11 +9,27 @@
    shows the answer they're from. A reply that's sent goes with the lines it
    was written from (handler.ts), for the page to show under it. */
 import { isReplyText } from "../../contracts/ask.ts";
-import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, NONE, WRITE_TIMEOUT_MS } from "../constants.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./grounded.ts";
 import { callForText, ranOutOfRoom, textIn, type Called, type Message, type Prompt } from "./model.ts";
-import { firstName, languageName } from "./wording.ts";
+import { NONE, firstName, languageName } from "./prompts/wording.ts";
+
+/** The most the model may write for a reply: a sentence or two, in Japanese
+    too (where a character is about a token), and room for a model that
+    reasons a little first. A reply cut off at it is asked for again,
+    shorter. */
+export const MAX_WRITE_TOKENS = 320;
+
+/** The longest reply it may write, in characters: a sentence or two, not a
+    paragraph. A longer one is asked for again, shorter. */
+export const MAX_WRITTEN_LENGTH = 240;
+
+/** How many times it's asked: once, and once more with what was wrong. */
+export const MAX_WRITE_TRIES = 2;
+
+/** How long the writing may take in all, in milliseconds: past it, the
+    lines are quoted as they are. The page waits 12 s for /ask. */
+const WRITE_TIMEOUT_MS = 5000;
 
 /** What a reply is written for and from: the lines that answer the
     question, with their tab and the site's own question (Sources), and: */

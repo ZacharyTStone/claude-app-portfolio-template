@@ -3,10 +3,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_REPLY_LENGTH, isLabel, labelled } from "../../src/contracts/ask.ts";
-import { BETWEEN_LINES, neededFor, numbered, pointsBack, withNumbers } from "../../src/worker/ask/lines.ts";
+import {
+  BETWEEN_LINES,
+  MAX_QUOTED_LINES,
+  neededFor,
+  numbered,
+  pointsBack,
+  withNumbers,
+} from "../../src/worker/ask/lines.ts";
 import { quote } from "../../src/worker/ask/quote.ts";
 import { piecesOf } from "../../src/worker/ask/text/sentences.ts";
-import { MAX_QUOTED_LINES, NONE } from "../../src/worker/constants.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import {
   EN,
   JA,

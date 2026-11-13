@@ -14,7 +14,7 @@ import { test } from "node:test";
 import type { AskIndex } from "../../src/contracts/ask.ts";
 import { SAMPLE_ANSWERS } from "../sample/ask-answers.ts";
 import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
-import { NONE } from "../../src/worker/constants.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import type { Env } from "../../src/worker/env.ts";
 import { INDEX, askJson, captureLogs, models, stubs, toolCall, wrote, type Call } from "./fixtures.ts";
 
