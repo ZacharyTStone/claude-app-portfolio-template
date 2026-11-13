@@ -2,3 +2,6 @@
 dist/
 .astro/
 package-lock.json
+
+# ESLint writes this one, its own way, until the last entry is fixed and it goes.
+eslint-suppressions.json
