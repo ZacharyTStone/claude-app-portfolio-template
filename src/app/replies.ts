@@ -6,6 +6,7 @@ import { ID_PATTERN } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import type { Source, TypedQuestion } from "./conversation/saved-chats.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { restStill } from "./play.ts";
 import { showWhole } from "./seen.ts";
@@ -13,31 +14,7 @@ import { rich } from "./lib/markdown.ts";
 import { askedTab, questionText, words } from "./page.ts";
 import { isPersonalTab } from "./personal.ts";
 
-/** A question typed in. What /ask said about it is kept with it, so it's
-    asked only once (a chat shown again doesn't ask again). */
-export type TypedQuestion = {
-  question: string;
-  /** The answer /ask picked ("work.2"), or null for none. Left out
-      until it's asked, and when Ask is off. */
-  answer?: string | null;
-  /** The reply /ask sent with that answer, if it sent one. */
-  reply?: string;
-  /** The site's own lines that reply was written from, which /ask sends
-      with a reply it wrote itself: they're shown under it. */
-  cited?: string[];
-  /** The question as it's said to you ("Do you…?" for "Does Alex…?"),
-      which /ask sends when it picked no answer and could say it so: it
-      goes in the email and the message, where the question would. */
-  toOwner?: string;
-  /** The visitor is blocked: nothing they type is shown back. */
-  blocked?: true;
-  /** They're past the day's limit, of this many questions. */
-  limited?: number;
-};
-
-/** What's sent: a thread chosen in the question card, or a question typed
-    in. A chat is saved as a list of these. */
-export type Source = { tab: string } | TypedQuestion;
+export type { Source, TypedQuestion };
 
 export const isTyped = (source: Source): source is TypedQuestion => "question" in source;
 

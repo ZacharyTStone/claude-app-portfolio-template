@@ -1,12 +1,12 @@
 /* Chats: "New tab" opens one, an empty thread with the question card open.
    Once something is sent in it, it's listed under "Chats" and saved (in
    this browser, per language) until it's deleted or the page is refreshed. */
-import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../contracts/guards.ts";
 import { CHATS_GROUP, groupId, ID_PREFIX } from "../contracts/page-ids.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { STORAGE } from "./constants.ts";
+import { readSavedChats, type SavedChat } from "./conversation/saved-chats.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
@@ -18,17 +18,6 @@ import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "./tabs.
 import { say } from "./toast.ts";
 
 const SAVED = `${STORAGE.chats}${root.lang}`;
-// A chat's id: the time it was made, in base 36.
-const CHAT_ID = /^[a-z0-9]+$/;
-
-/** A chat as it's saved. */
-type SavedChat = {
-  id: string;
-  /** The name it's been given, if it's been renamed. */
-  title: string | null;
-  sources: Source[];
-  created: number;
-};
 
 type Chat = SavedChat & { tab: HTMLElement; row: HTMLElement | null };
 
@@ -225,43 +214,7 @@ export function dropEmptyChat(): void {
   emptyChat = null;
 }
 
-// ---- Saved chats -----------------------------------------------------------------
-// Checked, not trusted: they may be from an older version, or edited.
-
-function isSource(value: unknown): value is Source {
-  if (!isRecord(value)) return false;
-  if (!("question" in value)) return isString(value.tab);
-  const { question, answer, cited, toOwner, blocked, limited } = value;
-  return (
-    isString(question) &&
-    (answer === undefined || answer === null || isString(answer)) &&
-    // The lines a reply cites are shown as text, and checked again when
-    // they're shown (replies.ts): here, only that they're lines at all.
-    (cited === undefined || isArrayOf(cited, isString)) &&
-    // The same for the question as it's said to the owner: only that it's
-    // text.
-    isOptionalString(toOwner) &&
-    (blocked === undefined || blocked === true) &&
-    (limited === undefined || isCount(limited))
-  );
-}
-
-const isTime = (value: unknown): value is number =>
-  typeof value === "number" && !Number.isNaN(new Date(value).getTime());
-
-function readChats(): SavedChat[] {
-  const saved = local.getJson(SAVED);
-  if (!Array.isArray(saved)) return [];
-  const seen = new Set<string>();
-  return saved.flatMap((chat: unknown) => {
-    if (!isRecord(chat) || !isString(chat.id) || !CHAT_ID.test(chat.id) || seen.has(chat.id)) return [];
-    const sources = Array.isArray(chat.sources) ? chat.sources.filter(isSource) : [];
-    if (!sources.length) return [];
-    seen.add(chat.id);
-    const title = isString(chat.title) ? chat.title : null;
-    return [{ id: chat.id, title, sources, created: isTime(chat.created) ? chat.created : Date.now() }];
-  });
-}
+const readChats = (): SavedChat[] => readSavedChats(local.getJson(SAVED), Date.now());
 
 /** Forgets the chats saved in this browser, in every language. */
 export const forgetChats = (): void => local.clear(STORAGE.chats);
