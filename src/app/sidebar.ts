@@ -3,6 +3,7 @@
 import { clamp } from "es-toolkit";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { byId, find, findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
@@ -14,7 +15,7 @@ import { clearHash, currentTab } from "./tabs.ts";
 
 const widerThanPhone = matchMedia(`(min-width: ${SIZE.wide}px)`);
 /** The button before the name, which hides the sidebar on wider screens. */
-const hideButton = find(side, SELECTOR.sideToggle);
+const hideButton = find(side, ATTRIBUTE_SELECTOR.sideToggle);
 
 /** Wider than a phone, where the sidebar is beside the tab, not a drawer. */
 export const isWide = (): boolean => widerThanPhone.matches;
@@ -41,7 +42,7 @@ function openDrawer(): void {
 
 /** The menu button of the top bar that's showing (the open tab's, or the
     home screen's): it opens the drawer, or brings the sidebar back. */
-const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.home), SELECTOR.menuButton);
+const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.home), CLASS_SELECTOR.menuButton);
 
 /** Closes the drawer. Focus, if it was in the drawer, goes back to the
     menu button. */
@@ -74,11 +75,11 @@ export function wireMenuButton(button: HTMLElement): void {
 // ---- Arrow keys between its rows (but not out of a menu) ------------------------
 
 /** A group's heading: the button in it that folds the group (folding.ts). */
-const GROUP_HEADING = `${SELECTOR.group} ${SELECTOR.foldButton}`;
+const GROUP_HEADING = `${CLASS_SELECTOR.groupHeading} ${CLASS_SELECTOR.foldButton}`;
 
 /** The rows the arrow keys move between: "New tab" and the rows beside it,
     each group's heading, each tab's row, and the account row. */
-const ARROW_KEY_ROWS = [SELECTOR.navRow, GROUP_HEADING, SELECTOR.tabRow, SELECTOR.me].join(", ");
+const ARROW_KEY_ROWS = [SELECTOR.navRow, GROUP_HEADING, SELECTOR.tabRow, CLASS_SELECTOR.accountRow].join(", ");
 
 function moveBetweenRows(event: KeyboardEvent): void {
   if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
@@ -202,7 +203,7 @@ export function initSidebar(): void {
   shell.addEventListener("click", (event) => {
     if (event.target === shell) closeDrawer();
   });
-  find(side, SELECTOR.drawerClose).addEventListener("click", (event) => {
+  find(side, CLASS_SELECTOR.drawerClose).addEventListener("click", (event) => {
     event.preventDefault();
     closeDrawer();
   });

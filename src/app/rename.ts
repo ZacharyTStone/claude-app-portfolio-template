@@ -3,7 +3,8 @@
    and language. A chat keeps its own name (chats.ts). */
 import { isRecord, isString } from "../contracts/guards.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, SIZE, STORAGE } from "./constants.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, STORAGE } from "./constants.ts";
 import { find, isComposing, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { renameChat } from "./chats.ts";
@@ -56,7 +57,7 @@ const ownNames = new Map<string, OwnName>();
 /** The words of a tab's sidebar row: its first text, before any dot. */
 function rowTextNode(tabId: string): Text | null {
   const row = rowFor(tabId);
-  const nameHolder = row?.querySelector(SELECTOR.rowName) ?? row;
+  const nameHolder = row?.querySelector(CLASS_SELECTOR.rowName) ?? row;
   if (!nameHolder) return null;
   const isWords = (node: ChildNode): node is Text => node instanceof Text && node.data.trim() !== "";
   return [...nameHolder.childNodes].find(isWords) ?? null;
@@ -69,7 +70,7 @@ function showName(tab: HTMLElement): void {
   if (!ownName) return;
   const givenName = givenNames.get(tab.id);
   const title = givenName ?? ownName.title;
-  find(tab, SELECTOR.titleText).textContent = title;
+  find(tab, CLASS_SELECTOR.titleText).textContent = title;
   const rowText = rowTextNode(tab.id);
   if (rowText) {
     // A given name keeps the space the row's own words end with.
@@ -114,9 +115,9 @@ function makeNameBox(nameNow: string): HTMLInputElement {
 /** Turns the tab's title into a box to rename it in: Enter (or leaving it)
     keeps the name, Escape doesn't. */
 export function renameTab(tab: HTMLElement): void {
-  const heading = find(tab, SELECTOR.title);
-  const titleButton = find(heading, SELECTOR.titleButton);
-  const nameBox = makeNameBox(find(heading, SELECTOR.titleText).textContent);
+  const heading = find(tab, CLASS_SELECTOR.title);
+  const titleButton = find(heading, CLASS_SELECTOR.titleButton);
+  const nameBox = makeNameBox(find(heading, CLASS_SELECTOR.titleText).textContent);
   titleButton.hidden = true;
   heading.append(nameBox);
   nameBox.focus();
@@ -149,7 +150,7 @@ export function renameTab(tab: HTMLElement): void {
 /** The tab's title: a button that renames it, showing the name it was
     given in this browser, if it was. */
 export function wireTitle(tab: HTMLElement): void {
-  const heading = find(tab, SELECTOR.title);
+  const heading = find(tab, CLASS_SELECTOR.title);
   // A chat keeps its name itself.
   if (!isChat(tab)) {
     ownNames.set(tab.id, { title: heading.textContent.trim(), rowText: rowTextNode(tab.id)?.data ?? "" });

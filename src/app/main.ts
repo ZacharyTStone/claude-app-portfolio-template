@@ -2,8 +2,8 @@
    app it's laid out like. No module changes the page as it loads (they only
    find elements and read what's saved); it all starts here, at "The start"
    below, in an order whose reasons are written beside each step. */
-import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR } from "./constants.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccount } from "./account.ts";
@@ -30,15 +30,15 @@ import { closeViewer, initViewer, isViewerOpen, viewerCoversScreen } from "./vie
 /** Everything a tab has: its top bar's buttons, title and composer. A chat
     gets it too, from chats.ts, which can't import what it needs itself. */
 function wireTab(tab: HTMLElement): void {
-  findAll(tab, SELECTOR.menuButton).forEach(wireMenuButton);
+  findAll(tab, CLASS_SELECTOR.menuButton).forEach(wireMenuButton);
   wireTitle(tab);
   addTitleMenu(tab);
-  for (const composer of findAll(tab, SELECTOR.composer)) wireComposer(composer, tab);
-  findAll(tab, SELECTOR.panelToggle).forEach(wirePanelToggle);
-  for (const copyButton of findAll(tab, SELECTOR.copyLink)) wireCopy(copyButton, tab);
+  for (const composer of findAll(tab, CLASS_SELECTOR.composer)) wireComposer(composer, tab);
+  findAll(tab, ATTRIBUTE_SELECTOR.panelToggle).forEach(wirePanelToggle);
+  for (const copyButton of findAll(tab, ATTRIBUTE_SELECTOR.copyLink)) wireCopy(copyButton, tab);
   // What's sent into the thread, and its reply, are read out by screen
   // readers as they go in.
-  find(tab, SELECTOR.thread).setAttribute("aria-live", "polite");
+  find(tab, CLASS_SELECTOR.thread).setAttribute("aria-live", "polite");
 }
 
 /** On a phone the start is a new chat with the question card open, not the
@@ -50,7 +50,9 @@ function startOnPhone(): void {
   // The chat takes the home screen's place in the history: left there, the
   // home screen would open another chat each time Back reached it.
   const replaceInHistory = true;
-  newChat(replaceInHistory, (chatTab) => toggleCard(find(chatTab, SELECTOR.composer), chatTab, { moveFocus: false }));
+  newChat(replaceInHistory, (chatTab) =>
+    toggleCard(find(chatTab, CLASS_SELECTOR.composer), chatTab, { moveFocus: false }),
+  );
 }
 
 /** A link that's handled here, not followed. */
@@ -134,24 +136,24 @@ initPlay();
 
 // Every tab in the page, the personal ones included, and the home screen's
 // top bar.
-findAll(document, SELECTOR.tab).forEach(wireTab);
-findAll(document, `#${PAGE_IDS.home} ${SELECTOR.menuButton}`).forEach(wireMenuButton);
+findAll(document, CLASS_SELECTOR.tab).forEach(wireTab);
+findAll(document, `${ID_SELECTOR.home} ${CLASS_SELECTOR.menuButton}`).forEach(wireMenuButton);
 findAll(document, SELECTOR.panelToggles).forEach(wirePanelToggle);
 
 // The sidebar's groups, the panel, and a "…" on each row.
-findAll(side, SELECTOR.group).forEach(foldable);
+findAll(side, CLASS_SELECTOR.groupHeading).forEach(foldable);
 initPanel();
 findAll(side, SELECTOR.tabRow).forEach(addRowMenu);
 
 // The name, top left, always leads back to the start; "New tab" opens a
 // new chat; "Skip to content" goes to the open tab's heading (its link
 // would open no tab at all).
-handleLink(find(side, SELECTOR.wordmark), () => {
+handleLink(find(side, CLASS_SELECTOR.wordmark), () => {
   goHome();
   focusHome();
 });
 handleLink(find(side, SELECTOR.newTab), newChat);
-handleLink(find(document, SELECTOR.skip), () => sync(true));
+handleLink(find(document, CLASS_SELECTOR.skip), () => sync(true));
 
 addEventListener("keydown", closeTopmostOnEscape);
 

@@ -14,6 +14,7 @@
    rest (restStill). */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR, TIMING } from "./constants.ts";
 import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
 import { words } from "./page.ts";
@@ -74,10 +75,10 @@ export function initPlay(): void {
 /** A copy of something in the page, with every picture in it at rest: the
     copy of one that was playing isn't. */
 export function restStill(copy: Element): void {
-  const figures = copy.matches(SELECTOR.playedFigure) ? [copy] : findAll(copy, SELECTOR.playedFigure);
+  const figures = copy.matches(CLASS_SELECTOR.playedFigure) ? [copy] : findAll(copy, CLASS_SELECTOR.playedFigure);
   for (const figure of figures) {
     figure.classList.remove(PAGE_CLASSES.playing);
-    for (const moving of findAll(figure, `.${PAGE_CLASSES.moving}`)) moving.remove();
+    for (const moving of findAll(figure, CLASS_SELECTOR.moving)) moving.remove();
     const button = figure.querySelector(SELECTOR.playButton);
     if (button) name(button, words.play);
   }
@@ -86,18 +87,18 @@ export function restStill(copy: Element): void {
 /** Gives a Play button its word. The word is in an element of its own, so
     the stylesheet can show the icon alone where there's little room. */
 function name(button: Element, word: string): void {
-  find(button, SELECTOR.label).textContent = word;
+  find(button, CLASS_SELECTOR.label).textContent = word;
 }
 
 /** The figure a press plays or pauses: the one whose Play button, or whose
     picture, it was on. A picture that links somewhere (its `href`) is
     left to its link; only its button plays it. */
 function playedFigureAt(target: EventTarget | null): HTMLElement | null {
-  const stage = closestFrom(target, SELECTOR.stage);
+  const stage = closestFrom(target, CLASS_SELECTOR.stage);
   if (!stage) return null;
   const link = closestFrom(target, "a");
   if (link && !link.matches(SELECTOR.playButton)) return null;
-  const figure = stage.closest(SELECTOR.playedFigure);
+  const figure = stage.closest(CLASS_SELECTOR.playedFigure);
   return figure instanceof HTMLElement ? figure : null;
 }
 

@@ -13,7 +13,7 @@ import {
   type Topic,
 } from "../config/question-card.ts";
 import { isArrayOf, isOptionalBoolean, isOptionalString, isRecord, isString, type Guard } from "../contracts/guards.ts";
-import { SELECTOR } from "./constants.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { byId, parentOf } from "./lib/dom.ts";
 
 /** The page's <html>: it carries the page's language, the script's wording
@@ -48,7 +48,7 @@ export const homeGreeting = byId(PAGE_IDS.greeting);
 export const askedTab = byId(PAGE_IDS.asked);
 
 /** Whose site this is: the name at the top of the sidebar. */
-export const siteName = side.querySelector(SELECTOR.wordmark)?.textContent.trim() ?? "";
+export const siteName = side.querySelector(CLASS_SELECTOR.wordmark)?.textContent.trim() ?? "";
 /** The window title the page came with, which is the home screen's. */
 export const pageTitle = document.title;
 
@@ -71,7 +71,7 @@ export const tagline = homeScreen.getAttribute(DATA.tagline);
 /** A question's words, without the "Question:" said only to screen readers. */
 export function questionText(question: Element): string {
   return [...question.childNodes]
-    .filter((node) => !(node instanceof Element && node.matches(SELECTOR.srOnly)))
+    .filter((node) => !(node instanceof Element && node.matches(CLASS_SELECTOR.srOnly)))
     .map((node) => node.textContent)
     .join("")
     .trim();

@@ -3,6 +3,7 @@
    their grips (remembered per browser). */
 import { isArrayOf, isString } from "../contracts/guards.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR, STORAGE, TIMING } from "./constants.ts";
 import { findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
@@ -20,7 +21,7 @@ const isPanelHidden = (): boolean => shell.classList.contains(PAGE_CLASSES.noPan
     in each top bar, and the panel's own) which it is now. */
 function setPanelHidden(isHidden: boolean): void {
   shell.classList.toggle(PAGE_CLASSES.noPanel, isHidden);
-  for (const button of document.querySelectorAll(SELECTOR.panelToggle)) {
+  for (const button of document.querySelectorAll(ATTRIBUTE_SELECTOR.panelToggle)) {
     button.setAttribute("aria-expanded", String(!isHidden));
   }
 }

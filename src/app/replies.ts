@@ -5,6 +5,7 @@ import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.t
 import { ID_PATTERN } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { restStill } from "./play.ts";
@@ -42,7 +43,7 @@ export type Source = { tab: string } | TypedQuestion;
 export const isTyped = (source: Source): source is TypedQuestion => "question" in source;
 
 // "Question: ", said before each question to screen readers.
-const SR_QUESTION = document.querySelector(`${SELECTOR.question} ${SELECTOR.srOnly}`)?.textContent ?? "";
+const SR_QUESTION = document.querySelector(`${CLASS_SELECTOR.question} ${CLASS_SELECTOR.srOnly}`)?.textContent ?? "";
 
 /** The visitor's message. */
 export const bubble = (question: string): HTMLElement =>
@@ -60,7 +61,7 @@ export function questionFor(source: Source): string | null {
 // playing.
 function copyMessage(node: Element): Element {
   const copy = clone(node);
-  copy.querySelectorAll(SELECTOR.messageActions).forEach((actions) => actions.remove());
+  copy.querySelectorAll(CLASS_SELECTOR.messageActions).forEach((actions) => actions.remove());
   copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
   showWhole(copy);
   restStill(copy);
@@ -69,13 +70,13 @@ function copyMessage(node: Element): Element {
 
 /** Adds a line to a reply, under its last answer. */
 export function addToReply(reply: Element[], line: Element): void {
-  (reply.findLast((node) => node.matches(SELECTOR.answer)) ?? reply.at(-1))?.append(line);
+  (reply.findLast((node) => node.matches(CLASS_SELECTOR.answer)) ?? reply.at(-1))?.append(line);
 }
 
 // "From the Work tab": a line linking to the tab an answer is from, by its
 // name as it's shown (renamed in this browser, if it was).
 function fromLine(tab: HTMLElement, template: string): Element {
-  const title = (tab.querySelector(SELECTOR.titleText) ?? tab.querySelector(SELECTOR.title))?.textContent;
+  const title = (tab.querySelector(CLASS_SELECTOR.titleText) ?? tab.querySelector(CLASS_SELECTOR.title))?.textContent;
   const [before = "", after = ""] = template.split("{tab}");
   const link = make("a", { href: `#${tab.id}` }, title?.trim() ?? tab.id);
   return make("p", { class: PAGE_CLASSES.from }, before, link, after);
@@ -86,8 +87,8 @@ function fromLine(tab: HTMLElement, template: string): Element {
 function findAnswer(id: string): { tab: HTMLElement; q: Element } | null {
   const [tabId = "", n = ""] = id.split(".");
   const tab = ID_PATTERN.test(tabId) ? document.getElementById(tabId) : null;
-  if (!tab?.matches(SELECTOR.tab)) return null;
-  const q = tab.querySelectorAll(`${SELECTOR.threadQuestion}:not(${SELECTOR.sent})`)[Number(n) - 1];
+  if (!tab?.matches(CLASS_SELECTOR.tab)) return null;
+  const q = tab.querySelectorAll(`${SELECTOR.threadQuestion}:not(${CLASS_SELECTOR.sent})`)[Number(n) - 1];
   return q ? { tab, q } : null;
 }
 
@@ -119,8 +120,12 @@ export function answerFor(id: string, reply?: string, cited: string[] = []): Ele
     ];
   }
   const answer: Element[] = [];
-  for (let node = q.nextElementSibling; node && !node.matches(SELECTOR.question); node = node.nextElementSibling) {
-    if (!node.matches(SELECTOR.sent)) answer.push(copyMessage(node));
+  for (
+    let node = q.nextElementSibling;
+    node && !node.matches(CLASS_SELECTOR.question);
+    node = node.nextElementSibling
+  ) {
+    if (!node.matches(CLASS_SELECTOR.sent)) answer.push(copyMessage(node));
   }
   // A personal answer's tab has no row in the sidebar: on its own, no "From" line.
   if (!personal) addToReply(answer, fromLine(tab, words.askFrom));
@@ -133,21 +138,21 @@ export function answerFor(id: string, reply?: string, cited: string[] = []): Ele
 // visitor who's been blocked it's the same, but nothing they typed is
 // shown back: no message to copy, and an email for them to write.
 function somethingElse(question: string, blocked: boolean): Element {
-  const answer = clone(find(askedTab, SELECTOR.answer));
-  answer.querySelector(SELECTOR.messageActions)?.remove();
+  const answer = clone(find(askedTab, CLASS_SELECTOR.answer));
+  answer.querySelector(CLASS_SELECTOR.messageActions)?.remove();
   const asked = blocked ? "" : question;
   // A function, so a "$" in the question is just a "$".
   const fill = (template: string) => template.replaceAll("{question}", () => asked);
-  const mail = find(answer, SELECTOR.mail);
+  const mail = find(answer, ATTRIBUTE_SELECTOR.emailBody);
   // The address, without the subject and body the page gives it.
-  const [address = ""] = (find(askedTab, SELECTOR.mail).getAttribute("href") ?? "").split("?");
+  const [address = ""] = (find(askedTab, ATTRIBUTE_SELECTOR.emailBody).getAttribute("href") ?? "").split("?");
   const subject = encodeURIComponent(mail.getAttribute(DATA.emailSubject) ?? "");
   const body = encodeURIComponent(fill(mail.getAttribute(DATA.emailBody) ?? ""));
   mail.setAttribute("href", `${address}?subject=${subject}&body=${body}`);
-  const draft = answer.querySelector(SELECTOR.draft);
+  const draft = answer.querySelector(CLASS_SELECTOR.draft);
   if (draft instanceof HTMLElement && blocked) draft.remove();
   else if (draft instanceof HTMLElement)
-    find(draft, SELECTOR.draftText).textContent = fill(draft.getAttribute(DATA.messageDraft) ?? "");
+    find(draft, CLASS_SELECTOR.draftText).textContent = fill(draft.getAttribute(DATA.messageDraft) ?? "");
   return answer;
 }
 
@@ -157,10 +162,10 @@ function somethingElse(question: string, blocked: boolean): Element {
 function threadReply(tab: HTMLElement): Element[] {
   const answer: Element[] = [];
   let reply: Element | null = null;
-  for (const node of [...find(tab, SELECTOR.thread).children].slice(1)) {
-    if (node.matches(`${SELECTOR.question}, ${SELECTOR.sent}`)) continue;
+  for (const node of [...find(tab, CLASS_SELECTOR.thread).children].slice(1)) {
+    if (node.matches(`${CLASS_SELECTOR.question}, ${CLASS_SELECTOR.sent}`)) continue;
     const copy = copyMessage(node);
-    if (copy.matches(SELECTOR.answer)) {
+    if (copy.matches(CLASS_SELECTOR.answer)) {
       if (reply) reply.append(...copy.childNodes);
       else answer.push((reply = copy));
     } else if (reply) reply.append(copy);

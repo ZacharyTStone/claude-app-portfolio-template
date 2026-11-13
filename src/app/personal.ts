@@ -3,7 +3,7 @@
    of the "Something else" tab. */
 import { ID_PREFIX, personalTabId } from "../contracts/page-ids.ts";
 import { type PersonalAnswer } from "../config/question-card.ts";
-import { SELECTOR } from "./constants.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, find } from "./lib/dom.ts";
 import { renderBlock } from "./lib/markdown.ts";
 import { askedTab, questionCard } from "./page.ts";
@@ -21,10 +21,10 @@ export const isPersonalTab = (tabId: string): boolean => tabId.startsWith(ID_PRE
     answer ends with. */
 function makePersonalTab(personal: PersonalAnswer): HTMLElement {
   const tab = copyTab(tabPattern, personalTabId(personal.id));
-  find(tab, SELECTOR.title).textContent = personal.title ?? personal.q;
-  find(tab, SELECTOR.askedQuestion).textContent = personal.q;
-  const answer = find(tab, SELECTOR.answer);
-  const actions = answer.querySelector(SELECTOR.messageActions);
+  find(tab, CLASS_SELECTOR.title).textContent = personal.title ?? personal.q;
+  find(tab, CLASS_SELECTOR.askedQuestion).textContent = personal.q;
+  const answer = find(tab, CLASS_SELECTOR.answer);
+  const actions = answer.querySelector(CLASS_SELECTOR.messageActions);
   answer.replaceChildren(...personal.a.map(renderBlock), ...(actions ? [actions] : []));
   return tab;
 }

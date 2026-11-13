@@ -3,6 +3,7 @@
 import { MENU_KEYS } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";
@@ -61,7 +62,7 @@ function deleteRow(chatTab: HTMLElement): HTMLElement {
     card. */
 function followUpRow(tab: HTMLElement): HTMLElement {
   const row = menuRow(words.menuFollowUp);
-  row.addEventListener("click", () => find(tab, SELECTOR.composer).click());
+  row.addEventListener("click", () => find(tab, CLASS_SELECTOR.composer).click());
   return row;
 }
 
@@ -116,7 +117,7 @@ function fillTitleMenu(tab: HTMLElement): void {
   const jumpTo = menuRow(words.menuJump);
   titleMenu.replaceChildren(rename, ...copyLinkGroup, dividerLine(), followUpRow(tab), jumpTo, ...deleteGroup);
   // After the rows are in: the submenu goes into the menu, after them.
-  const scroller = find(tab, SELECTOR.scroll);
+  const scroller = find(tab, CLASS_SELECTOR.scroll);
   withSubmenu(jumpTo, titleMenu, (popup) => popup.replaceChildren(...jumpRows(tab, scroller)));
 }
 
@@ -135,7 +136,7 @@ function placeTitleMenu(chevron: HTMLElement): void {
 
 /** The chevron beside a tab's title, for the thread's menu. */
 export function addTitleMenu(tab: HTMLElement): void {
-  const heading = find(tab, SELECTOR.title);
+  const heading = find(tab, CLASS_SELECTOR.title);
   // The chevron the page draws after the title without JavaScript gives
   // way to the button.
   heading.classList.remove(PAGE_CLASSES.iconAfter);

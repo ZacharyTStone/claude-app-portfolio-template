@@ -6,7 +6,6 @@
    its personal answers, the script's wording, whether Ask is on, and the
    parts only some sites have. The checks look for these, never for one
    site's content, so they run on any site.config.ts. */
-import { mapValues } from "es-toolkit";
 import type { Browser, Page } from "playwright";
 import { SELECTOR } from "../../src/app/constants.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
@@ -15,7 +14,7 @@ import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } fro
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
-import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
 import { type PersonalAnswer, type QuestionCard, type Topic } from "../../src/config/question-card.ts";
 // Its types only. helpers.ts builds its selectors from the ones here, so a
 // function imported back from it would have each file waiting for the other.
@@ -25,12 +24,9 @@ import type { PageElement } from "./helpers.ts";
 // The names themselves (ids, data-* attributes, classes, the clock's local
 // zone, the menus' letters, the hours of the day) are in src/contracts.
 
-/** PAGE_IDS as selectors: ID.greeting is "#hello". */
-export const ID = mapValues(PAGE_IDS, (id) => `#${id}`);
-
-/** The page's classes (PAGE_CLASSES), as selectors: CLASS.thread is
-    ".thread". */
-export const CLASS = mapValues(PAGE_CLASSES, (name) => `.${name}`);
+/** The page's ids and classes as selectors, as the checks call them:
+    ID.greeting is "#hello", CLASS.thread is ".thread". */
+export { CLASS, ID };
 
 /** The details panel's sections, in the order the page has them. */
 export const PANEL_SECTIONS = `${ID.panel} > section`;
@@ -364,12 +360,12 @@ async function readLanguages(page: Page): Promise<LanguagePage[]> {
 /** The account menu's clock and its wording, or null without one. A clock
     that names no zone for the owner's time is read as UTC. */
 async function readClock(page: Page): Promise<Clock | null> {
-  if (!(await page.locator(SELECTOR.clock).count())) return null;
-  const wording = async (attribute: string) => (await readAttribute(page, SELECTOR.clock, attribute)) ?? "";
+  if (!(await page.locator(ATTRIBUTE_SELECTOR.clock).count())) return null;
+  const wording = async (attribute: string) => (await readAttribute(page, ATTRIBUTE_SELECTOR.clock, attribute)) ?? "";
   const moods = {} as Record<ClockMood, string>;
   for (const mood of CLOCK_MOODS) moods[mood] = await wording(DATA.mood(mood));
   return {
-    zone: (await readAttribute(page, `${SELECTOR.clock} ${SELECTOR.ownerZone}`, DATA.zone)) ?? "UTC",
+    zone: (await readAttribute(page, `${ATTRIBUTE_SELECTOR.clock} ${SELECTOR.ownerZone}`, DATA.zone)) ?? "UTC",
     same: await wording(DATA.clockSame),
     ahead: await wording(DATA.clockAhead),
     behind: await wording(DATA.clockBehind),
@@ -391,7 +387,7 @@ async function readGreetings(page: Page): Promise<Record<GreetingPart, string | 
 /** The questions to start with, under the home screen's box. */
 async function readPrompts(page: Page): Promise<Prompt[]> {
   const prompts: Prompt[] = [];
-  for (const prompt of await page.locator(`${CLASS.prompts} ${SELECTOR.prompt}`).all()) {
+  for (const prompt of await page.locator(`${CLASS.prompts} ${ATTRIBUTE_SELECTOR.prompt}`).all()) {
     prompts.push({
       q: ((await prompt.textContent()) ?? "").trim(),
       answer: (await prompt.getAttribute(DATA.prompt)) ?? "",
@@ -423,7 +419,7 @@ async function readViewerLink(page: Page): Promise<ViewerLink | null> {
 
 /** A figure whose picture a visitor plays, and in it its Play button and
     the picture as it moves, once that has loaded and shows (src/app/play.ts). */
-export const PLAYED_FIGURE = SELECTOR.playedFigure;
+export const PLAYED_FIGURE = CLASS.playedFigure;
 export const PLAY_BUTTON = SELECTOR.playButton;
 export const PLAYING_PICTURE = `${CLASS.moving}${CLASS.movingShown}`;
 

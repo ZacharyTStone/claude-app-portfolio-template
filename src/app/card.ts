@@ -5,7 +5,7 @@ import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
 import { PAGE_IDS, personalTabId } from "../contracts/page-ids.ts";
 import { type Topic } from "../config/question-card.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR } from "./constants.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { asButton, find, findAll, make, onEnter, parentOf } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";
 import { closeMenu, popupAttributes, toggleMenu } from "./menus.ts";
@@ -44,17 +44,17 @@ type CardChoice = TabChoice | TopicGroup;
     for an id that names no tab. */
 function tabChoice(tabId: string, label?: string, hint?: string): TabChoice | null {
   const tab = document.getElementById(tabId);
-  if (!tab?.matches(SELECTOR.tab)) {
+  if (!tab?.matches(CLASS_SELECTOR.tab)) {
     console.warn(`site.config: there's no tab #${tabId}`);
     return null;
   }
   const sidebarRow = rowFor(tabId);
-  const rowName = (sidebarRow?.querySelector(SELECTOR.rowName) ?? sidebarRow)?.textContent.trim();
-  const rowHint = sidebarRow?.querySelector(SELECTOR.rowHint)?.textContent.trim();
+  const rowName = (sidebarRow?.querySelector(CLASS_SELECTOR.rowName) ?? sidebarRow)?.textContent.trim();
+  const rowHint = sidebarRow?.querySelector(CLASS_SELECTOR.rowHint)?.textContent.trim();
   return {
     kind: "tab",
     tabId,
-    label: label ?? rowName ?? find(tab, SELECTOR.title).textContent,
+    label: label ?? rowName ?? find(tab, CLASS_SELECTOR.title).textContent,
     hint: hint ?? rowHint ?? questionFor({ tab: tabId }) ?? "",
   };
 }

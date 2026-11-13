@@ -3,7 +3,8 @@
    row with › opens a submenu beside it. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, TIMING } from "./constants.ts";
 import { closestFrom, findAll, make } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";
 
@@ -45,7 +46,7 @@ export function closeMenu({ refocus = false }: { refocus?: boolean } = {}): void
   const { menu, trigger } = openMenu;
   openMenu = null;
   menu.hidden = true;
-  for (const popup of menu.querySelectorAll(SELECTOR.submenu)) {
+  for (const popup of menu.querySelectorAll(CLASS_SELECTOR.submenu)) {
     const submenu = submenus.get(popup);
     if (submenu) hideSubmenu(submenu);
   }

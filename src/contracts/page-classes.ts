@@ -207,5 +207,6 @@ const ADDED_BY_THE_SCRIPT = {
   movingShown: "shown",
 } as const satisfies NoKeyOf<typeof WRITTEN_BY_A_COMPONENT>;
 
-/** The page's classes, by what each names. */
+/** The page's classes, by what each names. As selectors they are
+    CLASS_SELECTOR (page-selectors.ts). */
 export const PAGE_CLASSES = { ...WRITTEN_BY_A_COMPONENT, ...ADDED_BY_THE_SCRIPT } as const;

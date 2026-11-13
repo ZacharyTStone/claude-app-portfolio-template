@@ -5,7 +5,8 @@ import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../con
 import { CHATS_GROUP, groupId, ID_PREFIX } from "../contracts/page-ids.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, STORAGE } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { STORAGE } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
@@ -42,8 +43,8 @@ export type ChatWiring = {
 // something is sent in it, it says who this is (the name and the tagline),
 // and it has no link to share: it's kept in this browser only.
 const shell = clone(askedTab);
-find(shell, SELECTOR.title).textContent = words.newChat;
-find(shell, SELECTOR.thread).replaceChildren(
+find(shell, CLASS_SELECTOR.title).textContent = words.newChat;
+find(shell, CLASS_SELECTOR.thread).replaceChildren(
   make(
     "div",
     { class: PAGE_CLASSES.chatHello },
@@ -51,7 +52,7 @@ find(shell, SELECTOR.thread).replaceChildren(
     ...(tagline ? [make("p", { class: PAGE_CLASSES.intro }, tagline)] : []),
   ),
 );
-shell.querySelectorAll(SELECTOR.copyLink).forEach((button) => button.remove());
+shell.querySelectorAll(ATTRIBUTE_SELECTOR.copyLink).forEach((button) => button.remove());
 
 const chats = new Map<string, Chat>();
 // The new chat that nothing has been sent in yet.
@@ -96,8 +97,8 @@ function makeChat({
 function showChatName(chat: Chat): void {
   const first = chat.sources[0];
   const name = chat.title || (first && questionFor(first)) || words.newChat;
-  find(chat.tab, SELECTOR.titleText).textContent = name;
-  if (chat.row) find(chat.row, SELECTOR.rowName).textContent = name;
+  find(chat.tab, CLASS_SELECTOR.titleText).textContent = name;
+  if (chat.row) find(chat.row, CLASS_SELECTOR.rowName).textContent = name;
   if (chat.tab === currentTab()) setTitle(name);
 }
 
@@ -109,7 +110,7 @@ function chatsList(): HTMLElement {
   if (list instanceof HTMLElement) return list;
   const heading = make("p", { class: PAGE_CLASSES.groupHeading, id }, words.chats);
   const made = make("ul", { class: PAGE_CLASSES.groupRows, "aria-labelledby": id });
-  find(side, SELECTOR.account).before(heading, made);
+  find(side, CLASS_SELECTOR.account).before(heading, made);
   foldable(heading);
   return made;
 }
@@ -137,7 +138,7 @@ function listChat(chat: Chat): void {
 export function showChat(tab: HTMLElement): void {
   const chat = chatOf(tab);
   if (!chat) return; // deleted
-  const thread = find(tab, SELECTOR.thread);
+  const thread = find(tab, CLASS_SELECTOR.thread);
   thread.replaceChildren();
   for (const source of chat.sources) {
     const messages = messagesFor(source);
@@ -196,7 +197,7 @@ export function deleteChat(tab: HTMLElement): void {
 export function newChat(replace = false, then?: (tab: HTMLElement) => void): void {
   closeDrawer();
   const { tab } = (emptyChat ??= makeChat());
-  const composer = find(tab, SELECTOR.composer);
+  const composer = find(tab, CLASS_SELECTOR.composer);
   openTab(
     tab,
     () => {

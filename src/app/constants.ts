@@ -3,8 +3,8 @@
    and data attributes are in src/contracts, and what the site says comes
    from the page (page.ts). */
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
-import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
+import { panelId } from "../contracts/page-ids.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR } from "../contracts/page-selectors.ts";
 
 export const STORAGE = {
   /** localStorage: the chats, per language (this, then the page's lang). */
@@ -25,107 +25,43 @@ export const STORAGE = {
     clock's two notes. */
 export const SEPARATOR = " · ";
 
-const has = (attribute: string) => `[${attribute}]`;
-const thread = `.${PAGE_CLASSES.thread}`;
-
-/** The parts of the page the script looks for. */
+/** The parts of the page that take more than one name to find. One that a
+    single name finds is that name's selector (src/contracts/page-selectors.ts). */
 export const SELECTOR = {
-  skip: `.${PAGE_CLASSES.skip}`,
-  // Around the tabs.
-  /** Every tab: one <article> per thread, and each chat. */
-  tab: `.${PAGE_CLASSES.tab}`,
-  chatTab: has(DATA.chat),
-  /** A top bar's button that opens the drawer, or brings the sidebar back. */
-  menuButton: `.${PAGE_CLASSES.menuButton}`,
-  panelToggle: has(DATA.panelToggle),
-  /** The share button in a top bar, and the copy icon under an answer. */
-  copyLink: has(DATA.copyLink),
-
-  // The sidebar.
-  wordmark: `.${PAGE_CLASSES.wordmark}`,
-  sideToggle: has(DATA.sideToggle),
-  drawerClose: `.${PAGE_CLASSES.drawerClose}`,
-  newTab: `.${PAGE_CLASSES.nav} .${PAGE_CLASSES.newTab}`,
-  navRow: `.${PAGE_CLASSES.nav} a`,
-  /** A row in one of the sidebar's groups of tabs. */
-  tabRow: `.${PAGE_CLASSES.groupRows} > li > a`,
-  rowName: `.${PAGE_CLASSES.rowName}`,
-  rowHint: `.${PAGE_CLASSES.rowHint}`,
-  group: `.${PAGE_CLASSES.groupHeading}`,
-  foldButton: `.${PAGE_CLASSES.foldButton}`,
+  // The sidebar: "New tab", the rows beside it, and a row in one of its
+  // groups of tabs.
+  newTab: `${CLASS_SELECTOR.nav} ${CLASS_SELECTOR.newTab}`,
+  navRow: `${CLASS_SELECTOR.nav} a`,
+  tabRow: `${CLASS_SELECTOR.groupRows} > li > a`,
   /** The links to the other languages' pages. */
-  language: `.${PAGE_CLASSES.languageSwitch} a`,
-  account: `.${PAGE_CLASSES.account}`,
-  /** The account row, which opens the account menu. */
-  me: `.${PAGE_CLASSES.accountRow}`,
+  language: `${CLASS_SELECTOR.languageSwitch} a`,
 
-  // A tab.
-  title: `.${PAGE_CLASSES.title}`,
-  titleText: `.${PAGE_CLASSES.titleText}`,
-  titleButton: `.${PAGE_CLASSES.titleButton}`,
-  scroll: `.${PAGE_CLASSES.scroll}`,
-  thread,
-  composer: `.${PAGE_CLASSES.composer}`,
-  chatHello: `.${PAGE_CLASSES.chatHello}`,
+  // The home screen: the box to type a question in, and its send button.
+  homeInput: `${CLASS_SELECTOR.homeAsk} input`,
+  homeSend: `${CLASS_SELECTOR.homeAsk} ${CLASS_SELECTOR.homeSend}`,
 
-  // The home screen: the box to type a question in, its send button, and
-  // the questions to start with under it.
-  homeInput: `.${PAGE_CLASSES.homeAsk} input`,
-  homeSend: `.${PAGE_CLASSES.homeAsk} .${PAGE_CLASSES.homeSend}`,
-  prompt: has(DATA.prompt),
-
-  // A thread: each question, then its answer.
-  question: `.${PAGE_CLASSES.question}`,
-  threadQuestion: `${thread} > .${PAGE_CLASSES.question}`,
-  answer: `.${PAGE_CLASSES.answer}`,
-  sent: `.${PAGE_CLASSES.sent}`,
-  /** "Question: ", said to screen readers before each question. */
-  srOnly: `.${PAGE_CLASSES.srOnly}`,
-  /** The buttons under a thread's last answer. */
-  messageActions: `.${PAGE_CLASSES.messageActions}`,
-  /** In "Something else": the question it answers, the email link, and
-      the LinkedIn message to copy (its text, and its copy button). */
-  askedQuestion: `.${PAGE_CLASSES.askedQuestion}`,
-  mail: has(DATA.emailBody),
-  draft: `.${PAGE_CLASSES.draft}`,
-  draftText: `.${PAGE_CLASSES.draftText}`,
-  copyDraft: has(DATA.copyDraft),
-  /** A share button's words. */
-  label: `.${PAGE_CLASSES.label}`,
-
-  // Menus.
-  submenu: `.${PAGE_CLASSES.submenu}`,
+  /** A thread's own questions, not those inside an answer. */
+  threadQuestion: `${CLASS_SELECTOR.thread} > ${CLASS_SELECTOR.question}`,
 
   // The details panel: its toggles (one in each top bar, and its close
   // button), its sections and their headings, and its contact links (the
   // config's panel.context).
-  panelToggles: `#${PAGE_IDS.home} ${has(DATA.panelToggle)}, #${PAGE_IDS.panel} ${has(DATA.panelToggle)}`,
+  panelToggles: `${ID_SELECTOR.home} ${ATTRIBUTE_SELECTOR.panelToggle}, ${ID_SELECTOR.panel} ${ATTRIBUTE_SELECTOR.panelToggle}`,
   panelSection: ":scope > section",
   panelHeading: "h2",
   contactLinks: `section[aria-labelledby="${panelId("context")}"] .rows a`,
 
-  // The account menu.
-  clock: has(DATA.clock),
-  /** Each time in the clock, and the one that's the owner's. */
-  zone: has(DATA.zone),
-  ownerZone: `${has(DATA.zone)}:not([${DATA.zone}="${LOCAL_ZONE}"])`,
-  clockNote: `.${PAGE_CLASSES.clockNote}`,
-  mailRow: `.${PAGE_CLASSES.mailRow}`,
-  rowMeta: `.${PAGE_CLASSES.rowMeta}`,
-  languageLink: has(DATA.langLink),
-  logout: has(DATA.logout),
+  /** In the account menu's clock, the time that's the owner's. */
+  ownerZone: `${ATTRIBUTE_SELECTOR.zone}:not([${DATA.zone}="${LOCAL_ZONE}"])`,
 
   // A link that opens in the viewer.
-  viewLink: `a${has(DATA.viewerAddress)}`,
+  viewLink: `a${ATTRIBUTE_SELECTOR.viewerAddress}`,
 
   // What comes in as it's scrolled to: a quote, a file card.
-  comesIntoView: `.${PAGE_CLASSES.quote}, .${PAGE_CLASSES.fileCard}`,
+  comesIntoView: `${CLASS_SELECTOR.quote}, ${CLASS_SELECTOR.fileCard}`,
 
-  // A picture a visitor plays: its figure, what holds the picture, and its
-  // Play button.
-  playedFigure: `.${PAGE_CLASSES.playedFigure}`,
-  stage: `.${PAGE_CLASSES.stage}`,
-  playButton: `a${has(DATA.play)}`,
+  /** A played picture's Play button. */
+  playButton: `a${ATTRIBUTE_SELECTOR.play}`,
 } as const;
 
 /** In milliseconds. */
