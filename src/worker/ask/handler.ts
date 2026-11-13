@@ -16,23 +16,23 @@
       line goes to the log.
 
    Every reply is an AskResponse, or a 4xx. */
-import { isCitedLines, type AskAnswer, type AskResponse } from "../../contracts/ask.ts";
+import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
 import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, NONE, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
 import { readSettings, type Env, type Settings } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
 import { addressToOwner, addressesOwnerIn, type Addressed, type Unaddressed } from "./address.ts";
-import { readChoices, type Choices } from "./answers.ts";
+import { ownerNames, readChoices, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
 import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
-import { citedPieces, joinPieces, type Piece } from "./lines.ts";
-import { quote, type QuoteCheck, type Quoted } from "./quote.ts";
+import type { QuoteCheck } from "./quote.ts";
+import { NO_REPLY, replyFrom } from "./reply.ts";
 import { readAskRequest, refuseUnlessJsonPost, type CheckedAskRequest } from "./request.ts";
-import { write, writesIn, type Unwritten, type Written } from "./write.ts";
+import type { Unwritten } from "./write.ts";
 
 const respond = (data: AskResponse, status: number = HTTP_STATUS.ok) => json(data, status);
 
@@ -202,7 +202,12 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
 
     const { answer: answerShown, uncoveredId } = answerToShow(picked.id, question, choices);
     const reply = answerShown
-      ? await replyFrom(env.AI, settings.model, question, answerShown, picked.sentences, choices)
+      ? await replyFrom(
+          env.AI,
+          settings.model,
+          { question, answer: answerShown, lineNumbers: picked.sentences },
+          choices,
+        )
       : NO_REPLY;
     // With no answer, the page offers a message to the owner with the
     // question in it: said to them, where it can be.
@@ -315,82 +320,6 @@ function answerToShow(pickedId: string | null, question: string, choices: Choice
   const isCovered = covers(pickedAnswer, question, ownerNames(choices));
   return isCovered ? { answer: pickedAnswer } : { uncoveredId: pickedAnswer.id };
 }
-
-// The owner's name, and as the page's language writes it if that differs:
-// what a question may name besides the answer's own words.
-const ownerNames = ({ name, localName }: Choices) => (localName === name ? name : `${name} ${localName}`);
-
-/** The reply made from the lines the picker chose in an answer. */
-type Reply = {
-  /** How writing one went; undefined when none was to be written. */
-  written?: Written;
-  /** How quoting the lines went; null when the picker named none. */
-  quoted: Quoted;
-  /** The reply to send: the one written, else the lines quoted, else none
-      (the page then shows the whole answer). */
-  text?: string;
-  /** With a reply that was written: the lines it was written from, each as
-      the site has it, for the page to show under it. Not with a reply that
-      is those lines (quoted, or written word for word the same), nor when
-      they're more than the page takes (`isCitedLines`). */
-  cited?: string[];
-};
-
-/** No answer is shown, so there's nothing to reply from. */
-const NO_REPLY: Reply = { quoted: null };
-
-// The reply is written from the lines picked, and its names and numbers
-// checked against them; if none passes, the lines are quoted as they are,
-// where they're sentences.
-async function replyFrom(
-  ai: Ai,
-  model: string,
-  question: string,
-  answerShown: AskAnswer,
-  lineNumbers: unknown,
-  choices: Choices,
-): Promise<Reply> {
-  const linesToWriteFrom = writesIn(choices.lang) ? citedPieces(answerShown.text, lineNumbers) : null;
-  if (linesToWriteFrom === null) {
-    // No reply is written (the picker named no lines, or the page is in a
-    // language the check can't read): any line named is quoted, as it
-    // always was.
-    const quoted = quote(answerShown.text, lineNumbers);
-    return { quoted, text: quoted?.reply };
-  }
-  const written = await writeFrom(ai, model, question, answerShown, linesToWriteFrom, choices);
-  // A card's row or a figure is what a reply is written from, and no reply
-  // itself: with none written, the page shows the answer instead.
-  const quoted = quote(answerShown.text, lineNumbers, { sentencesOnly: true });
-  if (written.reply === undefined) return { written, quoted, text: quoted?.reply };
-  return { written, quoted, text: written.reply, cited: citedUnder(written.reply, linesToWriteFrom) };
-}
-
-// A reply to the question, written from lines of the answer.
-function writeFrom(
-  ai: Ai,
-  model: string,
-  question: string,
-  { title, q }: AskAnswer,
-  linesToWriteFrom: Piece[],
-  choices: Choices,
-): Promise<Written> {
-  const { name, role, lang } = choices;
-  const lines = joinPieces(linesToWriteFrom);
-  return write(ai, model, { question, lang, lines, title, q, name, role, owner: ownerNames(choices) });
-}
-
-// The lines to show under a written reply: each one's text. None when the
-// reply only repeats them (they'd be shown twice), or when they're more
-// than the page takes: a line is never cut.
-function citedUnder(reply: string, linesWrittenFrom: Piece[]): string[] | undefined {
-  if (hasSameWords(reply, joinPieces(linesWrittenFrom))) return undefined;
-  const lines = linesWrittenFrom.map((line) => line.text);
-  return isCitedLines(lines) ? lines : undefined;
-}
-
-// Whether two texts have the same words, whatever space is between them.
-const hasSameWords = (one: string, other: string) => one.replace(/\s+/g, "") === other.replace(/\s+/g, "");
 
 // The question as it's said to the owner, for the email and the message the
 // page offers when no answer is shown: rewritten by the model and checked
