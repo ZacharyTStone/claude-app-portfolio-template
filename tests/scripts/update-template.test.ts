@@ -2,7 +2,7 @@
    template", so with no history in common. The repos have no node_modules, as a fresh clone has none. */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
@@ -26,14 +26,15 @@ function runGit(cwd: string, ...args: string[]): void {
   assert.equal(status, 0, `git ${args.join(" ")}: ${stderr}`);
 }
 
-/** A folder with these files that is a git repo of its own, with everything committed. */
-function repoOf(name: string, files: Files): string {
-  const root = folderOf(name, files);
+/** Makes the folder a git repo of its own, with everything in it committed. */
+function committed(root: string): string {
   runGit(root, "init", "-q");
   runGit(root, "add", "-A");
   runGit(root, "commit", "-qm", "First");
   return root;
 }
+
+const repoOf = (name: string, files: Files): string => committed(folderOf(name, files));
 
 /** What a template shares: more than a site's older list knows of (docs/), and a tool it has since retired. */
 const TEMPLATE_LIST = {
@@ -211,4 +212,20 @@ test("a file this site's list calls its own stays its own when the template's li
   const result = runUpdate(mine, noLongerOwn);
   assert.equal(result.status, 0, result.stderr);
   assert.equal(readText(mine, "public/assets/fonts/noto-sans-jp.woff2"), "my subset");
+});
+
+/** The audit's proof C: the template tracks a link at a shared path, to a folder elsewhere on the machine. */
+test("an update refuses a template with a link at a shared path, and copies nothing it points at", () => {
+  const elsewhere = folderOf("victim-home", { credentials: "a private key" });
+  const linked = folderOf("template-link", {
+    ...TEMPLATE_FILES,
+    [SHARED_LIST_FILE]: JSON.stringify({ shared: ["src", "more-docs"], retired: [], own: [] }),
+  });
+  symlinkSync(elsewhere, join(linked, "more-docs"));
+  const mine = siteRepo("site-link");
+  const result = runUpdate(mine, committed(linked));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /more-docs is a link to somewhere else/);
+  assert.ok(!existsSync(join(mine, "more-docs")));
+  assert.equal(readText(mine, "src/app.ts"), "old");
 });

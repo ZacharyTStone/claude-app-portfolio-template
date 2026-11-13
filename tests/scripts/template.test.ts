@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { existsSync, writeFileSync } from "node:fs";
+import { existsSync, readdirSync, symlinkSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
 import { pathToFileURL } from "node:url";
@@ -245,4 +245,64 @@ test("a retired path can't be a site's own either: it would be deleted", () => {
 
 test("this repo's own list is one an update would follow", () => {
   assert.doesNotThrow(() => sharedFiles(ROOT, thisRepos));
+});
+
+const A_LINK = /is a link to somewhere else: an update follows none/;
+
+/** Somewhere else on the machine, with a file an update has no business reading or deleting. */
+let elsewheres = 0;
+const elsewhere = (): string => folderOf(`elsewhere-${++elsewheres}`, { credentials: "a private key" });
+const SHARING_DOCS = { shared: ["docs"], retired: [], own: [] };
+
+/** The audit's proof C: a link at a shared path, which stood for every file in the folder it points at. */
+test("a shared path that's a link in the template is refused, and nothing it points at is read", () => {
+  const template = folderOf("link-template", {});
+  symlinkSync(elsewhere(), join(template, "docs"));
+  assert.throws(() => changesBetween(template, folderOf("link-site", {}), SHARING_DOCS), A_LINK);
+});
+
+test("a link inside a shared folder is refused, to a file or to a folder", () => {
+  const away = elsewhere();
+  const toAFile = folderOf("link-to-file", { "docs/guide.md": "guide" });
+  const toAFolder = folderOf("link-to-folder", { "docs/guide.md": "guide" });
+  symlinkSync(join(away, "credentials"), join(toAFile, "docs/notes.md"));
+  symlinkSync(away, join(toAFolder, "docs/more"));
+  assert.throws(() => sharedFiles(toAFile, SHARING_DOCS), A_LINK);
+  assert.throws(() => sharedFiles(toAFolder, SHARING_DOCS), A_LINK);
+});
+
+test("a shared path that goes through a linked folder is refused", () => {
+  const template = folderOf("link-on-the-way", {});
+  symlinkSync(elsewhere(), join(template, "docs"));
+  assert.throws(() => sharedFiles(template, sharing("docs/credentials")), A_LINK);
+});
+
+test("nothing is written or deleted through a link in the site", () => {
+  const away = elsewhere();
+  const template = folderOf("link-site-template", { "docs/guide.md": "guide" });
+  const site = folderOf("site-with-link", {});
+  symlinkSync(away, join(site, "docs"));
+  assert.throws(() => changesBetween(template, site, SHARING_DOCS), A_LINK);
+  assert.throws(() => applyChanges(template, site, { added: ["docs/guide.md"], changed: [], removed: [] }), A_LINK);
+  assert.throws(() => applyChanges(template, site, { added: [], changed: [], removed: ["docs/credentials"] }), A_LINK);
+  assert.deepEqual(readdirSync(away), ["credentials"]);
+});
+
+test("one of a site's own files doesn't start from a link, nor replace one", () => {
+  const away = elsewhere();
+  const list = { shared: ["src"], retired: [], own: ["src/own.txt"] };
+  const template = folderOf("own-link-template", { "src/a.ts": "a" });
+  symlinkSync(join(away, "credentials"), join(template, "src/own.txt"));
+  assert.throws(() => changesBetween(template, folderOf("own-link-site", { "src/a.ts": "a" }), list), A_LINK);
+});
+
+test("a list that's a link is refused", () => {
+  const template = folderOf("list-link", { "scripts/keep.txt": "" });
+  symlinkSync(join(elsewhere(), "credentials"), join(template, SHARED_LIST_FILE));
+  assert.throws(() => sharedListOf(template), A_LINK);
+});
+
+test("a .git inside a shared folder is refused: an update never touches one", () => {
+  const nested = folderOf("nested-repo", { "src/vendor/.git/config": "[core]" });
+  assert.throws(() => sharedFiles(nested, sharing("src")), /is in a \.git, which an update never touches/);
 });

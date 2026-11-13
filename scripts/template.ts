@@ -3,7 +3,7 @@
 
    This file imports only Node's own modules, and has to stay that way: a site's older copy of the update imports
    the template's copy of it from a fresh clone, where nothing is installed. */
-import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, posix, relative, sep, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -31,7 +31,8 @@ export type SharedList = {
 /** The list of the repo at `root`, read as data. */
 export function sharedListOf(root: string): SharedList {
   const file = join(root, SHARED_LIST_FILE);
-  if (!existsSync(file)) throw new Error(`${file} isn't there, so there's no saying what this template shares.`);
+  if (!isFileAt(root, SHARED_LIST_FILE))
+    throw new Error(`${file} isn't there, so there's no saying what this template shares.`);
   const lists: unknown = JSON.parse(readFileSync(file, "utf8"));
   return { shared: pathsIn(lists, "shared"), retired: pathsIn(lists, "retired"), own: pathsIn(lists, "own") };
 }
@@ -68,7 +69,6 @@ export function sharedFiles(root: string, list: SharedList): string[] {
   const ownFiles = new Set(list.own);
   return [...list.shared, ...list.retired]
     .flatMap((sharedPath) => filesAt(root, sharedPath))
-    .map(withForwardSlashes)
     .filter((file) => !ownFiles.has(file));
 }
 
@@ -115,12 +115,38 @@ function refuseUnlessPlain(path: string): void {
 /** The files a shared path stands for: the file itself, every file in and under a folder, or none when the
     repo has nothing there. */
 function filesAt(root: string, sharedPath: string): string[] {
+  refuseLinksOnTheWayTo(root, sharedPath);
   const fullPath = join(root, sharedPath);
-  if (!existsSync(fullPath)) return [];
-  if (!statSync(fullPath).isDirectory()) return [sharedPath];
-  return readdirSync(fullPath, { recursive: true, withFileTypes: true })
-    .filter((entry) => entry.isFile())
-    .map((entry) => relative(root, join(entry.parentPath, entry.name)));
+  const found = lstatSync(fullPath, { throwIfNoEntry: false });
+  if (!found) return [];
+  if (!found.isDirectory()) return [sharedPath];
+  return readdirSync(fullPath, { recursive: true, withFileTypes: true }).flatMap((entry) => {
+    const file = withForwardSlashes(relative(root, join(entry.parentPath, entry.name)));
+    if (entry.isSymbolicLink()) throw aLinkIsRefused(join(root, file));
+    if (file.split("/").some(isGitFolder))
+      throw new Error(`${join(root, file)} is in a .git, which an update never touches.`);
+    return entry.isFile() ? [file] : [];
+  });
+}
+
+/** An update reads and writes real files in real folders, so that what it touches is where its path says: a
+    link, in the template or in the site, could stand for anywhere on the machine. Refuses a path any part of
+    which is one. */
+function refuseLinksOnTheWayTo(root: string, path: string): void {
+  const names = path.split("/");
+  names.forEach((_, depth) => {
+    const partWay = join(root, ...names.slice(0, depth + 1));
+    if (lstatSync(partWay, { throwIfNoEntry: false })?.isSymbolicLink()) throw aLinkIsRefused(partWay);
+  });
+}
+
+const aLinkIsRefused = (link: string): Error =>
+  new Error(`${link} is a link to somewhere else: an update follows none.`);
+
+/** Whether there's a real file there. */
+function isFileAt(root: string, path: string): boolean {
+  refuseLinksOnTheWayTo(root, path);
+  return lstatSync(join(root, path), { throwIfNoEntry: false })?.isFile() ?? false;
 }
 
 /** A path as the lists write it, whatever the system's separator: on Windows, "src\app\main.ts" becomes
@@ -151,12 +177,18 @@ function hasSameContents(fileA: string, fileB: string): boolean {
 /** The `own` files the target doesn't have yet. A site's own file is never overwritten, but one it lacks (a new
     one, which the shared code may need: the stylesheet imports `site.css`) starts as the source's copy. */
 function ownFilesToStartFrom(sourceRoot: string, targetRoot: string, { own }: SharedList): string[] {
-  return own.filter((file) => existsSync(join(sourceRoot, file)) && !existsSync(join(targetRoot, file)));
+  return own.filter((file) => isFileAt(sourceRoot, file) && !isFileAt(targetRoot, file));
 }
 
+/** Makes the changes, or none of them: every file is checked before the first is touched. */
 export function applyChanges(sourceRoot: string, targetRoot: string, changes: SharedFileChanges): void {
-  for (const file of [...changes.added, ...changes.changed, ...changes.removed]) refuseUnlessPlain(file);
-  for (const file of [...changes.added, ...changes.changed]) {
+  const copied = [...changes.added, ...changes.changed];
+  for (const file of [...copied, ...changes.removed]) {
+    refuseUnlessPlain(file);
+    refuseLinksOnTheWayTo(targetRoot, file);
+  }
+  for (const file of copied) refuseLinksOnTheWayTo(sourceRoot, file);
+  for (const file of copied) {
     mkdirSync(dirname(join(targetRoot, file)), { recursive: true });
     cpSync(join(sourceRoot, file), join(targetRoot, file));
   }
