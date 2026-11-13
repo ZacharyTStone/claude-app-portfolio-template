@@ -9,25 +9,12 @@
       "count": 2
     }
   },
-  "src/app/ask.ts": {
-    "complexity": {
-      "count": 1
-    }
-  },
   "src/app/card.ts": {
     "complexity": {
       "count": 2
     },
     "no-warning-comments": {
       "count": 5
-    }
-  },
-  "src/app/chats.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "no-warning-comments": {
-      "count": 1
     }
   },
   "src/app/replies.ts": {

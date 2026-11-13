@@ -164,8 +164,6 @@ for (const [what, { sent }] of Object.entries(EVERY_READING)) {
   });
 }
 
-// ---- What ends the visit's asking --------------------------------------------------------
-
 const LOCKS: Record<string, { reply: AskResponse; kept: string; laterReply: AskResponse }> = {
   "a blocked visitor": { reply: { blocked: true }, kept: "blocked", laterReply: { blocked: true } },
   "a question found inappropriate": {

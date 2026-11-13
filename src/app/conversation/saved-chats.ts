@@ -45,40 +45,46 @@ export type SavedChat = {
 
 const CHAT_ID = /^[a-z0-9]+$/;
 
+const isAbsentOr = <Value>(value: unknown, isValue: (value: unknown) => value is Value): boolean =>
+  value === undefined || isValue(value);
+
+/** Whether something saved can be read at all. What's shown of a reply, of
+    the lines it cites and of the question as it's said to the owner is
+    decided when it's shown (replies.ts). */
 function isSource(value: unknown): value is Source {
   if (!isRecord(value)) return false;
   if (!("question" in value)) return isString(value.tab);
-  const { question, answer, cited, toOwner, blocked, limited } = value;
   return (
-    isString(question) &&
-    (answer === undefined || answer === null || isString(answer)) &&
-    // The lines a reply cites are shown as text, and checked again when
-    // they're shown (replies.ts): here, only that they're lines at all.
-    (cited === undefined || isArrayOf(cited, isString)) &&
-    // The same for the question as it's said to the owner: only that it's
-    // text.
-    isOptionalString(toOwner) &&
-    (blocked === undefined || blocked === true) &&
-    (limited === undefined || isCount(limited))
+    isString(value.question) &&
+    (value.answer === null || isAbsentOr(value.answer, isString)) &&
+    isAbsentOr(value.cited, (cited): cited is string[] => isArrayOf(cited, isString)) &&
+    isOptionalString(value.toOwner) &&
+    isAbsentOr(value.blocked, (blocked): blocked is true => blocked === true) &&
+    isAbsentOr(value.limited, isCount)
   );
 }
 
 const isTime = (value: unknown): value is number =>
   typeof value === "number" && !Number.isNaN(new Date(value).getTime());
 
+/** One chat of what storage holds, or null for one that can't be read or
+    has nothing in it that can. One saved without its time is given `now`. */
+function readSavedChat(chat: unknown, now: number): SavedChat | null {
+  if (!isRecord(chat) || !isString(chat.id) || !CHAT_ID.test(chat.id)) return null;
+  const sources = Array.isArray(chat.sources) ? chat.sources.filter(isSource) : [];
+  if (!sources.length) return null;
+  const title = isString(chat.title) ? chat.title : null;
+  return { id: chat.id, title, sources, created: isTime(chat.created) ? chat.created : now };
+}
+
 /** The chats in what storage holds (the JSON under the chats' key, parsed).
-    A chat that can't be read, or has nothing in it that can, is left out,
-    as is a second one with an id already seen. One saved without its time
-    is given `now`. */
+    Of two with one id, the first that can be read is. */
 export function readSavedChats(saved: unknown, now: number): SavedChat[] {
   if (!Array.isArray(saved)) return [];
-  const seen = new Set<string>();
-  return saved.flatMap((chat: unknown) => {
-    if (!isRecord(chat) || !isString(chat.id) || !CHAT_ID.test(chat.id) || seen.has(chat.id)) return [];
-    const sources = Array.isArray(chat.sources) ? chat.sources.filter(isSource) : [];
-    if (!sources.length) return [];
-    seen.add(chat.id);
-    const title = isString(chat.title) ? chat.title : null;
-    return [{ id: chat.id, title, sources, created: isTime(chat.created) ? chat.created : now }];
-  });
+  const chatsById = new Map<string, SavedChat>();
+  for (const entry of saved) {
+    const chat = readSavedChat(entry, now);
+    if (chat && !chatsById.has(chat.id)) chatsById.set(chat.id, chat);
+  }
+  return [...chatsById.values()];
 }

@@ -1,7 +1,17 @@
 /* What /ask replies, read from JSON that isn't trusted. Checked by hand:
    the schema the Worker's tests use (src/contracts/ask.ts) would add 5.6 KB
    to the page's script. A test holds this reader to that schema. */
-import { isCitedLines, isQuestionToOwner, isReplyText, type AskResponse } from "../../contracts/ask.ts";
+import {
+  isCitedLines,
+  isQuestionToOwner,
+  isReplyText,
+  type AskBlocked,
+  type AskLimited,
+  type AskPicked,
+  type AskReplied,
+  type AskResponse,
+  type AskUnanswered,
+} from "../../contracts/ask.ts";
 import { isCount, isRecord, isString } from "../../contracts/guards.ts";
 
 // What's kept once /ask has said the visitor may ask no more: "blocked",
@@ -28,19 +38,28 @@ export function lockFor(response: AskResponse): string | null {
 /** /ask's reply, checked field by field. Anything unexpected is no pick. */
 export function parseAskResponse(data: unknown): AskResponse {
   if (!isRecord(data)) return { id: null };
+  return readTurnedAway(data) ?? readPick(data);
+}
+
+type Fields = Record<string, unknown>;
+
+/** The visitor may ask no more: they're blocked, or past the day's questions. */
+function readTurnedAway(data: Fields): AskBlocked | AskLimited | null {
   if (data.blocked === true) return data.flagged === true ? { blocked: true, flagged: true } : { blocked: true };
   if (data.limited === true) return { id: null, limited: true, limit: isCount(data.limit) ? data.limit : 0 };
-  const id = isString(data.id) ? data.id : null;
-  // A reply only ever comes with an answer, and the lines a reply was
-  // written from only ever with the reply.
-  const reply = id !== null && isReplyText(data.reply) ? data.reply : undefined;
-  const cited = reply !== undefined && isCitedLines(data.cited) ? data.cited : undefined;
-  // The question as it's said to the owner only ever comes with no answer.
-  const toOwner = id === null && isQuestionToOwner(data.toOwner) ? data.toOwner : undefined;
-  // With few questions left today it also says how many.
-  const left = isCount(data.left) ? data.left : undefined;
-  const withLeft = left !== undefined ? { left } : {};
-  if (id === null) return { id, ...(toOwner !== undefined ? { toOwner } : {}), ...withLeft };
-  if (reply === undefined) return { id, ...withLeft };
-  return { id, reply, ...(cited !== undefined ? { cited } : {}), ...withLeft };
+  return null;
+}
+
+/** An answer or none. A reply is read only with an answer, the lines it was
+    written from only with the reply, and the question as it's said to the
+    owner only with no answer. */
+function readPick(data: Fields): AskPicked | AskReplied | AskUnanswered {
+  const questionsLeft = isCount(data.left) ? { left: data.left } : {};
+  if (!isString(data.id)) {
+    const toOwner = isQuestionToOwner(data.toOwner) ? { toOwner: data.toOwner } : {};
+    return { id: null, ...toOwner, ...questionsLeft };
+  }
+  if (!isReplyText(data.reply)) return { id: data.id, ...questionsLeft };
+  const cited = isCitedLines(data.cited) ? { cited: data.cited } : {};
+  return { id: data.id, reply: data.reply, ...cited, ...questionsLeft };
 }

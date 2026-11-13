@@ -108,8 +108,6 @@ test("a field a later version added is kept with what it was saved on, to be wri
   );
 });
 
-// ---- What isn't read -----------------------------------------------------------------------
-
 const NOT_CHATS: Record<string, unknown> = {
   "nothing saved": null,
   text: "chats",
