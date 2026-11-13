@@ -1,30 +1,21 @@
-/* The template every site is made from, and the files a site shares with
-   it byte for byte: `npm run update-template` takes the template's, and the
-   site the template is made from copies its own across (sync-template.ts).
+/* The template every site is made from, and the files a site shares with it byte for byte:
+   `npm run update-template` replaces a site's with the template's.
 
-   This file imports nothing but Node's own modules, and has to stay that
-   way: `npm run update-template` imports the template's copy of it from a
-   fresh clone, and the sync workflow reads TEMPLATE from it before anything
-   is installed. In both places there is no node_modules to find a package
-   in. */
+   This file imports only Node's own modules, and has to stay that way: the update imports the template's copy of
+   it from a fresh clone, where nothing is installed. */
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
 
-/** The template repo. */
 export const TEMPLATE = "https://github.com/ZacharyTStone/claude-app-portfolio-template";
 
-/** Files and folders that are the same in every site made from the
-    template. A folder is mirrored: a file deleted from it in one is
-    deleted from the other. Everything else (site.config.ts, README.md,
-    wrangler.jsonc, images…) is each site's own. */
-export const SHARED = [
+/** The files and folders that are the same in every site made from the template. A folder is mirrored: a file
+    the template doesn't have in it is deleted from a site's. Everything else (site.config.ts, README.md,
+    wrangler.jsonc, diagrams/, images…) is each site's own. */
+const SHARED_NOW = [
   "src",
   "astro.config.ts",
   "scripts/fonts.ts",
   "scripts/fonts",
-  "scripts/ja-font.py",
-  // What a diagram is drawn with, and what writes its files. The diagrams
-  // themselves (diagrams/) and the files they write are each site's own.
   "scripts/diagram.ts",
   "scripts/diagram",
   "scripts/diagrams.ts",
@@ -38,9 +29,6 @@ export const SHARED = [
   "tests/sample-site.test.ts",
   "tests/scripts",
   "tests/site.test.ts",
-  "tests/template.test.ts",
-  // The browser code's unit tests. None here now; listed so the sync takes
-  // the template's old ones away, and for the next one written.
   "tests/app",
   "tests/worker",
   "tests/ask-eval.ts",
@@ -62,30 +50,31 @@ export const SHARED = [
   "tsconfig.json",
 ];
 
-/** Inside a shared folder, but each site's own: the styles a site adds, and
-    the Japanese fonts, cut down to the characters each site's text uses. */
+/** What was shared once and has since been deleted or moved. A site made before then still has it, and an
+    update deletes it there, as it deletes any shared file the template no longer has. A shared path that goes
+    is added here, and never taken out. */
+export const RETIRED = ["scripts/ja-font.py", "tests/template.test.ts"];
+
+/** Every path an update makes the same as the template's. A site's older copy of the update reads the list
+    under this name, and `OWN` under its. */
+export const SHARED = [...SHARED_NOW, ...RETIRED];
+
+/** Inside a shared folder, but each site's own: the styles a site adds, and the Japanese fonts, cut down to the
+    characters each site's text uses. */
 export const OWN = [
   "src/styles/site.css",
   "public/assets/fonts/noto-sans-jp.woff2",
   "public/assets/fonts/noto-serif-jp.woff2",
 ];
 
-/** What's shared, as a site's copy of this file lists it. The fields have
-    the names of this file's two lists on purpose: a copy of this file,
-    imported, is a SharedList. `npm run update-template` reads the
-    template's own lists that way, so the two names have to stay: a site's
-    older copy of that script looks for them. */
+/** What's shared, as a copy of this file lists it: the copy, imported, is a SharedList, which is how the update
+    reads the template's own. Paths are from the repo's root, with "/" between folders. */
 export type SharedList = {
-  /** The shared files and folders, as paths from the repo's root with "/"
-      between folders: `SHARED`. */
   SHARED: readonly string[];
-  /** The files inside those folders that are each site's own: `OWN`. */
   OWN: readonly string[];
 };
 
-/** What copying one repo's shared files over another's would do to the
-    other. Every file is a path from the repo's root with "/" between
-    folders, and is in one list at most. */
+/** What copying one repo's shared files over another's would do to the other. A file is in one list at most. */
 export type SharedFileChanges = {
   /** Files the other repo doesn't have, to copy into it. */
   added: string[];
@@ -95,9 +84,8 @@ export type SharedFileChanges = {
   removed: string[];
 };
 
-/** Every shared file in the repo at `root`, as a path from it with "/"
-    between folders: the files `SHARED` names and those in its folders, less
-    the site's `OWN`. */
+/** Every shared file in the repo at `root`: the files `SHARED` names and those in its folders, less the site's
+    `OWN`. */
 export function sharedFiles(root: string, { SHARED, OWN }: SharedList): string[] {
   const ownFiles = new Set(OWN);
   return SHARED.flatMap((sharedPath) => filesAt(root, sharedPath))
@@ -105,10 +93,8 @@ export function sharedFiles(root: string, { SHARED, OWN }: SharedList): string[]
     .filter((file) => !ownFiles.has(file));
 }
 
-/** The files a shared path stands for, as paths from `root`: the file
-    itself, every file in and under a folder, or none when the repo has
-    nothing there (a folder with no files yet, or a site older than the
-    list). */
+/** The files a shared path stands for: the file itself, every file in and under a folder, or none when the
+    repo has nothing there. */
 function filesAt(root: string, sharedPath: string): string[] {
   const fullPath = join(root, sharedPath);
   if (!existsSync(fullPath)) return [];
@@ -118,15 +104,14 @@ function filesAt(root: string, sharedPath: string): string[] {
     .map((entry) => relative(root, join(entry.parentPath, entry.name)));
 }
 
-/** A path as the lists write it, whatever the system's separator: on
-    Windows, "src\app\main.ts" becomes "src/app/main.ts". */
+/** A path as the lists write it, whatever the system's separator: on Windows, "src\app\main.ts" becomes
+    "src/app/main.ts". */
 function withForwardSlashes(path: string): string {
   return path.split(sep).join("/");
 }
 
-/** What would make the shared files in `targetRoot` the same as those in
-    `sourceRoot`. The `list` is the source's: what it shares is what's
-    copied, and what's deleted from the target's shared folders. */
+/** What would make the shared files in `targetRoot` the same as those in `sourceRoot`. The `list` is the
+    source's: what it shares is what's copied, and what's deleted from the target's shared folders. */
 export function changesBetween(sourceRoot: string, targetRoot: string, list: SharedList): SharedFileChanges {
   const sourceFiles = new Set(sharedFiles(sourceRoot, list));
   const targetFiles = new Set(sharedFiles(targetRoot, list));
@@ -144,16 +129,12 @@ function hasSameContents(fileA: string, fileB: string): boolean {
   return readFileSync(fileA).equals(readFileSync(fileB));
 }
 
-/** The `OWN` files the target doesn't have yet. A site's own file is never
-    overwritten, but one it lacks (a new one, which the shared code may
-    need: the stylesheet imports `site.css`) starts as the source's copy,
-    and is the site's to change from then on. */
+/** The `OWN` files the target doesn't have yet. A site's own file is never overwritten, but one it lacks (a new
+    one, which the shared code may need: the stylesheet imports `site.css`) starts as the source's copy. */
 function ownFilesToStartFrom(sourceRoot: string, targetRoot: string, { OWN }: SharedList): string[] {
   return OWN.filter((file) => existsSync(join(sourceRoot, file)) && !existsSync(join(targetRoot, file)));
 }
 
-/** Makes the shared files in `targetRoot` the same as in `sourceRoot`:
-    copies what's new or changed, and deletes what's gone. */
 export function applyChanges(sourceRoot: string, targetRoot: string, changes: SharedFileChanges): void {
   for (const file of [...changes.added, ...changes.changed]) {
     mkdirSync(dirname(join(targetRoot, file)), { recursive: true });
@@ -162,8 +143,7 @@ export function applyChanges(sourceRoot: string, targetRoot: string, changes: Sh
   for (const file of changes.removed) rmSync(join(targetRoot, file));
 }
 
-/** The changes as the scripts print them, a line a file
-    ("changed  src/app/main.ts"), or [] when there are none. */
+/** The changes as the update prints them, a line a file: "changed  src/app/main.ts". */
 export function describeChanges({ added, changed, removed }: SharedFileChanges): string[] {
   return [
     ...added.map((file) => `new      ${file}`),
