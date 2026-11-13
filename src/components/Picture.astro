@@ -5,7 +5,7 @@
 
    One that moves has a `still`, and is shown one of two ways:
    - A picture a visitor plays (its file says how long it plays:
-     src/site/pictures.ts) is shown still, with a Play button over it. The
+     picture.ts) is shown still, with a Play button over it. The
      button is a link to the picture as it moves, which is where it goes
      without JavaScript; with it, src/app/play.ts plays the picture in
      place.
@@ -18,7 +18,7 @@ import type { Picture } from "../config/blocks.ts";
 import { DATA, REDUCED_MOTION } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
-import { secondsPlayed } from "../site/pictures.ts";
+import { secondsPlayed } from "./picture.ts";
 import { newTabAttributes } from "../contracts/links.ts";
 import { viewerLink } from "./attributes.ts";
 

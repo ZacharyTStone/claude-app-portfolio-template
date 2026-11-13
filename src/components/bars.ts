@@ -1,4 +1,4 @@
-/* How long a bar is drawn in a bars figure (src/components/Bars.astro). */
+/* How long a bar is drawn in a bars figure (Bars.astro). */
 
 import { round } from "es-toolkit";
 

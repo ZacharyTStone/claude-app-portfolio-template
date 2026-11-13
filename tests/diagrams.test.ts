@@ -6,7 +6,7 @@ import { test } from "node:test";
 import config from "../site.config.ts";
 import { diagramFiles, staleDiagramFiles } from "../scripts/diagrams.ts";
 import { ROOT } from "../src/site/repo.ts";
-import { secondsPlayed } from "../src/site/pictures.ts";
+import { secondsPlayed } from "../src/components/picture.ts";
 import { answerBlocksIn, picturesIn } from "../src/config/blocks.ts";
 
 const STILL = /-still\.svg$/;

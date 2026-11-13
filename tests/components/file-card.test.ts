@@ -1,8 +1,8 @@
-/* A file card's lines, as they're laid out (src/site/card.ts). */
+/* A file card's lines, as they're laid out (src/components/file-card.ts). */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { FileCard } from "../../src/config/blocks.ts";
-import { cardRows } from "../../src/site/card.ts";
+import { cardRows } from "../../src/components/file-card.ts";
 
 /** The card's lines as they show, tags aside. */
 const linesAsDrawn = (lines: FileCard["lines"]): string[] =>

@@ -5,7 +5,7 @@ import { join } from "node:path";
 import { after, test } from "node:test";
 import { box, group, loopOf, moving, onlyWhenMoving, svgOf, type Drawing } from "../../../scripts/diagram.ts";
 import { PLAYS_ATTRIBUTE } from "../../../src/contracts/picture-files.ts";
-import { secondsPlayed } from "../../../src/site/pictures.ts";
+import { secondsPlayed } from "../../../src/components/picture.ts";
 import { aBox, pictureOf } from "./helpers.ts";
 
 const A_PLACE = { x: 0, y: 0, width: 10, height: 10 };

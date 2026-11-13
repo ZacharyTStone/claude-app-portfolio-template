@@ -1,7 +1,7 @@
-/* How long a bar is drawn (src/site/bars.ts). */
+/* How long a bar is drawn (src/components/bars.ts). */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { barLength } from "../../src/site/bars.ts";
+import { barLength } from "../../src/components/bars.ts";
 
 test("the longest bar leaves room for its value", () => {
   assert.equal(barLength(1040, 1040), 70);
