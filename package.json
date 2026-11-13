@@ -10,7 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "verify": "npm run lint && npm run typecheck && npm test && npm run lint:html && npm run fonts:check && npm run test:browser",
+    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run lint:html && npm run fonts:check && npm run test:browser",
     "update-template": "node scripts/update-template.ts",
     "typecheck": "astro check && tsc -p src/app && tsc -p src/worker && tsc -p tests/worker && tsc -p tests/browser",
     "test": "npm run build && node --test --test-reporter=dot \"tests/**/*.test.ts\"",
@@ -18,16 +18,20 @@
     "fonts": "node scripts/fonts.ts",
     "fonts:check": "node scripts/fonts.ts --check",
     "diagrams": "node scripts/diagrams.ts",
-    "format": "prettier --write \"**/*.{ts,json,astro}\"",
-    "lint": "prettier --check \"**/*.{ts,json,astro}\"",
+    "format": "prettier --write \"**/*.{ts,js,json,astro}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,astro}\"",
+    "lint": "eslint",
     "lint:html": "node scripts/require-build.ts && html-validate dist"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
     "@cloudflare/workers-types": "5.20261104.1",
+    "@eslint/js": "10.0.1",
     "@types/node": "26.6.6",
     "astro": "^7.4.10",
     "esbuild": "0.28.2",
+    "eslint": "10.14.0",
+    "eslint-plugin-astro": "3.2.1",
     "fontverter": "2.0.0",
     "harfbuzzjs": "1.6.4",
     "html-validate": "11.18.0",
@@ -35,7 +39,8 @@
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
     "subset-font": "2.9.0",
-    "typescript": "6.0.3"
+    "typescript": "6.0.3",
+    "typescript-eslint": "8.72.2"
   },
   "dependencies": {
     "es-toolkit": "1.53.2",

@@ -42,6 +42,9 @@ const SHARED_NOW = [
   "AGENTS.md",
   "CLAUDE.md",
   ".editorconfig",
+  "eslint.config.js",
+  // The violations there were when the linter came. It goes, and this line with it, once it's empty.
+  "eslint-suppressions.json",
   ".gitignore",
   ".htmlvalidate.json",
   ".node-version",

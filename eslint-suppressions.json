@@ -1,0 +1,294 @@
+{
+  "scripts/diagram.ts": {
+    "max-lines": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "max-params": {
+      "count": 3
+    },
+    "no-irregular-whitespace": {
+      "count": 1
+    },
+    "no-nested-ternary": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "src/app/account.ts": {
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "src/app/ask.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/app/card.ts": {
+    "complexity": {
+      "count": 2
+    },
+    "no-warning-comments": {
+      "count": 5
+    }
+  },
+  "src/app/chats.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 1
+    }
+  },
+  "src/app/lib/storage.ts": {
+    "no-empty": {
+      "count": 2
+    }
+  },
+  "src/app/main.ts": {
+    "no-warning-comments": {
+      "count": 1
+    }
+  },
+  "src/app/menus.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "src/app/page.ts": {
+    "no-warning-comments": {
+      "count": 1
+    }
+  },
+  "src/app/panel.ts": {
+    "no-warning-comments": {
+      "count": 3
+    }
+  },
+  "src/app/rename.ts": {
+    "no-warning-comments": {
+      "count": 3
+    }
+  },
+  "src/app/replies.ts": {
+    "complexity": {
+      "count": 2
+    }
+  },
+  "src/app/send.ts": {
+    "complexity": {
+      "count": 3
+    }
+  },
+  "src/app/sidebar.ts": {
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "src/app/tabs.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/app/thread-menu.ts": {
+    "no-warning-comments": {
+      "count": 3
+    }
+  },
+  "src/components/Inline.astro": {
+    "no-nested-ternary": {
+      "count": 3
+    }
+  },
+  "src/config/blocks.ts": {
+    "no-warning-comments": {
+      "count": 6
+    }
+  },
+  "src/config/language.ts": {
+    "no-warning-comments": {
+      "count": 6
+    }
+  },
+  "src/contracts/ask.ts": {
+    "no-warning-comments": {
+      "count": 5
+    }
+  },
+  "src/site/validate/language.ts": {
+    "no-warning-comments": {
+      "count": 8
+    }
+  },
+  "src/site/validate/reporting.ts": {
+    "no-restricted-imports": {
+      "count": 1
+    }
+  },
+  "src/worker/ask/grounded.ts": {
+    "no-warning-comments": {
+      "count": 5
+    }
+  },
+  "src/worker/ask/handler.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "max-lines-per-function": {
+      "count": 1
+    },
+    "max-params": {
+      "count": 1
+    },
+    "no-nested-ternary": {
+      "count": 2
+    },
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "src/worker/ask/lines.ts": {
+    "no-nested-ternary": {
+      "count": 1
+    }
+  },
+  "src/worker/ask/pick.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "src/worker/ask/text/sentences.ts": {
+    "complexity": {
+      "count": 1
+    }
+  },
+  "src/worker/ask/to-owner.ts": {
+    "no-warning-comments": {
+      "count": 5
+    }
+  },
+  "src/worker/ask/write.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "src/worker/constants.ts": {
+    "no-warning-comments": {
+      "count": 5
+    }
+  },
+  "src/worker/guard/ask-guard.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "tests/ask-eval.ts": {
+    "complexity": {
+      "count": 2
+    }
+  },
+  "tests/browser/checks/ask.ts": {
+    "max-params": {
+      "count": 1
+    },
+    "no-nested-ternary": {
+      "count": 1
+    }
+  },
+  "tests/browser/checks/chats.ts": {
+    "no-nested-ternary": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "tests/browser/checks/sidebar.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "tests/browser/helpers.ts": {
+    "no-warning-comments": {
+      "count": 9
+    }
+  },
+  "tests/browser/site.ts": {
+    "no-warning-comments": {
+      "count": 3
+    }
+  },
+  "tests/config.test.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "max-depth": {
+      "count": 2
+    },
+    "no-warning-comments": {
+      "count": 9
+    }
+  },
+  "tests/contracts/ask.test.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "tests/diagrams.test.ts": {
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "tests/site.test.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 2
+    }
+  },
+  "tests/template.test.ts": {
+    "no-warning-comments": {
+      "count": 1
+    }
+  },
+  "tests/worker/fixtures.ts": {
+    "no-nested-ternary": {
+      "count": 1
+    }
+  },
+  "tests/worker/limits.test.ts": {
+    "no-warning-comments": {
+      "count": 1
+    }
+  },
+  "tests/worker/quote.test.ts": {
+    "max-depth": {
+      "count": 3
+    },
+    "no-warning-comments": {
+      "count": 4
+    }
+  },
+  "tests/worker/to-owner.test.ts": {
+    "no-warning-comments": {
+      "count": 3
+    }
+  },
+  "tests/worker/write.test.ts": {
+    "complexity": {
+      "count": 1
+    },
+    "no-warning-comments": {
+      "count": 2
+    }
+  }
+}
