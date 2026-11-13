@@ -2,6 +2,7 @@
 /* Printed (or saved as a PDF) the page leaves out the sidebar and the
    panel, so it starts with who this is and how to reach them. Hidden on
    screen. Styles: src/styles/print.css. */
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { shortUrl } from "../site/url.ts";
@@ -10,7 +11,7 @@ interface Props {
   /** The language's page this is part of. */
   page: Page;
 }
-const { site, code: pageLanguage, language } = Astro.props.page;
+const { code: pageLanguage, language } = Astro.props.page;
 const { config } = site;
 const { email, github, linkedin } = config.links;
 // Where a language writes the name its own way, both: "アレックス (Alex Example)".

@@ -6,6 +6,7 @@
 import { DATA } from "../contracts/page-attributes.ts";
 import { groupId, PAGE_IDS } from "../contracts/page-ids.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import Account from "./Account.astro";
 import { flag } from "./attributes.ts";
@@ -15,7 +16,7 @@ interface Props {
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code: pageLanguage } = page;
+const { code: pageLanguage } = page;
 const { config, codes: languageCodes } = site;
 const { strings, sidebar } = page.language;
 const { newTab, nav, groups } = sidebar;

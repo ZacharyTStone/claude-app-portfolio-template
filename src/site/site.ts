@@ -40,7 +40,6 @@ export type Site = {
 
 /** One language's page, which each part of it is drawn from. */
 export type Page = {
-  site: Site;
   /** The language's code. */
   code: string;
   /** The language's text. */
@@ -84,4 +83,4 @@ export function makeSite(config: SiteConfig): Site {
 
 /** One language's page of a site. Throws for a code the config doesn't
     have. */
-export const makePage = (site: Site, code: string): Page => ({ site, code, language: site.language(code) });
+export const makePage = (site: Site, code: string): Page => ({ code, language: site.language(code) });

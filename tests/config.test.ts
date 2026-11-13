@@ -643,7 +643,7 @@ test("JSON in a <script> can't end it, and reads back as it was", () => {
   assert.doesNotMatch(json, /</);
   assert.deepEqual(JSON.parse(json), value);
   const site = makeSite(sampleConfig({ name: "</script>Sam" }));
-  const person = structuredData(makePage(site, "en"));
+  const person = structuredData(site, makePage(site, "en"));
   assert.doesNotMatch(person, /</);
   assert.equal((JSON.parse(person) as { alternateName: string }).alternateName, "</script>Sam");
 });

@@ -3,6 +3,7 @@
    and description, its address in every language, the social card, and
    who this is as schema.org data. It goes in the page's <head>
    (Document.astro's "head" slot). */
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { structuredData } from "../site/structured-data.ts";
 
@@ -11,7 +12,7 @@ interface Props {
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code: pageLanguage, language } = page;
+const { code: pageLanguage, language } = page;
 const { config, codes: languageCodes, main: mainLanguage } = site;
 const { meta } = language;
 const pageUrl = site.pageUrl(pageLanguage);
@@ -43,4 +44,4 @@ const otherLanguages = languageCodes.filter((code) => code !== pageLanguage);
 <meta name="twitter:title" content={meta.title} />
 <meta name="twitter:description" content={meta.description} />
 <meta name="twitter:image" content={socialImageUrl} />
-<script type="application/ld+json" set:html={structuredData(page)} />
+<script type="application/ld+json" set:html={structuredData(site, page)} />
