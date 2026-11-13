@@ -78,8 +78,14 @@ export function restStill(copy: Element): void {
     figure.classList.remove(CLASS.playing);
     for (const moving of findAll(figure, `.${CLASS.moving}`)) moving.remove();
     const button = figure.querySelector(SELECTOR.playButton);
-    if (button) button.textContent = words.play;
+    if (button) name(button, words.play);
   }
+}
+
+/** Gives a Play button its word. The word is in an element of its own, so
+    the stylesheet can show the icon alone where there's little room. */
+function name(button: Element, word: string): void {
+  find(button, SELECTOR.label).textContent = word;
 }
 
 /** The figure a press plays or pauses: the one whose Play button, or whose
@@ -126,7 +132,7 @@ function play(figure: HTMLElement): void {
   moving.addEventListener("error", () => playing === nowPlaying && stop(), { once: true });
   button.before(moving);
   figure.classList.add(CLASS.playing);
-  button.textContent = words.pause;
+  name(button, words.pause);
   outOfSight?.observe(figure);
   playing = nowPlaying;
 }
@@ -140,7 +146,7 @@ function stop(): void {
   clearTimeout(playsUntil);
   outOfSight?.unobserve(figure);
   figure.classList.remove(CLASS.playing);
-  button.textContent = words.play;
+  name(button, words.play);
   moving.classList.remove(CLASS.movingShown);
   setTimeout(() => moving.remove(), TIMING.playFade);
 }

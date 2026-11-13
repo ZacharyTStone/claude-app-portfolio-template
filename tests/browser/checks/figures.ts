@@ -14,6 +14,7 @@ import {
   desktop,
   eventually,
   hasClass,
+  iPhone,
   OPEN_CHAT,
   squash,
   type Check,
@@ -187,6 +188,30 @@ export default (site: Site): Check[] => {
         await eventually(async () => {
           assert.equal(await hasClass(figure, CLASS.playing), false, "in a tab that's been left, it has stopped");
         });
+      },
+    },
+    {
+      name: "on a phone, a playing picture's button is the pause icon alone, and keeps its name",
+      url: `#${played.tab}`,
+      device: iPhone,
+      skip: nothingPlays,
+      async test(page) {
+        const figure = await scrollToPlayed(page, `#${played.tab}`, played.index);
+        const button = figure.locator(PLAY_BUTTON);
+        const word = button.locator(CLASS.label);
+        const widthAtRest = (await word.boundingBox())?.width ?? 0;
+        assert.ok(widthAtRest > 1, "at rest the button shows its word, Play");
+        await button.tap();
+        await figure.locator(PLAYING_PICTURE).waitFor();
+        await eventually(async () => {
+          assert.ok(((await word.boundingBox())?.width ?? 0) <= 1, "playing, the word is out of sight");
+          const size = await button.boundingBox();
+          assert.ok(
+            size && Math.abs(size.width - size.height) <= 1,
+            "and the button is as wide as it's tall: its icon",
+          );
+        });
+        assert.equal(squash(await button.textContent()), site.words.pause, "it's still named Pause");
       },
     },
     {
