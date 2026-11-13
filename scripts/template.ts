@@ -29,6 +29,7 @@ const SHARED_NOW = [
   "tests/components",
   "tests/config",
   "tests/diagrams.test.ts",
+  "tests/integrations",
   "tests/sample",
   "tests/scripts",
   "tests/site",
