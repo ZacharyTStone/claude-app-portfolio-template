@@ -5,14 +5,7 @@ import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } fro
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import {
-  type Choice,
-  type PersonalAnswer,
-  type QuestionCard,
-  type QuestionCardWords,
-  type Topic,
-} from "../config/question-card.ts";
-import { isArrayOf, isOptionalBoolean, isOptionalString, isRecord, isString, type Guard } from "../contracts/guards.ts";
+import type { QuestionCard } from "../config/question-card.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { byId, find } from "./lib/dom.ts";
 
@@ -78,97 +71,6 @@ export function questionText(question: Element): string {
     .trim();
 }
 
-// ---- The question card's data --------------------------------------------------
-// The page carries it as JSON. Checked, not trusted: if it isn't what the
-// build writes, the card has no topics and there are no personal answers.
-//
-// The shapes are checked by hand, field by field. A schema library would
-// say them in fewer words, but this is the script every visitor loads, and
-// the one that's installed (valibot) adds 4 KB to it for this one check.
-
-/** A check for each field of an object. A field of `Shape` left out of the
-    list doesn't compile, so a field added to the page's data
-    (src/config/question-card.ts) has to be checked here too. */
-type FieldChecks<Shape> = { [Field in keyof Shape & string]-?: Guard<Shape[Field]> };
-
-/** A check for an object by its fields: each has to pass its own check. */
-function isShape<Shape>(fieldChecks: FieldChecks<Shape>): Guard<Shape> {
-  const checks = Object.entries<Guard<unknown>>(fieldChecks);
-  return (value): value is Shape => isRecord(value) && checks.every(([field, isValid]) => isValid(value[field]));
-}
-
-/** A check for a list, every item of which passes `isItem`. */
-const isListOf =
-  <Item>(isItem: Guard<Item>): Guard<Item[]> =>
-  (value): value is Item[] =>
-    isArrayOf(value, isItem);
-
-/** A check for a field that may be left out. */
-const isOptional =
-  <Value>(isValue: Guard<Value>): Guard<Value | undefined> =>
-  (value): value is Value | undefined =>
-    value === undefined || isValue(value);
-
-const isChoice = isShape<Choice>({ tab: isString, label: isOptionalString, hint: isOptionalString });
-
-const isTopic = isShape<Topic>({
-  label: isString,
-  hint: isOptionalString,
-  tab: isOptionalString,
-  ask: isOptionalString,
-  choices: isOptional(isListOf(isChoice)),
-  personal: isOptionalBoolean,
-});
-
-/** One part of a personal answer: a paragraph, or a list of lines. */
-const isParagraphOrList: Guard<string | string[]> = (value): value is string | string[] =>
-  isString(value) || isArrayOf(value, isString);
-
-const isPersonalAnswer = isShape<PersonalAnswer>({
-  id: isString,
-  q: isString,
-  a: isListOf(isParagraphOrList),
-  title: isOptionalString,
-  hint: isOptionalString,
-  hidden: isOptionalBoolean,
-});
-
-const isQuestionCardWords = isShape<QuestionCardWords>({
-  else: isString,
-  elseLabel: isString,
-  send: isString,
-  back: isString,
-  step: isString,
-  followUp: isString,
-});
-
-const isQuestionCard = isShape<QuestionCard>({
-  ask: isString,
-  topics: isListOf(isTopic),
-  personal: isListOf(isPersonalAnswer),
-  ui: isQuestionCardWords,
-});
-
-/** The card a page gets when its data isn't what the build writes: no
-    topics, no personal answers and no words. */
-const EMPTY_QUESTION_CARD: QuestionCard = {
-  ask: "",
-  topics: [],
-  personal: [],
-  ui: { else: "", elseLabel: "", send: "", back: "", step: "", followUp: "" },
-};
-
-/** The question card as the page carries it (the JSON in the element
-    PAGE_IDS.questionCardData), or the empty one when that isn't JSON or isn't a
-    question card. */
-function readQuestionCard(): QuestionCard {
-  try {
-    const data: unknown = JSON.parse(document.getElementById(PAGE_IDS.questionCardData)?.textContent ?? "");
-    return isQuestionCard(data) ? data : EMPTY_QUESTION_CARD;
-  } catch {
-    return EMPTY_QUESTION_CARD;
-  }
-}
-
-/** The question card: its topics, and the personal answers. */
-export const questionCard = readQuestionCard();
+/** The question card as the build wrote it into the page: its topics, and
+    the personal answers. */
+export const questionCard = JSON.parse(byId(PAGE_IDS.questionCardData).textContent) as QuestionCard;

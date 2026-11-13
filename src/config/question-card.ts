@@ -1,7 +1,6 @@
 /* The question card's data: each language's `questions` in site.config.ts
    is a QuestionCard. Portfolio.astro writes it into the page as JSON, and
-   src/app/page.ts checks it field by field before the browser code builds
-   the card from it: a field added here needs its check there.
+   the browser code builds the card from it.
 
        questions: {
          ask: "What would you like to know?",
