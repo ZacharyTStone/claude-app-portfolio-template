@@ -4,9 +4,9 @@
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { HOURS, partOfDay } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SEPARATOR, SELECTOR } from "./constants.ts";
+import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SEPARATOR } from "./constants.ts";
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
 import { asMenu, menuItems, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";
@@ -74,7 +74,7 @@ function hoursApartNote(clock: HTMLElement, hoursYouAreAhead: number): string | 
     a guess at what you're up to at that hour. */
 function tellTime(clock: HTMLElement): void {
   const now = new Date();
-  const yourTimeZone = query(clock, SELECTOR.ownerZone)?.getAttribute(DATA.zone) ?? "UTC";
+  const yourTimeZone = query(clock, PART_SELECTOR.ownerZone)?.getAttribute(DATA.zone) ?? "UTC";
   const yourTime = timeIn(yourTimeZone, now);
   const visitorMinutesBehindUtc = now.getTimezoneOffset();
   const hoursYouAreAhead = (yourTime.minutesAheadOfUtc + visitorMinutesBehindUtc) / MINUTES_PER_HOUR;
@@ -86,10 +86,13 @@ function tellTime(clock: HTMLElement): void {
 
 // ---- The language row --------------------------------------------------------------
 
+/** The sidebar's links to the other languages' pages. */
+const OTHER_LANGUAGE_LINKS = `${CLASS_SELECTOR.languageSwitch} a`;
+
 /** A row for each other language the site is in, opening the same tab
     there: `hash` is the open tab's part of the address ("#about"). */
 const languageRows = (hash: string): HTMLElement[] =>
-  findAll(side, SELECTOR.language).map((languageLink) => {
+  findAll(side, OTHER_LANGUAGE_LINKS).map((languageLink) => {
     const language = languageLink.getAttribute("hreflang") ?? "";
     // The language's name in itself, if the link carries it.
     const name = languageLink.getAttribute(DATA.languageName) ?? languageLink.textContent;
@@ -125,9 +128,13 @@ function goodbyeLink(link: HTMLElement): HTMLElement {
   return copy;
 }
 
+/** The details panel's contact links: the rows of the config's
+    panel.context. */
+const PANEL_CONTACT_LINKS = `section[aria-labelledby="${panelId("context")}"] .rows a`;
+
 /** Your contact links, for the goodbye: the panel's own, or else your email. */
 function contactLinks(accountMenu: HTMLElement): HTMLElement[] {
-  const panelLinks = findAll(detailsPanel, SELECTOR.contactLinks);
+  const panelLinks = findAll(detailsPanel, PANEL_CONTACT_LINKS);
   const links = panelLinks.length ? panelLinks : findAll(accountMenu, CLASS_SELECTOR.mailRow);
   return links.map(goodbyeLink);
 }
@@ -198,7 +205,7 @@ export function initAccount(): void {
   // more than one other language it opens a submenu of them instead.
   const languageLink = accountMenu.querySelector(ATTRIBUTE_SELECTOR.langLink);
   const otherLanguagePage = languageLink?.getAttribute("href");
-  const hasSeveralOtherLanguages = findAll(side, SELECTOR.language).length > 1;
+  const hasSeveralOtherLanguages = findAll(side, OTHER_LANGUAGE_LINKS).length > 1;
   if (languageLink && hasSeveralOtherLanguages) replaceWithLanguageSubmenu(languageLink, accountMenu);
   const linkThatFollowsTheTab = hasSeveralOtherLanguages ? null : languageLink;
 

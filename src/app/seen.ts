@@ -8,7 +8,8 @@
    has been up long enough to be read, and a copy of an answer in a chat
    never waits: nothing watches it. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, TIMING } from "./constants.ts";
 import { findAll } from "./lib/dom.ts";
 import { isMotionReduced } from "./lib/motion.ts";
 
@@ -27,7 +28,7 @@ export function initSeen(): void {
   // can come in with the rest. Later than that it's being read, and hiding
   // it for a moment to bring it in would be a blink.
   const isPageBeingRead = performance.now() > TIMING.pageArrives;
-  for (const element of findAll(document, SELECTOR.comesIntoView)) {
+  for (const element of findAll(document, PART_SELECTOR.comesIntoView)) {
     if (isPageBeingRead && isOnScreen(element)) continue;
     element.classList.add(PAGE_CLASSES.waiting);
     watcher.observe(element);
@@ -37,7 +38,8 @@ export function initSeen(): void {
 /** Takes the marks off a copy of something in the page, and everything in
     it: the copy is shown as it is, since nothing is watching for it. */
 export function showWhole(copy: Element): void {
-  for (const element of [copy, ...copy.querySelectorAll(SELECTOR.comesIntoView)]) element.classList.remove(...MARKS);
+  for (const element of [copy, ...copy.querySelectorAll(PART_SELECTOR.comesIntoView)])
+    element.classList.remove(...MARKS);
 }
 
 /** Whether any of an element is on screen now. One in a tab that isn't

@@ -3,8 +3,8 @@
 import { clamp } from "es-toolkit";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR, SIZE, STORAGE } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, STORAGE } from "./constants.ts";
 import { byId, find, findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { isFocusOn, stepFocus } from "./lib/focus.ts";
@@ -36,7 +36,7 @@ export const isDrawerOpen = (): boolean => side.classList.contains(PAGE_CLASSES.
 /** Opens the drawer, with focus on the open tab's row, or else its first row. */
 function openDrawer(): void {
   side.classList.add(PAGE_CLASSES.drawerOpen);
-  const row = side.querySelector('[aria-current="page"]') ?? side.querySelector(SELECTOR.navRow);
+  const row = side.querySelector('[aria-current="page"]') ?? side.querySelector(PART_SELECTOR.navRow);
   if (row instanceof HTMLElement) row.focus();
 }
 
@@ -79,7 +79,9 @@ const GROUP_HEADING = `${CLASS_SELECTOR.groupHeading} ${CLASS_SELECTOR.foldButto
 
 /** The rows the arrow keys move between: "New tab" and the rows beside it,
     each group's heading, each tab's row, and the account row. */
-const ARROW_KEY_ROWS = [SELECTOR.navRow, GROUP_HEADING, SELECTOR.tabRow, CLASS_SELECTOR.accountRow].join(", ");
+const ARROW_KEY_ROWS = [PART_SELECTOR.navRow, GROUP_HEADING, PART_SELECTOR.tabRow, CLASS_SELECTOR.accountRow].join(
+  ", ",
+);
 
 function moveBetweenRows(event: KeyboardEvent): void {
   if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;

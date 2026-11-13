@@ -2,8 +2,7 @@
    typed into the question card does; a question to start with comes with
    the answer the page names for it, so nothing is asked of /ask. */
 import { DATA } from "../contracts/page-attributes.ts";
-import { ATTRIBUTE_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { newChat } from "./chats.ts";
 import { findAll, onEnter, query } from "./lib/dom.ts";
 import type { Source } from "./replies.ts";
@@ -11,9 +10,12 @@ import { send } from "./send.ts";
 import { isWide } from "./sidebar.ts";
 import { currentTab } from "./tabs.ts";
 
+const HOME_INPUT = `${CLASS_SELECTOR.homeAsk} input`;
+const HOME_SEND = `${CLASS_SELECTOR.homeAsk} ${CLASS_SELECTOR.homeSend}`;
+
 /** The box to type a question in. A page without one has no home screen
     to wire. */
-const homeInput = document.querySelector<HTMLInputElement>(SELECTOR.homeInput);
+const homeInput = document.querySelector<HTMLInputElement>(HOME_INPUT);
 
 /** Sends a question into a new chat, without the question card that a new
     chat opens with. */
@@ -45,7 +47,7 @@ export function focusHome(): void {
 export function initHome(): void {
   if (!homeInput) return;
   onEnter(homeInput, sendTypedQuestion);
-  query(document, SELECTOR.homeSend)?.addEventListener("click", sendTypedQuestion);
+  query(document, HOME_SEND)?.addEventListener("click", sendTypedQuestion);
   for (const starter of findAll(document, ATTRIBUTE_SELECTOR.prompt)) {
     const question = starter.textContent.trim();
     const answer = starter.getAttribute(DATA.prompt);

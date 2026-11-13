@@ -2,8 +2,8 @@
    is without JavaScript. This keeps the rest in step with it: the sidebar's
    current row, the window title and where focus is. */
 import { DATA } from "../contracts/page-attributes.ts";
-import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SEPARATOR, SELECTOR } from "./constants.ts";
+import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SEPARATOR } from "./constants.ts";
 import { titleId } from "../contracts/page-ids.ts";
 import { clone, find } from "./lib/dom.ts";
 import { unfold } from "./folding.ts";
@@ -49,7 +49,7 @@ export function clearHash(replace = false): void {
 
 /** Marks one of the sidebar's rows as the current page, and no other. */
 function markCurrentRow(currentRow: Element | null): void {
-  for (const row of side.querySelectorAll(`${SELECTOR.navRow}, ${SELECTOR.tabRow}`)) {
+  for (const row of side.querySelectorAll(`${PART_SELECTOR.navRow}, ${PART_SELECTOR.tabRow}`)) {
     if (row === currentRow) row.setAttribute("aria-current", "page");
     else row.removeAttribute("aria-current");
   }
@@ -63,7 +63,7 @@ export function sync(moveFocus: boolean): void {
   // The home screen and a new chat with nothing sent in it yet have no row
   // of their own, so "New tab" is selected for them.
   const standsInNewTab = !tab || isChat(tab);
-  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(SELECTOR.newTab) : null));
+  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(PART_SELECTOR.newTab) : null));
 
   // Opening a tab inside a folded group unfolds it.
   const groupList = ownRow?.closest("ul");

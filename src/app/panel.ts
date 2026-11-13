@@ -4,7 +4,7 @@
 import { isArrayOf, isString } from "../contracts/guards.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR, STORAGE, TIMING } from "./constants.ts";
+import { STORAGE, TIMING } from "./constants.ts";
 import { findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { isMotionReduced } from "./lib/motion.ts";
@@ -39,7 +39,11 @@ export function wirePanelToggle(button: HTMLElement): void {
 
 // ---- The order of its sections -----------------------------------------------------
 
-const panelSections = (): HTMLElement[] => findAll(detailsPanel, SELECTOR.panelSection);
+/** A section of the panel, from the panel itself, and a section's heading. */
+const SECTION = ":scope > section";
+const SECTION_HEADING = "h2";
+
+const panelSections = (): HTMLElement[] => findAll(detailsPanel, SECTION);
 
 /** The section just above this one, if there is one. (Above the panel's
     first section is its close button, which isn't one.) */
@@ -65,7 +69,7 @@ function rememberSectionOrder(): void {
 function restoreSectionOrder(): void {
   const remembered = local.getJson(STORAGE.panelOrder);
   for (const headingId of isArrayOf(remembered, isString) ? remembered : []) {
-    const section = detailsPanel.querySelector(`${SELECTOR.panelSection}[aria-labelledby="${CSS.escape(headingId)}"]`);
+    const section = detailsPanel.querySelector(`${SECTION}[aria-labelledby="${CSS.escape(headingId)}"]`);
     if (section) detailsPanel.append(section);
   }
 }
@@ -189,7 +193,7 @@ function startDrag(section: HTMLElement, grip: HTMLElement, down: PointerEvent):
 /** Gives a section a six-dot grip, to drag it into another order; the
     arrow keys on it move it too. */
 function addGrip(section: HTMLElement): void {
-  const sectionName = section.querySelector(SELECTOR.panelHeading)?.textContent ?? "";
+  const sectionName = section.querySelector(SECTION_HEADING)?.textContent ?? "";
   const label = words.moveSection.replace("{name}", sectionName);
   const grip = make("button", {
     type: "button",
@@ -219,7 +223,7 @@ function addGrip(section: HTMLElement): void {
 
 /** Folding sections, in the order this browser left them, with grips. */
 export function initPanel(): void {
-  findAll(detailsPanel, SELECTOR.panelHeading).forEach(foldable);
+  findAll(detailsPanel, SECTION_HEADING).forEach(foldable);
   restoreSectionOrder();
   panelSections().forEach(addGrip);
 }

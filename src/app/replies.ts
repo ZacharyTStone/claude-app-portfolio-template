@@ -5,8 +5,7 @@ import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.t
 import { ID_PATTERN } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { restStill } from "./play.ts";
 import { showWhole } from "./seen.ts";
@@ -52,7 +51,7 @@ export const bubble = (question: string): HTMLElement =>
 /** What a source asks: the question typed in, or the thread's first. */
 export function questionFor(source: Source): string | null {
   if (isTyped(source)) return source.question || null;
-  const q = document.getElementById(source.tab)?.querySelector(SELECTOR.threadQuestion);
+  const q = document.getElementById(source.tab)?.querySelector(PART_SELECTOR.threadQuestion);
   return q ? questionText(q) : null;
 }
 
@@ -88,7 +87,7 @@ function findAnswer(id: string): { tab: HTMLElement; q: Element } | null {
   const [tabId = "", n = ""] = id.split(".");
   const tab = ID_PATTERN.test(tabId) ? document.getElementById(tabId) : null;
   if (!tab?.matches(CLASS_SELECTOR.tab)) return null;
-  const q = tab.querySelectorAll(`${SELECTOR.threadQuestion}:not(${CLASS_SELECTOR.sent})`)[Number(n) - 1];
+  const q = tab.querySelectorAll(`${PART_SELECTOR.threadQuestion}:not(${CLASS_SELECTOR.sent})`)[Number(n) - 1];
   return q ? { tab, q } : null;
 }
 
