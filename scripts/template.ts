@@ -35,6 +35,7 @@ export const SHARED = [
   "tests/diagrams.test.ts",
   "tests/sample",
   "tests/sample-site.test.ts",
+  "tests/scripts",
   "tests/site.test.ts",
   "tests/template.test.ts",
   // The browser code's unit tests. None here now; listed so the sync takes
