@@ -1,22 +1,12 @@
 {
-  "scripts/diagram.ts": {
-    "max-lines": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
+  "scripts/diagram/loop/arriving.ts": {
     "max-params": {
-      "count": 3
-    },
-    "no-irregular-whitespace": {
-      "count": 1
-    },
-    "no-nested-ternary": {
-      "count": 1
-    },
-    "no-warning-comments": {
-      "count": 4
+      "count": 2
+    }
+  },
+  "scripts/diagram/loop/passing.ts": {
+    "max-params": {
+      "count": 2
     }
   },
   "src/app/account.ts": {
@@ -120,14 +110,9 @@
       "count": 5
     }
   },
-  "src/site/validate/language.ts": {
+  "src/site/checks/language.ts": {
     "no-warning-comments": {
       "count": 8
-    }
-  },
-  "src/site/validate/reporting.ts": {
-    "no-restricted-imports": {
-      "count": 1
     }
   },
   "src/worker/ask/grounded.ts": {
@@ -242,22 +227,12 @@
       "count": 2
     }
   },
-  "tests/diagrams.test.ts": {
-    "no-warning-comments": {
-      "count": 2
-    }
-  },
   "tests/site.test.ts": {
     "complexity": {
       "count": 1
     },
     "no-warning-comments": {
       "count": 2
-    }
-  },
-  "tests/template.test.ts": {
-    "no-warning-comments": {
-      "count": 1
     }
   },
   "tests/worker/fixtures.ts": {
