@@ -23,19 +23,19 @@ export type Site = {
   main: string;
   /** A language's text, by its code. Throws for a code the config doesn't
       have. */
-  lang: (code: string) => Language;
+  language: (code: string) => Language;
   /** A path on the site, from its own root ("/assets/og.png"), as the pages
       link to it: under the site's path, if it has one
       ("/portfolio/assets/og.png"). Any other link (https:, mailto:,
       #thread or a relative one) is left as it is. */
   link: (href: string) => string;
   /** A path on the site as a full address: "https://example.com/assets/og.png". */
-  address: (path: string) => string;
+  fileUrl: (path: string) => string;
   /** A language's page, as the pages link to it: the site's root for the
       main one, <code>/ under it for the others. */
-  path: (code: string) => string;
+  pagePath: (code: string) => string;
   /** A language's page as a full address: "https://example.com/ja/". */
-  url: (code: string) => string;
+  pageUrl: (code: string) => string;
 };
 
 /** One language's page, which each part of it is drawn from. */
@@ -44,7 +44,7 @@ export type Page = {
   /** The language's code. */
   code: string;
   /** The language's text. */
-  lang: Language;
+  language: Language;
 };
 
 /** A path from the site's own root: "/assets/og.png", or "/" alone. Not
@@ -62,7 +62,7 @@ export function makeSite(config: SiteConfig): Site {
   const siteAddress = trimEnd(config.url, "/");
   const sitePath = URL.canParse(config.url) ? basePath(config.url) : "/";
   const link = (href: string) => (PATH_FROM_SITE_ROOT.test(href) ? sitePath + href.slice(1) : href);
-  const address = (pathFromSiteRoot: string) => siteAddress + pathFromSiteRoot;
+  const fileUrl = (pathFromSiteRoot: string) => siteAddress + pathFromSiteRoot;
   // A language's page, from the site's own root: "/", or "/ja/".
   const pageFromSiteRoot = (code: string) => (code === main ? "/" : `/${code}/`);
   return {
@@ -70,18 +70,18 @@ export function makeSite(config: SiteConfig): Site {
     host: config.host ?? DEFAULT_HOST,
     codes,
     main,
-    lang(code) {
+    language(code) {
       const language = config.languages[code];
       if (!language) throw new Error(`site.config.ts has no language "${code}"`);
       return language;
     },
     link,
-    address,
-    path: (code) => link(pageFromSiteRoot(code)),
-    url: (code) => address(pageFromSiteRoot(code)),
+    fileUrl,
+    pagePath: (code) => link(pageFromSiteRoot(code)),
+    pageUrl: (code) => fileUrl(pageFromSiteRoot(code)),
   };
 }
 
 /** One language's page of a site. Throws for a code the config doesn't
     have. */
-export const makePage = (site: Site, code: string): Page => ({ site, code, lang: site.lang(code) });
+export const makePage = (site: Site, code: string): Page => ({ site, code, language: site.language(code) });

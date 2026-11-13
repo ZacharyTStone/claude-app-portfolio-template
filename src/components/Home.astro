@@ -18,11 +18,11 @@ interface Props {
   /** The language's page this is part of. */
   page: Page;
 }
-const { lang } = Astro.props.page;
-const { strings } = lang;
-const { greeting, intro, hint, tagline, prompts = [] } = lang.home;
+const { language } = Astro.props.page;
+const { strings } = language;
+const { greeting, intro, hint, tagline, prompts = [] } = language.home;
 // The box asks what the question card asks, and its button is the card's.
-const { ask: cardQuestion, ui: cardWords } = lang.questions;
+const { ask: cardQuestion, ui: cardWords } = language.questions;
 // For the script: a greeting for each part of the visitor's day, and who
 // this is in a line.
 const greetingParts = Object.keys(HOURS.greeting) as GreetingPart[];

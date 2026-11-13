@@ -65,7 +65,7 @@ export function languageChecks(
   stylesheetIcons: Set<string>,
   problemUnless: ProblemUnless,
 ): LanguageChecks {
-  const language = site.lang(code);
+  const language = site.language(code);
   const threadIds = new Set(language.threads.map((thread) => thread.id));
   const problemInThisLanguageUnless: ProblemUnless = (isOk, problem) => problemUnless(isOk, `${code}: ${problem}`);
   const noSuchIcon = (iconName: string, whatHasIt: string) =>

@@ -20,9 +20,12 @@ export function sitemapXml(site: Site): string {
   const alternate = (hreflang: string, pageUrl: string) =>
     `    <xhtml:link rel="alternate" hreflang="${xmlSafe(hreflang)}" href="${xmlSafe(pageUrl)}" />`;
   // The same on every page: search engines want each page to list them all, itself included.
-  const alternates = [...codes.map((code) => alternate(code, site.url(code))), alternate("x-default", site.url(main))];
+  const alternates = [
+    ...codes.map((code) => alternate(code, site.pageUrl(code))),
+    alternate("x-default", site.pageUrl(main)),
+  ];
   const pages = codes.map((code) =>
-    ["  <url>", `    <loc>${xmlSafe(site.url(code))}</loc>`, ...alternates, "  </url>"].join("\n"),
+    ["  <url>", `    <loc>${xmlSafe(site.pageUrl(code))}</loc>`, ...alternates, "  </url>"].join("\n"),
   );
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"

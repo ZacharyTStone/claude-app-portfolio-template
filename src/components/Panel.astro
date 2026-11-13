@@ -15,7 +15,7 @@ interface Props {
   /** The language's page this is part of. */
   page: Page;
 }
-const { strings, panel } = Astro.props.page.lang;
+const { strings, panel } = Astro.props.page.language;
 const { progress } = panel;
 /** The sections that are lists of rows, in the order they're drawn. */
 const LIST_SECTION_NAMES = ["outputs", "context"] as const;

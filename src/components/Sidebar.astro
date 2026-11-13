@@ -15,18 +15,18 @@ interface Props {
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code: pageLanguage, lang } = page;
+const { site, code: pageLanguage } = page;
 const { config, codes: languageCodes } = site;
-const { strings } = lang;
-const { newTab, nav, groups } = lang.sidebar;
+const { strings, sidebar } = page.language;
+const { newTab, nav, groups } = sidebar;
 // On a page in another language, the name is marked as its own.
 const nameLang = config.nameLang && config.nameLang !== pageLanguage ? config.nameLang : undefined;
 // The language switch, on a site with more than one language: this page's
 // language as plain text, and each other one as a link to its page.
 const hasLanguageSwitch = languageCodes.length > 1;
 const languageSwitch = languageCodes.map((code) => {
-  const { label, name } = site.lang(code);
-  return { code, label, name, href: site.path(code), isThisPage: code === pageLanguage };
+  const { label, name } = site.language(code);
+  return { code, label, name, href: site.pagePath(code), isThisPage: code === pageLanguage };
 });
 ---
 

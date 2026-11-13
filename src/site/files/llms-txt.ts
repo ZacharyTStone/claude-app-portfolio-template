@@ -22,7 +22,7 @@ export function llmsTxt(site: Site): string {
   const links = panelLinks(site);
   const everyAnswer = questionsAndAnswers(plainAnswers(site, main));
   const parts = [
-    `# ${site.lang(main).meta.title}`,
+    `# ${site.language(main).meta.title}`,
     `> ${config.llms.summary}`,
     section("About", config.llms.about),
     section("Pages", pageList(site)),
@@ -39,7 +39,7 @@ export function llmsTxt(site: Site): string {
 
 /** Each language's page, a line each: "- [Portfolio (EN)](https://example.com/)". */
 const pageList = (site: Site): string =>
-  site.codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.url(code)})`).join("\n");
+  site.codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.pageUrl(code)})`).join("\n");
 
 /** The details panel's links (the resume, a project's site), a line each,
     but for the contact links, which have their own section. */
@@ -47,7 +47,7 @@ function panelLinks(site: Site): string[] {
   const { email, github, linkedin } = site.config.links;
   const contactHrefs = [`mailto:${email}`, github, linkedin];
   const links: string[] = [];
-  for (const { label, meta, href } of panelRows(site.lang(site.main).panel)) {
+  for (const { label, meta, href } of panelRows(site.language(site.main).panel)) {
     if (!href || contactHrefs.includes(href)) continue;
     links.push(`- [${label}](${fullAddress(site, href)}): ${meta}`);
   }
@@ -59,8 +59,8 @@ function panelLinks(site: Site): string[] {
     file on the site ("/resume.pdf") under the site's, and any other link
     is a full address already. */
 function fullAddress(site: Site, href: string): string {
-  if (href.startsWith("#")) return site.url(site.main) + href;
-  if (href.startsWith("/")) return site.address(href);
+  if (href.startsWith("#")) return site.pageUrl(site.main) + href;
+  if (href.startsWith("/")) return site.fileUrl(href);
   return href;
 }
 

@@ -22,7 +22,7 @@ interface Props {
   page: Page;
 }
 const { page } = Astro.props;
-const { strings, asked } = page.lang;
+const { strings, asked } = page.language;
 const { email, linkedin } = page.site.config.links;
 
 // A function as the replacement, so a "$" in the question is just a "$".
