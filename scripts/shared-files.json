@@ -33,6 +33,8 @@
     "AGENTS.md",
     "CLAUDE.md",
     ".editorconfig",
+    ".vscode/extensions.json",
+    ".vscode/settings.json",
     "eslint.config.js",
     "eslint-suppressions.json",
     ".gitignore",
@@ -55,5 +57,9 @@
     "tests/site.test.ts",
     "tests/sample-site.test.ts"
   ],
-  "own": ["src/styles/site.css", "public/assets/fonts/noto-sans-jp.woff2", "public/assets/fonts/noto-serif-jp.woff2"]
+  "own": [
+    "src/styles/site.css",
+    "public/assets/fonts/noto-sans-jp.woff2",
+    "public/assets/fonts/noto-serif-jp.woff2"
+  ]
 }
