@@ -2,14 +2,16 @@ import assert from "node:assert/strict";
 import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
+import { pathToFileURL } from "node:url";
 import {
   applyChanges,
   changesBetween,
   describeChanges,
   OWN,
-  RETIRED,
   SHARED,
+  SHARED_LIST_FILE,
   sharedFiles,
+  sharedListOf,
 } from "../../scripts/template.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { readText, scratchFolders } from "./scratch-folders.ts";
@@ -18,7 +20,7 @@ const folderOf = scratchFolders("template-test-");
 
 /** A short list to test with: a shared folder, a shared file, and one file in the folder that's each site's
     own. */
-const SMALL_LIST = { SHARED: ["src", "package.json"], OWN: ["src/own.txt"] };
+const SMALL_LIST = { shared: ["src", "package.json"], retired: [], own: ["src/own.txt"] };
 const NO_CHANGES = { added: [], changed: [], removed: [] };
 
 test("the shared files are the files in each shared path, less each site's own", () => {
@@ -32,7 +34,8 @@ test("the shared files are the files in each shared path, less each site's own",
   assert.deepEqual(sharedFiles(root, SMALL_LIST).sort(), ["package.json", "src/a.ts", "src/deep/b.ts"]);
 });
 
-const thisRepoShares = sharedFiles(ROOT, { SHARED, OWN });
+const thisRepos = sharedListOf(ROOT);
+const thisRepoShares = sharedFiles(ROOT, thisRepos);
 
 test("this repo's list names its shared files", () => {
   for (const file of ["scripts/template.ts", "scripts/update-template.ts", "package.json", "src/shared/config.ts"])
@@ -40,7 +43,7 @@ test("this repo's list names its shared files", () => {
 });
 
 test("a site's own files aren't among this repo's shared files", () => {
-  for (const file of ["site.config.ts", "README.md", "wrangler.jsonc", ...OWN])
+  for (const file of ["site.config.ts", "README.md", "wrangler.jsonc", ...thisRepos.own])
     assert.ok(!thisRepoShares.includes(file), file);
 });
 
@@ -93,16 +96,45 @@ test("once the changes are applied, nothing is left to change", () => {
 test("a shared path the source no longer has is deleted from a target that still has it", () => {
   const withoutThem = folderOf("retired-source", { "src/a.ts": "a" });
   const withThem = folderOf("retired-target", { "src/a.ts": "a", "old-tool.py": "old", "old-tests/a.test.ts": "old" });
-  const list = { SHARED: ["src", "old-tool.py", "old-tests"], OWN: [] };
+  const list = { shared: ["src"], retired: ["old-tool.py", "old-tests"], own: [] };
   assert.deepEqual(changesBetween(withoutThem, withThem, list).removed.sort(), ["old-tests/a.test.ts", "old-tool.py"]);
 });
 
-test("every retired path is still listed as shared, so that an update deletes it", () => {
-  for (const path of RETIRED) assert.ok(SHARED.includes(path), path);
+test("no retired path is in this repo", () => {
+  for (const path of thisRepos.retired) assert.ok(!existsSync(join(ROOT, path)), path);
 });
 
-test("no retired path is in this repo", () => {
-  for (const path of RETIRED) assert.ok(!existsSync(join(ROOT, path)), path);
+test("no path is listed twice", () => {
+  const listed = [...thisRepos.shared, ...thisRepos.retired, ...thisRepos.own];
+  assert.deepEqual(listed, [...new Set(listed)]);
+});
+
+test("a list that isn't three lists of paths is refused", () => {
+  const withoutOwn = folderOf("no-own", { [SHARED_LIST_FILE]: JSON.stringify({ shared: ["src"], retired: [] }) });
+  const notPaths = folderOf("not-paths", { [SHARED_LIST_FILE]: JSON.stringify({ shared: [1], retired: [], own: [] }) });
+  assert.throws(() => sharedListOf(withoutOwn), /no list of paths called "own"/);
+  assert.throws(() => sharedListOf(notPaths), /no list of paths called "shared"/);
+});
+
+test("a repo with no list is refused, and told which file is missing", () => {
+  assert.throws(() => sharedListOf(folderOf("no-list", { "README.md": "" })), /shared-files\.json isn't there/);
+});
+
+/** What a site's older copy of the update does: it imports the template's copy of this file from a fresh clone,
+    where nothing is installed, and reads the two names. */
+test("an older site's update still finds SHARED and OWN in this file, read from the list beside it", async () => {
+  const clone = folderOf("clone", {
+    "scripts/template.ts": readText(ROOT, "scripts/template.ts"),
+    [SHARED_LIST_FILE]: JSON.stringify({ shared: ["src"], retired: ["old.py"], own: ["src/mine.css"] }),
+  });
+  const imported: { SHARED: unknown; OWN: unknown } = await import(
+    pathToFileURL(join(clone, "scripts/template.ts")).href
+  );
+  assert.deepEqual([imported.SHARED, imported.OWN], [["src", "old.py"], ["src/mine.css"]]);
+});
+
+test("this repo's SHARED and OWN are its list's", () => {
+  assert.deepEqual([SHARED, OWN], [[...thisRepos.shared, ...thisRepos.retired], thisRepos.own]);
 });
 
 const ownSource = folderOf("own-source", { "src/a.ts": "a", "src/own.txt": "the template's" });

@@ -6,6 +6,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
+import { SHARED_LIST_FILE } from "../../scripts/template.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { readText, scratchFolders, type Files } from "./scratch-folders.ts";
 
@@ -35,12 +36,13 @@ function repoOf(name: string, files: Files): string {
 }
 
 /** What a template shares: more than a site's older list knows of (docs/), and a tool it has since retired. */
-const TEMPLATE_LIST = `
-export const SHARED = ["src", "docs", "old-tool.py"];
-export const OWN = ["public/assets/fonts/noto-sans-jp.woff2"];
-`;
+const TEMPLATE_LIST = {
+  shared: ["src", "docs"],
+  retired: ["old-tool.py"],
+  own: ["public/assets/fonts/noto-sans-jp.woff2"],
+};
 const TEMPLATE_FILES = {
-  "scripts/template.ts": TEMPLATE_LIST,
+  [SHARED_LIST_FILE]: JSON.stringify(TEMPLATE_LIST),
   "src/app.ts": "new",
   "src/added.ts": "added",
   "docs/guide.md": "guide",
@@ -57,10 +59,11 @@ const SITE_OWN_FILES = {
   "README.md": "my README",
   "wrangler.jsonc": "my wrangler",
 };
-/** The two scripts the update runs, as this repo has them. */
+/** The two scripts the update runs, as this repo has them, and the site's own, older list. */
 const UPDATE_SCRIPTS = {
   "scripts/template.ts": readText(ROOT, "scripts/template.ts"),
   "scripts/update-template.ts": readText(ROOT, "scripts/update-template.ts"),
+  [SHARED_LIST_FILE]: JSON.stringify({ shared: ["src"], retired: [], own: ["public/assets/fonts/noto-sans-jp.woff2"] }),
 };
 
 /** A site made from an older template: no history in common with it. */
@@ -127,7 +130,7 @@ test("an update says what to do next", () => {
 });
 
 test("an update says so when there's nothing to take", () => {
-  const upToDate = repoOf("site-same", { ...TEMPLATE_FILES, ...UPDATE_SCRIPTS });
+  const upToDate = repoOf("site-same", { ...UPDATE_SCRIPTS, ...TEMPLATE_FILES });
   const result = runUpdate(upToDate, templateRepo("template-same"));
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Up to date/);
@@ -157,4 +160,14 @@ test("an update takes the template's address and no flags, and changes nothing w
   assert.notEqual(result.status, 0);
   assert.match(result.stderr, /Unknown option '--force'/);
   assert.equal(readText(flagged, "src/app.ts"), "old");
+});
+
+/** The audit's proof A: a template whose scripts/template.ts leaves a mark when it's run. */
+test("an update runs nothing of the template's: code in its scripts/template.ts stays unrun", () => {
+  const mark = join(folderOf("mark", {}), "ran-on-import.txt");
+  const leavesAMark = `import { writeFileSync } from "node:fs";\nwriteFileSync(${JSON.stringify(mark)}, "ran");\n`;
+  const withCode = repoOf("template-code", { ...TEMPLATE_FILES, "scripts/template.ts": leavesAMark });
+  const result = runUpdate(siteRepo("site-code"), withCode);
+  assert.equal(result.status, 0, result.stderr);
+  assert.ok(!existsSync(mark), "the template's code ran");
 });

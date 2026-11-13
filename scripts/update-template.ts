@@ -12,20 +12,20 @@ import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { applyChanges, changesBetween, describeChanges, TEMPLATE, type SharedList } from "./template.ts";
+import { applyChanges, changesBetween, describeChanges, sharedListOf, TEMPLATE } from "./template.ts";
 
 const SITE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
-async function main(): Promise<void> {
+function main(): void {
   const templateSource = templateSourceFrom(process.argv.slice(2));
   refuseUncommittedChanges();
 
   const templateClone = mkdtempSync(join(tmpdir(), "template-"));
   try {
     runGit(["clone", "--quiet", "--depth", "1", templateSource, templateClone], SITE_ROOT);
-    await takeSharedFilesFrom(templateClone);
+    takeSharedFilesFrom(templateClone);
   } finally {
     rmSync(templateClone, { recursive: true, force: true });
   }
@@ -45,9 +45,10 @@ function refuseUncommittedChanges(): void {
     throw new Error("Commit or stash your changes first, so that `git diff` then shows only the template's.");
 }
 
-async function takeSharedFilesFrom(templateClone: string): Promise<void> {
+function takeSharedFilesFrom(templateClone: string): void {
   const templateCommit = runGit(["log", "-1", "--format=%h %s"], templateClone);
-  const changes = changesBetween(templateClone, SITE_ROOT, await sharedListOf(templateClone));
+  // The template's list, not this site's: it may share files this site's older list doesn't know of.
+  const changes = changesBetween(templateClone, SITE_ROOT, sharedListOf(templateClone));
   const changeLines = describeChanges(changes);
   if (changeLines.length === 0) {
     console.log(`Up to date with the template (${templateCommit}).`);
@@ -59,13 +60,6 @@ async function takeSharedFilesFrom(templateClone: string): Promise<void> {
   console.log("Next: `npm ci`, then `npm run verify`. `git diff` shows what changed; commit it once it passes.");
 }
 
-/** The template's own SHARED and OWN, not this site's: its list may name files this site's older copy doesn't
-    yet. Importing the template's file runs it, which asks for no more trust than the update does: the
-    template's code is about to replace this site's. */
-function sharedListOf(templateClone: string): Promise<SharedList> {
-  return import(pathToFileURL(join(templateClone, "scripts", "template.ts")).href);
-}
-
 /** What git printed, trimmed. Throws with git's own message if it fails, or with the system's if there's no
     git to run. */
 function runGit(args: string[], cwd: string): string {
@@ -75,7 +69,9 @@ function runGit(args: string[], cwd: string): string {
   return stdout.trim();
 }
 
-main().catch((error: Error) => {
-  console.error(error.message);
+try {
+  main();
+} catch (error) {
+  console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
-});
+}

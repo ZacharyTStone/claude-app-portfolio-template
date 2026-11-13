@@ -1,95 +1,55 @@
 /* The template every site is made from, and the files a site shares with it byte for byte:
    `npm run update-template` replaces a site's with the template's.
 
-   This file imports only Node's own modules, and has to stay that way: the update imports the template's copy of
-   it from a fresh clone, where nothing is installed. */
+   This file imports only Node's own modules, and has to stay that way: a site's older copy of the update imports
+   the template's copy of it from a fresh clone, where nothing is installed. */
 import { cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import { dirname, join, relative, sep } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export const TEMPLATE = "https://github.com/ZacharyTStone/claude-app-portfolio-template";
 
-/** The files and folders that are the same in every site made from the template. A folder is mirrored: a file
-    the template doesn't have in it is deleted from a site's. Everything else (site.config.ts, README.md,
-    wrangler.jsonc, diagrams/, images…) is each site's own. */
-const SHARED_NOW = [
-  "src",
-  "astro.config.ts",
-  "scripts/fonts.ts",
-  "scripts/fonts",
-  "scripts/diagram.ts",
-  "scripts/diagram",
-  "scripts/diagrams.ts",
-  "scripts/template.ts",
-  "scripts/update-template.ts",
-  "scripts/require-build.ts",
-  // Gone: `npm run verify` is a chain of npm scripts. Listed so an update takes it away.
-  "scripts/verify.ts",
-  "tests/browser",
-  "tests/build",
-  "tests/components",
-  "tests/config",
-  "tests/diagrams.test.ts",
-  "tests/integrations",
-  "tests/sample",
-  "tests/scripts",
-  "tests/site",
-  "tests/app",
-  "tests/config",
-  "tests/contracts",
-  "tests/worker",
-  "tests/ask-eval.ts",
-  "public/assets/icons",
-  "public/assets/fonts",
-  ".github/workflows/check.yml",
-  ".github/dependabot.yml",
-  "AGENTS.md",
-  "CLAUDE.md",
-  ".editorconfig",
-  "eslint.config.js",
-  // The violations there were when the linter came. It goes, and this line with it, once it's empty.
-  "eslint-suppressions.json",
-  ".gitignore",
-  ".htmlvalidate.json",
-  "knip.jsonc",
-  ".node-version",
-  ".npmrc",
-  ".prettierignore",
-  ".prettierrc.json",
-  "package.json",
-  "package-lock.json",
-  "tsconfig.base.json",
-  "tsconfig.json",
-];
+/** Where a repo lists what it shares, from its root. The list is data: an update reads the template's, and
+    runs nothing of the template's to get it. */
+export const SHARED_LIST_FILE = "scripts/shared-files.json";
 
-/** What was shared once and has since been deleted or moved. A site made before then still has it, and an
-    update deletes it there, as it deletes any shared file the template no longer has. A shared path that goes
-    is added here, and never taken out. */
-export const RETIRED = [
-  "scripts/ja-font.py",
-  "tests/template.test.ts",
-  "tests/config.test.ts",
-  "tests/site.test.ts",
-  "tests/sample-site.test.ts",
-];
-
-/** Every path an update makes the same as the template's. A site's older copy of the update reads the list
-    under this name, and `OWN` under its. */
-export const SHARED = [...SHARED_NOW, ...RETIRED];
-
-/** Inside a shared folder, but each site's own: the styles a site adds, and the Japanese fonts, cut down to the
-    characters each site's text uses. */
-export const OWN = [
-  "src/styles/site.css",
-  "public/assets/fonts/noto-sans-jp.woff2",
-  "public/assets/fonts/noto-serif-jp.woff2",
-];
-
-/** What's shared, as a copy of this file lists it: the copy, imported, is a SharedList, which is how the update
-    reads the template's own. Paths are from the repo's root, with "/" between folders. */
+/** What a repo shares, as its list has it. Paths are from the repo's root, with "/" between folders. */
 export type SharedList = {
-  SHARED: readonly string[];
-  OWN: readonly string[];
+  /** The files and folders that are the same in every site made from the template. A folder is mirrored: a
+      file the template doesn't have in it is deleted from a site's. Everything else (site.config.ts,
+      README.md, wrangler.jsonc, diagrams/, images…) is each site's own. */
+  shared: string[];
+  /** What was shared once and has since been deleted or moved. A site made before then still has it, and an
+      update deletes it there, as it deletes any shared file the template no longer has. A shared path that
+      goes is added here, and never taken out. */
+  retired: string[];
+  /** Inside a shared folder, but each site's own: the styles a site adds, and the Japanese fonts, cut down to
+      the characters each site's text uses. */
+  own: string[];
 };
+
+/** The list of the repo at `root`, read as data. */
+export function sharedListOf(root: string): SharedList {
+  const file = join(root, SHARED_LIST_FILE);
+  if (!existsSync(file)) throw new Error(`${file} isn't there, so there's no saying what this template shares.`);
+  const lists: unknown = JSON.parse(readFileSync(file, "utf8"));
+  return { shared: pathsIn(lists, "shared"), retired: pathsIn(lists, "retired"), own: pathsIn(lists, "own") };
+}
+
+function pathsIn(lists: unknown, name: keyof SharedList): string[] {
+  const paths: unknown = isRecord(lists) ? lists[name] : undefined;
+  if (!Array.isArray(paths) || !paths.every((path) => typeof path === "string"))
+    throw new Error(`${SHARED_LIST_FILE} has no list of paths called "${name}".`);
+  return paths;
+}
+
+const isRecord = (value: unknown): value is Record<string, unknown> => typeof value === "object" && value !== null;
+
+/** This repo's own list, under the two names a site's older copy of the update reads when it imports the
+    template's copy of this file: every path an update makes the same as the template's, and each site's own. */
+const thisRepos = sharedListOf(fileURLToPath(new URL("..", import.meta.url)));
+export const SHARED: readonly string[] = [...thisRepos.shared, ...thisRepos.retired];
+export const OWN: readonly string[] = thisRepos.own;
 
 /** What copying one repo's shared files over another's would do to the other. A file is in one list at most. */
 export type SharedFileChanges = {
@@ -101,11 +61,12 @@ export type SharedFileChanges = {
   removed: string[];
 };
 
-/** Every shared file in the repo at `root`: the files `SHARED` names and those in its folders, less the site's
-    `OWN`. */
-export function sharedFiles(root: string, { SHARED, OWN }: SharedList): string[] {
-  const ownFiles = new Set(OWN);
-  return SHARED.flatMap((sharedPath) => filesAt(root, sharedPath))
+/** Every shared file in the repo at `root`: the files the list names and those in its folders, less each
+    site's own. */
+export function sharedFiles(root: string, { shared, retired, own }: SharedList): string[] {
+  const ownFiles = new Set(own);
+  return [...shared, ...retired]
+    .flatMap((sharedPath) => filesAt(root, sharedPath))
     .map(withForwardSlashes)
     .filter((file) => !ownFiles.has(file));
 }
@@ -146,10 +107,10 @@ function hasSameContents(fileA: string, fileB: string): boolean {
   return readFileSync(fileA).equals(readFileSync(fileB));
 }
 
-/** The `OWN` files the target doesn't have yet. A site's own file is never overwritten, but one it lacks (a new
+/** The `own` files the target doesn't have yet. A site's own file is never overwritten, but one it lacks (a new
     one, which the shared code may need: the stylesheet imports `site.css`) starts as the source's copy. */
-function ownFilesToStartFrom(sourceRoot: string, targetRoot: string, { OWN }: SharedList): string[] {
-  return OWN.filter((file) => existsSync(join(sourceRoot, file)) && !existsSync(join(targetRoot, file)));
+function ownFilesToStartFrom(sourceRoot: string, targetRoot: string, { own }: SharedList): string[] {
+  return own.filter((file) => existsSync(join(sourceRoot, file)) && !existsSync(join(targetRoot, file)));
 }
 
 export function applyChanges(sourceRoot: string, targetRoot: string, changes: SharedFileChanges): void {
