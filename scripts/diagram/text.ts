@@ -18,10 +18,11 @@ const WIDTH_IN_MONO = 0.6;
     monospaced font's bold letters are as wide as its regular ones. */
 const BOLD = { from: 600, isWider: 1.07 } as const;
 
-/** About how wide a line of text is drawn, to size a box around it. The picture is drawn in whatever font the
-    visitor's computer has, so leave room: this is an estimate for Inter (a little more at a `weight` of 600 or
-    over), and a full square for kana and kanji. */
-export function textWidth(text: string, size: number, mono = false, weight = 400): number {
+/** About how wide a line of text is drawn, to size a box around it. `look` is the `mono` and `weight` its
+    label has. The picture is drawn in whatever font the visitor's computer has, so leave room: this is an
+    estimate for Inter (a little more at a `weight` of 600 or over), and a full square for kana and kanji. */
+export function textWidth(text: string, size: number, look: { mono?: boolean; weight?: number } = {}): number {
+  const { mono = false, weight = 400 } = look;
   const widthOf = (character: string) => {
     if (FULL_WIDTH.test(character)) return 1;
     return mono ? WIDTH_IN_MONO : widthInInter(character);
@@ -30,15 +31,14 @@ export function textWidth(text: string, size: number, mono = false, weight = 400
   return [...text].reduce((width, character) => width + widthOf(character), 0) * size * wider;
 }
 
-/** The size a text is written at to fit a width: `size`, or as much smaller as it takes. `look` is the `mono`
-    and `weight` its label has. */
+/** The size a text is written at to fit a width: `size`, or as much smaller as it takes. */
 export function sizeToFit(
   text: string,
   width: number,
   size: number,
   look: { mono?: boolean; weight?: number } = {},
 ): number {
-  return Math.min(size, Math.floor((size * width) / textWidth(text, size, look.mono, look.weight)));
+  return Math.min(size, Math.floor((size * width) / textWidth(text, size, look)));
 }
 
 /** How far below its middle a line of text's baseline is, in sizes. */

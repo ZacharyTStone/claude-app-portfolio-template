@@ -117,9 +117,13 @@ test("A shape that's placed is drawn around (0, 0), in a group moved to its poin
 test("Bold text is counted wider than regular, and text is made smaller only to fit", () => {
   const words = "A line of some words";
   const regular = textWidth(words, 40);
-  assert.ok(textWidth(words, 40, false, 600) > regular, "semibold is wider");
-  assert.equal(textWidth(words, 40, false, 500), regular, "medium is counted as regular");
-  assert.equal(textWidth(words, 40, true, 600), textWidth(words, 40, true), "a monospaced font's bold is no wider");
+  assert.ok(textWidth(words, 40, { weight: 600 }) > regular, "semibold is wider");
+  assert.equal(textWidth(words, 40, { weight: 500 }), regular, "medium is counted as regular");
+  assert.equal(
+    textWidth(words, 40, { mono: true, weight: 600 }),
+    textWidth(words, 40, { mono: true }),
+    "a monospaced font's bold is no wider",
+  );
   assert.equal(sizeToFit(words, regular + 1, 40), 40, "it fits as it is");
   const smaller = sizeToFit(words, regular / 2, 40);
   assert.equal(smaller, 20);
@@ -165,11 +169,15 @@ test("Movement along a path eases, unless it's asked to keep one speed", () => {
   assert.equal(eased.calcMode, "spline");
   assert.equal(eased.keyTimes, "0;0.2;0.4;1");
   assert.equal(eased.keyPoints, "0;0;1;1");
-  const even = attributesOf(loop.along("M0 0 L10 0", 2, 4, false, "even"));
+  const even = attributesOf(loop.along("M0 0 L10 0", 2, 4, { pace: "even" }));
   assert.equal(even.calcMode, "linear");
   assert.equal(even.keySplines, undefined);
   assert.equal(even.keyTimes, eased.keyTimes);
-  assert.equal(attributesOf(loop.along("M0 0 L10 0", 2, 4, true, "even")).keyPoints, "1;1;0;0", "and back");
+  assert.equal(
+    attributesOf(loop.along("M0 0 L10 0", 2, 4, { back: true, pace: "even" })).keyPoints,
+    "1;1;0;0",
+    "and back",
+  );
 });
 
 test("What's carried along a path is there only while it's carried", () => {
