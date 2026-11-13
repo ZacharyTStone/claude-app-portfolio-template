@@ -1,6 +1,7 @@
 /* What a visitor does in more than one file of checks. */
 import type { Locator, Page } from "@playwright/test";
 import { CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
+import { NEW_TAB, OPEN_CARD } from "./parts.ts";
 import { tabIdOf } from "./site.ts";
 
 /** A new visit to `url`: a fresh page load, but not a refresh, which ends
@@ -37,4 +38,19 @@ export async function pickFirstTab(page: Page): Promise<string> {
   const tabId = tabIdOf(await choice.getAttribute("href"));
   await choice.click();
   return tabId;
+}
+
+/** Types a question into a tab's composer, and sends it. */
+export async function askIn(page: Page, tabId: string, question: string): Promise<void> {
+  await page.locator(`#${tabId} ${CLASS.composer}`).click();
+  await page.keyboard.type(question);
+  await page.keyboard.press("Enter");
+}
+
+/** Opens a new chat from the sidebar, and asks `question` in its card. */
+export async function askInNewChat(page: Page, question: string): Promise<void> {
+  await page.locator(NEW_TAB).click();
+  await page.locator(OPEN_CARD).waitFor();
+  await page.keyboard.type(question);
+  await page.keyboard.press("Enter");
 }

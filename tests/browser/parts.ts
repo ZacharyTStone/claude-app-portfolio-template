@@ -10,6 +10,9 @@ import {
 } from "../../src/contracts/page-selectors.ts";
 import type { Site } from "./site.ts";
 
+/** "New tab", in the sidebar. */
+export const NEW_TAB = `${CLASS.nav} ${CLASS.newTab}`;
+
 /** The chat that's open. */
 export const OPEN_CHAT = `${CLASS.tab}${ATTRIBUTE.chat}:target`;
 
