@@ -14,10 +14,10 @@
    for something a site doesn't have (Ask, personal answers, another
    language) is skipped, and says so. Needs Playwright's Chromium
    (`npx playwright install chromium`); nothing else. */
+import { join } from "node:path";
 import { chromium } from "playwright";
 import config from "../../site.config.ts";
-import { basePath } from "../../src/site/url.ts";
-import { ROOT } from "../../src/site/constants.ts";
+import { OUTPUT, ROOT } from "../../src/site/constants.ts";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";
 import figures from "./checks/figures.ts";
@@ -41,7 +41,7 @@ const WAIT_LIMIT_MS = 10_000;
 const CHECKS_FOLDER = "/tests/browser/";
 const THIS_FILE = "/tests/browser/run.ts";
 
-const server = await serve({ base: basePath(config.url) });
+const server = await serve(config, join(ROOT, OUTPUT));
 const browser = await chromium.launch();
 const site = await readSite(browser, server.home);
 
