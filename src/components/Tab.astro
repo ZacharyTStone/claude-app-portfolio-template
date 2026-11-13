@@ -24,7 +24,7 @@ interface Props {
   pill?: Pill;
 }
 const { page, id, title, pill } = Astro.props;
-const { strings } = page.lang;
+const { strings } = page.language;
 ---
 
 <article class={PAGE_CLASSES.tab} id={id} aria-labelledby={titleId(id)}>

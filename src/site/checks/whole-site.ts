@@ -69,7 +69,7 @@ export function checkLanguagesMatch(site: Site, problemUnless: ProblemUnless): v
   const { codes, main } = site;
   for (const code of codes.slice(1)) {
     problemUnless(
-      isEqual(outlineOf(site.lang(code)), outlineOf(site.lang(main))),
+      isEqual(outlineOf(site.language(code)), outlineOf(site.language(main))),
       `${code}: its threads, questions and home prompts don't match ${main}'s (same ids, as many questions, same order)`,
     );
   }
@@ -188,7 +188,7 @@ function viewableHrefs(language: Language): string[] {
 export function checkViewer(site: Site, problemUnless: ProblemUnless): void {
   const { viewer, url } = site.config;
   if (!viewer) return;
-  const hrefsOnTheSite = new Set(site.codes.flatMap((code) => viewableHrefs(site.lang(code))));
+  const hrefsOnTheSite = new Set(site.codes.flatMap((code) => viewableHrefs(site.language(code))));
   // An address that isn't one is checkSiteAddress's to report.
   const ownOrigin = URL.canParse(url) ? new URL(url).origin : "";
   for (const [href, frameAddress] of Object.entries(viewer)) {
@@ -209,7 +209,7 @@ export function checkViewer(site: Site, problemUnless: ProblemUnless): void {
     MAX_TOPICS topics or fewer. The main language's count is every
     language's (checkLanguagesMatch). */
 export function noteManyTopics(site: Site, notes: string[]): void {
-  const topicCount = site.lang(site.main).questions.topics.length;
+  const topicCount = site.language(site.main).questions.topics.length;
   if (topicCount > MAX_TOPICS) {
     notes.push(
       `the question card has ${topicCount} topics. ${MAX_TOPICS} or fewer read better, on a phone above all: group the rest under one topic with "ask" and "choices"`,

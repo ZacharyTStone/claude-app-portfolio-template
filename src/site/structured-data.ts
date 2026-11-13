@@ -12,7 +12,7 @@ const PERSON_FRAGMENT = "#person";
     page's language, and what the config's `person` and `links` say. The
     Person has one id on every page, so search engines read the languages'
     pages as being about one person. */
-export function structuredData({ site, code, lang: language }: Page): string {
+export function structuredData({ site, code, language }: Page): string {
   const { config, codes } = site;
   const person = config.person ?? {};
   const nameInThisLanguage = language.person.name;
@@ -20,11 +20,11 @@ export function structuredData({ site, code, lang: language }: Page): string {
   const data = {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": site.address(`/${PERSON_FRAGMENT}`),
+    "@id": site.fileUrl(`/${PERSON_FRAGMENT}`),
     name: nameInThisLanguage,
     ...(nameInThisLanguage !== config.name ? { alternateName: config.name } : {}),
-    url: site.url(code),
-    ...(person.image ? { image: site.address(person.image) } : {}),
+    url: site.pageUrl(code),
+    ...(person.image ? { image: site.fileUrl(person.image) } : {}),
     jobTitle: language.person.jobTitle,
     ...(person.worksFor ? { worksFor: { "@type": "Organization", name: person.worksFor } } : {}),
     ...(person.alumniOf ? { alumniOf: { "@type": "CollegeOrUniversity", name: person.alumniOf } } : {}),

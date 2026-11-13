@@ -790,14 +790,14 @@ test("A site under a path links to everything under it, and one at the root from
   assert.equal(siteUnderPath.link("/assets/og.png"), "/portfolio/assets/og.png");
   assert.equal(siteUnderPath.link("#about"), "#about");
   assert.equal(siteUnderPath.link("https://example.com/"), "https://example.com/");
-  assert.equal(siteUnderPath.address("/assets/og.png"), "https://example.github.io/portfolio/assets/og.png");
-  assert.equal(siteUnderPath.path("en"), "/portfolio/");
-  assert.equal(siteUnderPath.path("fr"), "/portfolio/fr/");
-  assert.equal(siteUnderPath.url("fr"), "https://example.github.io/portfolio/fr/");
+  assert.equal(siteUnderPath.fileUrl("/assets/og.png"), "https://example.github.io/portfolio/assets/og.png");
+  assert.equal(siteUnderPath.pagePath("en"), "/portfolio/");
+  assert.equal(siteUnderPath.pagePath("fr"), "/portfolio/fr/");
+  assert.equal(siteUnderPath.pageUrl("fr"), "https://example.github.io/portfolio/fr/");
   const siteAtRoot = makeSite(sampleConfig());
   assert.equal(siteAtRoot.link("/assets/og.png"), "/assets/og.png");
-  assert.equal(siteAtRoot.path("fr"), "/fr/");
-  assert.equal(siteAtRoot.url("en"), "https://example.com/");
+  assert.equal(siteAtRoot.pagePath("fr"), "/fr/");
+  assert.equal(siteAtRoot.pageUrl("en"), "https://example.com/");
 });
 
 test("Ask's questions go where wrangler.jsonc runs the Worker first", () => {

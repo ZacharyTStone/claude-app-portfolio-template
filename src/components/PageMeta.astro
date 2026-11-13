@@ -11,11 +11,11 @@ interface Props {
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code: pageLanguage, lang } = page;
+const { site, code: pageLanguage, language } = page;
 const { config, codes: languageCodes, main: mainLanguage } = site;
-const { meta } = lang;
-const pageUrl = site.url(pageLanguage);
-const socialImageUrl = site.address(config.social.image);
+const { meta } = language;
+const pageUrl = site.pageUrl(pageLanguage);
+const socialImageUrl = site.fileUrl(config.social.image);
 const otherLanguages = languageCodes.filter((code) => code !== pageLanguage);
 ---
 
@@ -23,17 +23,17 @@ const otherLanguages = languageCodes.filter((code) => code !== pageLanguage);
 <meta name="description" content={meta.description} />
 <link rel="canonical" href={pageUrl} />
 {languageCodes.map((code) => (
-  <link rel="alternate" hreflang={code} href={site.url(code)} />
+  <link rel="alternate" hreflang={code} href={site.pageUrl(code)} />
 ))}
-<link rel="alternate" hreflang="x-default" href={site.url(mainLanguage)} />
+<link rel="alternate" hreflang="x-default" href={site.pageUrl(mainLanguage)} />
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content={meta.title} />
 <meta property="og:description" content={meta.description} />
 <meta property="og:url" content={pageUrl} />
-<meta property="og:locale" content={lang.locale} />
+<meta property="og:locale" content={language.locale} />
 {otherLanguages.map((code) => (
-  <meta property="og:locale:alternate" content={site.lang(code).locale} />
+  <meta property="og:locale:alternate" content={site.language(code).locale} />
 ))}
 <meta property="og:image" content={socialImageUrl} />
 <meta property="og:image:width" content={String(config.social.width)} />

@@ -19,7 +19,7 @@ interface Props {
   thread: Thread;
 }
 const { page, thread } = Astro.props;
-const { strings } = page.lang;
+const { strings } = page.language;
 // "Read {file}": the words around the file's name.
 const [statusBeforeFile, statusAfterFile = ""] = strings.status.split("{file}");
 const lastMessageIndex = thread.messages.length - 1;

@@ -19,9 +19,18 @@ interface Props {
   /** The language's page this is part of. */
   page: Page;
 }
-const { site, code: pageLanguage, lang } = Astro.props.page;
+const { site, code: pageLanguage, language } = Astro.props.page;
 const { email, github } = site.config.links;
-const { initial, name, sub, label: menuLabel, clock, language: languageRowLabel = "", upgrade, logout } = lang.account;
+const {
+  initial,
+  name,
+  sub,
+  label: menuLabel,
+  clock,
+  language: languageRowLabel = "",
+  upgrade,
+  logout,
+} = language.account;
 // The first of the site's other languages, if it has one: the menu's
 // language row opens its page.
 const otherLanguage = site.codes.find((code) => code !== pageLanguage);
@@ -77,13 +86,13 @@ const goodbyeWording = {
         <a
           class="ic i-globe"
           role="menuitem"
-          href={site.path(otherLanguage)}
+          href={site.pagePath(otherLanguage)}
           hreflang={otherLanguage}
           {...flag(DATA.langLink)}
         >
           {languageRowLabel}
           <span class={PAGE_CLASSES.rowMeta} lang={otherLanguage}>
-            {site.lang(otherLanguage).name}
+            {site.language(otherLanguage).name}
           </span>
         </a>
         <hr />

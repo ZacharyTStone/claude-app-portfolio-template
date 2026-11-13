@@ -12,7 +12,7 @@ import type { Site } from "../site.ts";
 export function askIndexJson(site: Site): string {
   const index: AskIndex = {
     name: site.config.name,
-    names: Object.fromEntries(site.codes.map((code) => [code, site.lang(code).person.name])),
+    names: Object.fromEntries(site.codes.map((code) => [code, site.language(code).person.name])),
     role: site.config.ask?.role ?? "",
     main: site.main,
     answers: Object.fromEntries(site.codes.map((code) => [code, plainAnswers(site, code)])),

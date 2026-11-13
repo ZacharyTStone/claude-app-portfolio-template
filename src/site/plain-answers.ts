@@ -12,7 +12,7 @@ import type { Site } from "./site.ts";
 /** Every answer in one language, as plain text: each thread's, in order,
     then the personal ones. */
 export function plainAnswers(site: Site, code: string): AskAnswer[] {
-  const { threads, questions } = site.lang(code);
+  const { threads, questions } = site.language(code);
   const threadAnswers = threads.flatMap((thread) =>
     thread.messages.map((message, messageIndex): AskAnswer => ({
       id: threadAnswerId(thread.id, messageIndex + 1),
