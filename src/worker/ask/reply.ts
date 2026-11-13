@@ -6,7 +6,8 @@ import { isCitedLines, type AskAnswer } from "../../contracts/ask.ts";
 import { ownerNames, type Choices } from "./answers.ts";
 import { joinLines, linesToWriteFrom, type Line } from "./lines.ts";
 import { quote, quoteSentences, type Quoted } from "./quote.ts";
-import { write, writesIn, type Writing, type Written } from "./write.ts";
+import type { Writing } from "./prompts/reply.ts";
+import { write, writesIn, type Written } from "./write.ts";
 
 /** How making a reply went, for the log. */
 type Made = {
@@ -45,14 +46,12 @@ export type Asked = {
     where they're sentences. */
 export async function replyFrom(ai: Ai, model: string, asked: Asked, choices: Choices): Promise<Reply> {
   const { answer, lineNumbers } = asked;
-  const lines = writesIn(choices.lang) ? linesToWriteFrom(answer.text, lineNumbers) : null;
-  if (lines === null) {
-    // No reply is written (the picker named no lines, or the page is in a
-    // language the check can't read): any line named is quoted, as it
-    // always was.
-    return quotedOr({}, quote(answer.text, lineNumbers));
-  }
-  const written = await write(ai, model, writingFrom(asked, lines, choices));
+  const { lang } = choices;
+  const lines = writesIn(lang) ? linesToWriteFrom(answer.text, lineNumbers) : null;
+  // No reply is written when the picker named no lines, or the page is in a
+  // language the check can't read: any line named is quoted.
+  if (lines === null || !writesIn(lang)) return quotedOr({}, quote(answer.text, lineNumbers));
+  const written = await write(ai, model, writingFrom(asked, lines, { ...choices, lang }));
   // A card's row or a figure is what a reply is written from, and no reply
   // itself: with none written, the page shows the answer instead.
   const quoted = quoteSentences(answer.text, lineNumbers);
@@ -64,8 +63,9 @@ export async function replyFrom(ai: Ai, model: string, asked: Asked, choices: Ch
 const quotedOr = (made: Pick<Made, "written">, quoted: Quoted): Reply =>
   quoted?.outcome === "sent" ? { ...made, quoted, text: quoted.reply } : { ...made, quoted };
 
-// What a reply to the question is written for and from: lines of the answer.
-function writingFrom({ question, answer }: Asked, lines: Line[], choices: Choices): Writing {
+type ChoicesIn<Lang> = Choices & { lang: Lang };
+
+function writingFrom({ question, answer }: Asked, lines: Line[], choices: ChoicesIn<Writing["lang"]>): Writing {
   const { name, role, lang } = choices;
   const { title, q } = answer;
   return { question, lang, lines: joinLines(lines), title, q, name, role, owner: ownerNames(choices) };

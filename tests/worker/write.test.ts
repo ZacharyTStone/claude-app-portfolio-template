@@ -6,14 +6,8 @@ import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
-import {
-  MAX_WRITE_TOKENS,
-  MAX_WRITE_TRIES,
-  MAX_WRITTEN_LENGTH,
-  write,
-  writesIn,
-  type Writing,
-} from "../../src/worker/ask/write.ts";
+import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, write, writesIn } from "../../src/worker/ask/write.ts";
+import type { Writing } from "../../src/worker/ask/prompts/reply.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
 import { writer, wrote } from "./fixtures.ts";
 import { eachRow } from "./rows.ts";
@@ -56,7 +50,7 @@ test("a reply written from the lines is the reply: the model has the lines, and 
 
 test("a Japanese page's reply is asked for in Japanese; a language the check can't read, not at all", async () => {
   const { ai, sent } = writer(wrote("はい、Svelteを使っています。"));
-  const writing = { ...WRITING, lang: "ja", question: "Svelteは使えますか？" };
+  const writing: Writing = { ...WRITING, lang: "ja", question: "Svelteは使えますか？" };
   assert.equal((await write(ai, DEFAULT_MODEL, writing)).reply, "はい、Svelteを使っています。");
   assert.ok(sent[0]?.messages[0]?.content.includes("Japanese"));
   assert.ok(sent[0]?.messages[0]?.content.includes("「はい」 or 「いいえ」"));

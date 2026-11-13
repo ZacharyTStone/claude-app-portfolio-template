@@ -6,7 +6,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
-import { MAX_TO_OWNER_TOKENS, rewriteToOwner, saysToOwnerIn, type Rewriting } from "../../src/worker/ask/to-owner.ts";
+import { MAX_TO_OWNER_TOKENS, rewriteToOwner, saysToOwnerIn } from "../../src/worker/ask/to-owner.ts";
+import type { Rewriting } from "../../src/worker/ask/prompts/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";

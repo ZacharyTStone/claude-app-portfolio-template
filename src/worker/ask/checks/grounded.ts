@@ -20,11 +20,16 @@ import { withPlainCharacters } from "../text/words.ts";
 import { claimsIn, type Claim } from "./claims.ts";
 import { hasAddress, hasNumber, hasWord, vocabularyOf, type Vocabulary } from "./vocabulary.ts";
 
-/** The languages a reply can be written, and checked, in. */
-export const CHECKABLE_LANGUAGES: readonly string[] = ["en", "ja"];
+/** How the check reads each language a reply can be written in. Japanese
+    has no capitals to tell a name by. */
+const READS = {
+  en: { isEveryLatinWordAName: false },
+  ja: { isEveryLatinWordAName: true },
+} as const;
 
-/** Of those, the ones written without capitals. */
-const LANGUAGES_WITHOUT_CAPITALS: readonly string[] = ["ja"];
+export type CheckedLanguage = keyof typeof READS;
+
+export const isCheckedLanguage = (lang: string): lang is CheckedLanguage => Object.hasOwn(READS, lang);
 
 /** What a reply's names, numbers and addresses may come from. What the
     visitor typed is never one of them. */
@@ -55,11 +60,11 @@ function isSourced(claim: Claim, vocabulary: Vocabulary): boolean {
 
 /** `written`, as it may be shown: every name, number and address in it has
     to be in `sources`. `question` is what the visitor typed, and `lang` the
-    language the reply is in (one of CHECKABLE_LANGUAGES). */
-export function checkReply(written: string, sources: Sources, question: string, lang: string): CheckedReply {
+    language the reply is in. */
+export function checkReply(written: string, sources: Sources, question: string, lang: CheckedLanguage): CheckedReply {
   const vocabulary = vocabularyOf(sources.lines, sources.title, sources.q, sources.owner);
   const claims = claimsIn(withPlainCharacters(written), {
-    isEveryLatinWordAName: LANGUAGES_WITHOUT_CAPITALS.includes(lang),
+    ...READS[lang],
     namedInQuestion: new Set(namedIn(question, sources.owner)),
   });
   const unsourced = [...new Set(claims.filter((claim) => !isSourced(claim, vocabulary)).map((claim) => claim.text))];
