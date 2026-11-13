@@ -1,33 +1,30 @@
-/* How Pocket Notes saves a note with no connection: a worked example of a
-   picture that moves (AGENTS.md, "Adding a picture that moves"). Copy it,
-   rename it, and draw your own.
+/* A worked example of a picture that moves: copy it, rename it, and draw your own.
 
-   Moving: three lines are typed into a note. Each is saved in the browser
-   the moment it's typed (a dot runs to IndexedDB), and a change joins the
-   sync queue, where it waits at a gate marked "offline". The connection
-   comes back, the gate opens, and the changes go to the server one at a
-   time. Then a new note starts.
+   Moving: three lines are typed into a note. Each is saved in the browser as it's typed (a dot runs to
+   IndexedDB), and a change joins the sync queue, where it waits at a gate marked "offline". The connection
+   comes back, the gate opens, and the changes go to the server one at a time. Then a new note starts.
 
-   Still: the note, IndexedDB, one change waiting at the gate, the server.
-   That's what the page shows, dimmed, until a visitor presses Play (the
-   drawing's `plays` says for how long it then moves).
-
-   `npm run diagrams saving-a-note` writes its files into public/assets;
-   site.config.ts shows them with an `image`. */
+   Still: the note, IndexedDB, one change waiting at the gate, the server. */
 import {
+  aroundOrigin,
   arrowhead,
+  bar,
   box,
+  centreOf,
   COLOR,
   group,
+  justBefore,
   label,
   line,
   loopOf,
   moving,
   onlyWhenMoving,
+  rightOf,
+  type Diagram,
   type Frame,
-  type Point,
+  type Loop,
+  type Shape,
 } from "../scripts/diagram.ts";
-import type { Diagram } from "../scripts/diagrams.ts";
 
 type Words = {
   note: string;
@@ -40,193 +37,230 @@ type Words = {
   online: string;
 };
 
-// ---- When things happen: seconds into the loop ---------------------------------
-
 const LOOP_SECONDS = 13;
-/** Each line of the note: when it starts to be typed, and how long it is. */
+/** Each line of the note: when it starts to be typed (seconds into the loop), and how long it's drawn. */
 const TYPED_LINES = [
   { typedFrom: 0.6, length: 290 },
   { typedFrom: 2.2, length: 240 },
   { typedFrom: 3.8, length: 170 },
 ];
-/** How long a line takes to type, and its save takes to reach the browser's store. */
-const TYPING = 1;
-const SAVING = 0.5;
 /** When the connection comes back, and when the next note starts. */
-const BACK_ONLINE = 7;
-const NEXT_NOTE = 11.6;
-/** How long a change takes to move up one place in the queue, and to reach the server. */
-const MOVING_UP = 0.4;
-const SENDING = 0.8;
-
-// ---- Where things are ----------------------------------------------------------
+const AT = { backOnline: 7, nextNote: 11.6 } as const;
+/** How long each thing takes: a line to type, its save to reach the browser's store, the gate to open, a change
+    to join the queue, to move up one place in it, and to reach the server. */
+const TAKES = { typing: 1, saving: 0.5, gateToOpen: 0.3, joining: 0.6, movingUp: 0.4, sending: 0.8 } as const;
+/** How the old note makes way for the next, in seconds after `AT.nextNote`: it fades, its lines empty while
+    it's out of sight, the gate shuts again, and the new note fades in. */
+const MAKING_WAY = {
+  noteFaded: 0.5,
+  linesEmptyFrom: 0.6,
+  linesEmptyBy: 0.7,
+  noteBackFrom: 0.8,
+  noteBackBy: 1,
+  gateShutFrom: 0.4,
+  gateShutBy: 0.9,
+  offlineAgain: 0.6,
+} as const;
+/** How fast a change comes into sight as it joins the queue, and goes as it reaches the server. */
+const CHANGE_FADE = 0.15;
+/** How brightly a box lights as something reaches it. */
+const LIT = { peak: 0.35 } as const;
 
 const WIDTH = 1600;
 const HEIGHT = 540;
 /** The height everything travels along. */
 const ROAD_Y = 270;
 const NOTE = { x: 60, y: 110, width: 380, height: 320 };
+const NOTE_TEXT = { inset: 34, titleBaseline: 58, firstLine: 96, linePitch: 62, lineHeight: 28 } as const;
 const STORE = { x: 560, y: 180, width: 330, height: 180 };
 const SERVER = { x: 1240, y: 180, width: 300, height: 180 };
-/** Where the queue's gate stands, and where changes wait in front of it,
-    the first in line nearest the gate. */
-const GATE_X = 1140;
-const QUEUE_SLOTS = [1080, 1030, 980];
-/** A change, drawn as a small square. */
-const CHANGE_SIZE = 36;
+/** An arrow's line stops this far short of the box it points at, and its head's tip this far. */
+const ARROW = { lineStops: 20, tipStops: 4 } as const;
+/** The queue's gate, and where changes wait in front of it: the first in line nearest the gate, each of the
+    others a step further back. */
+const GATE = { x: 1140, reach: 62, labelAbove: 24 } as const;
+const QUEUE = { firstInLine: 1080, step: 50, labelBelow: 130, noteBelow: 178 } as const;
+/** A change, drawn as a small square: where it comes out of the store, and how far into the server it goes. */
+const CHANGE = { size: 36, radius: 9, leavesStore: 24, intoServer: 40 } as const;
+
+const savedAt = (typed: { typedFrom: number }): number => typed.typedFrom + TAKES.typing + TAKES.saving;
+/** When the change that's `place` in line (from 0) sets off for the server: each leaves as the one before it
+    arrives. */
+const sentAt = (place: number): number => AT.backOnline + TAKES.gateToOpen + place * TAKES.sending;
+const waitingAt = (place: number): number => QUEUE.firstInLine - place * QUEUE.step;
+/** A point on the road, as a transform writes it. */
+const onTheRoad = (x: number): string => `${x} ${ROAD_Y}`;
+const alongTheRoad = (fromX: number, toX: number): string => `M${onTheRoad(fromX)} L${onTheRoad(toX)}`;
 
 function draw(words: Words) {
   const loop = loopOf(LOOP_SECONDS);
-  /** When each line's save reaches the store: a change joins the queue then. */
-  const savedAt = TYPED_LINES.map((typed) => typed.typedFrom + TYPING + SAVING);
+  return {
+    width: WIDTH,
+    height: HEIGHT,
+    plays: AT.nextNote,
+    // Back to front: the queue's line is under the changes that ride it.
+    shapes: [note(loop, words), queue(loop, words), store(loop, words), server(loop, words), ...changes(loop)],
+  };
+}
 
-  // ---- The note: lines typed one after another -----------------------------
-  const noteLines = TYPED_LINES.map(({ typedFrom, length }, i) =>
+function note(loop: Loop, words: Words): Shape {
+  const left = NOTE.x + NOTE_TEXT.inset;
+  const lines = TYPED_LINES.map((typed, i) =>
     moving(
-      box(
-        { x: NOTE.x + 34, y: NOTE.y + 96 + i * 62, width: length, height: 28 },
-        { radius: 14, fill: COLOR.mark, line: "none" },
+      bar(
+        { x: left, y: NOTE.y + NOTE_TEXT.firstLine + i * NOTE_TEXT.linePitch, width: typed.length },
+        { height: NOTE_TEXT.lineHeight },
       ),
-      // It grows as it's typed, and is empty again once the next note starts.
-      loop.track(
-        "width",
-        [
-          [typedFrom, 0],
-          [typedFrom + TYPING, length],
-          [NEXT_NOTE + 0.6, length],
-          [NEXT_NOTE + 0.7, 0],
-        ],
-        "even",
-      ),
-      // The old note fades away before its lines empty, so nothing snaps.
-      loop.track("opacity", [
-        [NEXT_NOTE, 1],
-        [NEXT_NOTE + 0.5, 0],
-        [NEXT_NOTE + 0.8, 0],
-        [NEXT_NOTE + 1, 1],
-      ]),
+      growingAsTyped(loop, typed),
+      fadingBetweenNotes(loop),
     ),
   );
-  const note = group(
+  return group(
     {},
     box(NOTE),
-    label(words.note, { x: NOTE.x + 34, y: NOTE.y + 58 }, { size: 34, color: COLOR.quiet, anchor: "start" }),
-    ...noteLines,
-  );
-
-  // ---- The browser's store: every line is saved as it's typed ---------------
-  const toStore = `M${NOTE.x + NOTE.width} ${ROAD_Y} L${STORE.x - 20} ${ROAD_Y}`;
-  const store = group(
-    {},
-    line(toStore, { color: COLOR.line }),
-    arrowhead({ x: STORE.x - 4, y: ROAD_Y }, 0, COLOR.line),
-    box(STORE),
-    // It lights each time something is saved in it.
-    onlyWhenMoving(
-      moving(box(STORE, { fill: COLOR.accent, line: "none", opacity: 0 }), loop.flash(savedAt, { peak: 0.35 })),
+    label(
+      words.note,
+      { x: left, y: NOTE.y + NOTE_TEXT.titleBaseline },
+      { size: 34, color: COLOR.quiet, anchor: "start" },
     ),
-    label(words.store, { x: STORE.x + STORE.width / 2, y: STORE.y + 86 }, { size: 44, weight: 600 }),
-    label(words.storeNote, { x: STORE.x + STORE.width / 2, y: STORE.y + 136 }, { size: 34, color: COLOR.quiet }),
-    ...TYPED_LINES.map(({ typedFrom }) => loop.traveller(toStore, typedFrom + TYPING, typedFrom + TYPING + SAVING)),
+    ...lines,
   );
+}
 
-  // ---- The queue: changes wait at the gate, then go one at a time -----------
-  const queueMiddle = (STORE.x + STORE.width + GATE_X) / 2;
-  /** When the change that's `place` in line (from 0) sets off for the
-      server: each leaves as the one before it arrives. */
-  const sentAt = (place: number) => BACK_ONLINE + 0.3 + place * SENDING;
-  const arrivals = TYPED_LINES.map((_, place) => sentAt(place) + SENDING);
+function growingAsTyped(loop: Loop, { typedFrom, length }: { typedFrom: number; length: number }): Shape {
+  return loop.track(
+    "width",
+    [
+      [typedFrom, 0],
+      [typedFrom + TAKES.typing, length],
+      [AT.nextNote + MAKING_WAY.linesEmptyFrom, length],
+      [AT.nextNote + MAKING_WAY.linesEmptyBy, 0],
+    ],
+    "even",
+  );
+}
 
-  const changes = TYPED_LINES.map((_, place) => {
-    const joins = savedAt[place]!;
-    const at = (x: number) => `${x} ${ROAD_Y}`;
-    // Out of the store to its place in line; up a place each time the one
-    // ahead leaves; then through the gate to the server.
-    const journey: Frame[] = [
-      [joins, at(STORE.x + STORE.width + 24)],
-      [joins + 0.6, at(QUEUE_SLOTS[place]!)],
-    ];
-    for (let ahead = place; ahead > 0; ahead--) {
-      const movesUpAt = sentAt(place - ahead);
-      journey.push([movesUpAt, at(QUEUE_SLOTS[ahead]!)], [movesUpAt + MOVING_UP, at(QUEUE_SLOTS[ahead - 1]!)]);
-    }
-    journey.push([sentAt(place), at(QUEUE_SLOTS[0]!)], [sentAt(place) + SENDING, at(SERVER.x + 40)]);
+/** The old note is out of sight while its lines empty, so nothing snaps. */
+function fadingBetweenNotes(loop: Loop): Shape {
+  return loop.track("opacity", [
+    [AT.nextNote, 1],
+    [AT.nextNote + MAKING_WAY.noteFaded, 0],
+    [AT.nextNote + MAKING_WAY.noteBackFrom, 0],
+    [AT.nextNote + MAKING_WAY.noteBackBy, 1],
+  ]);
+}
 
+function store(loop: Loop, words: Words): Shape {
+  const middle = centreOf(STORE).x;
+  const fromNote = alongTheRoad(rightOf(NOTE), STORE.x - ARROW.lineStops);
+  const saves = TYPED_LINES.map((typed) => typed.typedFrom + TAKES.typing);
+  return group(
+    {},
+    line(fromNote, { color: COLOR.line }),
+    arrowhead({ x: STORE.x - ARROW.tipStops, y: ROAD_Y }, 0, COLOR.line),
+    box(STORE),
+    loop.light(box(STORE, { fill: COLOR.accent, line: "none" }), TYPED_LINES.map(savedAt), LIT),
+    label(words.store, { x: middle, y: STORE.y + 86 }, { size: 44, weight: 600 }),
+    label(words.storeNote, { x: middle, y: STORE.y + 136 }, { size: 34, color: COLOR.quiet }),
+    ...saves.map((leaves) => loop.traveller(fromNote, leaves, leaves + TAKES.saving)),
+  );
+}
+
+function queue(loop: Loop, words: Words): Shape {
+  const middle = (rightOf(STORE) + GATE.x) / 2;
+  const sign = (text: string) =>
+    label(
+      text,
+      { x: GATE.x, y: ROAD_Y - GATE.reach - GATE.labelAbove },
+      { size: 34, color: text === words.online ? COLOR.accent : COLOR.quiet },
+    );
+  return group(
+    {},
+    line(alongTheRoad(rightOf(STORE), SERVER.x - ARROW.lineStops), { color: COLOR.line }),
+    arrowhead({ x: SERVER.x - ARROW.tipStops, y: ROAD_Y }, 0, COLOR.line),
+    gate(loop),
+    loop.changing(
+      words.offline,
+      [
+        [AT.backOnline, words.online],
+        [AT.nextNote + MAKING_WAY.offlineAgain, words.offline],
+      ],
+      sign,
+    ),
+    label(words.queue, { x: middle, y: ROAD_Y + QUEUE.labelBelow }, { size: 40, weight: 600 }),
+    label(words.queueNote, { x: middle, y: ROAD_Y + QUEUE.noteBelow }, { size: 32, color: COLOR.quiet }),
+  );
+}
+
+/** Shut while there's no connection. */
+function gate(loop: Loop): Shape {
+  return moving(
+    line(`M${GATE.x} ${ROAD_Y - GATE.reach} L${GATE.x} ${ROAD_Y + GATE.reach}`, {
+      color: COLOR.quiet,
+      width: 6,
+      dashes: "2 14",
+    }),
+    loop.track("opacity", [
+      [AT.backOnline, 1],
+      [AT.backOnline + 0.4, 0],
+      [AT.nextNote + MAKING_WAY.gateShutFrom, 0],
+      [AT.nextNote + MAKING_WAY.gateShutBy, 1],
+    ]),
+  );
+}
+
+function server(loop: Loop, words: Words): Shape {
+  const arrivals = TYPED_LINES.map((_, place) => sentAt(place) + TAKES.sending);
+  return group(
+    {},
+    box(SERVER),
+    loop.light(box(SERVER, { fill: COLOR.accent, line: "none" }), arrivals, LIT),
+    label(words.server, { x: centreOf(SERVER).x, y: SERVER.y + 106 }, { size: 44, weight: 600 }),
+  );
+}
+
+/** A change for each line: it joins the queue as the line is saved. The still picture has the first, waiting
+    at the gate. */
+function changes(loop: Loop): Shape[] {
+  return TYPED_LINES.map((typed, place) => {
     const isTheOneAtRest = place === 0;
+    const joins = savedAt(typed);
+    const arrives = sentAt(place) + TAKES.sending;
     const change = moving(
       group(
-        { transform: `translate(${at(QUEUE_SLOTS[0]!)})`, opacity: isTheOneAtRest ? undefined : 0 },
-        box(
-          { x: -CHANGE_SIZE / 2, y: -CHANGE_SIZE / 2, width: CHANGE_SIZE, height: CHANGE_SIZE },
-          { radius: 9, fill: COLOR.accent, line: "none" },
-        ),
+        { transform: `translate(${onTheRoad(waitingAt(0))})`, opacity: isTheOneAtRest ? undefined : 0 },
+        box(aroundOrigin(CHANGE.size, CHANGE.size), { radius: CHANGE.radius, fill: COLOR.accent, line: "none" }),
       ),
-      loop.transform("translate", journey),
+      loop.transform("translate", journeyOf(place, joins)),
       loop.track(
         "opacity",
         [
-          [Math.max(0, joins - 0.001), 0],
-          [joins + 0.15, 1],
-          [sentAt(place) + SENDING - 0.15, 1],
-          [sentAt(place) + SENDING, 0],
+          [justBefore(joins), 0],
+          [joins + CHANGE_FADE, 1],
+          [arrives - CHANGE_FADE, 1],
+          [arrives, 0],
         ],
         "even",
       ),
     );
-    // The still picture has one change, waiting at the gate.
     return isTheOneAtRest ? change : onlyWhenMoving(change);
   });
+}
 
-  const gateTop: Point = { x: GATE_X, y: ROAD_Y - 62 };
-  const queue = group(
-    {},
-    line(`M${STORE.x + STORE.width} ${ROAD_Y} L${SERVER.x - 20} ${ROAD_Y}`, { color: COLOR.line }),
-    arrowhead({ x: SERVER.x - 4, y: ROAD_Y }, 0, COLOR.line),
-    // The gate is shut while there's no connection.
-    moving(
-      line(`M${GATE_X} ${gateTop.y} L${GATE_X} ${ROAD_Y + 62}`, { color: COLOR.quiet, width: 6, dashes: "2 14" }),
-      loop.track("opacity", [
-        [BACK_ONLINE, 1],
-        [BACK_ONLINE + 0.4, 0],
-        [NEXT_NOTE + 0.4, 0],
-        [NEXT_NOTE + 0.9, 1],
-      ]),
-    ),
-    loop.changing(
-      words.offline,
-      [
-        [BACK_ONLINE, words.online],
-        [NEXT_NOTE + 0.6, words.offline],
-      ],
-      (text) =>
-        label(
-          text,
-          { x: GATE_X, y: gateTop.y - 24 },
-          { size: 34, color: text === words.online ? COLOR.accent : COLOR.quiet },
-        ),
-    ),
-    label(words.queue, { x: queueMiddle, y: ROAD_Y + 130 }, { size: 40, weight: 600 }),
-    label(words.queueNote, { x: queueMiddle, y: ROAD_Y + 178 }, { size: 32, color: COLOR.quiet }),
-  );
-
-  // ---- The server: lights as each change arrives ----------------------------
-  const server = group(
-    {},
-    box(SERVER),
-    onlyWhenMoving(
-      moving(box(SERVER, { fill: COLOR.accent, line: "none", opacity: 0 }), loop.flash(arrivals, { peak: 0.35 })),
-    ),
-    label(words.server, { x: SERVER.x + SERVER.width / 2, y: SERVER.y + 106 }, { size: 44, weight: 600 }),
-  );
-
-  // Back to front: the queue's line is under the changes that ride it.
-  return {
-    width: WIDTH,
-    height: HEIGHT,
-    // A visitor plays it: until the note is saved and sent, and the next would start.
-    plays: NEXT_NOTE,
-    shapes: [note, queue, store, server, ...changes],
-  };
+/** Out of the store to its place in line; up a place each time the one ahead leaves; then through the gate to
+    the server. */
+function journeyOf(place: number, joins: number): Frame[] {
+  const movingUp = Array.from({ length: place }, (_, haveLeft): Frame[] => [
+    [sentAt(haveLeft), onTheRoad(waitingAt(place - haveLeft))],
+    [sentAt(haveLeft) + TAKES.movingUp, onTheRoad(waitingAt(place - haveLeft - 1))],
+  ]);
+  return [
+    [joins, onTheRoad(rightOf(STORE) + CHANGE.leavesStore)],
+    [joins + TAKES.joining, onTheRoad(waitingAt(place))],
+    ...movingUp.flat(),
+    [sentAt(place), onTheRoad(waitingAt(0))],
+    [sentAt(place) + TAKES.sending, onTheRoad(SERVER.x + CHANGE.intoServer)],
+  ];
 }
 
 export default {
