@@ -46,6 +46,7 @@ export const SHARED = [
   ".github/workflows/check.yml",
   ".github/dependabot.yml",
   "AGENTS.md",
+  "docs",
   "CLAUDE.md",
   ".editorconfig",
   ".vscode/extensions.json",
