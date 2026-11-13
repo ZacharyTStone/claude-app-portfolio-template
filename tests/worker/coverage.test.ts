@@ -4,10 +4,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { covers, namedIn } from "../../src/worker/ask/coverage.ts";
-import { NONE } from "../../src/worker/ask/prompts/wording.ts";
-import { UNADDRESSED, ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
-
-const logs = captureLogs();
 
 const OWNER = "Alex Example アレックス・イグザンプル";
 const SKILLS = {
@@ -111,20 +107,4 @@ test("a name with one slip of the keyboard inside it, or written as two words, i
     ["Does he know Svelte Native?", "Svelte / SvelteKit."],
   ];
   for (const [question, text] of not) assert.ok(!covers(answer(text), question, OWNER), `${question} ${text}`);
-});
-
-test("a pick that doesn't name what was asked is no pick, and the log says which it was", async () => {
-  logs.mock.resetCalls();
-  const { env } = stubs({ run: () => toolCall("skills.1", [1]) });
-  const response = await ask(env, { question: "Does Alex have experience with Vercel?", lang: "en" });
-  assert.deepEqual(await response.json(), { id: null });
-  const logged = lines(logs);
-  assert.ok(logged.includes(JSON.stringify({ ask: NONE, uncovered: "skills.1", ...UNADDRESSED })), logged.join("\n"));
-  assert.ok(!logged.some((line) => line.includes("Vercel")), "never the question");
-});
-
-test("a pick that names what was asked stands", async () => {
-  const { env } = stubs({ run: () => toolCall("skills.1") });
-  const response = await ask(env, { question: "Does Alex know Postgres?", lang: "en" });
-  assert.equal(((await response.json()) as { id: string | null }).id, "skills.1");
 });

@@ -86,6 +86,17 @@ test("forms Cloudflare doesn't send: an address is read as the address it is, an
   }
 });
 
+test("visitorAddress: IPv4 as it is, IPv6 as its /64, an IPv4 in IPv6 as the IPv4", () => {
+  const address = (ip: string) =>
+    visitorAddress(new Request("https://site.example/ask", { headers: { [VISITOR_ADDRESS_HEADER]: ip } }));
+  assert.equal(address("203.0.113.9"), "203.0.113.9");
+  assert.equal(address("2001:db8:1:2::1"), "2001:db8:1:2::/64");
+  assert.equal(address("::1"), "0:0:0:0::/64");
+  assert.equal(address("2001:db8::"), "2001:db8:0:0::/64");
+  assert.equal(address("::ffff:203.0.113.9"), "203.0.113.9");
+  assert.equal(address("not:an:address"), "not:an:address");
+});
+
 test("an address is hashed with the salt, to the first half of a SHA-256 in hex", async () => {
   const hash = await hashAddress("203.0.113.9", "a salt:");
   assert.match(hash, /^[0-9a-f]{32}$/);

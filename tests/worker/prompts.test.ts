@@ -122,7 +122,7 @@ function callAsText(title: string, { model, input }: Sent): string {
 // with a tool), Llama Guard, then each call for a line of text in the
 // order it was made.
 async function sentFor({ story, question, lang, index = INDEX, picks, writes, addresses }: Scenario): Promise<string> {
-  const { env } = stubs({ run: models(picks), writes, addresses, index });
+  const { env } = stubs({ run: models(picks), writes, rewrites: addresses, index });
   const sent = recordingCalls(env);
   await askJson(env, question, lang);
   const isLlamaGuard = ({ model }: Sent) => model === LLAMA_GUARD_MODEL;

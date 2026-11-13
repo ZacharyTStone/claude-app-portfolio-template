@@ -302,17 +302,17 @@ const QUESTION = ADDRESSING.question;
 
 test("a question with no answer comes back said to the owner, for the page's email and message", async () => {
   logs.mock.resetCalls();
-  const { env, addressCalls, writeCalls } = stubs({
+  const { env, rewriteCalls, writeCalls } = stubs({
     run: models(toolCall(NONE)),
-    addresses: [wrote(TO_OWNER)],
+    rewrites: [wrote(TO_OWNER)],
     vars: LOG_QUESTIONS,
   });
   assert.deepEqual(await askJson(env, QUESTION), { id: null, toOwner: TO_OWNER });
-  assert.equal(addressCalls.length, 1);
+  assert.equal(rewriteCalls.length, 1);
   assert.equal(writeCalls.length, 0, "there are no lines to write a reply from");
   // It's told whose site it is from /ask.json, and is sent the question.
-  assert.ok(addressCalls[0]?.input.messages[0]?.content.includes(INDEX.name));
-  assert.deepEqual(addressCalls[0]?.input.messages[1], { role: "user", content: QUESTION });
+  assert.ok(rewriteCalls[0]?.input.messages[0]?.content.includes(INDEX.name));
+  assert.deepEqual(rewriteCalls[0]?.input.messages[1], { role: "user", content: QUESTION });
   assert.deepEqual(
     lines(logs).map((line) => JSON.parse(line)),
     [{ ask: NONE, toOwner: "sent", question: QUESTION, rewrote: TO_OWNER }],
@@ -321,7 +321,7 @@ test("a question with no answer comes back said to the owner, for the page's ema
 
 test("so does one whose pick doesn't name what was asked", async () => {
   logs.mock.resetCalls();
-  const { env } = stubs({ run: models(toolCall("skills.1")), addresses: [wrote("Do you use Vercel?")] });
+  const { env } = stubs({ run: models(toolCall("skills.1")), rewrites: [wrote("Do you use Vercel?")] });
   assert.deepEqual(await askJson(env, "Does Alex use Vercel?"), { id: null, toOwner: "Do you use Vercel?" });
   assert.deepEqual(lines(logs), [JSON.stringify({ ask: NONE, uncovered: "skills.1", toOwner: "sent" })]);
 });
@@ -329,24 +329,24 @@ test("so does one whose pick doesn't name what was asked", async () => {
 test("a rewrite that fails its check isn't sent: the question stays as typed, and the log says why", async () => {
   logs.mock.resetCalls();
   const answered = "Alex has worked with React, not Vue.";
-  const { env, addressCalls } = stubs({
+  const { env, rewriteCalls } = stubs({
     run: models(toolCall(NONE)),
-    addresses: [wrote(answered)],
+    rewrites: [wrote(answered)],
     vars: LOG_QUESTIONS,
   });
   assert.deepEqual(await askJson(env, QUESTION), { id: null });
-  assert.equal(addressCalls.length, 1, "asked once");
+  assert.equal(rewriteCalls.length, 1, "asked once");
   assert.deepEqual(
     lines(logs).map((line) => JSON.parse(line)),
     [{ ask: NONE, toOwner: "dropped", unaddressed: "added", question: QUESTION, rewrote: answered }],
   );
   // Without the questions, the log has what happened and none of the words.
   logs.mock.resetCalls();
-  const quiet = stubs({ run: models(toolCall(NONE)), addresses: [wrote(answered)] });
+  const quiet = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(answered)] });
   await askJson(quiet.env, QUESTION);
   assert.deepEqual(lines(logs), ['{"ask":"none","toOwner":"dropped","unaddressed":"added"}']);
   logs.mock.resetCalls();
-  const sent = stubs({ run: models(toolCall(NONE)), addresses: [wrote(TO_OWNER)] });
+  const sent = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(TO_OWNER)] });
   await askJson(sent.env, QUESTION);
   assert.deepEqual(lines(logs), ['{"ask":"none","toOwner":"sent"}']);
   // The stand-in writes nothing unless a test says what: the other tests' log lines have that.
@@ -357,7 +357,7 @@ test("a rewrite that fails its check isn't sent: the question stays as typed, an
 
 test("the model failing leaves the question as typed, and the reply as it would have been", async () => {
   logs.mock.resetCalls();
-  const { env } = stubs({ run: models(toolCall(NONE)), addresses: [new Error("3040: capacity")] });
+  const { env } = stubs({ run: models(toolCall(NONE)), rewrites: [new Error("3040: capacity")] });
   assert.deepEqual(await askJson(env, QUESTION), { id: null });
   assert.deepEqual(lines(logs), ['{"ask":"none","toOwner":"dropped","unaddressed":"error"}']);
 });
@@ -378,32 +378,32 @@ test("no call is made when an answer is shown, the question is turned away, or t
     ["the page is in Japanese", { run: models(toolCall(NONE)) }, "ja"],
   ];
   for (const [why, options, lang = "en"] of cases) {
-    const { env, addressCalls } = stubs({ ...options, addresses: [wrote("What do you do?")] });
+    const { env, rewriteCalls } = stubs({ ...options, rewrites: [wrote("What do you do?")] });
     const said = await askJson(env, "What does Alex do?", lang);
-    assert.equal(addressCalls.length, 0, why);
+    assert.equal(rewriteCalls.length, 0, why);
     assert.ok(!Object.hasOwn(said as object, "toOwner"), why);
   }
   // A page in a language the site doesn't have gets the site's main one's answers, and its rewrite.
-  const french = stubs({ run: models(toolCall(NONE)), addresses: [wrote(TO_OWNER)] });
+  const french = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(TO_OWNER)] });
   assert.deepEqual(await askJson(french.env, QUESTION, "fr"), { id: null, toOwner: TO_OWNER });
 });
 
 test("on a page in the site's second language, the owner's name is as that language writes it, and either may be left out", async () => {
   const index = { ...INDEX, main: "ja", names: { en: "Alex Example" }, name: "山田 太郎" };
-  const { env, addressCalls } = stubs({
+  const { env, rewriteCalls } = stubs({
     run: models(toolCall(NONE)),
-    addresses: [wrote("Have you worked with Vue?")],
+    rewrites: [wrote("Have you worked with Vue?")],
     index,
   });
   assert.deepEqual(await askJson(env, "Has 山田 worked with Vue?"), { id: null, toOwner: "Have you worked with Vue?" });
-  const told = addressCalls[0]?.input.messages[0]?.content ?? "";
+  const told = rewriteCalls[0]?.input.messages[0]?.content ?? "";
   assert.ok(told.includes("the portfolio site of Alex Example") && told.includes("about Alex"), told);
 });
 
 test("what the rewrite used is on the question's bill with the rest", async () => {
   const { env, guard } = stubs({
     run: models(using(toolCall(NONE), 0, 0), using({ response: "safe" }, 0, 0)),
-    addresses: [wrote(TO_OWNER, [1_000_000, 1_000_000])],
+    rewrites: [wrote(TO_OWNER, [1_000_000, 1_000_000])],
     vars: { ASK_MODEL_PRICE: "3/4" },
   });
   assert.deepEqual(await askJson(env, QUESTION), { id: null, toOwner: TO_OWNER });
