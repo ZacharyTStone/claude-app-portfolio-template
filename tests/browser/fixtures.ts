@@ -57,12 +57,19 @@ type SiteParts = {
   comingIntoView: ComesIntoView;
 };
 
+type PageErrors = {
+  /** Says the check brings about, on purpose, errors that match: they
+      aren't failures of it. */
+  expected(matching: RegExp): void;
+};
+
 type ForEachCheck = SiteParts & {
   site: Site;
   /** Where the visitor is: the time zone playwright.config.ts gives every check. */
   visitorZone: string;
   ask: AskStandIn;
-  errorsInThePageFailTheCheck: void;
+  /** Every check fails on an error the page or its console reports. */
+  pageErrors: PageErrors;
 };
 
 type ForEachWorker = {
@@ -122,17 +129,19 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
     });
   },
 
-  errorsInThePageFailTheCheck: [
+  pageErrors: [
     async ({ context, site, ask }, use, testInfo) => {
       const errors: string[] = [];
+      const onPurpose: RegExp[] = [];
       context.on("weberror", (webError) => errors.push(webError.error().message));
       context.on("console", (message) => {
         if (message.type() !== "error") return;
         if (ask.failedOnPurpose && message.location().url === site.askUrl) return;
         errors.push(message.text());
       });
-      await use();
-      if (testInfo.status !== "skipped") expect.soft(errors, "errors in the page or its console").toEqual([]);
+      await use({ expected: (matching) => void onPurpose.push(matching) });
+      const unexpected = errors.filter((error) => !onPurpose.some((expected) => expected.test(error)));
+      if (testInfo.status !== "skipped") expect.soft(unexpected, "errors in the page or its console").toEqual([]);
     },
     { auto: true },
   ],
