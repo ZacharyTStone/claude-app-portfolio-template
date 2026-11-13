@@ -7,8 +7,6 @@ export const STORAGE = {
   chats: "portfolio:chats:",
   /** localStorage: the ids of the folded headings. */
   folded: "portfolio:folded",
-  /** localStorage: the sidebar's width, once it's been resized. */
-  sidebarWidth: "portfolio:sidebar",
   /** sessionStorage: what /ask said that stops asking for the visit. */
   askLock: "portfolio:ask-locked",
 } as const;
@@ -48,12 +46,6 @@ export const SIZE = {
   /** From this width the sidebar is beside the tab, not a drawer (the
       stylesheet's breakpoint). */
   wide: 800,
-  /** The sidebar's narrowest and widest, the room it leaves the rest, and
-      how far an arrow key moves its edge. */
-  sidebarMin: 220,
-  sidebarMax: 480,
-  sidebarRoom: 560,
-  sidebarStep: 16,
   /** How close a menu comes to the edge of the screen. */
   edge: 8,
   /** A menu's padding: a submenu moves up by this, so its first row is

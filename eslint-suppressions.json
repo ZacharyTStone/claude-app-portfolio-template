@@ -30,11 +30,6 @@
       "count": 1
     }
   },
-  "src/app/lib/storage.ts": {
-    "no-empty": {
-      "count": 2
-    }
-  },
   "src/app/main.ts": {
     "no-warning-comments": {
       "count": 1
@@ -48,11 +43,6 @@
   "src/app/send.ts": {
     "complexity": {
       "count": 3
-    }
-  },
-  "src/app/sidebar.ts": {
-    "no-warning-comments": {
-      "count": 4
     }
   },
   "src/app/tabs.ts": {

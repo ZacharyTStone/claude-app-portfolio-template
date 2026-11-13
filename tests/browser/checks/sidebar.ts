@@ -2,7 +2,8 @@
    reordering, and that each is remembered. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import { SIZE, TIMING } from "../../../src/app/constants.ts";
+import { TIMING } from "../../../src/app/constants.ts";
+import { SIDEBAR_WIDTH } from "../../../src/app/sidebar-width.ts";
 import { DATA } from "../../../src/contracts/page-attributes.ts";
 import { attributeOfEach, desktop, revisit, shell, type Check } from "../helpers.ts";
 import { CLASS, ID, PANEL_SECTIONS, type Site } from "../site.ts";
@@ -57,7 +58,7 @@ export default (site: Site): Check[] => {
 
         const edge = page.locator(CLASS.resizer);
         const defaultWidth = await sidebarWidth(page);
-        const twoStepsWider = defaultWidth + 2 * SIZE.sidebarStep;
+        const twoStepsWider = defaultWidth + 2 * SIDEBAR_WIDTH.arrowKeyStep;
         await edge.focus();
         await page.keyboard.press("ArrowRight");
         await page.keyboard.press("ArrowRight");

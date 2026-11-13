@@ -13,7 +13,7 @@ import { foldable } from "./folding.ts";
 import { isPopupOpenFrom } from "./popup.ts";
 import { askedTab, main, root, side, siteName, tagline, words } from "./page.ts";
 import { bubble, messagesFor, questionFor, type Source } from "./replies.ts";
-import { closeDrawer, isWide } from "./sidebar.ts";
+import { closeDrawerAndReturnFocus, isWide } from "./sidebar.ts";
 import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "./tabs.ts";
 import { say } from "./toast.ts";
 
@@ -195,7 +195,7 @@ export function deleteChat(tab: HTMLElement): void {
     what was asked there). With `replace`, in place of the page you were on
     in the history. */
 export function newChat(replace = false, then?: (tab: HTMLElement) => void): void {
-  closeDrawer();
+  closeDrawerAndReturnFocus();
   const { tab } = (emptyChat ??= makeChat());
   const composer = find(tab, CLASS_SELECTOR.composer);
   openTab(
@@ -212,7 +212,7 @@ export function newChat(replace = false, then?: (tab: HTMLElement) => void): voi
     question card open, which is where a visit there starts. */
 export function goHome(): void {
   if (!isWide()) return newChat();
-  closeDrawer();
+  closeDrawerAndReturnFocus();
   if (location.hash) clearHash();
   sync(true);
 }
