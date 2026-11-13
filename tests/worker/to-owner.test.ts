@@ -153,6 +153,25 @@ test("the quotation marks, line breaks or reasoning a model puts round a rewrite
   );
 });
 
+test("the marks may be of either kind, at either end; one mark alone is the rewrite's own", async () => {
+  const written = async (said: string) =>
+    (await rewriteToOwner(writer(wrote(said)).ai, DEFAULT_MODEL, ADDRESSING)).toOwner;
+  assert.equal(await written(`"${TO_OWNER}”`), TO_OWNER);
+  assert.equal(await written(`“${TO_OWNER}"`), TO_OWNER);
+  assert.equal(await written(`"${TO_OWNER}`), `"${TO_OWNER}`);
+  assert.equal(await written(`${TO_OWNER}”`), `${TO_OWNER}”`);
+});
+
+test("a question that opens with a quotation mark of either kind keeps every mark the model wrote", async () => {
+  for (const [question, rewrite] of [
+    ['"Senior", is Alex "senior"', '"Senior", are you "senior"'],
+    ["“Senior”, is Alex “senior”", "“Senior”, are you “senior”"],
+  ] as const) {
+    const quoted = { ...ADDRESSING, question };
+    assert.equal((await rewriteToOwner(writer(wrote(rewrite)).ai, DEFAULT_MODEL, quoted)).toOwner, rewrite);
+  }
+});
+
 test("past its time, there's no rewrite, and the call is counted as if it wrote all it may", async () => {
   const never = new Promise<unknown>(() => {});
   const { ai, sent } = writer(never);

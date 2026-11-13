@@ -17,6 +17,7 @@ import {
 } from "../../src/worker/ask/write.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
 import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, writer, wrote } from "./fixtures.ts";
+import { eachRow } from "./rows.ts";
 
 const logs = captureLogs();
 
@@ -163,6 +164,41 @@ test("the quotation marks, line breaks or reasoning a model puts round a reply a
     );
   }
 });
+
+eachRow(
+  "the quotation marks a model puts round a reply are taken off, of each kind and however many",
+  [
+    '"Alex knows Svelte."',
+    "“Alex knows Svelte.”",
+    "「Alex knows Svelte.」",
+    "『Alex knows Svelte.』",
+    '""Alex knows Svelte.""',
+    '"Alex knows Svelte.',
+    "Alex knows Svelte.”",
+  ],
+  (said) => said,
+  async (said) =>
+    assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).reply, "Alex knows Svelte."),
+);
+
+test("marks inside a reply are the reply's own", async () => {
+  const said = 'Alex knows "Svelte" well.';
+  assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).reply, said);
+});
+
+eachRow(
+  "the word for no answer, alone, is no reply: in any case, with a full stop of either kind or an exclamation mark",
+  ["none", "None", "NONE", "none.", "none。", "none!", "“none.”"],
+  (said) => said,
+  async (said) => assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).why, "none"),
+);
+
+eachRow(
+  "with anything more, it's a reply like any other",
+  ["None of them.", "none?", "none, sorry"],
+  (said) => said,
+  async (said) => assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).reply, said),
+);
 
 test("past its time, there's no reply, and the call is counted as if it wrote all it may", async () => {
   const never = new Promise<unknown>(() => {});
