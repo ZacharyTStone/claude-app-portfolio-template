@@ -4,7 +4,7 @@
 import { defineConfig } from "astro/config";
 import { checkConfig } from "./src/integrations/check-config.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
-import { loadSiteConfig } from "./src/integrations/site-config.ts";
+import { loadSiteConfig } from "./src/site/load-site-config.ts";
 import { basePath } from "./src/site/url.ts";
 
 const { fileName, filePath, config } = await loadSiteConfig();
