@@ -1,14 +1,12 @@
 ---
-/* Printed (or saved as a PDF) the page leaves out the sidebar and the
-   panel, so it starts with who this is and how to reach them. Hidden on
-   screen. Styles: src/styles/print.css. */
+/* Printed, the page has no sidebar or panel, so it starts with who this is and how to reach them. Hidden on
+   screen. */
 import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { shortUrl } from "../site/url.ts";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { code: pageLanguage, language } = Astro.props.page;
@@ -17,7 +15,6 @@ const { email, github, linkedin } = config.links;
 // Where a language writes the name its own way, both: "アレックス (Alex Example)".
 const nameInThisLanguage = language.person.name;
 const printedName = nameInThisLanguage === config.name ? config.name : `${nameInThisLanguage} (${config.name})`;
-// The email, this page's address, and the profiles the config has.
 const contacts = [email, site.pageUrl(pageLanguage), github, linkedin].filter((contact) => contact !== undefined);
 ---
 

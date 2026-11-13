@@ -1,8 +1,4 @@
 ---
-/* The details panel on the right: the career at a glance (`progress`),
-   then files and links as rows (`outputs` and `context`). It's drawn from
-   the language's `panel` in the config, where each section is optional:
-   one that's left out isn't drawn. Styles: src/styles/panel.css. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
@@ -12,15 +8,12 @@ import PanelRow from "./PanelRow.astro";
 import PanelSection from "./PanelSection.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { strings, panel } = Astro.props.page.language;
 const { progress } = panel;
-/** The sections that are lists of rows, in the order they're drawn. */
-const LIST_SECTION_NAMES = ["outputs", "context"] as const;
-// Those of them the config has.
-const listSections = LIST_SECTION_NAMES.flatMap((name) => {
+const SECTIONS_OF_ROWS_IN_ORDER = ["outputs", "context"] as const;
+const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
   const section = panel[name];
   return section ? [{ name, title: section.title, rows: section.rows }] : [];
 });
@@ -53,7 +46,7 @@ const listSections = LIST_SECTION_NAMES.flatMap((name) => {
       </ol>
     </PanelSection>
   )}
-  {listSections.map((section) => (
+  {sectionsOfRows.map((section) => (
     <PanelSection name={section.name} title={section.title}>
       <ul class={PAGE_CLASSES.panelRows}>
         {section.rows.map((row) => (

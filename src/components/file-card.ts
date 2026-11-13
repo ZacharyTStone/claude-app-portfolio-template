@@ -1,6 +1,3 @@
-/* A file card's lines, laid out like a small config file: the values start
-   in one column, and so do the comments (FileCard.astro). */
-
 import type { FileCard, CardValue } from "../config/blocks.ts";
 
 /** One line of a card as it's drawn in the <pre>, left to right. */
@@ -9,7 +6,6 @@ export type CardRow = {
   key?: string;
   /** The spaces before the value, which bring it to the values' column. */
   indent: string;
-  /** Whether the value is drawn in the accent colour. */
   accent: boolean;
   /** The value: all of it, or one line of a list. */
   value: string;

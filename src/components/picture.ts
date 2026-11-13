@@ -3,17 +3,13 @@ import { join } from "node:path";
 import type { Picture } from "../config/blocks.ts";
 import { PLAYS_ATTRIBUTE } from "../contracts/picture-files.ts";
 
-/** The folder whose files the site serves as they are, from where the
-    build runs. */
 const PUBLIC_FOLDER = "public";
 
 // An <svg> tag that says how long it plays: <svg … data-plays="18.6">.
 const SVG_THAT_PLAYS = new RegExp(`<svg\\b[^>]*\\s${PLAYS_ATTRIBUTE}="([0-9.]+)"`);
 
-/** How long a picture plays, in seconds, if its file says. `src` is its
-    path on the site ("/assets/how.svg"), and `root` the folder the site is
-    built in. Undefined for a picture that doesn't say (it moves all the
-    time, or not at all), and for one that isn't an SVG file of the site's. */
+/** How long a picture plays, in seconds, if its file says: the diagram kit writes it on a played picture's
+    <svg>. `src` is its path on the site ("/assets/how.svg"), and `root` the folder the site is built in. */
 export function secondsPlayed(src: string, root: string = process.cwd()): number | undefined {
   if (!src.endsWith(".svg")) return undefined;
   const file = join(root, PUBLIC_FOLDER, src);

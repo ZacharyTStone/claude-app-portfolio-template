@@ -1,14 +1,10 @@
 ---
-/* The buttons under a thread's last answer: for now one, which copies a
-   link to the tab. They need JavaScript, so they're hidden without it.
-   Styles: src/styles/cards.css. */
 import type { Strings } from "../config/strings.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { flag } from "./attributes.ts";
 
 interface Props {
-  /** The page's wording, for the button's label and tooltip. */
   strings: Strings;
 }
 const { strings } = Astro.props;

@@ -1,34 +1,17 @@
 ---
-/* Amounts as bars from one baseline, the longest the same length whatever
-   the unit, each with its value at its tip as text. The page allows no
-   inline styles, so a bar's length is an SVG attribute.
-   Styles: src/styles/figures.css. */
+/* The page allows no inline styles, so a bar's length is an SVG attribute. */
 import type { Bars } from "../config/blocks.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { barLength } from "./bars.ts";
 
 interface Props {
-  /** The figure, as an answer's `bars` block has it. */
   bars: Bars;
 }
 const { title, rows, note } = Astro.props.bars;
 
-/** A bar's drawing, in CSS pixels. */
-const BAR_PX = {
-  /** The height of a row: the bar, and the room above and below it. */
-  rowHeight: 26,
-  /** How thick the bar is. */
-  thickness: 10,
-  /** The radius of the bar's rounded tip. */
-  tipRadius: 4,
-  /** How far past the tip the value is written. */
-  valueGap: 8,
-} as const;
-/** Where a bar's top edge is, to sit in the middle of its row. */
+const BAR_PX = { rowHeight: 26, thickness: 10, tipRadius: 4, gapBeforeValue: 8 } as const;
 const barTop = (BAR_PX.rowHeight - BAR_PX.thickness) / 2;
 
-// Each row with its bar's length, as a share of the drawing's width: the
-// largest amount gets the longest bar, and the others are to its scale.
 const largestAmount = Math.max(...rows.map((row) => row.amount));
 const drawnRows = rows.map((row) => ({ ...row, length: `${barLength(row.amount, largestAmount)}%` }));
 ---
@@ -54,7 +37,7 @@ const drawnRows = rows.map((row) => ({ ...row, length: `${barLength(row.amount, 
               <rect y={barTop} width={BAR_PX.tipRadius} height={BAR_PX.thickness} />
               <rect y={barTop} width={row.length} height={BAR_PX.thickness} rx={BAR_PX.tipRadius} />
             </g>
-            <text x={row.length} y={BAR_PX.rowHeight / 2} dx={BAR_PX.valueGap} dominant-baseline="central">
+            <text x={row.length} y={BAR_PX.rowHeight / 2} dx={BAR_PX.gapBeforeValue} dominant-baseline="central">
               {row.value}
             </text>
           </svg>

@@ -18,13 +18,9 @@ interface Props {
 }
 const { block, strings } = Astro.props;
 
-// What a block that's an object holds, under each kind's name: one of
-// these is set, and the others are undefined (all of them, for a paragraph
-// or a list).
-const namedParts: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
-const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = namedParts;
-// Every kind is drawn below. One added to Block and not taken out on the
-// line above would be left in here, and this line would be a type error.
+const byKind: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
+const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = byKind;
+// A kind added to Block and not drawn below would be left in here, and this line would be a type error.
 kindsNotDrawn satisfies Record<string, never>;
 ---
 

@@ -1,8 +1,4 @@
 ---
-/* A row of the details panel: an icon, a label and a note, and a link if
-   it has an href (one the config's `viewer` lists opens in the viewer). A
-   row with no href is the same row in a <span>.
-   Styles: src/styles/panel.css. */
 import type { PanelRow } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { linkAttributes } from "./attributes.ts";
@@ -10,7 +6,6 @@ import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
 
 interface Props {
-  /** The row, as the config's panel.outputs or panel.context has it. */
   row: PanelRow;
 }
 const { label, meta, icon, href } = Astro.props.row;

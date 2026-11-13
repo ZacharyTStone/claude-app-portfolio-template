@@ -1,11 +1,6 @@
 ---
-/* The account row at the foot of the sidebar, and the menu it opens: your
-   email, your time beside the visitor's, the other language, "Upgrade"
-   (hire you), GitHub and "Log out". It's drawn from the language's
-   `account` in the config. The menu is in the page but hidden: the script
-   opens it, tells the time and shows the goodbye, all from the wording the
-   clock and "Log out" carry as data-* attributes.
-   Styles: src/styles/sidebar.css (the row) and menus.css (the menu). */
+/* The menu is in the page, hidden: the script opens it, and reads the clock's and the goodbye's wording from
+   the data-* attributes here. */
 import { CLOCK_MOODS } from "../config/language.ts";
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -17,7 +12,6 @@ import { flag } from "./attributes.ts";
 import Logo from "./Logo.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { code: pageLanguage, language } = Astro.props.page;
@@ -32,18 +26,13 @@ const {
   upgrade,
   logout,
 } = language.account;
-// The first of the site's other languages, if it has one: the menu's
-// language row opens its page.
-const otherLanguage = site.codes.find((code) => code !== pageLanguage);
-// For the script: how far apart your time and the visitor's are, and a
-// mood for each part of your day.
+const firstOtherLanguage = site.codes.find((code) => code !== pageLanguage);
 const clockWording = {
   [DATA.clockAhead]: clock.ahead,
   [DATA.clockBehind]: clock.behind,
   [DATA.clockSame]: clock.same,
   ...Object.fromEntries(CLOCK_MOODS.map((mood) => [DATA.mood(mood), clock.moods[mood]])),
 };
-// For the script: what the goodbye says when "Log out" is pressed.
 const goodbyeWording = {
   [DATA.byeTitle]: logout.title,
   [DATA.byeText]: logout.text,
@@ -82,18 +71,18 @@ const goodbyeWording = {
       <span class={PAGE_CLASSES.clockNote}></span>
     </div>
     <hr />
-    {otherLanguage && (
+    {firstOtherLanguage && (
       <>
         <a
           class="icon i-globe"
           role="menuitem"
-          href={site.pagePath(otherLanguage)}
-          hreflang={otherLanguage}
+          href={site.pagePath(firstOtherLanguage)}
+          hreflang={firstOtherLanguage}
           {...flag(DATA.langLink)}
         >
           {languageRowLabel}
-          <span class={PAGE_CLASSES.rowMeta} lang={otherLanguage}>
-            {site.language(otherLanguage).name}
+          <span class={PAGE_CLASSES.rowMeta} lang={firstOtherLanguage}>
+            {site.language(firstOtherLanguage).name}
           </span>
         </a>
         <hr />

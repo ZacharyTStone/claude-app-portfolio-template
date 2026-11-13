@@ -1,10 +1,6 @@
 ---
-/* The home screen, shown when no tab is open: a greeting, a line about
-   you, and the app's box for a question with a few to start with. Without
-   JavaScript the box is hidden, and the hint points at the tabs. It's
-   drawn from the language's `home` in the config, and the question card's
-   own question and "send" (so the box and the card say the same).
-   Styles: src/styles/greeting.css (the greeting) and home.css. */
+/* The home screen, shown when no tab is open. Without JavaScript its box for a question is hidden, and the
+   hint points at the tabs. */
 import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
@@ -15,7 +11,6 @@ import Inline from "./Inline.astro";
 import Topbar from "./Topbar.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { language } = Astro.props.page;
@@ -23,10 +18,8 @@ const { strings } = language;
 const { greeting, intro, hint, tagline, prompts = [] } = language.home;
 // The box asks what the question card asks, and its button is the card's.
 const { ask: cardQuestion, ui: cardWords } = language.questions;
-// For the script: a greeting for each part of the visitor's day, and who
-// this is in a line.
 const greetingParts = Object.keys(HOURS.greeting) as GreetingPart[];
-const wordingForScript = {
+const greetingsForScript = {
   ...Object.fromEntries(greetingParts.map((part) => [DATA.greet(part), greeting[part]])),
   ...(tagline ? { [DATA.tagline]: tagline } : {}),
 };
@@ -34,7 +27,7 @@ const wordingForScript = {
 
 <section class="home" id={PAGE_IDS.home} aria-labelledby={PAGE_IDS.greeting}>
   <Topbar strings={strings} />
-  <div class={PAGE_CLASSES.homeBody} {...wordingForScript}>
+  <div class={PAGE_CLASSES.homeBody} {...greetingsForScript}>
     <h1 class={PAGE_CLASSES.hello} id={PAGE_IDS.greeting}>
       {greeting.default}
     </h1>

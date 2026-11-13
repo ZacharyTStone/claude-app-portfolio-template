@@ -1,8 +1,4 @@
 ---
-/* The sidebar: the name and the language switch, "New tab" and the rows at
-   the top, the groups of tabs, and the account row at the bottom
-   (Account.astro). It's drawn from the language's `sidebar` in the config.
-   Styles: src/styles/sidebar.css, and narrow.css where it's a drawer. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { groupId, PAGE_IDS } from "../contracts/page-ids.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -12,7 +8,6 @@ import Account from "./Account.astro";
 import { flag } from "./attributes.ts";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { page } = Astro.props;
@@ -22,8 +17,6 @@ const { strings, sidebar } = page.language;
 const { newTab, nav, groups } = sidebar;
 // On a page in another language, the name is marked as its own.
 const nameLang = config.nameLang && config.nameLang !== pageLanguage ? config.nameLang : undefined;
-// The language switch, on a site with more than one language: this page's
-// language as plain text, and each other one as a link to its page.
 const hasLanguageSwitch = languageCodes.length > 1;
 const languageSwitch = languageCodes.map((code) => {
   const { label, name } = site.language(code);

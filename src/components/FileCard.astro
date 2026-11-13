@@ -1,15 +1,9 @@
 ---
-/* A file card: a small config file of key: value lines, with comments.
-   The lines are laid out in file-card.ts (cardRows), which works out
-   the spaces that line the values and the comments up in columns.
-   Styles: src/styles/cards.css; its lines are written out one after
-   another as it's scrolled to (src/app/reveal-on-scroll.ts, src/styles/motion.css). */
 import type { FileCard } from "../config/blocks.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { cardRows } from "./file-card.ts";
 
 interface Props {
-  /** The card, as an answer's `card` block or a status line has it. */
   card: FileCard;
 }
 const { card } = Astro.props;

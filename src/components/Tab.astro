@@ -1,10 +1,6 @@
 ---
-/* A tab: an <article> that :target shows, with its title and Share in the
-   bar across the top, the conversation (the slot), and the composer under
-   it. Every thread is one (Thread.astro), and so is "Something else"
-   (Asked.astro), which the script copies for each chat and personal
-   answer. Styles: src/styles/thread.css, and composer.css for the
-   composer. */
+/* An <article> that :target shows. The script copies the "Something else" tab for each chat and each personal
+   answer. */
 import type { Pill } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -15,13 +11,9 @@ import { flag } from "./attributes.ts";
 import Topbar from "./Topbar.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
-  /** The tab's address: #id. */
   id: string;
-  /** The tab's name, in the bar across its top. */
   title: string;
-  /** A label beside the title, if the thread has one. */
   pill?: Pill;
 }
 const { page, id, title, pill } = Astro.props;

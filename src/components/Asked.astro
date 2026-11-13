@@ -1,10 +1,6 @@
 ---
-/* "Something else": the reply to a question the site has no answer for.
-   It says how to reach you, with the question in an email and in a message
-   to copy for LinkedIn. The script puts the question in; here it's a sample
-   (the config's asked.q), and the email and the message carry their
-   wording as it is before the question is in, for the script to fill.
-   Styles: src/styles/cards.css (the message to copy). */
+/* "Something else": the reply to a question the site has no answer for. Here the question is the config's
+   sample; the script puts the visitor's in, from the wording the email link and the message carry. */
 import type { LinkCard as LinkCardBlock } from "../config/blocks.ts";
 import { emailLink, withQuestion } from "../contracts/links.ts";
 import { DATA } from "../contracts/page-attributes.ts";
@@ -20,7 +16,6 @@ import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { page } = Astro.props;
@@ -33,13 +28,9 @@ const mailLink: LinkCardBlock = {
   href: emailLink(`mailto:${email}`, asked.subject, withQuestion(asked.email, asked.q)),
   icon: "contact",
 };
-// On that link, for the script: the email as it is before the question is
-// put in.
 const mailTemplate = { [DATA.emailBody]: asked.email, [DATA.emailSubject]: asked.subject };
 
-// The way to ask on LinkedIn: a link to your profile, and a message to
-// copy and send there. It takes all three of the config's links.linkedin,
-// asked.linkedin and asked.message.
+// Offered only when the config has all three: the profile, the link's name and the message.
 const linkedinOffer =
   linkedin && asked.linkedin && asked.message
     ? {

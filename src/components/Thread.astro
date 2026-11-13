@@ -1,8 +1,4 @@
 ---
-/* A conversation, in a tab of its own (Tab.astro): each question and its
-   answer. A question can have a status line ("Read experience/acme.md ▸")
-   that opens onto a file card. The buttons under an answer are only under
-   the last one. Styles: src/styles/thread.css. */
 import type { Thread } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import type { Page } from "../site/site.ts";
@@ -13,9 +9,7 @@ import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
-  /** The thread, from the language's `threads` in the config. */
   thread: Thread;
 }
 const { page, thread } = Astro.props;

@@ -1,10 +1,6 @@
 ---
-/* One language's page: the app's three columns (the sidebar, every tab,
-   the details panel). Every tab is in the page, so it all works without
-   JavaScript; the script adds the rest. It hands the script what it needs
-   in three places: its wording as data-* attributes on <html>, the
-   question card as JSON, and the names in src/contracts.
-   Styles: src/styles/layout.css (the columns). */
+/* One language's page. Every tab is in it, so it all works without JavaScript. The script gets its wording
+   as data-* attributes on <html>, and the question card as JSON. */
 import Document from "../layouts/Document.astro";
 import { ASK_PATH } from "../contracts/ask.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES } from "../config/strings.ts";
@@ -23,16 +19,13 @@ import Sidebar from "./Sidebar.astro";
 import Thread from "./Thread.astro";
 
 interface Props {
-  /** The language's code. */
   code: string;
 }
 const page = makePage(site, Astro.props.code);
 const { code, language } = page;
 const { strings } = language;
 
-// What <html> carries for the script: its wording, one data-* attribute
-// each (an optional string the language doesn't have is left off), and
-// where /ask is, when Ask is on.
+// An optional string the language doesn't have is left off.
 const scriptAttributes: Record<string, string> = {};
 for (const key of SCRIPT_STRING_NAMES) {
   const wording = strings[key];
@@ -61,7 +54,6 @@ if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
     <Panel page={page} />
   </div>
 
-  <!-- The question card's topics and the personal answers, for the script. -->
   <script type="application/json" id={PAGE_IDS.questionCardData} set:html={scriptJson(language.questions)} />
   <script>
     import "../app/main.ts";

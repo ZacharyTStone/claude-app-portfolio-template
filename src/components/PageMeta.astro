@@ -1,14 +1,9 @@
 ---
-/* What a language's page tells search engines and link previews: its title
-   and description, its address in every language, the social card, and
-   who this is as schema.org data. It goes in the page's <head>
-   (Document.astro's "head" slot). */
 import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { structuredData } from "../site/structured-data.ts";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { page } = Astro.props;
