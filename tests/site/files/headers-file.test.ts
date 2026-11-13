@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { HOSTS, type Host } from "../../../src/config/site-config.ts";
 import { headersFile, pagePolicy } from "../../../src/site/files/headers-file.ts";
-import { contentSecurityPolicy, securityHeaders } from "../../../src/site/security-headers.ts";
+import { contentSecurityPolicy } from "../../../src/site/security-headers.ts";
 import { makeSite } from "../../../src/site/site.ts";
 import { sampleConfig } from "../sample.ts";
 
@@ -14,10 +14,22 @@ const HOSTS_THAT_READ_NONE = HOSTS.filter((host) => !HOSTS_THAT_READ_A_HEADERS_F
 /** The sample on `host`, with neither Ask nor a viewer: its policy allows nothing beyond the site's own files. */
 const plainSiteOn = (host: Host) => makeSite(sampleConfig({ host, ask: undefined, viewer: undefined }));
 
+/** Written out, so that a change to a header fails here, not only in the function that writes it. */
+const PLAIN_SITES_HEADERS_FILE = [
+  "/*",
+  "  Strict-Transport-Security: max-age=63072000",
+  "  Content-Security-Policy: default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'; base-uri 'none'; form-action 'none'; frame-ancestors 'none'; require-trusted-types-for 'script'; trusted-types 'none'",
+  "  X-Content-Type-Options: nosniff",
+  "  X-Frame-Options: DENY",
+  "  Referrer-Policy: strict-origin-when-cross-origin",
+  "  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()",
+  "  Cross-Origin-Opener-Policy: same-origin",
+  "",
+].join("\n");
+
 for (const host of HOSTS_THAT_READ_A_HEADERS_FILE) {
   test(`${host} gets exactly the security headers in a _headers file, for every path`, () => {
-    const headerLines = securityHeaders({ ask: false }).map(([name, value]) => `  ${name}: ${value}`);
-    assert.equal(headersFile(plainSiteOn(host)), `/*\n${headerLines.join("\n")}\n`);
+    assert.equal(headersFile(plainSiteOn(host)), PLAIN_SITES_HEADERS_FILE);
   });
 }
 
