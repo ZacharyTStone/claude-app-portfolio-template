@@ -1,5 +1,5 @@
 import { defineConfig } from "@playwright/test";
-import { OWN_SITE, type SiteUnderTest } from "./tests/browser/sites.ts";
+import { OWN_SITE, SAMPLE_SITE, type SiteUnderTest } from "./tests/browser/sites.ts";
 
 /** How long a check waits for the page to do what it should, in
     milliseconds: far longer than the page takes, so it only bounds a
@@ -20,5 +20,9 @@ export default defineConfig<object, { siteUnderTest: SiteUnderTest }>({
     actionTimeout: WAIT_LIMIT_MS,
     screenshot: "only-on-failure",
   },
-  projects: [{ name: "site", use: { siteUnderTest: OWN_SITE } }],
+  projects: [
+    { name: "site", use: { siteUnderTest: OWN_SITE } },
+    // The checks not yet in the runner's own form are made for the repo's own site alone.
+    { name: "sample", use: { siteUnderTest: SAMPLE_SITE }, testIgnore: "**/legacy.spec.ts" },
+  ],
 });
