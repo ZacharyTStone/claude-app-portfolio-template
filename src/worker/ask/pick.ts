@@ -14,10 +14,11 @@ import {
   NONE,
   PICK_TOOL_NAME,
 } from "../constants.ts";
-import { arrayOrEmpty, get } from "../lib/shape.ts";
+import { get } from "../lib/shape.ts";
 import type { Choices } from "./answers.ts";
-import { NO_TOKENS, estimateJsonTokens, tokensUsed, type Tokens } from "./cost.ts";
+import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { hasReasoningOff, reasoningOptionsOf } from "./known-models.ts";
+import { callModel, ranOutOfRoom, rawTextIn, toolCallArguments } from "./model.ts";
 import { withNumbers } from "./quote.ts";
 import { firstName, languageName } from "./wording.ts";
 
@@ -131,18 +132,17 @@ export async function pick(ai: Ai, model: string, question: string, choices: Cho
     ],
     tools: [pickTool(offeredIds)],
   };
-  const modelReply: unknown = await ai.run(model, {
-    ...prompt,
-    tool_choice: { type: "function", function: { name: PICK_TOOL_NAME } },
-    temperature: 0,
-    max_completion_tokens: hasReasoningOff(model) ? MAX_PLAIN_PICK_TOKENS : MAX_PICK_TOKENS,
-    ...reasoningOptionsOf(model),
+  const maxTokens = hasReasoningOff(model) ? MAX_PLAIN_PICK_TOKENS : MAX_PICK_TOKENS;
+  const { modelReply, tokens } = await callModel(ai, model, {
+    input: {
+      ...prompt,
+      tool_choice: { type: "function", function: { name: PICK_TOOL_NAME } },
+      temperature: 0,
+      max_completion_tokens: maxTokens,
+      ...reasoningOptionsOf(model),
+    },
+    tokensIfUnreported: { prompt, maxOutputTokens: maxTokens },
   });
-  // A reply that doesn't say what it used is counted by its size.
-  const tokens = tokensUsed(modelReply) ?? {
-    input: estimateJsonTokens(prompt),
-    output: estimateJsonTokens(modelReply),
-  };
   return { ...readPick(modelReply, offeredIds), tokens };
 }
 
@@ -161,35 +161,15 @@ function readPick(modelReply: unknown, offeredIds: readonly string[]): Omit<Pick
   return toolCall ? { id, sentences: toolCall.sentences, thought } : { id };
 }
 
-/** Whether a model stopped because it had written all it may, with more
-    to say: what it wrote is cut off. */
-export const ranOutOfRoom = (modelReply: unknown): boolean =>
-  get(modelReply, "choices", 0, "finish_reason") === "length";
-
-/** The first tool call with an id, in either of the shapes Workers AI
-    returns (`choices[0].message.tool_calls`, each with its arguments under
-    `function`; or `tool_calls` at the top, with them on the call itself). */
+/** The first tool call that gives an id. */
 export function readToolCall(modelReply: unknown): ToolCall | undefined {
-  const message = get(modelReply, "choices", 0, "message");
-  const toolCalls = arrayOrEmpty(get(message, "tool_calls") ?? get(modelReply, "tool_calls"));
-  for (const toolCall of toolCalls) {
-    const sentArguments = parseArguments(get(toolCall, "function", "arguments") ?? get(toolCall, "arguments"));
+  for (const sentArguments of toolCallArguments(modelReply)) {
     const id = get(sentArguments, "id");
     if (isString(id)) {
       return { id: id.trim(), sentences: get(sentArguments, "sentences"), thought: thoughtIn(sentArguments) };
     }
   }
   return undefined;
-}
-
-// A tool call's arguments come as an object, or as JSON text of one.
-function parseArguments(sentArguments: unknown): unknown {
-  if (!isString(sentArguments)) return sentArguments;
-  try {
-    return JSON.parse(sentArguments);
-  } catch {
-    return null;
-  }
 }
 
 // The thinking a tool call's arguments start with, on one line and cut to
@@ -203,8 +183,8 @@ function thoughtIn(sentArguments: unknown): string | undefined {
 /** For a model that wrote text instead of calling the tool: the one of
     `ids` the text names, or null for none or more than one. */
 export function readTextPick(modelReply: unknown, ids: readonly string[]): string | null {
-  const text = get(get(modelReply, "choices", 0, "message"), "content") ?? get(modelReply, "response");
-  if (!isString(text)) return null;
+  const text = rawTextIn(modelReply);
+  if (text === undefined) return null;
   const idsNamed = ids.filter((id) => namesId(text, id));
   return idsNamed.length === 1 ? (idsNamed[0] ?? null) : null;
 }

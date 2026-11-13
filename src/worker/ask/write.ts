@@ -9,14 +9,10 @@
    shows the answer they're from. A reply that's sent goes with the lines it
    was written from (handler.ts), for the page to show under it. */
 import { isReplyText } from "../../contracts/ask.ts";
-import { isString } from "../../contracts/guards.ts";
 import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, NONE, WRITE_TIMEOUT_MS } from "../constants.ts";
-import { get } from "../lib/shape.ts";
-import { withinTime } from "../lib/time.ts";
-import { NO_TOKENS, estimateJsonTokens, tokensUsed, type Tokens } from "./cost.ts";
+import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./grounded.ts";
-import { reasoningOptionsOf } from "./known-models.ts";
-import { ranOutOfRoom } from "./pick.ts";
+import { callForText, ranOutOfRoom, textIn, type Called, type Message, type Prompt } from "./model.ts";
 import { firstName, languageName } from "./wording.ts";
 
 /** What a reply is written for and from: the lines that answer the
@@ -101,18 +97,7 @@ function correction(failure: Failure): string {
   return `The lines don't have: ${failure.unsourced.join(", ")}. Write it again with only the names and numbers the lines have.`;
 }
 
-type Message = { role: "system" | "user" | "assistant"; content: string };
-
-/** What every call for a line of text is sent, besides the model's own
-    options: the writer's, and the one that says a question to the owner
-    (address.ts). */
-export type Prompt = { messages: Message[]; temperature: 0 };
-
 // ---- What the model writes -----------------------------------------------------------
-
-// The reasoning some models write before their reply:
-// "<think>The lines list Svelte.</think>".
-const REASONING = /<think>[\s\S]*?<\/think>/g;
 
 // The quotation marks some put round a reply, at its start or at its end:
 // "…", “…”, 「…」, 『…』.
@@ -122,38 +107,8 @@ const QUOTES_AROUND = /^["“「『]+|["”」』]+$/g;
 // answer the question, and nothing more: "none", "None.", "none。".
 const ONLY_NONE = new RegExp(`^${NONE}[.。!]?$`, "i");
 
-/** The text a model's reply has, in either shape Workers AI gives it, on
-    one line and without the reasoning some write first. "" when it has
-    none. */
-export function textIn(modelReply: unknown): string {
-  const text = get(modelReply, "choices", 0, "message", "content") ?? get(modelReply, "response");
-  if (!isString(text)) return "";
-  return text.replace(REASONING, " ").replace(/\s+/g, " ").trim();
-}
-
-// That text as a reply: without the quotation marks some put round one.
+// The model's text as a reply: without the quotation marks some put round one.
 const writtenText = (modelReply: unknown): string => textIn(modelReply).replace(QUOTES_AROUND, "").trim();
-
-/** One call to the model for a line of text, which may write `maxTokens`
-    at most. It resolves to the model's reply, or to undefined if that
-    takes longer than `timeoutMs`. */
-export const callForText = (
-  ai: Ai,
-  model: string,
-  prompt: Prompt,
-  maxTokens: number,
-  timeoutMs: number,
-): Promise<unknown> =>
-  withinTime(ai.run(model, { ...prompt, ...reasoningOptionsOf(model), max_completion_tokens: maxTokens }), timeoutMs);
-
-/** The tokens one such call is counted as using. A call cut off by the
-    clock (`modelReply` is undefined) is paid for all the same: counted as
-    if it wrote all it may (`maxTokens`). A reply that doesn't say what it
-    used is counted by its size. */
-export function tokensCounted(prompt: Prompt, modelReply: unknown, maxTokens: number): Tokens {
-  if (modelReply === undefined) return { input: estimateJsonTokens(prompt), output: maxTokens };
-  return tokensUsed(modelReply) ?? { input: estimateJsonTokens(prompt), output: estimateJsonTokens(modelReply) };
-}
 
 /** What the model wrote, as it may be shown; or why it may not be. */
 type Judged = { reply: string; failure?: undefined } | { reply?: undefined; failure: Failure };
@@ -194,13 +149,13 @@ export async function write(
     if (timeLeftMs <= 0) return { why: "late", tries, tokens };
     tries++;
     const prompt: Prompt = { messages, temperature: 0 };
-    let modelReply: unknown;
+    let called: Called;
     try {
-      modelReply = await callForText(ai, model, prompt, MAX_WRITE_TOKENS, timeLeftMs);
+      called = await callForText(ai, model, prompt, { maxTokens: MAX_WRITE_TOKENS, timeoutMs: timeLeftMs });
     } catch {
       return { why: "error", tries, tokens };
     }
-    const tokensThisTry = tokensCounted(prompt, modelReply, MAX_WRITE_TOKENS);
+    const { modelReply, tokens: tokensThisTry } = called;
     tokens.input += tokensThisTry.input;
     tokens.output += tokensThisTry.output;
     if (modelReply === undefined) return { why: "late", tries, tokens };

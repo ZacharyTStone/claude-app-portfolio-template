@@ -34,9 +34,8 @@
 import { isQuestionToOwner } from "../../contracts/ask.ts";
 import { ADDRESS_TIMEOUT_MS, MAX_ADDRESS_TOKENS } from "../constants.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
-import { ranOutOfRoom } from "./pick.ts";
+import { callForText, ranOutOfRoom, textIn, type Called, type Prompt } from "./model.ts";
 import { firstName, languageName } from "./wording.ts";
-import { callForText, textIn, tokensCounted, type Prompt } from "./write.ts";
 
 /** What a question is said to the owner from. */
 export type Addressing = {
@@ -344,14 +343,14 @@ export async function addressToOwner(
     ],
     temperature: 0,
   };
-  let modelReply: unknown;
+  let called: Called;
   try {
-    modelReply = await callForText(ai, model, prompt, MAX_ADDRESS_TOKENS, timeoutMs);
+    called = await callForText(ai, model, prompt, { maxTokens: MAX_ADDRESS_TOKENS, timeoutMs });
   } catch {
     // A call that failed wasn't run, so it isn't paid for.
     return { why: "error", tokens: NO_TOKENS };
   }
-  const tokens = tokensCounted(prompt, modelReply, MAX_ADDRESS_TOKENS);
+  const { modelReply, tokens } = called;
   if (modelReply === undefined) return { why: "late", tokens };
   const rewrite = withoutQuotesAround(textIn(modelReply), question);
   if (!rewrite) return { why: "empty", tokens };

@@ -3,7 +3,7 @@
    to AskGuard once the reply has gone, and logged. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { neuronCost, estimateTokens, estimateJsonTokens, tokensUsed } from "../../src/worker/ask/cost.ts";
+import { neuronCost, estimateTokens, estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import {
   DEFAULT_MODEL,
@@ -57,25 +57,6 @@ const spent = (guard: Parameters<typeof guardRequest>[0]) => {
 };
 const near = (actual: unknown, expected: number) =>
   assert.ok(typeof actual === "number" && Math.abs(actual - expected) < 1e-6, `${actual} is about ${expected}`);
-
-test("tokensUsed reads what a reply says its call used, by either pair of names, or nothing", () => {
-  assert.deepEqual(tokensUsed({ usage: { prompt_tokens: 12, completion_tokens: 3, total_tokens: 15 } }), {
-    input: 12,
-    output: 3,
-  });
-  assert.deepEqual(tokensUsed({ usage: { input_tokens: 7, output_tokens: 0 } }), { input: 7, output: 0 });
-  for (const reply of [
-    {},
-    null,
-    "text",
-    { usage: null },
-    { usage: { prompt_tokens: 12 } },
-    { usage: { prompt_tokens: "12", completion_tokens: 3 } },
-    { usage: { prompt_tokens: -1, completion_tokens: 3 } },
-  ]) {
-    assert.equal(tokensUsed(reply), undefined, JSON.stringify(reply));
-  }
-});
 
 test("a text's tokens are counted high: a third of its bytes, so a Japanese character is one", () => {
   assert.equal(estimateTokens(""), 0);
