@@ -9,7 +9,8 @@
    nothing keeps running there once they're done. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, SIZE } from "./constants.ts";
+import { PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE } from "./constants.ts";
 import { closestFrom, isPlainClick, make } from "./lib/dom.ts";
 import { shell, words } from "./page.ts";
 
@@ -117,10 +118,10 @@ export function closeViewer({ keepFocus = false }: { keepFocus?: boolean } = {})
     it there. A page with no such link (a site without a `viewer`) gets no
     viewer at all. */
 export function initViewer(): void {
-  if (!document.querySelector(SELECTOR.viewLink)) return;
+  if (!document.querySelector(PART_SELECTOR.viewerLink)) return;
   // On the document, so the copies of an answer that chats make work too.
   document.addEventListener("click", (event) => {
-    const link = closestFrom(event.target, SELECTOR.viewLink);
+    const link = closestFrom(event.target, PART_SELECTOR.viewerLink);
     if (!(link instanceof HTMLAnchorElement) || !isPlainClick(event)) return;
     event.preventDefault();
     openInViewer(link);

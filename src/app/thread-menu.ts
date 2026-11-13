@@ -3,8 +3,8 @@
 import { MENU_KEYS } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
@@ -77,7 +77,7 @@ function jumpToQuestion(question: HTMLElement, scroller: HTMLElement): void {
     questions as it goes), which jumps to it: `scroller` is the part of the
     tab that scrolls. */
 function jumpRows(tab: HTMLElement, scroller: HTMLElement): HTMLElement[] {
-  return findAll(tab, SELECTOR.threadQuestion).map((question) => {
+  return findAll(tab, PART_SELECTOR.threadQuestion).map((question) => {
     const row = menuRow(questionText(question));
     row.addEventListener("click", () => jumpToQuestion(question, scroller));
     return row;

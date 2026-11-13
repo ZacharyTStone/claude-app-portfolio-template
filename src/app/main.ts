@@ -3,8 +3,7 @@
    find elements and read what's saved); it all starts here, at "The start"
    below, in an order whose reasons are written beside each step. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccount } from "./account.ts";
 import { initCard, toggleCard, wireComposer } from "./card.ts";
@@ -26,6 +25,12 @@ import { currentTab, clearHash, finishOpening, sync } from "./tabs.ts";
 import { addRowMenu, addTitleMenu, initThreadMenus } from "./thread-menu.ts";
 import { initToast } from "./toast.ts";
 import { closeViewer, initViewer, isViewerOpen, viewerCoversScreen } from "./viewer.ts";
+
+/** The panel's toggles that are in no tab: the home screen's, and the
+    panel's own close button. */
+const PANEL_TOGGLES_OUTSIDE_TABS = [ID_SELECTOR.home, ID_SELECTOR.panel]
+  .map((place) => `${place} ${ATTRIBUTE_SELECTOR.panelToggle}`)
+  .join(", ");
 
 /** Everything a tab has: its top bar's buttons, title and composer. A chat
     gets it too, from chats.ts, which can't import what it needs itself. */
@@ -138,12 +143,12 @@ initPlay();
 // top bar.
 findAll(document, CLASS_SELECTOR.tab).forEach(wireTab);
 findAll(document, `${ID_SELECTOR.home} ${CLASS_SELECTOR.menuButton}`).forEach(wireMenuButton);
-findAll(document, SELECTOR.panelToggles).forEach(wirePanelToggle);
+findAll(document, PANEL_TOGGLES_OUTSIDE_TABS).forEach(wirePanelToggle);
 
 // The sidebar's groups, the panel, and a "…" on each row.
 findAll(side, CLASS_SELECTOR.groupHeading).forEach(foldable);
 initPanel();
-findAll(side, SELECTOR.tabRow).forEach(addRowMenu);
+findAll(side, PART_SELECTOR.tabRow).forEach(addRowMenu);
 
 // The name, top left, always leads back to the start; "New tab" opens a
 // new chat; "Skip to content" goes to the open tab's heading (its link
@@ -152,7 +157,7 @@ handleLink(find(side, CLASS_SELECTOR.wordmark), () => {
   goHome();
   focusHome();
 });
-handleLink(find(side, SELECTOR.newTab), newChat);
+handleLink(find(side, PART_SELECTOR.newTab), newChat);
 handleLink(find(document, CLASS_SELECTOR.skip), () => sync(true));
 
 addEventListener("keydown", closeTopmostOnEscape);

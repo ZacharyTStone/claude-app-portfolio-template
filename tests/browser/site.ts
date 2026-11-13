@@ -7,14 +7,18 @@
    parts only some sites have. The checks look for these, never for one
    site's content, so they run on any site.config.ts. */
 import type { Browser, Page } from "playwright";
-import { SELECTOR } from "../../src/app/constants.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
 import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/config/language.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } from "../../src/config/strings.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
+import {
+  ATTRIBUTE_SELECTOR,
+  CLASS_SELECTOR as CLASS,
+  ID_SELECTOR as ID,
+  PART_SELECTOR,
+} from "../../src/contracts/page-selectors.ts";
 import { type PersonalAnswer, type QuestionCard, type Topic } from "../../src/config/question-card.ts";
 // Its types only. helpers.ts builds its selectors from the ones here, so a
 // function imported back from it would have each file waiting for the other.
@@ -365,7 +369,7 @@ async function readClock(page: Page): Promise<Clock | null> {
   const moods = {} as Record<ClockMood, string>;
   for (const mood of CLOCK_MOODS) moods[mood] = await wording(DATA.mood(mood));
   return {
-    zone: (await readAttribute(page, `${ATTRIBUTE_SELECTOR.clock} ${SELECTOR.ownerZone}`, DATA.zone)) ?? "UTC",
+    zone: (await readAttribute(page, `${ATTRIBUTE_SELECTOR.clock} ${PART_SELECTOR.ownerZone}`, DATA.zone)) ?? "UTC",
     same: await wording(DATA.clockSame),
     ahead: await wording(DATA.clockAhead),
     behind: await wording(DATA.clockBehind),
@@ -406,9 +410,9 @@ async function readQuestionCard(page: Page): Promise<QuestionCard> {
 /** The first link in a thread that the viewer opens, or null. */
 async function readViewerLink(page: Page): Promise<ViewerLink | null> {
   // The first tab with such a link, then the first in it: the page's first.
-  const tab = page.locator(`${BUILT_TAB}:has(${SELECTOR.viewLink})`).first();
+  const tab = page.locator(`${BUILT_TAB}:has(${PART_SELECTOR.viewerLink})`).first();
   if (!(await tab.count())) return null;
-  const link = tab.locator(SELECTOR.viewLink).first();
+  const link = tab.locator(PART_SELECTOR.viewerLink).first();
   return {
     tab: (await tab.getAttribute("id")) ?? "",
     href: (await link.getAttribute("href")) ?? "",
@@ -420,7 +424,7 @@ async function readViewerLink(page: Page): Promise<ViewerLink | null> {
 /** A figure whose picture a visitor plays, and in it its Play button and
     the picture as it moves, once that has loaded and shows (src/app/play.ts). */
 export const PLAYED_FIGURE = CLASS.playedFigure;
-export const PLAY_BUTTON = SELECTOR.playButton;
+export const PLAY_BUTTON = PART_SELECTOR.playButton;
 export const PLAYING_PICTURE = `${CLASS.moving}${CLASS.movingShown}`;
 
 /** Every picture a visitor plays, in the page's order. */
@@ -453,7 +457,7 @@ async function readPlayedPictures(page: Page): Promise<PlayedPicture[]> {
 
 /** A quote or a file card in an answer that is shown: not one inside a
     status line that hasn't been opened. */
-export const COMES_INTO_VIEW = `:is(${SELECTOR.comesIntoView}):not(details:not([open]) *)`;
+export const COMES_INTO_VIEW = `:is(${PART_SELECTOR.comesIntoView}):not(details:not([open]) *)`;
 
 /** The tab with the most of them, and the answer its last one is in. */
 async function readComesIntoView(page: Page): Promise<ComesIntoView | null> {

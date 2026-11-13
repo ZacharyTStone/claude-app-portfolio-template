@@ -1,10 +1,6 @@
 /* The numbers and storage keys only the script (and the browser checks)
-   count on, and the parts of the page it looks for. The page's ids, classes
-   and data attributes are in src/contracts, and what the site says comes
-   from the page (page.ts). */
-import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
-import { panelId } from "../contracts/page-ids.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR } from "../contracts/page-selectors.ts";
+   count on. The page's ids, classes and data attributes are in
+   src/contracts, and what the site says comes from the page (page.ts). */
 
 export const STORAGE = {
   /** localStorage: the chats, per language (this, then the page's lang). */
@@ -24,45 +20,6 @@ export const STORAGE = {
 /** What joins a tab's name and the site's in the window title, and the
     clock's two notes. */
 export const SEPARATOR = " · ";
-
-/** The parts of the page that take more than one name to find. One that a
-    single name finds is that name's selector (src/contracts/page-selectors.ts). */
-export const SELECTOR = {
-  // The sidebar: "New tab", the rows beside it, and a row in one of its
-  // groups of tabs.
-  newTab: `${CLASS_SELECTOR.nav} ${CLASS_SELECTOR.newTab}`,
-  navRow: `${CLASS_SELECTOR.nav} a`,
-  tabRow: `${CLASS_SELECTOR.groupRows} > li > a`,
-  /** The links to the other languages' pages. */
-  language: `${CLASS_SELECTOR.languageSwitch} a`,
-
-  // The home screen: the box to type a question in, and its send button.
-  homeInput: `${CLASS_SELECTOR.homeAsk} input`,
-  homeSend: `${CLASS_SELECTOR.homeAsk} ${CLASS_SELECTOR.homeSend}`,
-
-  /** A thread's own questions, not those inside an answer. */
-  threadQuestion: `${CLASS_SELECTOR.thread} > ${CLASS_SELECTOR.question}`,
-
-  // The details panel: its toggles (one in each top bar, and its close
-  // button), its sections and their headings, and its contact links (the
-  // config's panel.context).
-  panelToggles: `${ID_SELECTOR.home} ${ATTRIBUTE_SELECTOR.panelToggle}, ${ID_SELECTOR.panel} ${ATTRIBUTE_SELECTOR.panelToggle}`,
-  panelSection: ":scope > section",
-  panelHeading: "h2",
-  contactLinks: `section[aria-labelledby="${panelId("context")}"] .rows a`,
-
-  /** In the account menu's clock, the time that's the owner's. */
-  ownerZone: `${ATTRIBUTE_SELECTOR.zone}:not([${DATA.zone}="${LOCAL_ZONE}"])`,
-
-  // A link that opens in the viewer.
-  viewLink: `a${ATTRIBUTE_SELECTOR.viewerAddress}`,
-
-  // What comes in as it's scrolled to: a quote, a file card.
-  comesIntoView: `${CLASS_SELECTOR.quote}, ${CLASS_SELECTOR.fileCard}`,
-
-  /** A played picture's Play button. */
-  playButton: `a${ATTRIBUTE_SELECTOR.play}`,
-} as const;
 
 /** In milliseconds. */
 export const TIMING = {

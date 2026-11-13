@@ -14,8 +14,8 @@
    rest (restStill). */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { SELECTOR, TIMING } from "./constants.ts";
+import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { TIMING } from "./constants.ts";
 import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
@@ -49,7 +49,7 @@ const PLAY_NUMBER = "play";
 /** From now on, a picture with a Play button plays where it is. A page
     with none gets nothing. */
 export function initPlay(): void {
-  const buttons = findAll(document, SELECTOR.playButton);
+  const buttons = findAll(document, PART_SELECTOR.playButton);
   if (!buttons.length) return;
   // It's a link in the page, and a button from here on: it does something
   // where it is.
@@ -64,7 +64,7 @@ export function initPlay(): void {
   });
   // A link takes Enter by itself; a button takes Space as well.
   document.addEventListener("keydown", (event) => {
-    if (event.key !== " " || !closestFrom(event.target, SELECTOR.playButton)) return;
+    if (event.key !== " " || !closestFrom(event.target, PART_SELECTOR.playButton)) return;
     const figure = playedFigureAt(event.target);
     if (!figure) return;
     event.preventDefault();
@@ -79,7 +79,7 @@ export function restStill(copy: Element): void {
   for (const figure of figures) {
     figure.classList.remove(PAGE_CLASSES.playing);
     for (const moving of findAll(figure, CLASS_SELECTOR.moving)) moving.remove();
-    const button = figure.querySelector(SELECTOR.playButton);
+    const button = figure.querySelector(PART_SELECTOR.playButton);
     if (button) name(button, words.play);
   }
 }
@@ -97,7 +97,7 @@ function playedFigureAt(target: EventTarget | null): HTMLElement | null {
   const stage = closestFrom(target, CLASS_SELECTOR.stage);
   if (!stage) return null;
   const link = closestFrom(target, "a");
-  if (link && !link.matches(SELECTOR.playButton)) return null;
+  if (link && !link.matches(PART_SELECTOR.playButton)) return null;
   const figure = stage.closest(CLASS_SELECTOR.playedFigure);
   return figure instanceof HTMLElement ? figure : null;
 }
@@ -112,7 +112,7 @@ function toggle(figure: HTMLElement): void {
 /** Puts the picture as it moves over the still. It shows once it has
     loaded, and plays for as long as its button says. */
 function play(figure: HTMLElement): void {
-  const button = find(figure, SELECTOR.playButton);
+  const button = find(figure, PART_SELECTOR.playButton);
   const address = button.getAttribute("href");
   if (!address) return;
   timesPlayed++;
