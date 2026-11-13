@@ -36,7 +36,7 @@
    written, and the lines are quoted as before. */
 
 import { namedIn } from "../coverage.ts";
-import { piecesOf } from "../text/sentences.ts";
+import { pieceStartsIn } from "../text/sentences.ts";
 
 /** The languages a reply can be written, and checked, in. */
 export const CHECKABLE_LANGUAGES: readonly string[] = ["en", "ja"];
@@ -288,20 +288,6 @@ function hasNumber({ numbers }: Vocabulary, word: string): boolean {
 
 // ---- The check --------------------------------------------------------------------------
 
-// Where each sentence of a text starts (quote.ts cuts sentences the same
-// way: not after "e.g.", not inside quotes).
-function sentenceStarts(text: string): number[] {
-  const starts: number[] = [];
-  let searchFrom = 0;
-  for (const sentence of piecesOf(text)) {
-    const start = text.indexOf(sentence.text, searchFrom);
-    if (start < 0) continue;
-    starts.push(start);
-    searchFrom = start + sentence.text.length;
-  }
-  return starts;
-}
-
 // The names and numbers in one word of a reply that the sources don't
 // have, as the reply wrote them. A compound is read a part at a time, so
 // "US-based" needs only its "US" in the sources.
@@ -327,7 +313,7 @@ function unsourcedWordsIn(
   vocabulary: Vocabulary,
   context: Omit<WordContext, "isFirstOfSentence">,
 ): string[] {
-  const starts = sentenceStarts(reply);
+  const starts = pieceStartsIn(reply);
   const isInAnAddress = (index: number) =>
     addresses.some(({ start, text }) => index >= start && index < start + text.length);
   return [...reply.matchAll(LATIN_WORD)]
