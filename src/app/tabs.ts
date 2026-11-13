@@ -7,7 +7,7 @@ import { SEPARATOR } from "./constants.ts";
 import { titleId } from "../contracts/page-ids.ts";
 import { clone, find } from "./lib/dom.ts";
 import { unfold } from "./folding.ts";
-import { homeGreeting, pageTitle, side, siteName } from "./page.ts";
+import { homeGreeting, pageTitle, sidebar, siteName } from "./page.ts";
 
 /** The tab the address names, if it names one. */
 export function currentTab(): HTMLElement | null {
@@ -32,7 +32,7 @@ export function copyTab(pattern: HTMLElement, id: string): HTMLElement {
 }
 
 /** A tab's row in the sidebar. */
-export const rowFor = (id: string): Element | null => side.querySelector(`a[href="#${CSS.escape(id)}"]`);
+export const rowFor = (id: string): Element | null => sidebar.querySelector(`a[href="#${CSS.escape(id)}"]`);
 
 /** Names the open tab in the window title; null for the home screen. */
 export function setTitle(name: string | null): void {
@@ -49,7 +49,7 @@ export function clearHash(replace = false): void {
 
 /** Marks one of the sidebar's rows as the current page, and no other. */
 function markCurrentRow(currentRow: Element | null): void {
-  for (const row of side.querySelectorAll(`${PART_SELECTOR.navRow}, ${PART_SELECTOR.tabRow}`)) {
+  for (const row of sidebar.querySelectorAll(`${PART_SELECTOR.navRow}, ${PART_SELECTOR.tabRow}`)) {
     if (row === currentRow) row.setAttribute("aria-current", "page");
     else row.removeAttribute("aria-current");
   }
@@ -63,7 +63,7 @@ export function sync(moveFocus: boolean): void {
   // The home screen and a new chat with nothing sent in it yet have no row
   // of their own, so "New tab" is selected for them.
   const standsInNewTab = !tab || isChat(tab);
-  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(CLASS_SELECTOR.newTab) : null));
+  markCurrentRow(ownRow ?? (standsInNewTab ? sidebar.querySelector(CLASS_SELECTOR.newTab) : null));
 
   // Opening a tab inside a folded group unfolds it.
   const groupList = ownRow?.closest("ul");

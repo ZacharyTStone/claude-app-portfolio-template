@@ -9,7 +9,7 @@ import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } 
 import { foldable } from "./folding.ts";
 import { greet } from "./greeting.ts";
 import { focusHome, initHome } from "./home.ts";
-import { root, side } from "./page.ts";
+import { root, sidebar } from "./page.ts";
 import { initPanel, tellPanelToggles } from "./panel.ts";
 import { addPersonalTabs } from "./personal.ts";
 import { initPlay } from "./play.ts";
@@ -56,8 +56,8 @@ function completeThePage(): OwnParts {
   addPersonalTabs();
   return {
     tabs: findAll(document, CLASS_SELECTOR.tab),
-    tabRows: findAll(side, PART_SELECTOR.tabRow),
-    groupHeadings: findAll(side, CLASS_SELECTOR.groupHeading),
+    tabRows: findAll(sidebar, PART_SELECTOR.tabRow),
+    groupHeadings: findAll(sidebar, CLASS_SELECTOR.groupHeading),
   };
 }
 
@@ -102,11 +102,11 @@ function wireTab(tab: HTMLElement): void {
     new chat; "Skip to content" goes to the open tab's heading (its link
     would open no tab at all). */
 function handleLinksHere(): void {
-  handleHere(find(side, CLASS_SELECTOR.wordmark), () => {
+  handleHere(find(sidebar, CLASS_SELECTOR.wordmark), () => {
     goHome();
     focusHome();
   });
-  handleHere(find(side, CLASS_SELECTOR.newTab), newChat);
+  handleHere(find(sidebar, CLASS_SELECTOR.newTab), newChat);
   handleHere(find(document, CLASS_SELECTOR.skip), () => sync(true));
 }
 

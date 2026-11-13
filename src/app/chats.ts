@@ -11,7 +11,7 @@ import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
 import { isPopupOpenFrom } from "./popup.ts";
-import { askedTab, main, root, side, siteName, tagline, words } from "./page.ts";
+import { askedTab, main, root, sidebar, siteName, tagline, words } from "./page.ts";
 import { bubble, messagesFor, questionFor, type Source } from "./replies.ts";
 import { closeDrawerAndReturnFocus, isWide } from "./sidebar.ts";
 import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "./tabs.ts";
@@ -110,7 +110,7 @@ function chatsList(): HTMLElement {
   if (list instanceof HTMLElement) return list;
   const heading = make("p", { class: PAGE_CLASSES.groupHeading, id }, words.chats);
   const made = make("ul", { class: PAGE_CLASSES.groupRows, "aria-labelledby": id });
-  find(side, CLASS_SELECTOR.account).before(heading, made);
+  find(sidebar, CLASS_SELECTOR.account).before(heading, made);
   foldable(heading);
   return made;
 }

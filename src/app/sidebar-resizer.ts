@@ -6,7 +6,7 @@ import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { local } from "./lib/storage.ts";
-import { shell, side, words } from "./page.ts";
+import { shell, sidebar, words } from "./page.ts";
 import { edgeStepFor, rememberedWidth, SIDEBAR_WIDTH, widestIn, widthWithin } from "./sidebar-width.ts";
 
 /** In localStorage. */
@@ -29,7 +29,7 @@ const resizer = make("div", {
 
 /** Puts the edge beside the sidebar, at the width this browser remembers. */
 export function addSidebarResizer(): void {
-  side.after(resizer);
+  sidebar.after(resizer);
   restoreWidth();
   // The window leaves the sidebar another width as it changes.
   addEventListener("resize", restoreWidth);
@@ -52,7 +52,7 @@ export function addSidebarResizer(): void {
 /** The edge follows the pointer. A click that doesn't move leaves the width
     as it was, and unsaved. */
 function dragResizer(down: PointerEvent): void {
-  const sidebarLeft = side.getBoundingClientRect().left;
+  const sidebarLeft = sidebar.getBoundingClientRect().left;
   let hasMoved = false;
   const moveEdgeToPointer = (move: PointerEvent) => {
     hasMoved = true;
@@ -88,4 +88,4 @@ function setWidth(px: number | null): number {
   return widthNow;
 }
 
-const widthShowing = (): number => side.getBoundingClientRect().width;
+const widthShowing = (): number => sidebar.getBoundingClientRect().width;

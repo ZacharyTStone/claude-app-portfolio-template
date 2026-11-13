@@ -8,14 +8,14 @@ import { SIZE } from "./constants.ts";
 import { byId, find, findAll, onClick } from "./lib/dom.ts";
 import { isFocusOn, stepFocus } from "./lib/focus.ts";
 import { MENU } from "./menu.ts";
-import { shell, side } from "./page.ts";
+import { shell, sidebar } from "./page.ts";
 import { addSidebarResizer } from "./sidebar-resizer.ts";
 import { clearHash, currentTab } from "./tabs.ts";
 
 const widerThanPhone = matchMedia(`(min-width: ${SIZE.wide}px)`);
 
 /** The button before the name, which hides the sidebar on wider screens. */
-const hideButton = find(side, ATTRIBUTE_SELECTOR.sideToggle);
+const hideButton = find(sidebar, ATTRIBUTE_SELECTOR.sideToggle);
 
 /** A group's heading: the button in it that folds the group (folding.ts). */
 const GROUP_HEADING = `${CLASS_SELECTOR.groupHeading} ${CLASS_SELECTOR.foldButton}`;
@@ -38,11 +38,11 @@ export function initSidebar(): void {
   shell.addEventListener("click", (event) => {
     if (event.target === shell) closeDrawerAndReturnFocus();
   });
-  find(side, CLASS_SELECTOR.drawerClose).addEventListener("click", (event) => {
+  find(sidebar, CLASS_SELECTOR.drawerClose).addEventListener("click", (event) => {
     event.preventDefault();
     closeDrawerAndReturnFocus();
   });
-  side.addEventListener("keydown", moveBetweenRows);
+  sidebar.addEventListener("keydown", moveBetweenRows);
   addSidebarResizer();
 }
 
@@ -51,31 +51,31 @@ export const isWide = (): boolean => widerThanPhone.matches;
 
 /** The address alone (#tabs) opens the drawer, as it does without
     JavaScript. */
-export const isAddressOnDrawer = (): boolean => side.matches(":target");
+export const isAddressOnDrawer = (): boolean => sidebar.matches(":target");
 
 /** By its button (a class keeps the open tab where it is behind it), or by
     the address. */
-export const isDrawerOpen = (): boolean => side.classList.contains(PAGE_CLASSES.drawerOpen) || isAddressOnDrawer();
+export const isDrawerOpen = (): boolean => sidebar.classList.contains(PAGE_CLASSES.drawerOpen) || isAddressOnDrawer();
 
 /** Closes the drawer however it was opened: an address that opened it is
     cleared. */
 export function closeDrawer(): void {
-  side.classList.remove(PAGE_CLASSES.drawerOpen);
+  sidebar.classList.remove(PAGE_CLASSES.drawerOpen);
   if (isAddressOnDrawer()) clearHash();
 }
 
 /** For a drawer closed from inside it: the focus, if it was in the drawer,
     goes back to the menu button. */
 export function closeDrawerAndReturnFocus(): void {
-  const hadFocus = side.contains(document.activeElement);
+  const hadFocus = sidebar.contains(document.activeElement);
   closeDrawer();
   if (hadFocus) shownMenuButton().focus();
 }
 
 /** The focus goes to the open tab's row, or else to the first row. */
 function openDrawer(): void {
-  side.classList.add(PAGE_CLASSES.drawerOpen);
-  const row = side.querySelector('[aria-current="page"]') ?? side.querySelector(PART_SELECTOR.navRow);
+  sidebar.classList.add(PAGE_CLASSES.drawerOpen);
+  const row = sidebar.querySelector('[aria-current="page"]') ?? sidebar.querySelector(PART_SELECTOR.navRow);
   if (row instanceof HTMLElement) row.focus();
 }
 
@@ -101,7 +101,7 @@ function moveBetweenRows(event: KeyboardEvent): void {
   // A menu in the sidebar has arrow keys of its own.
   if (event.defaultPrevented || !(event.target instanceof Element) || event.target.closest(MENU)) return;
   // The rows of a folded group are skipped.
-  const rowsShowing = findAll(side, ARROW_KEY_ROWS).filter((row) => !row.closest("[hidden]"));
+  const rowsShowing = findAll(sidebar, ARROW_KEY_ROWS).filter((row) => !row.closest("[hidden]"));
   if (!isFocusOn(rowsShowing)) return;
   event.preventDefault();
   stepFocus(rowsShowing, event.key === "ArrowDown" ? 1 : -1);

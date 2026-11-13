@@ -12,7 +12,7 @@ import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
 import { deleteChat } from "./chats.ts";
 import { asMenu, menuRow, toggleMenu } from "./menu.ts";
-import { questionText, side, words } from "./page.ts";
+import { questionText, sidebar, words } from "./page.ts";
 import { popupAttributes } from "./popup.ts";
 import { renameTab } from "./rename.ts";
 import { withSubmenu } from "./submenu.ts";
@@ -120,7 +120,7 @@ function placeRowMenu(moreButton: HTMLElement): void {
   rowMenu.classList.remove(PAGE_CLASSES.above);
   // Shown, so it can be measured.
   rowMenu.hidden = false;
-  const lowestItCanReach = side.getBoundingClientRect().bottom - SIZE.edge;
+  const lowestItCanReach = sidebar.getBoundingClientRect().bottom - SIZE.edge;
   if (rowMenu.getBoundingClientRect().bottom > lowestItCanReach) rowMenu.classList.add(PAGE_CLASSES.above);
 }
 

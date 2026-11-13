@@ -1,12 +1,9 @@
-/* The viewer: a panel beside the conversation (the whole screen where
-   there's no room beside it) that shows a link's page in a frame, as the app
-   shows an artifact. The links that open in it are the ones the page marks
-   (DATA.viewerAddress, from the config's `viewer`); every other link, and every link
-   without JavaScript, opens as links do.
-
-   The frame is made when the viewer opens and thrown away when it closes,
-   so nothing loads from another site until the visitor asks for it, and
-   nothing keeps running there once they're done. */
+/* The viewer shows a link's page in a frame beside the conversation (over
+   the whole screen where there's no room), as the app shows an artifact:
+   the links the page marks for it (DATA.viewerAddress). The frame is made
+   when it opens and thrown away when it closes, so nothing loads from
+   another site until the visitor asks for it, and nothing keeps running
+   there once they're done. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PART_SELECTOR } from "../contracts/page-selectors.ts";
@@ -19,30 +16,23 @@ import { shell, words } from "./page.ts";
     isn't on the list, so a framed page can't take the visitor anywhere. */
 const FRAME_SANDBOX = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
 
-/** The viewer's parts, once it's been made. */
 type Viewer = {
   panel: HTMLElement;
-  /** The name of what it's showing. */
   title: HTMLElement;
-  /** "Open in a new tab": the link itself, as it was. */
+  /** The link itself, as it was. */
   openInNewTab: HTMLAnchorElement;
-  /** Where the frame goes. */
   framePlace: HTMLElement;
 };
 
 /** Made the first time a link opens in it. */
 let viewer: Viewer | null = null;
-/** The link that opened it, which gets the focus back when it closes. */
 let openedFrom: HTMLElement | null = null;
 
-/** A window wide enough for the viewer to be beside the conversation. */
 const besideTheConversation = matchMedia(`(min-width: ${SIZE.viewerBeside}px)`);
 
-/** Whether the viewer is showing a page. */
 export const isViewerOpen = (): boolean => shell.classList.contains(PAGE_CLASSES.viewing);
 
-/** Whether the viewer covers the whole screen, as it does where there's no
-    room for it beside the conversation. */
+/** As it does where there's no room for it beside the conversation. */
 export const viewerCoversScreen = (): boolean => isViewerOpen() && !besideTheConversation.matches;
 
 /** Makes the viewer, hidden, in the shell: a bar with the name of what it

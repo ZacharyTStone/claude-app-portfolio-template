@@ -7,7 +7,6 @@ const SHOWS_FOR_MS = 3200;
 
 // A status, so screen readers say each message as it shows.
 const toast = make("div", { class: PAGE_CLASSES.toast, role: "status" });
-/** The timer that hides the message that's showing. */
 let hideTimer = 0;
 
 /** Puts the toast in the page, empty and out of sight until something's said. */
@@ -23,5 +22,4 @@ export function say(message: string): void {
   hideTimer = setTimeout(() => toast.classList.remove(PAGE_CLASSES.show), SHOWS_FOR_MS);
 }
 
-/** Says whether something was copied. */
 export const sayCopied = (wasCopied: boolean): void => say(wasCopied ? words.copied : words.copyFailed);

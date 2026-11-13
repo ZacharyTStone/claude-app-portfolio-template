@@ -1,17 +1,10 @@
-/* A picture a visitor plays: a diagram that rests as its still, dimmed,
-   with a Play button over it (Picture.astro), so nothing moves beside the
-   text until it's asked to. Without the script the button is a link to the
-   picture as it moves.
-
-   With it, pressing the button, or the picture, plays the picture where it
-   is: the moving file is put over the still and the figure lights up. It's
-   taken away again when it has played through (the button says for how
-   long: DATA.play), when it's pressed again, when another picture is
-   played, or when it's out of sight. One picture plays at a time.
-
-   A chat's copy of an answer has a button of its own, which works the
-   same: the presses are heard on the document, and the copy starts at
-   rest (restStill). */
+/* A picture a visitor plays rests as its still with a Play button over it
+   (Picture.astro), so nothing moves beside the text until it's asked to;
+   without the script the button is a link to the picture as it moves.
+   Pressed, the moving file is put over the still until it has played
+   through, is pressed again, another picture is played, or it leaves the
+   screen. A chat's copy of an answer works the same, and starts at rest
+   (restStill). */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
@@ -19,7 +12,6 @@ import { TIMING } from "./constants.ts";
 import { closestFrom, find, findAll, isPlainClick, make, onClick } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
-/** The picture that's playing. */
 type Playing = {
   figure: HTMLElement;
   button: HTMLElement;
@@ -29,7 +21,7 @@ type Playing = {
   playsUntil?: ReturnType<typeof setTimeout>;
 };
 
-/** The one picture playing, if any is. */
+/** One picture plays at a time. */
 let playing: Playing | null = null;
 
 /** Stops the picture that's playing when it leaves the screen. */

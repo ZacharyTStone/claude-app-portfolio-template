@@ -10,7 +10,7 @@ import { asButton, byId, find, findAll, query } from "./lib/dom.ts";
 import { clockNote, timeIn, type ClockWording } from "./clock.ts";
 import { logOut } from "./goodbye.ts";
 import { asMenu, menuItems, menuRow, toggleMenu } from "./menu.ts";
-import { root, side } from "./page.ts";
+import { root, sidebar } from "./page.ts";
 import { popupAttributes } from "./popup.ts";
 import { withSubmenu } from "./submenu.ts";
 
@@ -18,7 +18,7 @@ import { withSubmenu } from "./submenu.ts";
 const OTHER_LANGUAGE_LINKS = `${CLASS_SELECTOR.languageSwitch} a`;
 
 export function initAccountMenu(): void {
-  const accountRow = find(side, CLASS_SELECTOR.accountRow);
+  const accountRow = find(sidebar, CLASS_SELECTOR.accountRow);
   const accountMenu = byId(PAGE_IDS.accountMenu);
   asMenu(accountMenu);
   for (const row of menuItems(accountMenu)) row.tabIndex = -1;
@@ -29,7 +29,7 @@ export function initAccountMenu(): void {
   // several other languages it's a submenu of them instead.
   const languageLink = accountMenu.querySelector(ATTRIBUTE_SELECTOR.langLink);
   const otherLanguagePage = languageLink?.getAttribute("href");
-  const hasSeveralOtherLanguages = findAll(side, OTHER_LANGUAGE_LINKS).length > 1;
+  const hasSeveralOtherLanguages = findAll(sidebar, OTHER_LANGUAGE_LINKS).length > 1;
   if (languageLink && hasSeveralOtherLanguages) replaceWithLanguageSubmenu(languageLink, accountMenu);
   const linkThatFollowsTheTab = hasSeveralOtherLanguages ? null : languageLink;
 
@@ -88,7 +88,7 @@ function replaceWithLanguageSubmenu(languageLink: Element, accountMenu: HTMLElem
 /** A row for each other language, opening the same tab there: `hash` is
     the open tab's part of the address ("#about"). */
 function languageRows(hash: string): HTMLElement[] {
-  return findAll(side, OTHER_LANGUAGE_LINKS).map((languageLink) => {
+  return findAll(sidebar, OTHER_LANGUAGE_LINKS).map((languageLink) => {
     const language = languageLink.getAttribute("hreflang") ?? "";
     // The language's name in itself, if the link carries it.
     const name = languageLink.getAttribute(DATA.languageName) ?? languageLink.textContent;
