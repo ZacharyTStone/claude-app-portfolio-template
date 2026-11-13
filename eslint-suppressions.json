@@ -14,21 +14,6 @@
       "count": 3
     }
   },
-  "src/config/blocks.ts": {
-    "no-warning-comments": {
-      "count": 6
-    }
-  },
-  "src/config/language.ts": {
-    "no-warning-comments": {
-      "count": 6
-    }
-  },
-  "src/contracts/ask.ts": {
-    "no-warning-comments": {
-      "count": 5
-    }
-  },
   "tests/browser/checks/ask.ts": {
     "max-params": {
       "count": 1
@@ -58,11 +43,6 @@
   "tests/browser/site.ts": {
     "no-warning-comments": {
       "count": 3
-    }
-  },
-  "tests/contracts/ask.test.ts": {
-    "no-warning-comments": {
-      "count": 2
     }
   }
 }

@@ -18,7 +18,7 @@ export type TextBlock = Markdown | Markdown[];
 
 /** A block that isn't text: an object with one key, which says what kind
     it is. */
-export type NamedBlock =
+type NamedBlock =
   | {
       /** A file card, drawn like a small config file. */
       card: FileCard;
@@ -73,7 +73,7 @@ export type CardValue =
     };
 
 /** Drawn as `key: value  # comment`. */
-export type CardLine = [key: string, value: CardValue, comment?: string];
+type CardLine = [key: string, value: CardValue, comment?: string];
 
 /** Its name over lines of `key: value`, the values in one column.
 
@@ -144,7 +144,7 @@ export type Flow = {
   steps: FlowStep[];
 };
 
-export type FlowStep = {
+type FlowStep = {
   /** In bold: "The till". */
   name: string;
   /** What the step does, after its name: "takes the order". */
@@ -158,9 +158,9 @@ export const FIGURE_LIMITS = {
 } as const;
 
 /** A picture that moves (an SVG with its own animation, as `npm run
-    diagrams` writes) names itself without its motion as `still`. One whose
-    file says how long it plays rests as its still, with a Play button; any
-    other moves all the time.
+    diagrams` writes: docs/diagrams.md) names itself without its motion as
+    `still`. One whose file says how long it plays rests as its still, with
+    a Play button; any other moves all the time.
 
         { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" } */
 export type Picture = {

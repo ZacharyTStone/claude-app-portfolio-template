@@ -13,7 +13,7 @@ export type Sidebar = {
   groups: SidebarGroup[];
 };
 
-export type SidebarNavRow = {
+type SidebarNavRow = {
   /** The id of the thread it opens. */
   tab: string;
   /** One of the .i-* classes in src/styles, by its name without the "i-".
@@ -25,7 +25,7 @@ export type SidebarNavRow = {
 };
 
 /** Rows under a heading. With JavaScript the heading folds its rows away. */
-export type SidebarGroup = {
+type SidebarGroup = {
   /** What the page remembers a folded group by: ID_PATTERN, like a
       thread's. Each group's is different, and none is "chats", the group
       the browser code adds for the visitor's chats. */
@@ -37,7 +37,7 @@ export type SidebarGroup = {
 };
 
 /** A row in a sidebar group: two lines, a name over a note. */
-export type SidebarRow = {
+type SidebarRow = {
   /** The id of the thread it opens. */
   tab: string;
   /** The first line: "Acme". The question card names the thread by it,

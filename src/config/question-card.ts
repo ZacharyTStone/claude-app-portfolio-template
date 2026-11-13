@@ -50,7 +50,7 @@ export type TabTopic = TopicLabel & {
   personal?: false;
 };
 
-export type ChoicesTopic = TopicLabel & {
+type ChoicesTopic = TopicLabel & {
   /** The second question, over the choices: "Which job?" */
   ask: string;
   /** The threads to choose from. */
@@ -60,7 +60,7 @@ export type ChoicesTopic = TopicLabel & {
   personal?: false;
 };
 
-export type PersonalTopic = TopicLabel & {
+type PersonalTopic = TopicLabel & {
   /** The second question, over the personal answers: "Such as?" */
   ask: string;
   /** Lists the personal answers, but for the hidden ones, as the topic's
@@ -70,7 +70,7 @@ export type PersonalTopic = TopicLabel & {
   choices?: never;
 };
 
-export type Choice = {
+type Choice = {
   /** The id of the thread it opens. */
   tab: string;
   /** Leave out to use the thread's name in the sidebar. */
@@ -100,7 +100,7 @@ export type PersonalAnswer = {
   hidden?: boolean;
 };
 
-export type QuestionCardWords = {
+type QuestionCardWords = {
   /** The placeholder of the box for a question of the visitor's own: "Ask
       your own question". */
   else: string;

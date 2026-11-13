@@ -9,10 +9,6 @@
   "ignoreIssues": {
     "src/app/lib/markdown.ts": ["exports"],
     "src/app/lib/motion.ts": ["exports"],
-    "src/config/blocks.ts": ["types"],
-    "src/config/question-card.ts": ["types"],
-    "src/config/strings.ts": ["types"],
-    "src/contracts/ask.ts": ["exports", "types"],
     "src/worker/ask/to-owner.ts": ["types"],
     "tests/browser/helpers.ts": ["exports", "types"],
     "tests/browser/site.ts": ["types"],
