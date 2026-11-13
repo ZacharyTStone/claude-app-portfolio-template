@@ -1,5 +1,4 @@
-/* Code / tool cards, and a message to copy in a "Something else" reply
-   (src/app fills it in): a framed box under a heading line. */
+/* The message to copy in "Something else" (Asked.astro) has the file card's frame. */
 .file-card, .draft {
   border-radius: 8px;
   background: var(--code-bg);

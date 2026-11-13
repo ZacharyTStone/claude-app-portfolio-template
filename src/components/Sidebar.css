@@ -24,8 +24,6 @@
 .language-switch [aria-current] { background: var(--row-selected); color: var(--text); }
 .language-switch a:hover { color: var(--text); }
 .side .drawer-close { display: none; }
-/* A button before the name hides the sidebar on wider
-   screens, and the top bar's button brings it back (src/app). */
 .side-toggle { margin-left: -6px; }
 @media (min-width: 800px) {
   .shell.no-side { grid-template-columns: minmax(0, 1fr) var(--panel-col); }
@@ -44,9 +42,6 @@
   font: 435 14px/21px var(--sans);
 }
 .nav a:hover, .group-rows a:hover { background: var(--row-hover); }
-
-/* "Work history ▾": white, with a small filled triangle. A click
-   folds the group (src/app). */
 .group-heading {
   display: flex;
   align-items: center;
@@ -86,6 +81,5 @@
 }
 .live { width: 6px; height: 6px; border-radius: 3px; background: var(--blue); margin-left: auto; flex: none; }
 
-/* The selected row: the open tab's, or "New tab" on the home screen and
-   in a new chat (the script marks it with aria-current). */
+/* The script marks the open tab's row, or "New tab", with aria-current. */
 .side a[aria-current="page"] { background: var(--row-selected); }

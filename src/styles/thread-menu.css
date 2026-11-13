@@ -1,5 +1,4 @@
-/* Each row in the lists shows a "…" button on hover, which
-   opens the row's menu (src/app); it covers the row's dot while it shows. */
+/* The "…" covers the row's dot while it shows. */
 .group-rows li { position: relative; }
 .row-more {
   position: absolute;
@@ -25,8 +24,6 @@
 .title-menu-button { width: 28px; height: 28px; margin-left: -6px; flex: none; }
 .title-menu-button::before { width: 14px; height: 14px; }
 .title-menu-button[aria-expanded="true"] { background: var(--row-hover); color: var(--text); }
-
-/* Picked from the title's menu: a brief outline shows where it is. */
 .question.flash { box-shadow: 0 0 0 1.5px var(--accent); }
 
 .pop .danger { color: var(--danger); }

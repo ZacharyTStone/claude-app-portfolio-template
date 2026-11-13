@@ -1,4 +1,3 @@
-/* Plain buttons: a label with an icon, and icon-only. */
 .ghost-button {
   display: inline-flex;
   align-items: center;
@@ -24,7 +23,6 @@
   cursor: pointer;
 }
 .ghost-button:hover, .icon-button:hover { background: var(--row-hover); color: var(--text); }
-/* A filled button: the card's Send, and "Log back in". */
 .ask-send, .bye-back {
   border: 0;
   border-radius: 9px;

@@ -1,8 +1,5 @@
-/* Printed, or saved as a PDF: who this is and how to reach them first (the
-   sidebar and panel are left out), then every thread, dark on white. The
-   threads run on from page to page; only a message or a card is kept
-   whole. "Something else" and the chats are this visit's, so they're left
-   out. */
+/* Printed: every thread, dark on white, running on from page to page. "Something else" and the chats are
+   this visit's, so they're left out. */
 .print-head { display: none; }
 @media print {
   :root {

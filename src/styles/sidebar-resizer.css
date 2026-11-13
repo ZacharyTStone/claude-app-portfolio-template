@@ -1,5 +1,3 @@
-/* The sidebar's edge can be dragged to resize it (src/app):
-   a blue line shows on hover. */
 .resizer {
   position: absolute;
   top: 0;

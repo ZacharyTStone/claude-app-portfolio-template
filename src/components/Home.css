@@ -26,11 +26,7 @@
 }
 .intro { margin: 14px 0 0; text-align: center; color: var(--text-2); font: 400 15px/21px var(--sans); }
 
-/* The home screen: the greeting and the intro, then a box
-   to type a question in with a few questions to start with under it (both
-   need the script, which sends them into a new chat), and on its own line
-   a hint with an arrow pointing at the tabs. They sit a little above the
-   middle: the extra space below lifts them. */
+/* They sit a little above the middle: the extra space below lifts them. */
 .home .under { justify-content: center; margin-top: auto; padding-top: calc(32px + 6vh); text-align: center; }
 .home-ask { display: grid; gap: 14px; margin-top: 28px; }
 .home-ask .composer {
@@ -56,7 +52,7 @@
 }
 .home-ask input::placeholder { color: var(--placeholder); opacity: 1; }
 .home-ask input:focus-visible { box-shadow: none; }
-/* The send button: dim until there's something to send. */
+/* Dim until there's something to send. */
 .home-ask .home-send {
   display: grid;
   place-items: center;

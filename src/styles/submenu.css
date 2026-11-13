@@ -1,5 +1,3 @@
-/* A row that opens a submenu ends in a chevron; the submenu opens beside
-   it, or below it where there's no room. */
 .pop .chevron {
   flex: none;
   width: 14px;

@@ -1,7 +1,4 @@
-/* A link's page in a frame, in the details panel's place beside the
-   conversation (src/app/viewer.ts makes it), as the app shows an artifact.
-   It's wider than the panel, as a document needs the room, but always
-   leaves the conversation enough to be read. */
+/* Wider than the panel, as a document needs the room, but it always leaves the conversation enough to be read. */
 .shell { --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px)); }
 .shell.viewing { --panel-col: var(--viewer-w); }
 .shell.viewing .panel { display: none; }
@@ -21,8 +18,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The frame's place: a rounded sheet, with the sparkle turning in it until
-   the page it shows has loaded. */
 .viewer-frame {
   position: relative;
   margin: 0 8px 8px;

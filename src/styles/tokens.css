@@ -1,4 +1,4 @@
-/* ---- Tokens (measured, dark) ---------------------------------------- */
+/* Measured from the Claude app's dark theme, with getComputedStyle. */
 :root {
   color-scheme: dark;
 

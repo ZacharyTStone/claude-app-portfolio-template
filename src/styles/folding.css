@@ -1,6 +1,4 @@
-/* The sidebar groups and the panel's sections fold, and the top-bar title
-   opens a menu. Their words sit in a button, and a click anywhere on the
-   heading, chevron included, presses it. */
+/* A click anywhere on the heading, its triangle included, presses the button inside it. */
 .foldable { cursor: pointer; border-radius: 8px; }
 .foldable:hover { background: var(--row-hover); }
 .foldable:has(> .fold-button:focus-visible) { box-shadow: var(--focus-ring); }

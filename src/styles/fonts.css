@@ -1,4 +1,4 @@
-/* ---- Typefaces (all SIL OFL; licences in public/assets/fonts/) -------- */
+/* All SIL OFL: the licences are in public/assets/fonts/. */
 @font-face {
   font-family: "Inter";
   src: url("/assets/fonts/inter.woff2") format("woff2");
@@ -32,12 +32,8 @@
     U+2212, U+2215, U+FEFF, U+FFFD;
 }
 
-/* Japanese: Noto Sans JP for the text and Noto Serif JP for the greeting,
-   both cut down to the characters the Japanese page uses by
-   scripts/ja-font.py (SIL OFL; licence in public/assets/fonts/). They come
-   after the Latin fonts in every stack, so a page downloads them only when
-   it shows a character those don't have: in practice, only the Japanese
-   page. */
+/* The Japanese fonts are cut down to the characters the Japanese page uses (npm run fonts). They come after
+   the Latin fonts in every stack, so only a page that shows those characters downloads them. */
 @font-face {
   font-family: "Noto Sans JP Subset";
   src: url("/assets/fonts/noto-sans-jp.woff2") format("woff2");

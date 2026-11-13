@@ -1,7 +1,3 @@
-/* Bars from one baseline, square there and rounded at the tip, each with
-   its value written at its tip. The row the figure is about is in the
-   accent colour; the rest are grey. */
-
 .bars dl { display: grid; grid-template-columns: max-content minmax(0, 1fr); align-items: center; column-gap: 12px; }
 .bars dl > div { display: contents; }
 .bars dt { color: var(--text-2); font: 400 13px/20px var(--sans); }

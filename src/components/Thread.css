@@ -1,4 +1,3 @@
-/* A visitor's question. */
 .question {
   justify-self: end;
   max-width: 85%;
@@ -8,8 +7,6 @@
   overflow-wrap: anywhere;
   transition: box-shadow 0.6s var(--ease);
 }
-
-/* My answer. */
 .answer { display: grid; gap: 12px; min-width: 0; }
 .answer strong { font-weight: 501; }
 .answer ul { display: grid; gap: 6px; padding-left: 22px; list-style: disc; }
@@ -23,9 +20,6 @@ code {
   border-radius: 4px;
   background: var(--chip);
 }
-
-/* "Read experience/acme.md ▸": a collapsible status line, as in the
-   app, that opens to show the file it read. */
 .status summary {
   display: inline-flex;
   align-items: center;

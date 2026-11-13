@@ -1,4 +1,4 @@
-/* ---- Messages arrive one after another when a tab opens ------------- */
+/* What moves by itself, and only for a visitor who hasn't asked for less motion. */
 @media (prefers-reduced-motion: no-preference) {
   .tab:target .thread > * { animation: arrive 0.35s var(--ease) both; }
   .tab:target .thread > :nth-child(2) { animation-delay: 0.08s; }
@@ -16,7 +16,6 @@
   .thinking .thinking-dots i:nth-child(3) { animation-delay: 0.4s; }
   @keyframes dots-turn { to { rotate: 360deg; } }
   @keyframes dot { 50% { opacity: 0.6; scale: 0.8; } }
-  /* A light passing over the word. */
   .thinking-word {
     background: linear-gradient(90deg, var(--text-2) 40%, var(--text) 50%, var(--text-2) 60%) 0 0 / 300% 100%;
     -webkit-background-clip: text;
@@ -25,13 +24,10 @@
     animation: shimmer 2.4s linear infinite;
   }
   @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
-  /* A figure's bars grow from the baseline as it arrives, then their
-     values show. */
   .tab:target .bars .bar { transform-box: fill-box; transform-origin: 0 50%; animation: grow 0.7s 0.25s var(--ease) both; }
   .tab:target .bars text { animation: show 0.3s 0.8s var(--ease) both; }
   @keyframes grow { from { transform: scaleX(0); } }
   @keyframes show { from { opacity: 0; } }
-  /* A flow's steps arrive one after another, each after the arrow to it. */
   .tab:target .flow li { animation: arrive 0.4s var(--ease) both; }
   .tab:target .flow li::before { animation: show 0.3s var(--ease) both; }
   .tab:target .flow li:nth-child(2), .tab:target .flow li:nth-child(2)::before { animation-delay: 0.3s; }
@@ -39,8 +35,6 @@
   .tab:target .flow li:nth-child(4), .tab:target .flow li:nth-child(4)::before { animation-delay: 0.6s; }
   .tab:target .flow li:nth-child(5), .tab:target .flow li:nth-child(5)::before { animation-delay: 0.75s; }
   .tab:target .flow li:first-child { animation-delay: 0.15s; }
-  /* The viewer slides in from the side, and its sparkle turns while the
-     page loads. */
   .viewer { animation: viewer-in 0.25s var(--ease); }
   @keyframes viewer-in { from { opacity: 0; translate: 16px 0; } }
   .viewer-frame.viewer-loading::before { animation: idle 2.6s ease-in-out infinite; }
@@ -48,12 +42,8 @@
   @keyframes idle { 50% { translate: 0 -6px; rotate: 22deg; } }
   .bye { animation: bye-in 0.35s var(--ease); }
   @keyframes bye-in { from { opacity: 0; } }
-  /* A quote and a file card that were out of sight come in when they're
-     scrolled to (src/app/reveal-on-scroll.ts marks them, and only with the script).
-     A quote's rule shows first, in the accent, then its words, then who
-     said them. A card's tick lands, then its lines are written out one
-     after another, as a file being read. When several arrive together
-     each waits its turn (--wait). */
+  /* src/app/reveal-on-scroll.ts marks a quote or a file card that was out of sight as it's scrolled to. When
+     several come into view together, each waits its turn (--wait). */
   .waiting { opacity: 0; }
   .seen-after-1 { --wait: 0.16s; }
   .seen-after-2 { --wait: 0.32s; }
@@ -69,8 +59,8 @@
   .file-card.seen { animation: show 0.25s var(--wait, 0s) var(--ease) both; }
   .file-card.seen .ok { animation: tick-in 0.4s calc(var(--wait, 0s) + 0.2s) var(--ease) both; }
   @keyframes tick-in { from { opacity: 0; scale: 0.3; } 60% { scale: 1.3; } }
-  /* Each line a twentieth of a second after the one above it; past the
-     sixteenth they come together. */
+  /* The page allows no inline styles, so a line's place is counted here; past the sixteenth they come
+     together. */
   .file-card.seen .file-card-line { --line: 15; animation: show 0.12s calc(var(--wait, 0s) + 0.35s + var(--line) * 0.05s) var(--ease) both; }
   .file-card.seen .file-card-line:first-child { --line: 0; }
   .file-card.seen .file-card-line:nth-child(2) { --line: 1; }
@@ -88,7 +78,6 @@
   .file-card.seen .file-card-line:nth-child(14) { --line: 13; }
   .file-card.seen .file-card-line:nth-child(15) { --line: 14; }
   .file-card.seen .file-card-line:nth-child(16) { --line: 15; }
-  /* The dot that says "this is where he is now" breathes. */
   .live { animation: live 2.6s ease-in-out infinite; }
   @keyframes live { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent); } }
 }

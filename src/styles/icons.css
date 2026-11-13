@@ -1,5 +1,4 @@
-/* Icons are SVG files (--icon) drawn as masks in their background colour:
-   an .icon's in the text colour, and the rest as their rules say. */
+/* An icon is an SVG file (--icon) drawn as a mask over a background colour: an .icon's is the text colour. */
 .icon::before, .icon-after::after {
   content: "";
   display: inline-block;

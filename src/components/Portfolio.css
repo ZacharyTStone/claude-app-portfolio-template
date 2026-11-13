@@ -1,5 +1,3 @@
-/* Three columns: the tabs, the open tab (or home) and the details panel,
-   which can be closed (src/app). */
 .shell {
   --panel-col: var(--panel-w);
   position: relative;

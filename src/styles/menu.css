@@ -1,7 +1,3 @@
-/* The title's (the tab's questions, copy link, the other language), the
-   composer's (the questions to choose from) and the account's: a raised
-   panel, a muted heading, rows with an icon, and on the right a muted
-   shortcut, a blue check or an arrow. */
 .pop {
   position: absolute;
   z-index: 25;

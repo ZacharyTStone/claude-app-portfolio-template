@@ -1,6 +1,3 @@
-/* With the script, the name is a button that renames the
-   thread (a "Rename" tip shows on hover), and the chevron is its own button
-   that opens the thread's menu. */
 .title-button {
   position: relative;
   display: flex;

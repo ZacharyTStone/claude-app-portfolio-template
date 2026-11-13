@@ -1,6 +1,4 @@
-/* The account row; the script makes it open a menu (below, with the
-   others). A line across the whole sidebar sits above it,
-   and the hover only wraps the name. */
+/* A line across the whole sidebar sits above the row, and the hover only wraps the name. */
 .account {
   position: relative;
   margin: auto -8px 0;
@@ -39,7 +37,6 @@
 .pop .mail-row { color: var(--text-2); }
 .pop .pop-clock { flex-direction: column; align-items: flex-start; gap: 0; }
 .pop-clock .pop-label { padding: 0; }
-/* The owner's time beside the visitor's. */
 .clocks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; }
 .clocks > span { display: flex; flex-direction: column; }
 .clock-time { font: 400 26px/32px var(--serif); letter-spacing: -0.01em; }

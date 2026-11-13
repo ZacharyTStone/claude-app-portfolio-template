@@ -22,9 +22,7 @@
   margin-block: calc((var(--topbar-h) - 32px) / 2) calc((var(--topbar-h) - 32px) / 2 + 2px);
   padding-block: 0;
 }
-/* Each section folds (src/app): a click anywhere on its heading, whose
-   hover reaches past its words. A small filled triangle points down while
-   the section is open. */
+/* The heading's hover reaches past its words. */
 .panel h2.foldable { width: fit-content; margin-inline: -6px; padding-inline: 6px; }
 .panel h2.icon-after::after {
   width: 12px;

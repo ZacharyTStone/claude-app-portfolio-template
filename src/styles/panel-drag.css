@@ -1,4 +1,3 @@
-/* The six-dot grip that drags a section (src/app), shown on hover. */
 .panel section { position: relative; }
 .grip {
   position: absolute;

@@ -1,5 +1,3 @@
-/* Steps in order: a box each, and an arrow from each to the next, across
-   while there's room and down when there isn't. */
 .flow ol { display: flex; gap: 28px; }
 .flow li {
   position: relative;

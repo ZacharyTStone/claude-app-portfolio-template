@@ -1,10 +1,5 @@
-/* What an answer can show better than say (src/components: Bars.astro,
-   Flow.astro, Picture.astro):
-   amounts as bars, steps in order, a picture. Each is in the
-   same quiet frame as an artifact card, and lays itself out by its own
-   width, not the window's: the column narrows with the sidebar and the
-   panel. Numbers are in the sans, as everywhere, and text keeps the text
-   colours: only a mark is ever in the accent. */
+/* A figure lays itself out by its own width, not the window's: the column narrows with the sidebar and the
+   panel. */
 .figure {
   container-type: inline-size;
   border-radius: 12px;
