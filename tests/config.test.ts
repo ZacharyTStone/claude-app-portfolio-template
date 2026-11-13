@@ -21,6 +21,7 @@ import { askIndexJson } from "../src/site/files/ask-json.ts";
 import { plainAnswers } from "../src/site/plain-answers.ts";
 import { neededFor, numbered, pointsBack } from "../src/worker/ask/lines.ts";
 import { quote } from "../src/worker/ask/quote.ts";
+import { BADGES } from "../src/components/logos.ts";
 import { barLength } from "../src/site/bars.ts";
 import { cardRows } from "../src/site/card.ts";
 import { ROOT } from "../src/site/repo.ts";
@@ -28,7 +29,7 @@ import { headersFile, pagePolicy } from "../src/site/files/headers-file.ts";
 import { llmsTxt } from "../src/site/files/llms-txt.ts";
 import { scriptJson } from "../src/site/json.ts";
 import { makePage, makeSite } from "../src/site/site.ts";
-import { iconsIn, readStylesheet, STYLES_FOLDER } from "../src/site/icons.ts";
+import { iconsIn, LOGO_NAMES, readStylesheet, STYLES_FOLDER } from "../src/site/icons.ts";
 import { structuredData } from "../src/site/structured-data.ts";
 import { checkSite } from "../src/site/checks/check-site.ts";
 import { isSafeHref } from "../src/site/checks/formats.ts";
@@ -383,6 +384,10 @@ test("The viewer opens links the site has, at https addresses on another site, a
 });
 
 // ---- The checks: ids, and what points at a thread or an answer -------------------------
+
+test("The logos a config can name are the ones the page draws a badge for", () => {
+  assert.deepEqual([...LOGO_NAMES], [...BADGES.keys()]);
+});
 
 test("Validation catches a row that points at a thread that doesn't exist", () => {
   assert.deepEqual(

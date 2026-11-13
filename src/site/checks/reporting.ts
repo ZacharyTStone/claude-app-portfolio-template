@@ -4,7 +4,7 @@
    link safe to follow). */
 
 import type { Language } from "../../config/language.ts";
-import { LOGOS } from "../../components/logos.ts";
+import { LOGO_NAMES } from "../icons.ts";
 import type { Site } from "../site.ts";
 import { isSafeHref } from "./formats.ts";
 
@@ -47,7 +47,7 @@ export type LanguageChecks = {
       the message: `the sidebar's "About"`. */
   checkIsIcon: (iconName: string, whatHasIt: string) => void;
   /** As checkIsIcon, for a part that draws a logo's name as a lettered
-      badge instead (LOGOS: a link card, a panel row). */
+      badge instead (LOGO_NAMES: a link card, a panel row). */
   checkIsIconOrLogo: (iconName: string, whatHasIt: string) => void;
   /** Records a problem unless a browser can safely follow `href`
       (isSafeHref). `whatLinksThere` starts the message: `the link card
@@ -84,7 +84,7 @@ export function languageChecks(
       problemInThisLanguageUnless(stylesheetIcons.has(iconName), noSuchIcon(iconName, whatHasIt)),
     checkIsIconOrLogo: (iconName, whatHasIt) =>
       problemInThisLanguageUnless(
-        stylesheetIcons.has(iconName) || LOGOS.includes(iconName),
+        stylesheetIcons.has(iconName) || LOGO_NAMES.includes(iconName),
         noSuchIcon(iconName, whatHasIt),
       ),
     checkLinkIsSafe: (href, whatLinksThere) =>

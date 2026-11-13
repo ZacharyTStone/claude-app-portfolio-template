@@ -1,5 +1,6 @@
 /* Icons: the ones a config can name (the stylesheet's .i-* classes, read
-   from its source), and the ones every page has in its <head>. */
+   from its source, and the logos), and the ones every page has in its
+   <head>. */
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -10,6 +11,11 @@ export const FAVICONS = {
   png: "/assets/favicon-32.png",
   appleTouch: "/assets/apple-touch-icon.png",
 } as const;
+
+/** The icon names that aren't the stylesheet's: a link card or a panel row
+    can name one, and it's drawn as a lettered badge
+    (src/components/Logo.astro). */
+export const LOGO_NAMES: readonly string[] = ["github", "linkedin"];
 
 /** Where the stylesheet's parts are, from the repo's root. */
 export const STYLES_FOLDER = "src/styles";
