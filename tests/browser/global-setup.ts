@@ -9,10 +9,12 @@ import { OUTPUT, ROOT } from "../../src/site/repo.ts";
 import { buildSample } from "../sample/build.ts";
 import { SAMPLE_BUILT_IN } from "./sites.ts";
 
-/** Stops the run, saying only `whatToDo`. */
+/** Stops the run, saying only `whatToDo`: where in this file it stopped
+    would tell the reader nothing. */
 function stop(whatToDo: string): never {
-  console.error(`\n${whatToDo}\n`);
-  process.exit(1);
+  const error = new Error(whatToDo);
+  error.stack = whatToDo;
+  throw error;
 }
 
 function requireTheBuiltSite(): void {
