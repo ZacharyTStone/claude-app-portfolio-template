@@ -23,7 +23,7 @@
   font: 400 15px/20px var(--sans);
   font-variant-numeric: tabular-nums;
 }
-.pager .icon-btn { width: 28px; height: 28px; }
+.pager .icon-button { width: 28px; height: 28px; }
 .pager .count { padding: 0 2px; }
 .options li { border-bottom: 1px solid var(--line); }
 .options :is(a, button) {
@@ -41,10 +41,10 @@
   cursor: pointer;
 }
 .options :is(a, button):hover { background: var(--row-hover); }
-.opt { flex: 1; min-width: 0; }
-.opt-t { display: block; font: 400 16px/23px var(--sans); }
-.opt-d { display: block; font: 400 14px/20px var(--sans); color: var(--text-2); }
-.n {
+.row-words { flex: 1; min-width: 0; }
+.option-label { display: block; font: 400 16px/23px var(--sans); }
+.option-hint { display: block; font: 400 14px/20px var(--sans); color: var(--text-2); }
+.option-number {
   width: 28px;
   height: 28px;
   flex: none;
@@ -55,7 +55,7 @@
   color: var(--text-2);
   font: 400 15px/1 var(--sans);
 }
-.n.ic::before { width: 15px; height: 15px; }
+.option-number.icon::before { width: 15px; height: 15px; }
 .options .on {
   flex: none;
   width: 18px;

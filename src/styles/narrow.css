@@ -1,7 +1,7 @@
 /* ---- Narrower screens ----------------------------------------------- */
 /* The right panel goes first; everything in it is in the tabs too. */
 @media (max-width: 1199px) {
-  .app { --panel-col: 0px; }
+  .shell { --panel-col: 0px; }
   .panel, .panel-toggle { display: none; }
 }
 /* On a phone the tabs become a drawer. Without
@@ -9,7 +9,7 @@
    a class instead, so the open tab stays put. */
 @media (max-width: 799px) {
   :root { --gutter: 16px; }
-  .app { grid-template-columns: minmax(0, 1fr); }
+  .shell { grid-template-columns: minmax(0, 1fr); }
   .side {
     position: fixed;
     inset: 0 auto 0 0;
@@ -21,9 +21,9 @@
     visibility: hidden;
     transition: translate 0.25s var(--ease), visibility 0s 0.25s;
   }
-  .side:target, .side.open { translate: 0 0; visibility: visible; transition-delay: 0s; }
+  .side:target, .side.drawer-open { translate: 0 0; visibility: visible; transition-delay: 0s; }
   /* Dim the page behind the open drawer; a tap there closes it (src/app). */
-  .app::after {
+  .shell::after {
     content: "";
     position: fixed;
     inset: 0;
@@ -33,15 +33,15 @@
     pointer-events: none;
     transition: opacity 0.25s var(--ease);
   }
-  .app:has(.side.open, .side:target)::after { opacity: 1; pointer-events: auto; }
-  .side .close { display: inline-grid; margin-left: auto; }
-  .side .lang + .close { margin-left: 2px; }
+  .shell:has(.side.drawer-open, .side:target)::after { opacity: 1; pointer-events: auto; }
+  .side .drawer-close { display: inline-grid; margin-left: auto; }
+  .side .language-switch + .drawer-close { margin-left: 2px; }
   .resizer, .side-toggle { display: none; }
-  .menu { display: inline-grid; margin-left: -10px; }
+  .menu-button { display: inline-grid; margin-left: -10px; }
   .topbar { padding: 0 8px 0 16px; }
-  /* Out of sight, but still the button's name (as .sr is). */
+  /* Out of sight, but still the button's name (as .sr-only is). */
   .topbar .actions .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
-  .topbar .actions .btn-ghost { width: 32px; padding: 0; justify-content: center; }
+  .topbar .actions .ghost-button { width: 32px; padding: 0; justify-content: center; }
   .hello { flex-direction: column; font-size: 32px; gap: 12px; }
   .home .under { padding-top: 32px; }
   /* The tabs are a drawer here, not on the left. */
@@ -49,9 +49,9 @@
   /* Above the question card there's room for the name and the tagline. */
   .chat-hello { padding-top: 0; gap: 4px; }
   .chat-hello::before { display: none; }
-  .chat-hello .name { font-size: 28px; }
+  .chat-hello .chat-name { font-size: 28px; }
   .hello::before { width: 30px; height: 30px; }
-  .q { max-width: 92%; }
+  .question { max-width: 92%; }
   .under { justify-content: center; text-align: center; }
   .under .model { display: none; }
   .under .credit { font-size: 11px; line-height: 16px; }

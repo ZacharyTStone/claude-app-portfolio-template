@@ -157,7 +157,7 @@ handleLink(find(side, CLASS_SELECTOR.wordmark), () => {
   goHome();
   focusHome();
 });
-handleLink(find(side, PART_SELECTOR.newTab), newChat);
+handleLink(find(side, CLASS_SELECTOR.newTab), newChat);
 handleLink(find(document, CLASS_SELECTOR.skip), () => sync(true));
 
 addEventListener("keydown", closeTopmostOnEscape);

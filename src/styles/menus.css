@@ -2,10 +2,10 @@
 /* The sidebar groups and the panel's sections fold, and the top-bar title
    opens a menu. Their words sit in a button, and a click anywhere on the
    heading, chevron included, presses it. */
-.head-click { cursor: pointer; border-radius: 8px; }
-.head-click:hover { background: var(--row-hover); }
-.head-click:has(> .head-btn:focus-visible) { box-shadow: var(--focus-ring); }
-.head-btn {
+.foldable { cursor: pointer; border-radius: 8px; }
+.foldable:hover { background: var(--row-hover); }
+.foldable:has(> .fold-button:focus-visible) { box-shadow: var(--focus-ring); }
+.fold-button {
   min-width: 0;
   padding: 0;
   border: 0;
@@ -18,7 +18,7 @@
   text-overflow: ellipsis;
   cursor: pointer;
 }
-.head-btn:focus-visible { box-shadow: none; }
+.fold-button:focus-visible { box-shadow: none; }
 
 /* ---- Menus (src/app) ------------------------------------------------ */
 /* The title's (the tab's questions, copy link, the other language), the
@@ -55,17 +55,17 @@
 }
 .pop [role="menuitem"]:is(:hover, :focus-visible) { background: var(--row-hover); box-shadow: none; }
 .pop [role="menuitem"][aria-disabled="true"] { cursor: default; background: none; }
-.pop .ic::before { width: 18px; height: 18px; color: var(--text-2); }
+.pop .icon::before { width: 18px; height: 18px; color: var(--text-2); }
 .pop hr { height: 1px; margin: 6px 10px; border: 0; background: var(--line); }
 .pop-label { padding: 7px 10px 3px; font: 400 14px/20px var(--sans); color: var(--text-2); }
-.pop .opt { flex: 1; min-width: 0; }
-.pop .meta, .pop .key { flex: none; margin-left: auto; padding-left: 16px; font-size: 14px; color: var(--text-2); white-space: nowrap; }
-.pop .meta.ic { padding-left: 0; }
-.pop .meta.ic::before { width: 16px; height: 16px; }
+.pop .row-words { flex: 1; min-width: 0; }
+.pop .row-meta, .pop .key { flex: none; margin-left: auto; padding-left: 16px; font-size: 14px; color: var(--text-2); white-space: nowrap; }
+.pop .row-meta.icon { padding-left: 0; }
+.pop .row-meta.icon::before { width: 16px; height: 16px; }
 .pop .logo { width: 18px; height: 18px; }
 /* A row that opens a submenu ends in a chevron; the submenu opens beside
    it, or below it where there's no room. */
-.pop .chev {
+.pop .chevron {
   flex: none;
   width: 14px;
   height: 14px;
@@ -74,15 +74,15 @@
   --icon: url("/assets/icons/chevron-right.svg");
 }
 .pop [aria-expanded="true"] { background: var(--row-hover); }
-.pop .sub { top: 0; left: calc(100% - 4px); min-width: 200px; }
-.pop .sub.below { left: 12px; }
+.pop .submenu { top: 0; left: calc(100% - 4px); min-width: 200px; }
+.pop .submenu.below { left: 12px; }
 .pop .danger { color: var(--danger); }
 .pop .danger .key { color: color-mix(in srgb, var(--danger) 70%, transparent); }
 
 .title-pop { top: calc(100% - 4px); }
 .account .pop { bottom: calc(100% - 4px); left: 0; max-width: 100%; }
 
-.pop .pop-mail { color: var(--text-2); }
+.pop .mail-row { color: var(--text-2); }
 .pop .pop-clock { flex-direction: column; align-items: flex-start; gap: 0; }
 .pop-clock .pop-label { padding: 0; }
 /* The owner's time beside the visitor's. */

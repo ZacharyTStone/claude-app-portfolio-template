@@ -35,7 +35,7 @@ const wordingForScript = {
 <section class="home" id={PAGE_IDS.home} aria-labelledby={PAGE_IDS.greeting}>
   <Topbar strings={strings} />
   <div class={PAGE_CLASSES.homeBody} {...wordingForScript}>
-    <h1 class="hello" id={PAGE_IDS.greeting}>
+    <h1 class={PAGE_CLASSES.hello} id={PAGE_IDS.greeting}>
       {greeting.default}
     </h1>
     <p class={PAGE_CLASSES.intro}>
@@ -52,7 +52,7 @@ const wordingForScript = {
           enterkeyhint="send"
         />
         <button
-          class={`${PAGE_CLASSES.homeSend} ic i-up`}
+          class={`${PAGE_CLASSES.homeSend} icon i-up`}
           type="button"
           aria-label={cardWords.send}
           title={cardWords.send}
@@ -70,7 +70,7 @@ const wordingForScript = {
         </ul>
       )}
     </div>
-    {hint && <p class="hint ic i-back">{hint}</p>}
+    {hint && <p class="hint icon i-back">{hint}</p>}
     <p class="under">
       <span class="credit">{strings.credit}</span>
     </p>

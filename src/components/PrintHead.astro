@@ -21,7 +21,7 @@ const contacts = [email, site.url(pageLanguage), github, linkedin].filter((conta
 ---
 
 <div class={PAGE_CLASSES.printHead}>
-  <p class="print-name">{printedName}</p>
+  <p class={PAGE_CLASSES.printName}>{printedName}</p>
   <p>{lang.meta.description}</p>
   <p>{contacts.map(shortUrl).join(" · ")}</p>
 </div>

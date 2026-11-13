@@ -30,7 +30,7 @@
 /* With the script, the name is a button that renames the
    thread (a "Rename" tip shows on hover), and the chevron is its own button
    that opens the thread's menu. */
-.title-name {
+.title-button {
   position: relative;
   display: flex;
   min-width: 0;
@@ -43,9 +43,9 @@
   color: inherit;
   cursor: pointer;
 }
-.title-name:hover { background: var(--row-hover); }
+.title-button:hover { background: var(--row-hover); }
 .title-text { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.title-name[data-tip]::after {
+.title-button[data-tip]::after {
   content: attr(data-tip);
   position: absolute;
   top: calc(100% + 8px);
@@ -62,7 +62,7 @@
   pointer-events: none;
   transition: opacity 0.15s var(--ease);
 }
-.title-name:hover::after { opacity: 1; transition-delay: 0.5s; }
+.title-button:hover::after { opacity: 1; transition-delay: 0.5s; }
 .title-input {
   min-width: 0;
   margin-left: -8px;
@@ -75,9 +75,9 @@
   box-shadow: inset 0 0 0 1px var(--blue), 0 0 6px 0 color-mix(in srgb, var(--blue) 25%, transparent);
   outline: none;
 }
-.title-chev { width: 28px; height: 28px; margin-left: -6px; flex: none; }
-.title-chev::before { width: 14px; height: 14px; }
-.title-chev[aria-expanded="true"] { background: var(--row-hover); color: var(--text); }
+.title-menu-button { width: 28px; height: 28px; margin-left: -6px; flex: none; }
+.title-menu-button::before { width: 14px; height: 14px; }
+.title-menu-button[aria-expanded="true"] { background: var(--row-hover); color: var(--text); }
 .pill {
   display: inline-flex;
   align-items: center;
@@ -92,7 +92,7 @@
 }
 .pill .live { margin: 0; }
 .topbar .actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
-.menu { display: none; }
+.menu-button { display: none; }
 
 .scroll {
   flex: 1;
@@ -115,7 +115,7 @@
 }
 
 /* A visitor's question. */
-.q {
+.question {
   justify-self: end;
   max-width: 85%;
   padding: 12px 16px;
@@ -125,22 +125,22 @@
   transition: box-shadow 0.6s var(--ease);
 }
 /* Picked from the title's menu: a brief outline shows where it is. */
-.q.flash { box-shadow: 0 0 0 1.5px var(--accent); }
+.question.flash { box-shadow: 0 0 0 1.5px var(--accent); }
 /* My answer. */
-.a { display: grid; gap: 12px; min-width: 0; }
-.a strong { font-weight: 501; }
-.a ul { display: grid; gap: 6px; padding-left: 22px; list-style: disc; }
-.a li::marker { color: var(--text-2); }
-.a ul.plain { padding-left: 0; list-style: none; }
+.answer { display: grid; gap: 12px; min-width: 0; }
+.answer strong { font-weight: 501; }
+.answer ul { display: grid; gap: 6px; padding-left: 22px; list-style: disc; }
+.answer li::marker { color: var(--text-2); }
+.answer ul.plain { padding-left: 0; list-style: none; }
 /* A typed question /ask found inappropriate: hidden. */
-.q.removed { color: var(--text-2); font-style: italic; }
+.question.removed { color: var(--text-2); font-style: italic; }
 /* Under a reply /ask wrote: the site's own lines it was written from,
    quoted, so what the site says is beside what the model made of it. */
-.a .cited { display: grid; gap: 6px; margin: 0; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); color: var(--text-2); font-size: 14px; line-height: 21px; }
+.answer .cited { display: grid; gap: 6px; margin: 0; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); color: var(--text-2); font-size: 14px; line-height: 21px; }
 /* Under an answer picked for a typed question (/ask): which tab it's from. */
-.a .from { color: var(--text-2); font-size: 13px; line-height: 20px; }
-.a a:not(.artifact) { text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
-.a a:not(.artifact):hover { text-decoration-color: var(--text); }
+.answer .from { color: var(--text-2); font-size: 13px; line-height: 20px; }
+.answer a:not(.link-card) { text-decoration: underline; text-decoration-color: var(--text-3); text-underline-offset: 3px; }
+.answer a:not(.link-card):hover { text-decoration-color: var(--text); }
 code {
   font: 400 13.5px/1 var(--mono);
   padding: 1px 4px;
@@ -171,5 +171,5 @@ code {
 }
 .status[open] summary::after { rotate: 90deg; }
 .status summary:hover { color: var(--text); }
-.status .card { margin-top: 10px; }
-.status + .a { margin-top: -10px; }
+.status .file-card { margin-top: 10px; }
+.status + .answer { margin-top: -10px; }

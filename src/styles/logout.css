@@ -18,5 +18,5 @@
 .bye { position: fixed; inset: 0; z-index: 60; background: var(--page); }
 .bye-links { margin-top: 24px; }
 .bye-links a { display: inline-flex; align-items: center; gap: 8px; padding: 7px 14px; border-radius: 9px; }
-.bye-links .ic::before { color: var(--text-2); }
+.bye-links .icon::before { color: var(--text-2); }
 .bye-back { margin-top: 28px; height: 36px; padding: 0 16px; }

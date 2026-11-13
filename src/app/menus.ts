@@ -164,7 +164,7 @@ export function menuRow(label: string, { key, ...attributes }: MenuRowOptions = 
       [DATA.menuKey]: key,
       ...attributes,
     },
-    make("span", { class: "opt" }, label),
+    make("span", { class: PAGE_CLASSES.rowWords }, label),
     ...(key ? [make("span", { class: "key", "aria-hidden": "true" }, key.toUpperCase())] : []),
   );
 }
@@ -258,7 +258,7 @@ export function withSubmenu(row: HTMLElement, menu: HTMLElement, fill: (popup: H
   const popup = make("div", { class: `pop ${PAGE_CLASSES.submenu}`, role: "menu", hidden: "" });
   row.setAttribute("aria-haspopup", "menu");
   row.setAttribute("aria-expanded", "false");
-  row.append(make("span", { class: "chev", "aria-hidden": "true" }));
+  row.append(make("span", { class: "chevron", "aria-hidden": "true" }));
   const submenu: Submenu = { popup, row, parentMenu: menu, fill, lingerTimer: 0 };
   submenus.set(popup, submenu);
 

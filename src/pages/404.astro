@@ -2,6 +2,7 @@
 /* The page the host serves for any address with nothing there: in the
    main language, with a line and a way back in each. Its links start at
    the site's root, as it can be served at any depth. */
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import Document from "../layouts/Document.astro";
 import { site } from "../site/current.ts";
 
@@ -28,9 +29,9 @@ const langAttribute = (code: string) => (code === main ? undefined : code);
   </Fragment>
   <main class="lost">
     <p class="code">404</p>
-    <h1 class="hello">{notFound.title}</h1>
+    <h1 class={PAGE_CLASSES.hello}>{notFound.title}</h1>
     {codes.map((code) => (
-      <p class="intro" lang={langAttribute(code)}>
+      <p class={PAGE_CLASSES.intro} lang={langAttribute(code)}>
         {site.lang(code).notFound.text}
       </p>
     ))}

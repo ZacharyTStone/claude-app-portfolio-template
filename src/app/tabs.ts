@@ -63,7 +63,7 @@ export function sync(moveFocus: boolean): void {
   // The home screen and a new chat with nothing sent in it yet have no row
   // of their own, so "New tab" is selected for them.
   const standsInNewTab = !tab || isChat(tab);
-  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(PART_SELECTOR.newTab) : null));
+  markCurrentRow(ownRow ?? (standsInNewTab ? side.querySelector(CLASS_SELECTOR.newTab) : null));
 
   // Opening a tab inside a folded group unfolds it.
   const groupList = ownRow?.closest("ul");

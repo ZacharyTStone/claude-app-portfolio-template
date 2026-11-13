@@ -38,7 +38,7 @@ const { strings } = page.lang;
         {pill.label}
       </span>
     )}
-    <button slot="actions" class="btn-ghost ic i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
+    <button slot="actions" class="ghost-button icon i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
       <span class={PAGE_CLASSES.label}>{strings.share}</span>
     </button>
   </Topbar>
@@ -50,8 +50,8 @@ const { strings } = page.lang;
   {/* The app's slim composer: a link home without JavaScript, and with it, the way to open the question card. */}
   <div class="dock">
     <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.home}`}>
-      <span class="ic i-plus" aria-hidden="true"></span>
-      <span class="ph">{strings.followUpPlaceholder}</span>
+      <span class="icon i-plus" aria-hidden="true"></span>
+      <span class="composer-placeholder">{strings.followUpPlaceholder}</span>
     </a>
     <p class="under">
       <span class="credit">{strings.credit}</span>

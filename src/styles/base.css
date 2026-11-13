@@ -24,7 +24,7 @@ button { font: inherit; color: inherit; }
 html:not(.js) [data-js-only] { display: none !important; }
 [hidden] { display: none !important; }
 
-.sr {
+.sr-only {
   position: absolute; width: 1px; height: 1px; overflow: hidden;
   clip-path: inset(50%); white-space: nowrap;
 }
@@ -36,8 +36,8 @@ html:not(.js) [data-js-only] { display: none !important; }
 .skip:focus { left: 8px; }
 
 /* Icons are SVG files (--icon) drawn as masks in their background colour:
-   an .ic's in the text colour, and the rest as their rules say. */
-.ic::before, .ic-after::after {
+   an .icon's in the text colour, and the rest as their rules say. */
+.icon::before, .icon-after::after {
   content: "";
   display: inline-block;
   flex: none;
@@ -45,8 +45,8 @@ html:not(.js) [data-js-only] { display: none !important; }
   height: 16px;
   background: currentColor;
 }
-.ic::before, .ic-after::after, .hello::before, .chat-hello::before, .group::after, .me[role="button"]::after,
-.status summary::after, .pop .chev, .options .on, .tick::before, .flow li + li::before {
+.icon::before, .icon-after::after, .hello::before, .chat-hello::before, .group-heading::after, .account-row[role="button"]::after,
+.status summary::after, .pop .chevron, .options .on, .tick::before, .flow li + li::before {
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
 }
@@ -75,7 +75,7 @@ html:not(.js) [data-js-only] { display: none !important; }
 .i-play { --icon: url("/assets/icons/play.svg"); }
 
 /* Plain buttons: a label with an icon, and icon-only. */
-.btn-ghost {
+.ghost-button {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -87,7 +87,7 @@ html:not(.js) [data-js-only] { display: none !important; }
   font: 500 14px/21px var(--sans);
   cursor: pointer;
 }
-.icon-btn {
+.icon-button {
   display: inline-grid;
   place-items: center;
   width: 32px;
@@ -99,7 +99,7 @@ html:not(.js) [data-js-only] { display: none !important; }
   color: var(--text-2);
   cursor: pointer;
 }
-.btn-ghost:hover, .icon-btn:hover { background: var(--row-hover); color: var(--text); }
+.ghost-button:hover, .icon-button:hover { background: var(--row-hover); color: var(--text); }
 /* A filled button: the card's Send, and "Log back in". */
 .ask-send, .bye-back {
   border: 0;
@@ -109,4 +109,4 @@ html:not(.js) [data-js-only] { display: none !important; }
   cursor: pointer;
 }
 .ask-send:hover, .bye-back:hover { background: rgb(255 255 255 / 0.18); }
-.icon-btn.done { --icon: url("/assets/icons/check.svg"); color: var(--green); }
+.icon-button.done { --icon: url("/assets/icons/check.svg"); color: var(--green); }

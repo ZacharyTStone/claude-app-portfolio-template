@@ -6,12 +6,12 @@
    width, not the window's: the column narrows with the sidebar and the
    panel. Numbers are in the sans, as everywhere, and text keeps the text
    colours: only a mark is ever in the accent. */
-.fig {
+.figure {
   container-type: inline-size;
   border-radius: 12px;
   box-shadow: inset 0 0 0 1px var(--line);
 }
-.fig figcaption {
+.figure figcaption {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
@@ -20,7 +20,7 @@
   color: var(--text-2);
   font: 400 13px/20px var(--sans);
 }
-.fig figcaption b { color: var(--text); font-weight: 500; }
+.figure figcaption b { color: var(--text); font-weight: 500; }
 
 /* Bars from one baseline, square there and rounded at the tip, each with
    its value written at its tip. The row the figure is about is in the
@@ -82,21 +82,21 @@
    corner as Pause. Without JavaScript the button is a link to the moving
    picture, and the still isn't dimmed: it's all there is to see here. */
 .stage { position: relative; }
-.js .plays .stage { cursor: pointer; }
-.js .plays .stage > :first-child:not(.play) {
+.js .played-figure .stage { cursor: pointer; }
+.js .played-figure .stage > :first-child:not(.play-button) {
   opacity: 0.28;
   filter: saturate(0.4);
   transition: opacity var(--play-fade) ease, filter var(--play-fade) ease;
 }
-.js .plays .stage:hover > :first-child:not(.play), .js .plays .stage:focus-within > :first-child:not(.play) { opacity: 0.42; }
+.js .played-figure .stage:hover > :first-child:not(.play-button), .js .played-figure .stage:focus-within > :first-child:not(.play-button) { opacity: 0.42; }
 .stage .moving {
   position: absolute;
   inset: 0;
   opacity: 0;
   transition: opacity var(--play-fade) ease;
 }
-.stage .moving.shown { opacity: 1; }
-.shot .play {
+.stage .moving.moving-shown { opacity: 1; }
+.shot .play-button {
   position: absolute;
   top: 50%;
   left: 50%;
@@ -116,11 +116,11 @@
   transition: top var(--play-fade) ease, left var(--play-fade) ease, translate var(--play-fade) ease,
     opacity var(--play-fade) ease, scale 0.12s ease;
 }
-.shot .play:hover { scale: 1.04; }
-.shot .play:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+.shot .play-button:hover { scale: 1.04; }
+.shot .play-button:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
 /* While it plays: small, in the corner, out of the picture's way until the
    pointer is over the picture or the button has the keyboard. */
-.playing .play {
+.playing .play-button {
   top: calc(100% - 27px);
   left: calc(100% - 12px);
   translate: -100% -50%;
@@ -129,13 +129,13 @@
   opacity: 0.55;
   --icon: url("/assets/icons/pause.svg");
 }
-.playing .stage:hover .play, .playing .play:focus-visible { opacity: 1; }
+.playing .stage:hover .play-button, .playing .play-button:focus-visible { opacity: 1; }
 /* In a narrow figure (a phone), Pause is its icon alone, so it covers
    little of the picture as it plays. The word is out of sight, but still
-   the button's name (as .sr is). */
+   the button's name (as .sr-only is). */
 @container (max-width: 519px) {
-  .playing .play { top: calc(100% - 24px); left: calc(100% - 8px); gap: 0; justify-content: center; width: 30px; padding: 0; }
-  .playing .play .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .playing .play-button { top: calc(100% - 24px); left: calc(100% - 8px); gap: 0; justify-content: center; width: 30px; padding: 0; }
+  .playing .play-button .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
 }
 
 /* Someone else's words about the work: set off by a rule, with who said
@@ -148,9 +148,9 @@
 /* A heading inside a long answer: a part's name, under a small word saying
    what kind of part it is ("Project"). Each part after the first starts
    under a rule, so a long answer reads as its parts, not as one wall. */
-.a h3 { display: grid; gap: 3px; margin: 0; font: 500 17px/24px var(--sans); letter-spacing: -0.01em; }
-.a h3 span { color: var(--accent); font: 500 11.5px/16px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; }
-.a h3:not(:first-child) { margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--line); }
+.answer h3 { display: grid; gap: 3px; margin: 0; font: 500 17px/24px var(--sans); letter-spacing: -0.01em; }
+.answer h3 span { color: var(--accent); font: 500 11.5px/16px var(--sans); letter-spacing: 0.07em; text-transform: uppercase; }
+.answer h3:not(:first-child) { margin-top: 12px; padding-top: 20px; border-top: 1px solid var(--line); }
 
 /* Pictures side by side while there's room for two, and a small round one:
    a portrait. */

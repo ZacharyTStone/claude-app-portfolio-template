@@ -50,7 +50,7 @@ const replyParts = (cited: string[]) =>
     lines it `cited` quoted under it (when /ask sent them), and the line
     `from`, and no more (the answer itself is in its tab). */
 async function checkReplied(page: Page, scope: string, from: { text: string; href: string }, cited: string[] = []) {
-  // Sent just now (.added), or shown again with a chat.
+  // Sent just now (.sent), or shown again with a chat.
   const replied = page
     .locator(`${scope} ${CLASS.thread} > ${CLASS.answer}`)
     .filter({ has: page.locator(CLASS.reply) })

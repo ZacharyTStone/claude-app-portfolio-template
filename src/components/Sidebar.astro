@@ -33,7 +33,7 @@ const languageSwitch = languageCodes.map((code) => {
 <nav class="side" id={PAGE_IDS.sidebar} aria-label={strings.tabs}>
   <div class="brand">
     <button
-      class="icon-btn ic i-sidebar side-toggle"
+      class="icon-button icon i-sidebar side-toggle"
       type="button"
       data-js-only
       {...flag(DATA.sideToggle)}
@@ -64,7 +64,7 @@ const languageSwitch = languageCodes.map((code) => {
       </span>
     )}
     <a
-      class={`${PAGE_CLASSES.drawerClose} btn-ghost ic i-close`}
+      class={`${PAGE_CLASSES.drawerClose} ghost-button icon i-close`}
       href={`#${PAGE_IDS.home}`}
       aria-label={strings.closeTabs}
     ></a>
@@ -72,13 +72,13 @@ const languageSwitch = languageCodes.map((code) => {
 
   <ul class={PAGE_CLASSES.nav}>
     <li>
-      <a class={`${PAGE_CLASSES.newTab} ic i-plus`} href="./">
+      <a class={`${PAGE_CLASSES.newTab} icon i-plus`} href="./">
         {newTab}
       </a>
     </li>
     {nav.map((navRow) => (
       <li>
-        <a class={`ic i-${navRow.icon}`} href={`#${navRow.tab}`}>
+        <a class={`icon i-${navRow.icon}`} href={`#${navRow.tab}`}>
           {navRow.label}
         </a>
       </li>

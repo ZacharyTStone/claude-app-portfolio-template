@@ -109,7 +109,7 @@ const card = make("div", {
 });
 const backButton = make("button", {
   type: "button",
-  class: "icon-btn ic i-left",
+  class: "icon-button icon i-left",
   "aria-label": cardWords.back,
   title: cardWords.back,
 });
@@ -161,12 +161,12 @@ function holdsCardTab(choice: CardChoice): boolean {
     checks the current choice. */
 function choiceParts(choice: CardChoice, number: number): HTMLElement[] {
   const parts = [
-    make("span", { class: "n", "aria-hidden": "true" }, String(number)),
+    make("span", { class: "option-number", "aria-hidden": "true" }, String(number)),
     make(
       "span",
-      { class: "opt" },
+      { class: PAGE_CLASSES.rowWords },
       make("span", { class: PAGE_CLASSES.optionLabel }, choice.label),
-      make("span", { class: "opt-d" }, choice.hint),
+      make("span", { class: "option-hint" }, choice.hint),
     ),
   ];
   if (holdsCardTab(choice)) parts.push(make("span", { class: "on", "aria-hidden": "true" }));
@@ -296,7 +296,7 @@ export function initCard(): void {
   const ownQuestionRow = make(
     "p",
     { class: "ask-else" },
-    make("span", { class: "n ic i-pen", "aria-hidden": "true" }),
+    make("span", { class: "option-number icon i-pen", "aria-hidden": "true" }),
     ownQuestionInput,
     sendButton,
   );

@@ -1,5 +1,5 @@
 /* ---- Home: the greeting -------------------------------------------- */
-.hello-wrap {
+.home-body {
   flex: 1;
   min-height: 0;
   overflow-y: auto;
@@ -8,7 +8,7 @@
   align-items: center;
   padding: 24px var(--gutter) 20px;
 }
-.hello-wrap > * { width: min(692px, 100%); }
+.home-body > * { width: min(692px, 100%); }
 .hello {
   display: flex;
   align-items: center;

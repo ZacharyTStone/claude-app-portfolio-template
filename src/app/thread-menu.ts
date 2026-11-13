@@ -142,7 +142,7 @@ export function addTitleMenu(tab: HTMLElement): void {
   heading.classList.remove(PAGE_CLASSES.iconAfter);
   const chevron = make("button", {
     type: "button",
-    class: `icon-btn ic i-down ${PAGE_CLASSES.titleMenuButton}`,
+    class: `icon-button icon i-down ${PAGE_CLASSES.titleMenuButton}`,
     "aria-label": words.menuOptions,
     title: words.menuOptions,
     ...popupAttributes(PAGE_IDS.titleMenu),
@@ -178,7 +178,7 @@ export function addRowMenu(row: Element): void {
   if (!tab) return;
   const moreButton = make("button", {
     type: "button",
-    class: `icon-btn ic i-more ${PAGE_CLASSES.rowMore}`,
+    class: `icon-button icon i-more ${PAGE_CLASSES.rowMore}`,
     "aria-label": words.menuMore,
     title: words.menuMore,
     ...popupAttributes(PAGE_IDS.rowMenu),
