@@ -190,3 +190,25 @@ test("an update refuses a list that reaches outside the site, and changes nothin
   assert.equal(readText(beside, "thesis.txt"), "the owner's other work");
   assert.equal(readText(reached, "src/app.ts"), "old");
 });
+
+/** The audit's proof B, in part: the list names the files the README calls yours alone. */
+for (const yours of ["site.config.ts", "wrangler.jsonc"]) {
+  test(`an update refuses a list that shares ${yours}, and leaves the site's as it was`, () => {
+    const mine = siteRepo(`site-keeps-${yours}`);
+    const result = runUpdate(mine, templateSharing(`template-takes-${yours}`, [yours], { [yours]: "the template's" }));
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /is each site's own/);
+    assert.equal(readText(mine, yours), SITE_OWN_FILES[yours as keyof typeof SITE_OWN_FILES]);
+  });
+}
+
+test("a file this site's list calls its own stays its own when the template's list stops saying so", () => {
+  const mine = siteRepo("site-keeps-font");
+  const noLongerOwn = repoOf("template-drops-own", {
+    ...TEMPLATE_FILES,
+    [SHARED_LIST_FILE]: JSON.stringify({ shared: ["src", "public/assets/fonts"], retired: [], own: [] }),
+  });
+  const result = runUpdate(mine, noLongerOwn);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readText(mine, "public/assets/fonts/noto-sans-jp.woff2"), "my subset");
+});

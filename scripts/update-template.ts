@@ -14,7 +14,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { applyChanges, changesBetween, describeChanges, sharedListOf, TEMPLATE } from "./template.ts";
+import { applyChanges, changesBetween, describeChanges, sharedListOf, TEMPLATE, type SharedList } from "./template.ts";
 
 const SITE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
@@ -47,8 +47,7 @@ function refuseUncommittedChanges(): void {
 
 function takeSharedFilesFrom(templateClone: string): void {
   const templateCommit = runGit(["log", "-1", "--format=%h %s"], templateClone);
-  // The template's list, not this site's: it may share files this site's older list doesn't know of.
-  const changes = changesBetween(templateClone, SITE_ROOT, sharedListOf(templateClone));
+  const changes = changesBetween(templateClone, SITE_ROOT, listToFollow(templateClone));
   const changeLines = describeChanges(changes);
   if (changeLines.length === 0) {
     console.log(`Up to date with the template (${templateCommit}).`);
@@ -58,6 +57,14 @@ function takeSharedFilesFrom(templateClone: string): void {
   console.log(`${changeLines.join("\n")}\n`);
   console.log(`${changeLines.length} shared files now match the template, as of ${templateCommit}.`);
   console.log("Next: `npm ci`, then `npm run verify`. `git diff` shows what changed; commit it once it passes.");
+}
+
+/** The template's list, not this site's: it may share files this site's older list doesn't know of. But what
+    this site's list calls its own stays its own, whatever the template's now says. */
+function listToFollow(templateClone: string): SharedList {
+  const templates = sharedListOf(templateClone);
+  const thisSites = sharedListOf(SITE_ROOT);
+  return { ...templates, own: [...new Set([...templates.own, ...thisSites.own])] };
 }
 
 /** What git printed, trimmed. Throws with git's own message if it fails, or with the system's if there's no

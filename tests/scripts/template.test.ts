@@ -214,3 +214,35 @@ test("changes made by hand are held to the repo too, when they're applied", () =
     NOT_PLAIN,
   );
 });
+
+const A_SITES_OWN = /is each site's own, or holds what is: an update leaves it alone/;
+
+for (const path of ["site.config.ts", "wrangler.jsonc", "README.md", "diagrams", "tests/ask-questions.json"]) {
+  test(`a list that shares ${path} is refused: it's each site's own`, () => {
+    assert.throws(() => sharedFiles(folderOf("own", {}), sharing(path)), A_SITES_OWN);
+  });
+}
+
+test("a list that shares a file inside a site's own folder, or a folder that holds a site's own, is refused", () => {
+  const root = folderOf("own-reach", {});
+  assert.throws(() => sharedFiles(root, sharing("diagrams/parts/arrows.ts")), A_SITES_OWN);
+  assert.throws(() => sharedFiles(root, sharing("tests")), A_SITES_OWN);
+});
+
+test("a site's own is known whatever case its name is written in", () => {
+  assert.throws(() => sharedFiles(folderOf("own-case", {}), sharing("SITE.CONFIG.TS")), A_SITES_OWN);
+});
+
+test("a list that shares one of the files it calls a site's own is refused", () => {
+  const list = { shared: ["src", "src/styles/site.css"], retired: [], own: ["src/styles/site.css"] };
+  assert.throws(() => sharedFiles(folderOf("own-listed", {}), list), A_SITES_OWN);
+});
+
+test("a retired path can't be a site's own either: it would be deleted", () => {
+  const list = { shared: [], retired: ["wrangler.jsonc"], own: [] };
+  assert.throws(() => sharedFiles(folderOf("own-retired", {}), list), A_SITES_OWN);
+});
+
+test("this repo's own list is one an update would follow", () => {
+  assert.doesNotThrow(() => sharedFiles(ROOT, thisRepos));
+});
