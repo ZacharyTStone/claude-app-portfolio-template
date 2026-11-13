@@ -18,9 +18,10 @@
    Every reply is an AskResponse, or a 4xx. */
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
 import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
-import { readSettings, type Env, type Settings } from "../env.ts";
+import type { Env } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
+import { readSettings, type Settings } from "../settings.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
 import { ownerNames, readChoices, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";

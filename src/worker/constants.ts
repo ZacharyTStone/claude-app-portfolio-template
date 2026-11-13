@@ -1,5 +1,5 @@
 /* The Worker's fixed names and numbers: its paths, limits, and what
-   AskGuard stores. The settings (ASK_*) are in env.ts, the models and
+   AskGuard stores. The settings (ASK_*) are in settings.ts, the models and
    their prices in ask/known-models.ts, and the contract with the page in
    src/contracts/ask.ts.
 
@@ -9,7 +9,7 @@
 
    Nothing here may use a type only Workers has: tests/config.test.ts reads
    ask/quote.ts, and so this file, with Node's types alone. (That's why the
-   Durable Object locations are in env.ts.) */
+   Durable Object locations are in settings.ts.) */
 
 import { ASK_INDEX_FILE } from "../contracts/ask.ts";
 
@@ -79,12 +79,6 @@ export const VISITOR_ADDRESS_HEADER = "CF-Connecting-IP";
 
 /** What stands for the address of a request that came without one. */
 export const UNKNOWN_VISITOR_ADDRESS = "unknown";
-
-/** What a visitor's address is hashed with, unless ASK_SALT says. The hash
-    keys their rate limit, count and any block, so changing it starts
-    everyone afresh (counts are per day and blocks last a day, so nothing
-    much is lost). */
-export const DEFAULT_VISITOR_SALT = "portfolio-ask:";
 
 /** How much of the hash is kept, in bytes: the first half of a SHA-256,
     which is 32 hex characters. Changing it starts everyone afresh too. */

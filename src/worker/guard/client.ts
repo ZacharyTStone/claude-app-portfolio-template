@@ -9,7 +9,7 @@ import {
   type SpendQuery,
   type TakeQuery,
 } from "../constants.ts";
-import type { Settings } from "../env.ts";
+import type { Settings } from "../settings.ts";
 
 /** Whether the visitor's question can go to the model.
     - ok: yes, and `questionsLeft` is how many more they can ask today.
