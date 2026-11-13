@@ -1,14 +1,12 @@
 import assert from "node:assert/strict";
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
-import { after, test } from "node:test";
+import { test } from "node:test";
 import {
   builtPagesIn,
   isJapaneseLanguage,
   sansCharacters,
   serifCharacters,
 } from "../../../scripts/fonts/characters.ts";
+import { scratchFolders } from "../scratch-folders.ts";
 
 /** A page in Japanese with this in its body, as the build writes one. */
 const japanesePage = (body: string, htmlAttributes = ""): string =>
@@ -87,18 +85,8 @@ test("The serif needs a 404 page's serif text only when that page is in Japanese
   assert.equal(serifOf(japanese, japanesePage('<h1 class="hello">乙</h1>')), "乙甲");
 });
 
-const SCRATCH = mkdtempSync(join(tmpdir(), "fonts-test-"));
-after(() => rmSync(SCRATCH, { recursive: true, force: true }));
-
-/** A built site with these pages, by their path in it. Returns its folder. */
-function builtSite(name: string, pages: Record<string, string>): string {
-  const folder = join(SCRATCH, name);
-  for (const [path, html] of Object.entries(pages)) {
-    mkdirSync(dirname(join(folder, path)), { recursive: true });
-    writeFileSync(join(folder, path), html);
-  }
-  return folder;
-}
+/** A built site with these pages, by their path in it. */
+const builtSite = scratchFolders("fonts-test-");
 
 test("The Japanese page is the home page when that's in Japanese", () => {
   const site = builtSite("home", { "index.html": japanesePage("家"), "en/index.html": englishPage("home") });
