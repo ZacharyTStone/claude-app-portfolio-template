@@ -1,12 +1,7 @@
-/* What comes in as it's scrolled to: a quote, and a file card, whose lines
-   are then written out one after another (src/styles/motion.css has both).
-
-   The page shows them whole without the script, and with motion reduced.
-   With it, the ones out of sight when the page starts wait (PAGE_CLASSES.waiting,
-   which hides them without moving anything) until they're on screen, then
-   come in once (PAGE_CLASSES.seen). What's on screen is left alone once the page
-   has been up long enough to be read, and a copy of an answer in a chat
-   never waits: nothing watches it. */
+/* A quote or a file card that's out of sight when the page starts waits,
+   hidden without moving anything, and comes in once when it's scrolled to
+   (src/styles/motion.css). Without the script, or with motion reduced,
+   the page shows them whole. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { findAll } from "./lib/dom.ts";
@@ -25,8 +20,7 @@ const PAGE_ARRIVES_MS = 700;
     together: the second, the third, and every one after. */
 const LATER = [PAGE_CLASSES.seenAfter1, PAGE_CLASSES.seenAfter2, PAGE_CLASSES.seenAfter3] as const;
 
-/** Every class this file puts on an element. */
-const MARKS = [PAGE_CLASSES.waiting, PAGE_CLASSES.seen, ...LATER] as const;
+const EVERY_CLASS_ADDED_HERE = [PAGE_CLASSES.waiting, PAGE_CLASSES.seen, ...LATER] as const;
 
 /** Makes what's out of sight wait, and brings each in when it's scrolled to. */
 export function initRevealOnScroll(): void {
@@ -43,22 +37,20 @@ export function initRevealOnScroll(): void {
   }
 }
 
-/** Takes the marks off a copy of something in the page, and everything in
-    it: the copy is shown as it is, since nothing is watching for it. */
+/** A copy of something in the page is shown as it is: nothing watches for
+    it to be scrolled to. */
 export function showWhole(copy: Element): void {
   for (const element of [copy, ...copy.querySelectorAll(PART_SELECTOR.comesIntoView)])
-    element.classList.remove(...MARKS);
+    element.classList.remove(...EVERY_CLASS_ADDED_HERE);
 }
 
-/** Whether any of an element is on screen now. One in a tab that isn't
-    open has no size, and isn't. */
+/** One in a tab that isn't open has no size, and isn't on screen. */
 function isOnScreen(element: Element): boolean {
   const box = element.getBoundingClientRect();
   return box.height > 0 && box.bottom > 0 && box.top < innerHeight;
 }
 
-/** Brings in each waiting element that has come far enough into view, in
-    turn when several have. */
+/** In turn, when several have come into view together. */
 function bringIn(entries: IntersectionObserverEntry[], watcher: IntersectionObserver): void {
   const arrived = entries.filter(isFarEnoughIn).map((entry) => entry.target);
   arrived.forEach((element, place) => {
@@ -70,8 +62,6 @@ function bringIn(entries: IntersectionObserverEntry[], watcher: IntersectionObse
   });
 }
 
-/** Enough of it shows, or (for one taller than the screen) it fills enough
-    of the screen. */
 function isFarEnoughIn(entry: IntersectionObserverEntry): boolean {
   if (!entry.isIntersecting) return false;
   const screenHeight = entry.rootBounds?.height ?? innerHeight;

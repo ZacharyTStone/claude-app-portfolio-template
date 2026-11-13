@@ -18,7 +18,6 @@ type Fold = {
   body: HTMLElement;
 };
 
-/** The ids of the headings this browser left folded. */
 function readFoldedIds(): Set<string> {
   const saved = local.getJson(FOLDED_KEY);
   return new Set(isArrayOf(saved, isString) ? saved : []);
@@ -63,7 +62,6 @@ export function foldable(heading: HTMLElement): void {
   const fold: Fold = { heading, button, body };
   foldsByBody.set(body, fold);
   showFold(fold, !foldedIds.has(heading.id));
-  // A click opens it if it's folded, and folds it if it's open.
   button.addEventListener("click", () => setFold(fold, isFolded(fold)));
 }
 

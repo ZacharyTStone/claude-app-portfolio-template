@@ -2,7 +2,7 @@
    the question card's data). Each gets a tab of its own, made from a copy
    of the "Something else" tab. */
 import { ID_PREFIX, personalTabId } from "../contracts/page-ids.ts";
-import { type PersonalAnswer } from "../config/question-card.ts";
+import type { PersonalAnswer } from "../config/question-card.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { find } from "./lib/dom.ts";
 import { renderBlock } from "./lib/markdown.ts";
@@ -10,7 +10,6 @@ import { askedTab } from "./page.ts";
 import { questionCard } from "./question-card/data.ts";
 import { copyTab } from "./tabs.ts";
 
-/** Whether a tab's id is a personal answer's. */
 export const isPersonalTab = (tabId: string): boolean => tabId.startsWith(ID_PREFIX.personal);
 
 /** A tab for one personal answer: its question, then its paragraphs and
