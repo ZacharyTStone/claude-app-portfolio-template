@@ -8,7 +8,7 @@ export type Lines = {
   /** Movement along a path between `from` and `to`: at the path's start before, at its end after. `back` goes
       from the end to the start. It sets off and arrives gently, or keeps one speed ("even"): for a long way with
       something to pass on it, since it has then covered a third of the way a third of the way through. */
-  along: (d: string, from: number, to: number, back?: boolean, pace?: "smooth" | "even") => Shape;
+  along: (d: string, from: number, to: number, how?: { back?: boolean; pace?: "smooth" | "even" }) => Shape;
 };
 
 export function linesOver({ seconds, track }: Pick<Values, "seconds" | "track">): Lines {
@@ -20,7 +20,8 @@ export function linesOver({ seconds, track }: Pick<Values, "seconds" | "track">)
     ]),
   ];
 
-  const along: Lines["along"] = (d, from, to, back = false, pace = "smooth") => {
+  const along: Lines["along"] = (d, from, to, how = {}) => {
+    const { back = false, pace = "smooth" } = how;
     const [start, end] = back ? [1, 0] : [0, 1];
     const isEased = pace === "smooth";
     return shape("animateMotion", {

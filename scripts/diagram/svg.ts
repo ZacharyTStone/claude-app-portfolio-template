@@ -29,6 +29,15 @@ export type Drawing = {
   shapes: Shape[];
 };
 
+/** What a diagram's file exports by default. */
+export type Diagram<Words> = {
+  /** What its files are called, without ".svg". */
+  name: string;
+  /** Its wording, by language code. The first language's files have no code in their names. */
+  words: Record<string, Words>;
+  draw(words: Words): Drawing;
+};
+
 /** Where a moving picture's file says how long it plays, on its <svg>. The build reads it there under the same
     name (src/site/pictures.ts): tests/diagrams.test.ts holds the two together. */
 export const PLAYS_ATTRIBUTE = "data-plays";

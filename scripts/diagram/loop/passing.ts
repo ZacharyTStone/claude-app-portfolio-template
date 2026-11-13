@@ -38,7 +38,7 @@ export function passingOver({ seconds, track, along }: Pick<Values, "seconds" | 
       "even",
     );
     return onlyWhenMoving(
-      moving(group({ opacity: 0 }, ...[what].flat()), whileCarried, along(d, from, to, back, pace)),
+      moving(group({ opacity: 0 }, ...[what].flat()), whileCarried, along(d, from, to, { back, pace })),
     );
   };
 
