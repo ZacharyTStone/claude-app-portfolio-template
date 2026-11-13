@@ -35,7 +35,7 @@ const chatWith = (source: object): SavedChat[] => [
 ];
 
 /** Each thing a chat holds, as a page has written it, and as it's read. */
-const GOLDEN_SOURCES: Record<string, { saved: string; read: object }> = {
+const GOLDEN_SOURCES = {
   "a thread chosen in the question card": { saved: '{"tab":"work"}', read: { tab: "work" } },
   "a question typed with Ask off, or left before its reply came": {
     saved: '{"question":"Do you know Postgres?"}',
@@ -91,7 +91,7 @@ const GOLDEN_SOURCES: Record<string, { saved: string; read: object }> = {
     saved: '{"question":"One more?","limited":0}',
     read: { question: "One more?", limited: 0 },
   },
-};
+} satisfies Record<string, { saved: string; read: object }>;
 
 for (const [what, { saved, read }] of Object.entries(GOLDEN_SOURCES)) {
   test(`a chat comes back with ${what}`, () => {
@@ -270,10 +270,12 @@ const GOLDEN_EXCHANGES: Record<keyof typeof GOLDEN_SOURCES, Exchange> = {
   "a question past a limit that came without its number": typed("One more?", { kind: "unanswered" }),
 };
 
-for (const [what, exchange] of Object.entries(GOLDEN_EXCHANGES)) {
+const goldenNames = Object.keys(GOLDEN_SOURCES) as Array<keyof typeof GOLDEN_SOURCES>;
+
+for (const what of goldenNames) {
   test(`shown again, a chat has ${what}`, () => {
-    const saved: unknown = JSON.parse(GOLDEN_SOURCES[what as keyof typeof GOLDEN_SOURCES].saved);
-    assert.deepEqual(readExchange(saved as SavedSource), exchange);
+    const saved: unknown = JSON.parse(GOLDEN_SOURCES[what].saved);
+    assert.deepEqual(readExchange(saved as SavedSource), GOLDEN_EXCHANGES[what]);
   });
 }
 
