@@ -71,18 +71,13 @@ export type NotSaid = Refused | "empty" | "late" | "error";
 /** A rewrite as it may be used, or why it may not be. */
 export type Checked = { toOwner: string; why?: undefined } | { toOwner?: undefined; why: Refused };
 
-/** How saying a question to the owner went. */
-export type SaidToOwner = {
-  /** The question as said to them, if the model's rewrite passed the check. */
-  toOwner?: string;
-  /** Why not, if none did. */
-  why?: NotSaid;
-  /** What the model wrote, on one line, whether or not it passed: for the
-      log. Left out when it wrote nothing. */
-  rewrite?: string;
-  /** The tokens the call used. */
-  tokens: Tokens;
-};
+/** How saying a question to the owner went: a rewrite that passed the
+    check is `sent` as `toOwner`; with none, it's `dropped`, and `why` says
+    why. `rewrite` is what the model wrote, on one line, whether or not it
+    passed (for the log), and `tokens` what the call used. */
+export type SaidToOwner =
+  | { outcome: "sent"; toOwner: string; why?: undefined; rewrite: string; tokens: Tokens }
+  | { outcome: "dropped"; toOwner?: undefined; why: NotSaid; rewrite?: string; tokens: Tokens };
 
 // ---- What the model is told ----------------------------------------------------------
 
@@ -349,15 +344,17 @@ export async function rewriteToOwner(
     called = await callForText(ai, model, prompt, { maxTokens: MAX_ADDRESS_TOKENS, timeoutMs });
   } catch {
     // A call that failed wasn't run, so it isn't paid for.
-    return { why: "error", tokens: NO_TOKENS };
+    return { outcome: "dropped", why: "error", tokens: NO_TOKENS };
   }
   const { modelReply, tokens } = called;
-  if (modelReply === undefined) return { why: "late", tokens };
+  if (modelReply === undefined) return { outcome: "dropped", why: "late", tokens };
   const rewrite = withoutQuotesAround(textIn(modelReply), question);
-  if (!rewrite) return { why: "empty", tokens };
+  if (!rewrite) return { outcome: "dropped", why: "empty", tokens };
   // Cut off by MAX_ADDRESS_TOKENS, it isn't all of the question.
-  if (ranOutOfRoom(modelReply)) return { why: "long", rewrite, tokens };
-  return { ...checkAddressed(rewrite, question, owner), rewrite, tokens };
+  if (ranOutOfRoom(modelReply)) return { outcome: "dropped", why: "long", rewrite, tokens };
+  const checked = checkAddressed(rewrite, question, owner);
+  if (checked.toOwner === undefined) return { outcome: "dropped", why: checked.why, rewrite, tokens };
+  return { outcome: "sent", toOwner: checked.toOwner, rewrite, tokens };
 }
 
 /** The question as it's said to the owner, for the email and the message the

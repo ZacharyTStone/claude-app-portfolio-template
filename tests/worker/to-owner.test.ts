@@ -187,6 +187,7 @@ const TO_OWNER = "Have you worked with Vue?";
 test("the model is told whose site it is, to say the question to them and to change nothing else", async () => {
   const { ai, sent } = writer(wrote(TO_OWNER, [200, 8]));
   assert.deepEqual(await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
+    outcome: "sent",
     toOwner: TO_OWNER,
     rewrite: TO_OWNER,
     tokens: { input: 200, output: 8 },
@@ -231,6 +232,7 @@ test("it's asked once: a rewrite that fails its check isn't asked for again, and
   ] as const) {
     const { ai, sent } = writer(wrote(said, [200, 8]));
     assert.deepEqual(await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
+      outcome: "dropped",
       why,
       rewrite: said,
       tokens: { input: 200, output: 8 },

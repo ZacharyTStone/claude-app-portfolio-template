@@ -27,6 +27,7 @@ const WRITING: Writing = {
 test("a reply written from the lines is the reply: the model has the lines, and the question as the visitor's", async () => {
   const { ai, sent } = writer(wrote("Yes, Alex knows Svelte and SvelteKit.", [300, 12]));
   assert.deepEqual(await write(ai, DEFAULT_MODEL, WRITING), {
+    outcome: "sent",
     reply: "Yes, Alex knows Svelte and SvelteKit.",
     tries: 1,
     tokens: { input: 300, output: 12 },
@@ -67,6 +68,7 @@ test("a reply with a name or a number the lines don't have is asked for again, w
     wrote("Yes, Alex knows Svelte.", [340, 8]),
   );
   assert.deepEqual(await write(ai, DEFAULT_MODEL, WRITING), {
+    outcome: "sent",
     reply: "Yes, Alex knows Svelte.",
     tries: 2,
     tokens: { input: 640, output: 18 },
