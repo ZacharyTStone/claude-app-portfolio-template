@@ -1,6 +1,7 @@
 /* A question that names something specific (a tool, a company, a place) is
    answered only by an answer that names it too: any other would read as a
    "no" the site never said. */
+import { isNotNil } from "es-toolkit";
 import type { AskAnswer } from "../../contracts/ask.ts";
 import { hasCapitalInside, hasDigit, hasLetter, startsWithCapital, withoutDotsAndDashes } from "./text/words.ts";
 
@@ -22,8 +23,19 @@ const PLAIN_WORDS = new Set(
 // "front-end", "Alex's").
 const WORD = /[\p{Script=Latin}\p{N}](?:[\p{Script=Latin}\p{N}+#]|[.'’-](?=[\p{Script=Latin}\p{N}]))*/gu;
 
+const POSSESSIVE = /['’]s$/i;
+
 // "Alex's" is compared as "alex".
-const comparable = (word: string) => word.toLowerCase().replace(/['’]s$/, "");
+const comparable = (word: string) => word.replace(POSSESSIVE, "").toLowerCase();
+
+// A small "s" on the end may make a name more than one: "Workers", "APIs".
+// A capital one is the name's own: "CSS" isn't several of "CS", nor "iOS"
+// of "io".
+const mayBePlural = (word: string) => word.replace(POSSESSIVE, "").endsWith("s");
+
+/** Something a question names: as it's compared, and whether it may be
+    more than one of what an answer names. */
+type Named = { term: string; mayBePlural: boolean };
 
 // What comes before the first word of a sentence: the text's start, or a
 // full stop, question or exclamation mark, then any opening quote or
@@ -35,10 +47,14 @@ const startsSentence = (text: string, index: number) => SENTENCE_START.test(text
 /** A single letter never names anything. */
 const MIN_NAME_LENGTH = 2;
 
-/** The specific things a question names, each as it's compared: never the
-    owner's name, nor a word any question starts with. A word all in lower
-    case is read as a plain one. */
-export function namedIn(question: string, owner: string): string[] {
+// With a capital inside ("GraphQL"), with letters and digits ("S3"), or
+// with a capital first where no sentence starts.
+const isWrittenAsAName = (word: string, isFirstOfSentence: boolean): boolean =>
+  hasCapitalInside(word) || (hasLetter(word) && hasDigit(word)) || (startsWithCapital(word) && !isFirstOfSentence);
+
+// The specific things a question names: never the owner's name, nor a word
+// any question starts with. A word all in lower case is read as a plain one.
+function namesIn(question: string, owner: string): Named[] {
   const ownerWords = new Set(
     owner
       .split(/[\s・]+/)
@@ -46,17 +62,19 @@ export function namedIn(question: string, owner: string): string[] {
       .map(comparable),
   );
   const text = question.normalize("NFKC");
-  const named = new Set<string>();
+  const named = new Map<string, Named>();
   for (const match of text.matchAll(WORD)) {
     const word = match[0];
     const term = comparable(word);
     if (term.length < MIN_NAME_LENGTH || ownerWords.has(term) || PLAIN_WORDS.has(term)) continue;
-    const hasLettersAndDigits = hasLetter(word) && hasDigit(word);
-    const isCapitalisedMidSentence = startsWithCapital(word) && !startsSentence(text, match.index);
-    if (hasCapitalInside(word) || hasLettersAndDigits || isCapitalisedMidSentence) named.add(term);
+    const isAName = isWrittenAsAName(word, startsSentence(text, match.index));
+    if (isAName) named.set(term, { term, mayBePlural: mayBePlural(word) });
   }
-  return [...named];
+  return [...named.values()];
 }
+
+/** The specific things a question names, each as it's compared. */
+export const namedIn = (question: string, owner: string): string[] => namesIn(question, owner).map(({ term }) => term);
 
 type AnswerWords = Pick<AskAnswer, "text" | "title" | "q">;
 
@@ -103,13 +121,19 @@ function isMistyped(typed: string, name: string): boolean {
   );
 }
 
-// The third way is the term's singular: "worker" for "workers".
-const namesSameThing = (term: string, answerWord: string): boolean =>
+// The third way is the name's singular: "worker" for "Workers".
+const namesSameThing = ({ term, mayBePlural }: Named, answerWord: string): boolean =>
   answerWord === term ||
   withoutDotsAndDashes(answerWord) === withoutDotsAndDashes(term) ||
-  term.replace(/s$/, "") === answerWord ||
+  (mayBePlural && term.slice(0, -1) === answerWord) ||
   SAME_THING_ENDINGS.some((ending) => answerWord === `${term}${ending}`) ||
   isMistyped(term, answerWord);
+
+// Two names written one after the other, as the one word they may be.
+const joined = (first: Named, second: Named): Named => ({
+  term: first.term + second.term,
+  mayBePlural: second.mayBePlural,
+});
 
 // Short forms a visitor may use for what an answer spells out: a short
 // list, to add to when the eval shows a miss.
@@ -133,21 +157,20 @@ const SPELLED_OUT: Record<string, string[]> = {
     question does. A name the question writes as two words is the answer's
     one: "Svelte Kit" for "SvelteKit". */
 export function covers(answer: AnswerWords, question: string, owner: string): boolean {
-  const namedTerms = namedIn(question, owner);
-  if (!namedTerms.length) return true;
+  const named = namesIn(question, owner);
+  if (!named.length) return true;
   const answerText = everythingSaid(answer);
   const answerWords = [...wordsIn(answerText)];
   const answerTextLowered = answerText.toLowerCase();
-  const isNamed = (name: string) => answerWords.some((answerWord) => namesSameThing(name, answerWord));
-  return namedTerms.every((term, i) => {
-    // The term with the one named before it, and with the one after.
-    const before = namedTerms[i - 1];
-    const after = namedTerms[i + 1];
-    const asOneWord = [before === undefined ? "" : before + term, after === undefined ? "" : term + after];
+  const isNamed = (name: Named) => answerWords.some((answerWord) => namesSameThing(name, answerWord));
+  return named.every((name, i) => {
+    // The name with the one before it, and with the one after.
+    const [before, after] = [named[i - 1], named[i + 1]];
+    const asOneWord = [before && joined(before, name), after && joined(name, after)].filter(isNotNil);
     return (
-      isNamed(term) ||
-      asOneWord.some((joined) => joined !== "" && isNamed(joined)) ||
-      (SPELLED_OUT[term] ?? []).some((spelledOut) => answerTextLowered.includes(spelledOut))
+      isNamed(name) ||
+      asOneWord.some(isNamed) ||
+      (SPELLED_OUT[name.term] ?? []).some((spelledOut) => answerTextLowered.includes(spelledOut))
     );
   });
 }
