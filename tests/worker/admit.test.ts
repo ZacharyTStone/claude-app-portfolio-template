@@ -1,19 +1,15 @@
 /* Whether a question may go to the model (src/worker/ask/admit.ts): only
    with Ask on, from a visitor under the minute's and the day's limits who
    isn't blocked, with a limiter and a guard there to count it. The visitor
-   is known only by a salted hash of their address. */
+   is known only by a salted hash of their address, another one each day. */
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { test } from "node:test";
 import { ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import { VISITOR_ADDRESS_HEADER } from "../../src/worker/lib/visitor.ts";
 import { SETTINGS } from "../../src/worker/settings.ts";
-import { firstAsked } from "./support/guard.ts";
+import { askedOf, firstAsked } from "./support/guard.ts";
 import { models, toolCall, using } from "./support/models.ts";
-import { ADDRESS, lines, stubs } from "./support/worker.ts";
-
-const hashOf = (salt: string, address: string) =>
-  createHash("sha256").update(`${salt}${address}`).digest("hex").slice(0, 32);
+import { ADDRESS, hashToday, lines, stubs } from "./support/worker.ts";
 
 test("turned off, it doesn't call the model", async () => {
   for (const ASK_ENABLED of ["false", "TRUE", ""]) {
@@ -58,13 +54,29 @@ test("with no guard to count what it costs, a question isn't asked of the model 
 test("the visitor is known by a salted hash of their address, never the address", async () => {
   const { askJson, guard } = stubs();
   await askJson("who?");
-  assert.equal(firstAsked(guard, "take")?.visitorHash, hashOf(SETTINGS.salt.default, ADDRESS));
+  assert.equal(firstAsked(guard, "take")?.visitorHash, hashToday(SETTINGS.salt.default, ADDRESS));
+});
+
+test("the next day the same address is known by another hash, to the guard and the limiter alike", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T23:50:00Z") });
+  const { askJson, guard, limitKeys } = stubs();
+  await askJson("who?");
+  const thatDay = hashToday(SETTINGS.salt.default, ADDRESS);
+  t.mock.timers.setTime(Date.parse("2026-02-01T00:10:00Z"));
+  await askJson("who?");
+  const nextDay = hashToday(SETTINGS.salt.default, ADDRESS);
+  assert.notEqual(thatDay, nextDay);
+  assert.deepEqual(limitKeys, [thatDay, nextDay]);
+  assert.deepEqual(
+    askedOf(guard).flatMap((asked) => (asked.ask === "take" ? [asked.visitorHash] : [])),
+    [thatDay, nextDay],
+  );
 });
 
 test("ASK_SALT, when it's set, is what the address is hashed with", async () => {
   const { askJson, guard } = stubs({ vars: { ASK_SALT: "a secret" } });
   await askJson("who?");
-  assert.equal(firstAsked(guard, "take")?.visitorHash, hashOf("a secret", ADDRESS));
+  assert.equal(firstAsked(guard, "take")?.visitorHash, hashToday("a secret", ADDRESS));
 });
 
 test("an IPv6 visitor is known by their /64: every address in it is one visitor", async () => {

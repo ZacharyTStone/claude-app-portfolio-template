@@ -156,6 +156,16 @@ test("a flagged question blocks its address for an hour, and whoever shares it c
   assert.deepEqual([withinTheHour, await colleague.askJson("who?")], [{ blocked: true }, { id: "about.1" }]);
 });
 
+test("a block ends when the day does, even one set for longer: the next day's hash is another", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T23:50:00Z") });
+  const guard = realGuard();
+  await stubs({ guard, run: models(toolCall(INAPPROPRIATE)), vars: { ASK_BLOCK_HOURS: "24" } }).askJson("rude");
+  const colleague = stubs({ guard });
+  const thatDay = await colleague.askJson("who?");
+  t.mock.timers.setTime(Date.parse("2026-02-01T00:10:00Z"));
+  assert.deepEqual([thatDay, await colleague.askJson("who?")], [{ blocked: true }, { id: "about.1" }]);
+});
+
 test("the site's daily allowance spent, or its counter down or unreadable: no model call", async () => {
   for (const guard of [
     guardStub(ASK_GUARD_REPLY.spent),
@@ -187,16 +197,21 @@ test("the guard is one object, placed where ASK_GUARD_LOCATION says, and anythin
 
 // An AskGuard over `stored`, whose storage takes at most MAX_KEYS_PER_DELETE keys
 // to a delete, as Cloudflare's does.
-function guardOver(stored: Stored) {
-  // Only the storage calls AskGuard makes are stood in for.
+function guardAndStorage(stored: Stored) {
   const storage = storageOver(stored, MAX_KEYS_PER_DELETE);
-  const guard = new AskGuard({ storage } as unknown as DurableObjectState);
-  return async (path: string, query: Record<string, string | number>) => {
-    const search = new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]));
-    const response = await guard.fetch(new Request(`https://guard${path}?${search}`, { method: "POST" }));
-    return response.ok ? response.text() : response.status;
-  };
+  // Only the storage calls AskGuard makes are stood in for.
+  return { storage, guard: new AskGuard({ storage } as unknown as DurableObjectState) };
 }
+
+// A way to ask `guard` at a path with a query: what it says, or the status
+// it turns the request away with.
+const asking = (guard: AskGuard) => async (path: string, query: Record<string, string | number>) => {
+  const search = new URLSearchParams(Object.entries(query).map(([key, value]) => [key, String(value)]));
+  const response = await guard.fetch(new Request(`https://guard${path}?${search}`, { method: "POST" }));
+  return response.ok ? response.text() : response.status;
+};
+
+const guardOver = (stored: Stored) => asking(guardAndStorage(stored).guard);
 
 /** An hour's share and a network's allowance too large to be met: for a
     test of another limit. */
@@ -267,28 +282,63 @@ test("addresses in one network share its allowance, and another network has its 
   );
 });
 
-test("a new day forgets every visitor's count and the blocks run out, however many, and keeps the rest", async () => {
-  const stored: Stored = new Map([[ASK_GUARD_KEYS.today, { day: "2000-01-01", used: 3 }]]);
+test("what's kept of a visitor sets an alarm for the day's end, and one that's set is left as it is", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T14:10:00Z") });
+  for (const [path, query] of [
+    [ASK_GUARD_PATH.take, { limit: 3, each: 30, ...ROOMY, who: "a", net: "n" }],
+    [ASK_GUARD_PATH.block, { hours: 1, who: "a" }],
+  ] as const) {
+    const { guard, storage } = guardAndStorage(new Map());
+    const call = asking(guard);
+    assert.equal(await storage.getAlarm(), null);
+    await call(path, query);
+    assert.equal(await storage.getAlarm(), Date.parse("2026-02-01T00:00:00Z"), path);
+    await storage.setAlarm(1);
+    await call(path, query);
+    assert.equal(await storage.getAlarm(), 1, path);
+  }
+});
+
+test("a question turned away, or paid for, keeps nothing of a visitor and sets no alarm", async (t) => {
+  t.mock.timers.enable({ apis: ["Date"], now: Date.parse("2026-01-31T14:10:00Z") });
+  const stored: Stored = new Map([[ASK_GUARD_KEYS.today, { day: "2026-01-31", used: 3 }]]);
+  const { guard, storage } = guardAndStorage(stored);
+  const call = asking(guard);
+  await call(ASK_GUARD_PATH.spend, { neurons: 5 });
+  assert.equal(
+    await call(ASK_GUARD_PATH.take, { limit: 3, each: 30, ...ROOMY, who: "a", net: "n" }),
+    ASK_GUARD_REPLY.spent,
+  );
+  assert.equal(await storage.getAlarm(), null);
+});
+
+test("the alarm deletes all that's kept of visitors, however many and whatever day's, and keeps the site's counts", async () => {
+  const stored: Stored = new Map();
+  const { guard } = guardAndStorage(stored);
+  const call = asking(guard);
+  await call(ASK_GUARD_PATH.take, { limit: 3, each: 30, ...ROOMY, who: "a", net: "n" });
+  await call(ASK_GUARD_PATH.spend, { neurons: 5 });
   for (let i = 0; i < MAX_KEYS_PER_DELETE * 2 + 1; i++) {
     stored.set(`${ASK_GUARD_KEYS.count}${i}`, { day: "2000-01-01", asked: 1 });
     stored.set(`${ASK_GUARD_KEYS.block}old${i}`, Date.now() - 1);
   }
   stored.set(`${ASK_GUARD_KEYS.network}old`, { day: "2000-01-01", asked: 1 });
   stored.set(`${ASK_GUARD_KEYS.block}still`, Date.now() + 60_000);
+  await guard.alarm();
+  assert.deepEqual([...stored.keys()].sort(), [ASK_GUARD_KEYS.dearest, ASK_GUARD_KEYS.hour, ASK_GUARD_KEYS.today]);
+});
+
+test("the next day's first question starts the site's count again and deletes nothing itself", async () => {
+  const stored: Stored = new Map<string, unknown>([
+    [ASK_GUARD_KEYS.today, { day: "2000-01-01", used: 3 }],
+    [`${ASK_GUARD_KEYS.count}old`, { day: "2000-01-01", asked: 30 }],
+  ]);
   assert.equal(
     await guardOver(stored)(ASK_GUARD_PATH.take, { limit: 3, each: 30, ...ROOMY, who: "a", net: "n" }),
     okLeft(29),
   );
-  assert.deepEqual(
-    [...stored.keys()].sort(),
-    [
-      `${ASK_GUARD_KEYS.block}still`,
-      `${ASK_GUARD_KEYS.count}a`,
-      `${ASK_GUARD_KEYS.network}n`,
-      ASK_GUARD_KEYS.hour,
-      ASK_GUARD_KEYS.today,
-    ].sort(),
-  );
+  assert.equal(used(stored), 1);
+  assert.ok(stored.has(`${ASK_GUARD_KEYS.count}old`), "that's the alarm's to delete");
 });
 
 /** A guard over `stored`, and a way to have it take a question against a

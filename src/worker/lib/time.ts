@@ -1,3 +1,6 @@
+/** The day, in UTC, that `now` (milliseconds since 1970) is in: "2026-01-31". */
+export const utcDay = (now: number): string => new Date(now).toISOString().slice(0, 10);
+
 /** What `work` resolves to, or undefined if it hasn't within `timeoutMs`.
     Work that fails in time rejects as it would on its own. Work still
     running when the time is up is left to run: a model call can't be taken

@@ -77,7 +77,8 @@ export const SETTINGS = {
   /** How long a visitor is blocked for after an inappropriate question, in
       hours. One model's word sets a block, and an address can be a whole
       office's or a phone network's: an hour stops whoever is trying
-      things without shutting the rest out for a day. */
+      things without shutting the rest out for a day. A block ends with
+      the day (UTC) if that comes first: the next day's hash is another. */
   blockHours: numberAboveZero("ASK_BLOCK_HOURS", 1),
   /** Where AskGuard is created. */
   guardLocation: {
@@ -87,10 +88,10 @@ export const SETTINGS = {
   } satisfies Setting<"ASK_GUARD_LOCATION", DurableObjectLocationHint>,
   /** Whether the log has the questions themselves, and what came of them. */
   logQuestions: flag("ASK_LOG_QUESTIONS"),
-  /** What visitors' addresses are hashed with: a secret, where the site has
-      set one. The hash keys a visitor's rate limit, count and any block, so
-      changing this starts everyone afresh (counts are per day and blocks
-      last a day, so nothing much is lost). */
+  /** What visitors' addresses are hashed with, beside the day: a secret,
+      where the site has set one. The hash keys a visitor's rate limit,
+      count and any block, so changing this starts everyone afresh, as
+      every midnight (UTC) does. */
   salt: text("ASK_SALT", "portfolio-ask:"),
 };
 

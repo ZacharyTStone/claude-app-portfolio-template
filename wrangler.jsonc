@@ -35,9 +35,12 @@
   // // src/worker/guard).
   // "durable_objects": { "bindings": [{ "name": "ASK_GUARD", "class_name": "AskGuard" }] },
   // "migrations": [{ "tag": "v1", "new_sqlite_classes": ["AskGuard"] }],
-  // // Visitors' addresses are hashed before they're counted. Set your own
-  // // salt as a secret (`npx wrangler secret put ASK_SALT`); without it, a
-  // // salt in the code is used, which anyone can read.
+  // // Visitors' addresses are hashed before they're counted, with the day
+  // // in the hash: tomorrow's is another one, and what's kept under
+  // // today's is deleted at midnight UTC. Set your own salt as a secret
+  // // (`npx wrangler secret put ASK_SALT`). Without it a salt in the code
+  // // is used, which anyone can read, so a stored hash could be worked
+  // // back to its address by trying every address.
   // "vars": {
   //   // "false" turns /ask off without a code change (typed questions then
   //   // get the "Something else" reply).
@@ -67,6 +70,7 @@
   //   // question. An address can be a whole office's or a phone network's,
   //   // and a model can be wrong about a question: an hour is enough to
   //   // stop someone trying things, and short for everyone else behind it.
+  //   // A block ends at midnight UTC if that comes first.
   //   "ASK_BLOCK_HOURS": "1",
   //   // Where AskGuard is created: a Durable Object location hint. It is
   //   // near Workers AI in North America; it stays where it was first

@@ -1,12 +1,14 @@
 /* The Worker with everything it's bound to stood in for, so its tests need
    no network or account: what each stand-in was asked, and what the Worker
    logged. */
+import { createHmac } from "node:crypto";
 import { ASK_INDEX_PATH } from "../../../src/worker/ask/answers.ts";
 import { handleAsk } from "../../../src/worker/ask/handler.ts";
 import { LLAMA_GUARD_MODEL } from "../../../src/worker/ask/known-models.ts";
 import type { LogLine } from "../../../src/worker/ask/log.ts";
 import { MAX_TO_OWNER_TOKENS } from "../../../src/worker/ask/to-owner.ts";
 import type { Env } from "../../../src/worker/env.ts";
+import { utcDay } from "../../../src/worker/lib/time.ts";
 import { VISITOR_ADDRESS_HEADER } from "../../../src/worker/lib/visitor.ts";
 import { INDEX } from "./answers.ts";
 import { guardStub, type GuardStub } from "./guard.ts";
@@ -14,6 +16,13 @@ import { toolCall, wrote, type Call, type ModelInput, type Run } from "./models.
 
 /** The visitor's address, as Cloudflare gives it. */
 export const ADDRESS = "203.0.113.9";
+
+/** The hash an address is known by on the day (UTC) the clock says it is. */
+export const hashToday = (salt: string, address: string): string =>
+  createHmac("sha256", `${salt}${utcDay(Date.now())}`)
+    .update(address)
+    .digest("hex")
+    .slice(0, 32);
 
 export type Options = {
   /** What the picker and Llama Guard say (`models()` makes one). */

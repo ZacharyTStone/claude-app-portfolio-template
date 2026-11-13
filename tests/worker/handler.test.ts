@@ -4,7 +4,6 @@
    answered as no pick, and what the question's model calls cost charged to
    the day once the reply has gone. */
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
 import { test, type TestContext } from "node:test";
 import { setImmediate as nextTurn } from "node:timers/promises";
 import { estimateJsonTokens, estimateTokens, neuronCost } from "../../src/worker/ask/cost.ts";
@@ -23,10 +22,7 @@ import { ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import { SETTINGS } from "../../src/worker/settings.ts";
 import { askedOf, firstAsked, type GuardStub } from "./support/guard.ts";
 import { models, toolCall, using } from "./support/models.ts";
-import { ADDRESS, UNADDRESSED, UNWRITTEN, costs, lines, stubs } from "./support/worker.ts";
-
-const hashOf = (salt: string, address: string) =>
-  createHash("sha256").update(`${salt}${address}`).digest("hex").slice(0, 32);
+import { ADDRESS, UNADDRESSED, UNWRITTEN, costs, hashToday, lines, stubs } from "./support/worker.ts";
 
 // A model's price, which it must have.
 function priceOf(model: string): Price {
@@ -74,7 +70,7 @@ test("an inappropriate question is blocked, and so is its asker (hashed), for AS
   const blocked = firstAsked(guard, "block");
   assert.ok(blocked, "the guard was told to block");
   assert.equal(blocked.hours, SETTINGS.blockHours.default);
-  assert.equal(blocked.visitorHash, hashOf(SETTINGS.salt.default, ADDRESS));
+  assert.equal(blocked.visitorHash, hashToday(SETTINGS.salt.default, ADDRESS));
   assert.ok(!guard.requests.some((url) => url.href.includes(ADDRESS)), "the address itself isn't sent");
   const set = stubs({ run: models(toolCall(INAPPROPRIATE)), vars: { ASK_BLOCK_HOURS: "2" } });
   await set.askJson(question);

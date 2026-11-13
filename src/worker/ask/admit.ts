@@ -1,6 +1,7 @@
 /* Whether a question may go to the model. */
 import type { Env } from "../env.ts";
 import type { Guard } from "../guard/client.ts";
+import { utcDay } from "../lib/time.ts";
 import { hashAddress, visitorAddress, visitorNetwork } from "../lib/visitor.ts";
 import type { Settings } from "../settings.ts";
 import { readChoices, type Choices } from "./answers.ts";
@@ -46,7 +47,8 @@ export async function admit(
   const notJsonPost = rejectionUnlessJsonPost(request);
   if (notJsonPost) return { kind: "rejected", rejection: notJsonPost };
   if (!settings.enabled) return { kind: "off" };
-  const visitorHash = await hashAddress(visitorAddress(request), settings.salt);
+  const day = utcDay(Date.now());
+  const visitorHash = await hashAddress(visitorAddress(request), settings.salt, day);
   const rateLimit = await checkRateLimit(env.ASK_LIMIT, visitorHash);
   if (rateLimit === "busy") return { kind: "busy" };
   if (rateLimit === "down") return { kind: "refused", why: "down", visitorLimit };
@@ -56,7 +58,7 @@ export async function admit(
   // after: one less wait.
   const choicesBeingRead = readChoices(env.ASSETS, request, askRequest.lang);
   choicesBeingRead.catch(() => {}); // a reply before it's awaited leaves it unhandled otherwise
-  const networkHash = await hashAddress(visitorNetwork(request), settings.salt);
+  const networkHash = await hashAddress(visitorNetwork(request), settings.salt, day);
   const gate = await guard.takeQuestion({ visitorHash, networkHash });
   if (gate.state !== "ok") return { kind: "refused", why: gate.state, visitorLimit, question: askRequest.question };
   return { kind: "admitted", askRequest, visitorHash, questionsLeft: gate.questionsLeft, choicesBeingRead };

@@ -50,9 +50,13 @@ export function guardStub(says = okLeft(25), status = 200): GuardStub {
 export type Stored = Map<string, unknown>;
 
 /** A stand-in for a Durable Object's storage over `stored`, which takes at
-    most `maxKeysPerDelete` keys to a delete, as Cloudflare's does. */
+    most `maxKeysPerDelete` keys to a delete, as Cloudflare's does, and
+    keeps the time its alarm is set for. */
 export function storageOver(stored: Stored, maxKeysPerDelete = Infinity) {
+  let alarmAt: number | null = null;
   return {
+    getAlarm: async () => alarmAt,
+    setAlarm: async (at: number) => void (alarmAt = at),
     get: async (key: string) => stored.get(key),
     put: async (key: string, value: unknown) => void stored.set(key, value),
     delete: async (keys: string | string[]) => {

@@ -2,7 +2,7 @@
    hashed into the keys the rate limit, the day's count and a block are kept
    under, so a change to any of them here is every visitor starting afresh. */
 import assert from "node:assert/strict";
-import { createHash } from "node:crypto";
+import { createHmac } from "node:crypto";
 import { test } from "node:test";
 import {
   UNKNOWN_VISITOR_ADDRESS,
@@ -117,11 +117,17 @@ test("an address's network is its /24, or for IPv6 its /48; what isn't an addres
   assert.equal(visitorNetwork(new Request("https://site.example/ask")), UNKNOWN_VISITOR_ADDRESS);
 });
 
-test("an address is hashed with the salt, to the first half of a SHA-256 in hex", async () => {
-  const hash = await hashAddress("203.0.113.9", "a salt:");
+test("an address is hashed to the first half of an HMAC-SHA-256 in hex, keyed with the salt and the day", async () => {
+  const hash = await hashAddress("203.0.113.9", "a salt:", "2026-01-31");
   assert.match(hash, /^[0-9a-f]{32}$/);
   assert.equal(hash.length, VISITOR_HASH_BYTES * 2);
-  assert.equal(hash, createHash("sha256").update("a salt:203.0.113.9").digest("hex").slice(0, 32));
-  assert.notEqual(hash, await hashAddress("203.0.113.9", "another salt:"));
-  assert.notEqual(hash, await hashAddress("203.0.113.10", "a salt:"));
+  assert.equal(hash, createHmac("sha256", "a salt:2026-01-31").update("203.0.113.9").digest("hex").slice(0, 32));
+  assert.notEqual(hash, await hashAddress("203.0.113.9", "another salt:", "2026-01-31"));
+  assert.notEqual(hash, await hashAddress("203.0.113.10", "a salt:", "2026-01-31"));
+});
+
+test("the same address has another hash the next day, and no salt at all still hashes", async () => {
+  const hash = await hashAddress("203.0.113.9", "a salt:", "2026-01-31");
+  assert.notEqual(hash, await hashAddress("203.0.113.9", "a salt:", "2026-02-01"));
+  assert.match(await hashAddress("203.0.113.9", "", "2026-01-31"), /^[0-9a-f]{32}$/);
 });

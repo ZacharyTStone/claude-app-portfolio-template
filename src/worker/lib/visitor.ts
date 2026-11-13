@@ -1,5 +1,6 @@
 /* Who's asking: the address Cloudflare gives, an IPv6 one as its /64 (what
-   one home or phone is given), and only ever kept or sent on hashed. */
+   one home or phone is given), and only ever kept or sent on hashed, with
+   a hash that's good for one day. */
 import ipaddr from "ipaddr.js";
 
 /** The header Cloudflare puts the visitor's address in. */
@@ -8,8 +9,8 @@ export const VISITOR_ADDRESS_HEADER = "CF-Connecting-IP";
 /** What stands for the address of a request that came without one. */
 export const UNKNOWN_VISITOR_ADDRESS = "unknown";
 
-/** How much of the hash is kept: the first half of a SHA-256, which is 32
-    hex characters. Changing it starts every visitor's count afresh. */
+/** How much of the hash is kept: the first half of an HMAC-SHA-256, which
+    is 32 hex characters. Changing it starts every visitor's count afresh. */
 export const VISITOR_HASH_BYTES = 16;
 
 /** How many of an IPv6 address's eight groups name its network: the first
@@ -59,9 +60,16 @@ function prefixOf(ipv6: ipaddr.IPv6, groups: number): string {
   return `${kept.join(":")}::/${groups * BITS_PER_GROUP}`;
 }
 
-/** An address as 32 hex characters (the first half of a salted SHA-256). */
-export async function hashAddress(address: string, salt: string): Promise<string> {
-  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(`${salt}${address}`));
+/** An address as 32 hex characters: the first half of its HMAC-SHA-256,
+    keyed with the salt and the day (UTC, "2026-01-31"). With the day in
+    the key, a hash kept from one day matches no one on another, and
+    working back from a hash to its address, which a salt anyone can read
+    allows by trying every address, has to be done again for each day. */
+export async function hashAddress(address: string, salt: string, day: string): Promise<string> {
+  const bytesOf = (text: string) => new TextEncoder().encode(text);
+  const hmac = { name: "HMAC", hash: "SHA-256" };
+  const key = await crypto.subtle.importKey("raw", bytesOf(`${salt}${day}`), hmac, false, ["sign"]);
+  const digest = await crypto.subtle.sign(hmac, key, bytesOf(address));
   return [...new Uint8Array(digest)]
     .slice(0, VISITOR_HASH_BYTES)
     .map((byte) => byte.toString(16).padStart(2, "0"))
