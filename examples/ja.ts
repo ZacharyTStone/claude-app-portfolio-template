@@ -452,6 +452,8 @@ export default function japanese(me: Me): Language {
       resize: "タブの幅を変更",
       viewerOpen: "新しいタブで開く",
       viewerClose: "閉じる",
+      play: "再生",
+      pause: "一時停止",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",

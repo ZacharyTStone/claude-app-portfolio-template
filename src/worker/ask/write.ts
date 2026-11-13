@@ -109,8 +109,10 @@ function correction(failure: Failure): string {
 
 type Message = { role: "system" | "user" | "assistant"; content: string };
 
-/** What every call to the writer is sent, besides the model's own options. */
-type Prompt = { messages: Message[]; temperature: 0 };
+/** What every call for a line of text is sent, besides the model's own
+    options: the writer's, and the one that says a question to the owner
+    (address.ts). */
+export type Prompt = { messages: Message[]; temperature: 0 };
 
 // ---- What the model writes -----------------------------------------------------------
 
@@ -126,29 +128,36 @@ const QUOTES_AROUND = /^["“「『]+|["”」』]+$/g;
 // answer the question, and nothing more: "none", "None.", "none。".
 const ONLY_NONE = new RegExp(`^${NONE}[.。!]?$`, "i");
 
-// The text a model's reply has, in either shape Workers AI gives it, on one
-// line and without the quotation marks or the reasoning some put round it.
-// "" when it has none.
-function writtenText(modelReply: unknown): string {
+/** The text a model's reply has, in either shape Workers AI gives it, on
+    one line and without the reasoning some write first. "" when it has
+    none. */
+export function textIn(modelReply: unknown): string {
   const text = get(modelReply, "choices", 0, "message", "content") ?? get(modelReply, "response");
   if (!isString(text)) return "";
-  return text.replace(REASONING, " ").replace(/\s+/g, " ").trim().replace(QUOTES_AROUND, "").trim();
+  return text.replace(REASONING, " ").replace(/\s+/g, " ").trim();
 }
 
-// One call to the model, which resolves to its reply, or to undefined if
-// that takes longer than `timeoutMs`.
-const callWriter = (ai: Ai, model: string, prompt: Prompt, timeoutMs: number): Promise<unknown> =>
-  withinTime(
-    ai.run(model, { ...prompt, ...MODEL_OPTIONS.get(model), max_completion_tokens: MAX_WRITE_TOKENS }),
-    timeoutMs,
-  );
+// That text as a reply: without the quotation marks some put round one.
+const writtenText = (modelReply: unknown): string => textIn(modelReply).replace(QUOTES_AROUND, "").trim();
 
-// The tokens one call is counted as using. A call cut off by the clock
-// (`modelReply` is undefined) is paid for all the same: counted as if it
-// wrote all it may. A reply that doesn't say what it used is counted by
-// its size.
-function tokensCounted(prompt: Prompt, modelReply: unknown): Tokens {
-  if (modelReply === undefined) return { input: estimateJsonTokens(prompt), output: MAX_WRITE_TOKENS };
+/** One call to the model for a line of text, which may write `maxTokens`
+    at most. It resolves to the model's reply, or to undefined if that
+    takes longer than `timeoutMs`. */
+export const callForText = (
+  ai: Ai,
+  model: string,
+  prompt: Prompt,
+  maxTokens: number,
+  timeoutMs: number,
+): Promise<unknown> =>
+  withinTime(ai.run(model, { ...prompt, ...MODEL_OPTIONS.get(model), max_completion_tokens: maxTokens }), timeoutMs);
+
+/** The tokens one such call is counted as using. A call cut off by the
+    clock (`modelReply` is undefined) is paid for all the same: counted as
+    if it wrote all it may (`maxTokens`). A reply that doesn't say what it
+    used is counted by its size. */
+export function tokensCounted(prompt: Prompt, modelReply: unknown, maxTokens: number): Tokens {
+  if (modelReply === undefined) return { input: estimateJsonTokens(prompt), output: maxTokens };
   return tokensUsed(modelReply) ?? { input: estimateJsonTokens(prompt), output: estimateJsonTokens(modelReply) };
 }
 
@@ -193,11 +202,11 @@ export async function write(
     const prompt: Prompt = { messages, temperature: 0 };
     let modelReply: unknown;
     try {
-      modelReply = await callWriter(ai, model, prompt, timeLeftMs);
+      modelReply = await callForText(ai, model, prompt, MAX_WRITE_TOKENS, timeLeftMs);
     } catch {
       return { why: "error", tries, tokens };
     }
-    const tokensThisTry = tokensCounted(prompt, modelReply);
+    const tokensThisTry = tokensCounted(prompt, modelReply, MAX_WRITE_TOKENS);
     tokens.input += tokensThisTry.input;
     tokens.output += tokensThisTry.output;
     if (modelReply === undefined) return { why: "late", tries, tokens };

@@ -15,7 +15,7 @@ import {
   NONE,
   MAX_WRITE_TRIES,
 } from "../../src/worker/constants.ts";
-import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, wrote } from "./fixtures.ts";
+import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, writer, wrote } from "./fixtures.ts";
 
 const logs = captureLogs();
 
@@ -29,23 +29,6 @@ const WRITING: Writing = {
   role: "a software engineer",
   owner: "Alex Example",
 };
-
-type Sent = { messages: { role: string; content: string }[]; [option: string]: unknown };
-
-// A stand-in model that says each of `replies` in turn (an Error is thrown,
-// a Promise waited for), and what it was sent.
-function writer(...replies: unknown[]) {
-  const sent: Sent[] = [];
-  const run = async (_model: string, input: Sent) => {
-    // The messages go on being added to, so each call's are kept as they were.
-    sent.push({ ...input, messages: [...input.messages] });
-    const reply = replies[Math.min(sent.length, replies.length) - 1];
-    if (reply instanceof Error) throw reply;
-    return reply;
-  };
-  // Only what write() uses of Workers AI is stood in for.
-  return { ai: { run } as unknown as Ai, sent };
-}
 
 test("a reply written from the lines is the reply: the model has the lines, and the question as the visitor's", async () => {
   const { ai, sent } = writer(wrote("Yes, Alex knows Svelte and SvelteKit.", [300, 12]));

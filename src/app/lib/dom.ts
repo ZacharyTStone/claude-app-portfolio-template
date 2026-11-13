@@ -91,5 +91,10 @@ export function parentOf(element: Element): HTMLElement {
 export const closestFrom = (target: EventTarget | null, selector: string): Element | null =>
   target instanceof Element ? target.closest(selector) : null;
 
+/** Whether a click is a plain one: with a modifier key or another button,
+    the visitor is asking the browser for a new tab or window themselves. */
+export const isPlainClick = (event: MouseEvent): boolean =>
+  event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
+
 /** A deep copy (cloneNode keeps the node's type, but says it's a Node). */
 export const clone = <T extends Node>(node: T): T => node.cloneNode(true) as T;

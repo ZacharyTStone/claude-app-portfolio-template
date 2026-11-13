@@ -9,6 +9,8 @@
    time. Then a new note starts.
 
    Still: the note, IndexedDB, one change waiting at the gate, the server.
+   That's what the page shows, dimmed, until a visitor presses Play (the
+   drawing's `plays` says for how long it then moves).
 
    `npm run diagrams saving-a-note` writes its files into public/assets;
    site.config.ts shows them with an `image`. */
@@ -218,7 +220,13 @@ function draw(words: Words) {
   );
 
   // Back to front: the queue's line is under the changes that ride it.
-  return { width: WIDTH, height: HEIGHT, shapes: [note, queue, store, server, ...changes] };
+  return {
+    width: WIDTH,
+    height: HEIGHT,
+    // A visitor plays it: until the note is saved and sent, and the next would start.
+    plays: NEXT_NOTE,
+    shapes: [note, queue, store, server, ...changes],
+  };
 }
 
 export default {

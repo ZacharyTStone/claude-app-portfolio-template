@@ -7,6 +7,7 @@
 
    Styles: src/styles/thread.css (paragraphs and lists) and figures.css
    (pictures side by side, a quote, a heading). */
+import type { Strings } from "../shared/config.ts";
 import type { Block, BlockParts } from "../shared/content.ts";
 import { PAGE_CLASSES } from "../shared/page-data.ts";
 import Artifact from "./Artifact.astro";
@@ -18,8 +19,10 @@ import Picture from "./Picture.astro";
 
 interface Props {
   block: Block;
+  /** The page's wording, for a picture's Play button. */
+  strings: Strings;
 }
-const { block } = Astro.props;
+const { block, strings } = Astro.props;
 
 // What a block that's an object holds, under each kind's name: one of
 // these is set, and the others are undefined (all of them, for a paragraph
@@ -49,11 +52,11 @@ kindsNotDrawn satisfies Record<string, never>;
 {link && <Artifact link={link} />}
 {bars && <Bars bars={bars} />}
 {flow && <Flow flow={flow} />}
-{image && <Picture picture={image} />}
+{image && <Picture picture={image} strings={strings} />}
 {images && (
   <div class="gallery">
     {images.map((picture) => (
-      <Picture picture={picture} />
+      <Picture picture={picture} strings={strings} />
     ))}
   </div>
 )}

@@ -116,7 +116,9 @@ export type AskRequest = {
 
 /** An answer was picked, or none was: the page shows a picked answer from
     its own copy, word for word; with a reply, the reply instead (as text,
-    never HTML), then a link to the tab the answer is in. */
+    never HTML), then a link to the tab the answer is in. With none, it
+    shows how to reach the owner, with the question in an email and a
+    message to send them. */
 export type AskPick = {
   /** The answer picked, or null for none (the "Something else" reply). */
   id: string | null;
@@ -134,6 +136,14 @@ export type AskPick = {
       same). `isCitedLines` says what the page takes; lines that wouldn't
       pass it aren't sent. */
   cited?: string[];
+  /** Only ever without an id: the visitor's question as it's said to the
+      owner ("Do you know testing?" for "Does Alex know testing?"), for the
+      email and the message the page offers in place of an answer. A model
+      wrote it, and the Worker checked that it's the same question, give
+      or take who it's about (src/worker/ask/address.ts). Without one, the
+      question goes in as it was typed. `isQuestionToOwner` says what the
+      page takes; one that wouldn't pass it isn't sent. */
+  toOwner?: string;
   /** The questions the visitor has left today, when they're few. */
   left?: number;
 };
@@ -180,6 +190,14 @@ const isShowableText = (value: unknown, maxLength: number): value is string =>
     (so one line, and nothing hidden or reordered). The Worker quotes only
     lines that pass it, and the page checks what it's sent. */
 export const isReplyText = (value: unknown): value is string => isShowableText(value, MAX_REPLY_LENGTH);
+
+/** Text the page can put in the email and the message as the visitor's
+    question, said to the owner: a string with something in it, at most
+    MAX_QUESTION_LENGTH characters (no longer than a question may be), with
+    no control or format characters (so one line, and nothing hidden or
+    reordered). The Worker sends only a question that passes it, and the
+    page checks what it's sent. */
+export const isQuestionToOwner = (value: unknown): value is string => isShowableText(value, MAX_QUESTION_LENGTH);
 
 /** Lines the page can show under a written reply as the ones it was
     written from: 1 to MAX_CITED_LINES of them, each text with something in

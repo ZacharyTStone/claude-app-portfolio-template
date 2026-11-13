@@ -75,6 +75,62 @@
 .shot a { display: block; }
 .shot figcaption { padding: 8px 14px 10px; }
 
+/* A picture a visitor plays (Picture.astro, src/app/play.ts): it rests as
+   its still, matte, with a Play button in its middle, so nothing moves
+   beside the text until it's asked to. Played, the picture as it moves
+   comes in over the still at full strength, and the button goes to a
+   corner as Pause. Without JavaScript the button is a link to the moving
+   picture, and the still isn't dimmed: it's all there is to see here. */
+.stage { position: relative; }
+.js .plays .stage { cursor: pointer; }
+.js .plays .stage > :first-child:not(.play) {
+  opacity: 0.28;
+  filter: saturate(0.4);
+  transition: opacity var(--play-fade) ease, filter var(--play-fade) ease;
+}
+.js .plays .stage:hover > :first-child:not(.play), .js .plays .stage:focus-within > :first-child:not(.play) { opacity: 0.42; }
+.stage .moving {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--play-fade) ease;
+}
+.stage .moving.shown { opacity: 1; }
+.shot .play {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px 0 13px;
+  border-radius: 19px;
+  background: var(--text);
+  color: var(--page);
+  font: 500 14px/20px var(--sans);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.35);
+  transition: top var(--play-fade) ease, left var(--play-fade) ease, translate var(--play-fade) ease,
+    opacity var(--play-fade) ease, scale 0.12s ease;
+}
+.shot .play:hover { scale: 1.04; }
+.shot .play:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+/* While it plays: small, in the corner, out of the picture's way until the
+   pointer is over the picture or the button has the keyboard. */
+.playing .play {
+  top: calc(100% - 27px);
+  left: calc(100% - 12px);
+  translate: -100% -50%;
+  height: 30px;
+  padding: 0 12px 0 9px;
+  opacity: 0.55;
+  --icon: url("/assets/icons/pause.svg");
+}
+.playing .stage:hover .play, .playing .play:focus-visible { opacity: 1; }
+
 /* Someone else's words about the work: set off by a rule, with who said
    them (their part, if not their name) under them. */
 .quote { display: grid; gap: 4px; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); }

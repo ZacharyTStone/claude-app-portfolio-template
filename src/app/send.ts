@@ -65,6 +65,9 @@ function keepReply(typed: TypedQuestion, reply: AskResponse | null, asked: HTMLE
       typed.reply = reply.reply;
       if (reply.cited) typed.cited = reply.cited;
     }
+    // With no answer, the question as /ask said it to the owner, for the
+    // email and the message.
+    if (!typed.answer && reply && "toOwner" in reply && reply.toOwner) typed.toOwner = reply.toOwner;
   }
 }
 

@@ -1,7 +1,7 @@
 /* Ask: a question typed in goes to /ask (the Worker; src/shared/ask.ts has
    what it says), checked here, not trusted. Once it says the visitor is
    blocked or out of questions, this browser tab stops asking. */
-import { isCitedLines, isReplyText, type AskRequest, type AskResponse } from "../shared/ask.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest, type AskResponse } from "../shared/ask.ts";
 import { isCount, isRecord, isString } from "../shared/guards.ts";
 import { STORAGE, TIMING } from "./constants.ts";
 import { session } from "./lib/storage.ts";
@@ -40,12 +40,15 @@ function parseResponse(data: unknown): AskResponse {
   // written from only ever with the reply.
   const reply = id !== null && isReplyText(data.reply) ? data.reply : undefined;
   const cited = reply !== undefined && isCitedLines(data.cited) ? data.cited : undefined;
+  // The question as it's said to the owner only ever comes with no answer.
+  const toOwner = id === null && isQuestionToOwner(data.toOwner) ? data.toOwner : undefined;
   // With few questions left today it also says how many.
   const left = isCount(data.left) ? data.left : undefined;
   return {
     id,
     ...(reply !== undefined ? { reply } : {}),
     ...(cited !== undefined ? { cited } : {}),
+    ...(toOwner !== undefined ? { toOwner } : {}),
     ...(left !== undefined ? { left } : {}),
   };
 }

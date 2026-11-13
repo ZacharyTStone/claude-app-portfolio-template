@@ -13,7 +13,19 @@ import {
   withNumbers,
 } from "../../src/worker/ask/quote.ts";
 import { MAX_QUOTED_LINES, NONE } from "../../src/worker/constants.ts";
-import { EN, JA, UNWRITTEN, askJson, captureLogs, lines, models, okLeft, stubs, toolCall } from "./fixtures.ts";
+import {
+  EN,
+  JA,
+  UNADDRESSED,
+  UNWRITTEN,
+  askJson,
+  captureLogs,
+  lines,
+  models,
+  okLeft,
+  stubs,
+  toolCall,
+} from "./fixtures.ts";
 
 const logs = captureLogs();
 
@@ -400,7 +412,7 @@ test("numbers that name no line: the pick without a reply, and the log says why"
     '{"ask":"acme.1"}',
     '{"ask":"acme.1"}',
     '{"ask":"acme.1"}',
-    '{"ask":"none"}',
+    JSON.stringify({ ask: NONE, ...UNADDRESSED }),
   ]);
 });
 

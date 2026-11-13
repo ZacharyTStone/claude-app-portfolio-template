@@ -17,6 +17,10 @@
   #asked, .tab[data-chat], .viewer { display: none !important; }
   /* What was waiting to be scrolled to prints with the rest. */
   .waiting { opacity: 1 !important; }
+  /* A picture that's played prints as its still, at full strength, without
+     its button. */
+  .plays .stage img { opacity: 1 !important; filter: none !important; }
+  .stage .play, .stage .moving { display: none !important; }
   .print-head { display: block; margin: 0 0 8px; padding: 0 24px 16px; border-bottom: 1px solid #ccc; font: 400 13px/20px var(--sans); color: #333; }
   .print-head .print-name { font: 400 28px/1.2 var(--serif); color: #000; margin-bottom: 4px; }
   .tab { display: block !important; }

@@ -44,7 +44,7 @@ const lastMessageIndex = thread.messages.length - 1;
       )}
       <div class={PAGE_CLASSES.answer}>
         {message.a.map((block) => (
-          <Block block={block} />
+          <Block block={block} strings={strings} />
         ))}
         {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>

@@ -1,9 +1,12 @@
-/* What moves in an answer: a picture with its own animation moves in the
-   page, under the page's real security headers, and a visitor who has
-   asked for less motion is shown its still instead; a quote or a file card
-   that's out of sight waits, and comes in once it's scrolled to. */
+/* What moves in an answer. A picture a visitor plays rests as its still
+   until its button is pressed, then moves where it is, under the page's
+   real security headers, and rests again. A picture that moves all the
+   time does, and a visitor who has asked for less motion is shown its
+   still instead. A quote or a file card that's out of sight waits, and
+   comes in once it's scrolled to. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
+import { DATA } from "../../../src/shared/page-data.ts";
 import {
   askInNewChat,
   askReturns,
@@ -12,18 +15,40 @@ import {
   eventually,
   hasClass,
   OPEN_CHAT,
+  squash,
   type Check,
   type PageElement,
 } from "../helpers.ts";
-import { CLASS, COMES_INTO_VIEW, MOVING_PICTURE, type ComesIntoView, type MovingPicture, type Site } from "../site.ts";
+import {
+  CLASS,
+  COMES_INTO_VIEW,
+  MOVING_PICTURE,
+  PLAY_BUTTON,
+  PLAYED_FIGURE,
+  PLAYING_PICTURE,
+  type ComesIntoView,
+  type MovingPicture,
+  type PlayedPicture,
+  type Site,
+} from "../site.ts";
 
 /** What stands in for the picture on a site without one, where every check
     here is skipped. */
 const NO_PICTURE: MovingPicture = { tab: "", index: 0, moving: "", still: "" };
+const NOTHING_TO_PLAY: PlayedPicture = { ...NO_PICTURE, answer: "" };
 
 /** How long to watch a picture for something in it to move. Every diagram
     has something moving within a second or two of any moment. */
 const WATCH_MS = 6000;
+
+/** How much of a played picture is looked at for motion, from its top: its
+    button is never there, in the middle at rest or in a corner as it
+    plays, so what changes in it is the picture. */
+const WATCHED_SHARE = 0.4;
+
+/** A time to play for, in seconds, short enough to see a picture stop by
+    itself: a check puts it in place of the picture's own. */
+const A_MOMENT = "1";
 
 /** How long a still picture is watched to see that nothing in it moves. */
 const STILL_FOR_MS = 1500;
@@ -39,7 +64,11 @@ const SHORT_WINDOW = { ...desktop, viewport: { width: 1440, height: 420 } };
     most of it. */
 export default (site: Site): Check[] => {
   const picture = site.movingPictures[0] ?? NO_PICTURE;
-  const skip = site.movingPictures.length ? null : "the site has no picture that moves";
+  const skip = site.movingPictures.length ? null : "the site has no picture that moves all the time";
+  const played = site.playedPictures[0] ?? NOTHING_TO_PLAY;
+  const nothingPlays = site.playedPictures.length ? null : "the site has no picture a visitor plays";
+  // A tab to leave a playing picture for.
+  const elsewhere = [site.A, site.B, site.C].find((thread) => thread && thread.id !== played.tab);
   const comingIn = site.comesIntoView ?? NOTHING_COMES_IN;
   const noneComeIn = site.comesIntoView ? null : "no answer on the site has a quote or a file card";
   const inItsTab = `#${comingIn.tab} ${COMES_INTO_VIEW}`;
@@ -98,7 +127,101 @@ export default (site: Site): Check[] => {
       },
     },
     {
-      name: "a picture that moves is shown moving: its own file loads, and what it draws changes",
+      name: "a picture a visitor plays rests still and dimmed; its button plays it where it is, and pauses it again",
+      url: `#${played.tab}`,
+      skip: nothingPlays,
+      async test(page) {
+        const figure = await scrollToPlayed(page, `#${played.tab}`, played.index);
+        const button = figure.locator(PLAY_BUTTON);
+        const still = figure.locator("img").first();
+        assert.equal(await fileShown(still), played.still, "at rest the picture shown is the still one");
+        assert.equal(squash(await button.textContent()), site.words.play, "and its button says Play");
+        assert.ok(Number(await computedStyle(still, "opacity")) < 1, "the still is dimmed while it rests");
+        assert.equal(await figure.locator(CLASS.moving).count(), 0, "nothing is over it");
+
+        await button.click();
+        const moving = figure.locator(PLAYING_PICTURE);
+        await moving.waitFor();
+        assert.equal(await fileShown(moving), played.moving, "played, the picture over it is the one that moves");
+        assert.equal(squash(await button.textContent()), site.words.pause, "and its button says Pause");
+        // The page's policy lets a picture run its own animation: two looks
+        // at it, a moment apart, differ.
+        const firstLook = await topOf(page, moving);
+        await eventually(async () => {
+          assert.ok(
+            !firstLook.equals(await topOf(page, moving)),
+            "the picture has changed since it was first looked at",
+          );
+        }, WATCH_MS);
+
+        await button.click();
+        await eventually(async () => {
+          assert.equal(await figure.locator(CLASS.moving).count(), 0, "paused, the moving picture is gone");
+        });
+        assert.equal(squash(await button.textContent()), site.words.play, "and its button says Play again");
+      },
+    },
+    {
+      name: "a played picture stops by itself once it has played through, and when its tab is left",
+      url: `#${played.tab}`,
+      skip: nothingPlays,
+      async test(page) {
+        const figure = await scrollToPlayed(page, `#${played.tab}`, played.index);
+        const button = figure.locator(PLAY_BUTTON);
+        // The picture says how long it plays; here, a moment.
+        const playsFor = await button.getAttribute(DATA.play);
+        assert.ok(Number(playsFor) > 0, "the button says how many seconds the picture plays");
+        await playFor(button, A_MOMENT);
+        await button.click();
+        await figure.locator(PLAYING_PICTURE).waitFor();
+        await eventually(async () => {
+          assert.equal(await figure.locator(CLASS.moving).count(), 0, "played through, the moving picture is gone");
+          assert.equal(squash(await button.textContent()), site.words.play, "and its button says Play");
+        });
+
+        if (!elsewhere) return;
+        await playFor(button, playsFor ?? "");
+        await button.click();
+        await figure.locator(PLAYING_PICTURE).waitFor();
+        await page.goto(site.url(`#${elsewhere.id}`));
+        await eventually(async () => {
+          assert.equal(await hasClass(figure, CLASS.playing), false, "in a tab that's been left, it has stopped");
+        });
+      },
+    },
+    {
+      name: "without JavaScript, a played picture's button is a link to the picture as it moves, and its still isn't dimmed",
+      url: `#${played.tab}`,
+      device: { ...desktop, javaScriptEnabled: false },
+      skip: nothingPlays,
+      async test(page) {
+        const figure = await scrollToPlayed(page, `#${played.tab}`, played.index);
+        const still = figure.locator("img").first();
+        assert.equal(await fileShown(still), played.still, "the picture shown is the still one");
+        assert.equal(await computedStyle(still, "opacity"), "1", "at full strength: there's no playing it here");
+        assert.equal(
+          await figure.locator(PLAY_BUTTON).getAttribute("href"),
+          played.moving,
+          "its button links to the picture as it moves",
+        );
+      },
+    },
+    {
+      name: "a chat's copy of an answer has its picture at rest, with a button that plays it there",
+      url: "./",
+      skip: nothingPlays ?? site.noAsk,
+      async test(page) {
+        await askReturns(page, site.askUrl, { id: played.answer });
+        await askInNewChat(page, "How did it go?");
+        const copy = await scrollToPlayed(page, OPEN_CHAT, 0);
+        assert.equal(await copy.locator(CLASS.moving).count(), 0, "the copy's picture is at rest");
+        await copy.locator(PLAY_BUTTON).click();
+        await copy.locator(PLAYING_PICTURE).waitFor();
+        assert.equal(await page.locator(CLASS.playing).count(), 1, "and it's the one picture playing");
+      },
+    },
+    {
+      name: "a picture that moves all the time is shown moving: its own file loads, and what it draws changes",
       url: `#${picture.tab}`,
       skip,
       async test(page) {
@@ -116,7 +239,7 @@ export default (site: Site): Check[] => {
       },
     },
     {
-      name: "with motion reduced, a picture that moves is shown still",
+      name: "with motion reduced, a picture that moves all the time is shown still",
       url: `#${picture.tab}`,
       device: { ...desktop, reducedMotion: "reduce" },
       skip,
@@ -129,7 +252,7 @@ export default (site: Site): Check[] => {
       },
     },
     {
-      name: "without JavaScript, a picture still moves: the motion is the picture's own",
+      name: "without JavaScript, a picture that moves all the time still does: the motion is the picture's own",
       url: `#${picture.tab}`,
       device: { ...desktop, javaScriptEnabled: false },
       skip,
@@ -151,13 +274,43 @@ export default (site: Site): Check[] => {
 async function scrollTo(page: Page, picture: MovingPicture): Promise<Locator> {
   const image = page.locator(`#${picture.tab} ${MOVING_PICTURE} img`).nth(picture.index);
   await image.scrollIntoViewIfNeeded();
+  await untilLoaded(image);
+  return image;
+}
+
+/** The figure of a picture a visitor plays, the `index`th (from 0) in
+    `within` (a tab, or a chat), scrolled to, with its still loaded. */
+async function scrollToPlayed(page: Page, within: string, index: number): Promise<Locator> {
+  const figure = page.locator(`${within} ${PLAYED_FIGURE}`).nth(index);
+  await figure.scrollIntoViewIfNeeded();
+  await untilLoaded(figure.locator("img").first());
+  return figure;
+}
+
+/** Has a Play button say its picture plays for `seconds`, in place of
+    what it says. */
+const playFor = (button: Locator, seconds: string): Promise<void> =>
+  button.evaluate((el: PageElement, { name, value }) => el.setAttribute(name, value), {
+    name: DATA.play,
+    value: seconds,
+  });
+
+/** Waits until an <img> has its picture. */
+async function untilLoaded(image: Locator): Promise<void> {
   await eventually(async () => {
     assert.ok(
       await image.evaluate((img: LoadedImage) => img.complete === true && (img.naturalWidth ?? 0) > 0),
       "the picture has loaded",
     );
   });
-  return image;
+}
+
+/** A look at the top of a picture (WATCHED_SHARE of it), as it is on the
+    screen now. */
+async function topOf(page: Page, image: Locator): Promise<Buffer> {
+  const box = await image.boundingBox();
+  assert.ok(box, "the picture is on the page");
+  return page.screenshot({ clip: { ...box, height: box.height * WATCHED_SHARE } });
 }
 
 /** An <img>, as far as these checks read it. What only an image has is

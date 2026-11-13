@@ -195,10 +195,11 @@ export type PageElement = {
   /** The last node in it: for a question, the words the visitor typed. */
   lastChild: { nodeValue: string | null } | null;
   getAttribute(name: string): string | null;
+  setAttribute(name: string, value: string): void;
   matches(selector: string): boolean;
   querySelector(selector: string): PageElement | null;
   querySelectorAll(selector: string): Iterable<PageElement> & { length: number };
-  getBoundingClientRect(): { left: number; right: number };
+  getBoundingClientRect(): { left: number; right: number; top: number; width: number; height: number };
   dispatchEvent(event: unknown): boolean;
   ownerDocument: {
     /** The element with the keyboard's focus. */

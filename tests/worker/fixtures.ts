@@ -9,6 +9,7 @@ import {
   ASK_GUARD_REPLY,
   ASK_INDEX_PATH,
   LLAMA_GUARD_MODEL,
+  MAX_ADDRESS_TOKENS,
   PICK_TOOL_NAME,
   VISITOR_ADDRESS_HEADER,
 } from "../../src/worker/constants.ts";
@@ -79,7 +80,8 @@ export const lines = (logs: ReturnType<typeof captureLogs>): string[] =>
 export const costs = (logs: ReturnType<typeof captureLogs>): unknown[] => written(logs).map((line) => line.neurons);
 
 // What the tests read of what the model was sent: the picker with its
-// tool, the writer (write.ts) with none.
+// tool, the writer (write.ts) and the call that says a question to the
+// owner (address.ts) with none.
 type ModelInput = {
   messages: { role: string; content: string }[];
   tools?: {
@@ -146,6 +148,9 @@ type Options = {
       time it's asked, the next of these (the last, from then on). Nothing,
       unless a test is about what's written. */
   writes?: unknown[];
+  /** What the model writes when it's asked to say the question to the
+      owner (address.ts). Nothing, unless a test is about that. */
+  addresses?: unknown[];
   /** What AskGuard says to /take. */
   guardSays?: string;
   guard?: GuardStub;
@@ -170,19 +175,45 @@ export const using = <Reply extends object>(reply: Reply, prompt_tokens: number,
 export const wrote = (text: string, tokens?: [read: number, written: number]) =>
   tokens ? using({ response: text }, ...tokens) : { response: text };
 
-// Asked for a reply, the stand-in writes nothing and uses nothing: a test
-// about picking or quoting is the same with or without the writer.
+/** What a call for a line of text was sent (write.ts, address.ts). */
+export type Sent = { messages: { role: string; content: string }[]; [option: string]: unknown };
+
+/** A stand-in model for a call that writes a line of text, on its own (not
+    through /ask): it says each of `replies` in turn (an Error is thrown, a
+    Promise waited for), and keeps what it was sent. */
+export function writer(...replies: unknown[]) {
+  const sent: Sent[] = [];
+  const run = async (_model: string, input: Sent) => {
+    // The messages go on being added to, so each call's are kept as they were.
+    sent.push({ ...input, messages: [...input.messages] });
+    const reply = replies[Math.min(sent.length, replies.length) - 1];
+    if (reply instanceof Error) throw reply;
+    return reply;
+  };
+  // Only what the call uses of Workers AI is stood in for.
+  return { ai: { run } as unknown as Ai, sent };
+}
+
+// Asked for a reply, or to say a question to the owner, the stand-in
+// writes nothing and uses nothing: a test about picking or quoting is the
+// same with or without either.
 const WRITES_NOTHING = [wrote("", [0, 0])];
 
 /** What the log says of a reply the stand-in was asked for and didn't
     write: a line's fields after `ask`. */
 export const UNWRITTEN = { wrote: "dropped", unwritten: "empty" } as const;
 
-/** The Worker's bindings, stood in for; what the picker, the writer and
-    Llama Guard were sent, and the keys the rate limiter was asked about. */
+/** What the log says of a question with no answer, which the stand-in was
+    asked to say to the owner and didn't: a line's fields after `ask`. */
+export const UNADDRESSED = { toOwner: "dropped", unaddressed: "empty" } as const;
+
+/** The Worker's bindings, stood in for; what the picker, the writer, the
+    call that says a question to the owner and Llama Guard were sent, and
+    the keys the rate limiter was asked about. */
 export function stubs({
   run = () => toolCall("about.1"),
   writes = WRITES_NOTHING,
+  addresses = WRITES_NOTHING,
   guardSays,
   guard = guardStub(guardSays),
   limit = async () => ({ success: true }),
@@ -192,6 +223,7 @@ export function stubs({
 }: Options = {}) {
   const calls: Call[] = [];
   const writeCalls: Call[] = [];
+  const addressCalls: Call[] = [];
   const guardCalls: Call[] = [];
   const limitKeys: string[] = [];
   const bindings: Record<string, unknown> = {
@@ -212,10 +244,14 @@ export function stubs({
     },
     AI: {
       run: async (name: string, input: ModelInput) => {
-        // The writer is the call to the picker's model with no tool.
+        // A call to the picker's model with no tool is for a line of text:
+        // the question said to the owner if it may write only as much as
+        // that takes, else a reply.
         if (name !== LLAMA_GUARD_MODEL && !input.tools) {
-          writeCalls.push({ model: name, input });
-          const said = writes[Math.min(writeCalls.length, writes.length) - 1];
+          const isAddress = input.max_completion_tokens === MAX_ADDRESS_TOKENS;
+          const [textCalls, texts] = isAddress ? [addressCalls, addresses] : [writeCalls, writes];
+          textCalls.push({ model: name, input });
+          const said = texts[Math.min(textCalls.length, texts.length) - 1];
           if (said instanceof Error) throw said;
           return said;
         }
@@ -227,7 +263,7 @@ export function stubs({
   for (const name of without) delete bindings[name];
   // Only what the Worker uses is stood in for, so this is cast to the real
   // bindings.
-  return { env: bindings as unknown as Env, calls, writeCalls, guardCalls, guard, limitKeys };
+  return { env: bindings as unknown as Env, calls, writeCalls, addressCalls, guardCalls, guard, limitKeys };
 }
 
 /** The picker's reply when it calls pick_answer with `id`, and the

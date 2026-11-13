@@ -131,12 +131,19 @@ export const FIGURE_LIMITS = {
     diagrams` writes: AGENTS.md, "Adding a picture that moves") names the
     same picture without its motion as `still`:
 
-        { src: "/assets/how.svg", still: "/assets/how-still.svg", alt: "…", width: 1600, height: 800 } */
+        { src: "/assets/how.svg", still: "/assets/how-still.svg", alt: "…", width: 1600, height: 800 }
+
+    One whose file says how long it plays (a diagram's `plays`) is a
+    picture a visitor plays: it's shown still, dimmed, with a Play button,
+    and moves once that's pressed. Any other moves all the time, as a
+    marker that pulses on a map does. */
 export type Picture = {
   /** The picture's file: a path on the site. */
   src: string;
-  /** For a picture that moves: the same picture, still. A visitor who has
-      asked their computer for less motion is shown this one instead. */
+  /** For a picture that moves: the same picture, still. It's what a picture
+      a visitor plays shows until it's played, and after; and what a visitor
+      who has asked their computer for less motion is shown of one that
+      moves all the time. */
   still?: string;
   /** What it shows, for anyone who can't see it. The build stops without
       one. */

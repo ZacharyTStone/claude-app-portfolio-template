@@ -18,7 +18,7 @@ import {
 } from "../../shared/page-data.ts";
 import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
-import { checkBlock } from "./blocks.ts";
+import { answerBlocksIn, checkBlock, picturesIn } from "./blocks.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isLocale, isPathOnSite } from "./shapes.ts";
 
@@ -253,11 +253,18 @@ type OptionalPart = {
 /** The wording for the parts only some sites have (PART_STRINGS: the
     viewer's buttons) is optional in the config's type, so only this check
     can say that a site with the part has left it out. A site gets it wrong
-    by adding a viewer and not the words for its buttons. */
+    by adding a viewer, or a picture that moves, and not the words for its
+    buttons. */
 export function checkPartWording({ site, language, problemUnless }: LanguageChecks): void {
   // A part added to PART_STRINGS needs a line here, and the type says so.
   const parts = {
     viewer: { isOnTheSite: Boolean(site.config.viewer), nameInProblem: "viewer" },
+    // Only the picture's own file says whether it's one a visitor plays
+    // (src/site/pictures.ts), so any picture that moves asks for the words.
+    movingPictures: {
+      isOnTheSite: answerBlocksIn(language).some((block) => picturesIn(block).some((picture) => picture.still)),
+      nameInProblem: "a picture with a still",
+    },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {
     const part = parts[partName];

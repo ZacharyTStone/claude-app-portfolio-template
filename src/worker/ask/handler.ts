@@ -8,7 +8,10 @@
    3. answerToShow() drops a pick that doesn't name what was asked, and
       replyFrom() has a reply written from the lines picked, which goes
       with those lines for the page to show under it (or quotes them, when
-      no reply passes its check).
+      no reply passes its check). With no answer to show, saidToOwner() has
+      the question rewritten as it's said to the owner, for the email and
+      the message the page offers instead (or leaves it as typed, when no
+      rewrite passes its check).
    4. What the calls cost goes to AskGuard once the reply has gone, and one
       line goes to the log.
 
@@ -27,8 +30,9 @@ import { readSettings, type Env, type Settings } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
+import { addressToOwner, addressesOwnerIn, type Addressed, type Unaddressed } from "./address.ts";
 import { readChoices, type Choices } from "./answers.ts";
-import { neuronCost } from "./cost.ts";
+import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
@@ -62,9 +66,15 @@ type LogLine = {
   /** Whether those lines could be quoted instead, and if not, why. */
   reply?: "sent" | "dropped";
   check?: QuoteCheck;
+  /** With no answer shown: whether the question was rewritten as it's said
+      to the owner, for the page's email and message, and passed its check;
+      and if not, why. Neither on a page in a language it isn't rewritten
+      in. */
+  toOwner?: "sent" | "dropped";
+  unaddressed?: Unaddressed;
   /** The model ran out of room to write before it had picked. */
   cut?: true;
-  /** What the visitor typed. This and the four below are logged only with
+  /** What the visitor typed. This and the five below are logged only with
       ASK_LOG_QUESTIONS on: each may repeat the question. */
   question?: string;
   /** What the model made of the question before it picked. */
@@ -75,6 +85,8 @@ type LogLine = {
   unsaid?: string;
   /** The reply sent, written or quoted. */
   said?: string;
+  /** What the model wrote as the question said to the owner, sent or not. */
+  rewrote?: string;
 };
 const log = (line: LogLine) => console.log(JSON.stringify(line));
 
@@ -198,7 +210,13 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
     const reply = answerShown
       ? await replyFrom(env.AI, settings.model, question, answerShown, picked.sentences, choices)
       : NO_REPLY;
-    const costNeurons = pickCostNeurons + (reply.written ? neuronCost(reply.written.tokens, settings.price) : 0);
+    // With no answer, the page offers a message to the owner with the
+    // question in it: said to them, where it can be.
+    const addressed = answerShown ? undefined : await saidToOwner(env.AI, settings.model, question, choices);
+    const costNeurons =
+      pickCostNeurons +
+      neuronCost(reply.written?.tokens ?? NO_TOKENS, settings.price) +
+      neuronCost(addressed?.tokens ?? NO_TOKENS, settings.price);
     // What the calls cost goes on the day's count once the reply has gone:
     // the visitor doesn't wait for it.
     executionContext.waitUntil(spendNeurons(env.ASK_GUARD, costNeurons, settings));
@@ -212,6 +230,8 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       unwritten: written?.why,
       reply: quoted?.outcome,
       check: quoted?.check,
+      toOwner: addressed ? (addressed.toOwner === undefined ? "dropped" : "sent") : undefined,
+      unaddressed: addressed?.why,
       cut: picked.ranOutOfRoom,
       question: loggedQuestion,
       // Its thinking may repeat the question, and so may what it wrote, so
@@ -220,11 +240,13 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       chose: logsQuestion && quoted ? JSON.stringify(picked.sentences) : undefined,
       unsaid: logsQuestion && written?.unsourced?.length ? written.unsourced.join(" ") : undefined,
       said: logsQuestion ? reply.text : undefined,
+      rewrote: logsQuestion ? addressed?.rewrite : undefined,
     });
     return respond({
       id: answerShown?.id ?? null,
       reply: reply.text,
       cited: reply.cited,
+      toOwner: addressed?.toOwner,
       left: questionsLeft <= warnAtQuestionsLeft(settings.visitorLimit) ? questionsLeft : undefined,
     });
   } catch (error) {
@@ -379,3 +401,13 @@ function citedUnder(reply: string, linesWrittenFrom: Piece[]): string[] | undefi
 
 // Whether two texts have the same words, whatever space is between them.
 const hasSameWords = (one: string, other: string) => one.replace(/\s+/g, "") === other.replace(/\s+/g, "");
+
+// The question as it's said to the owner, for the email and the message the
+// page offers when no answer is shown: rewritten by the model and checked
+// against what was typed (address.ts). Undefined on a page in a language
+// it isn't rewritten in: the question then goes as it was typed.
+function saidToOwner(ai: Ai, model: string, question: string, choices: Choices): Promise<Addressed> | undefined {
+  const { lang, localName } = choices;
+  if (!addressesOwnerIn(lang)) return undefined;
+  return addressToOwner(ai, model, { question, lang, name: localName, owner: ownerNames(choices) });
+}
