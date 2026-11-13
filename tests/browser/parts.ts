@@ -2,7 +2,7 @@
    the page's own names (src/contracts/page-selectors.ts). */
 import type { Locator, Page } from "@playwright/test";
 import { SEPARATOR } from "../../src/app/constants.ts";
-import { CHATS_GROUP, groupId } from "../../src/contracts/page-ids.ts";
+import { CHATS_GROUP, groupId, ID_PREFIX } from "../../src/contracts/page-ids.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -49,3 +49,20 @@ export const windowTitle = (tabName: string, site: Site): string => `${tabName}$
     after the "Question: " said only to screen readers. */
 export const wordsTyped = (questionBubble: Locator): Promise<string | null> =>
   questionBubble.evaluate((bubble) => bubble.lastChild?.nodeValue ?? null);
+
+/** What a visitor's questions in one of the site's own tabs have got back:
+    what's sent into a tab is marked, as a chat's messages aren't. */
+export function sentInto(page: Page, tabId: string) {
+  const sent = `#${tabId} ${CLASS.thread} > ${CLASS.sent}`;
+  return {
+    everything: page.locator(sent),
+    questions: page.locator(`${sent}${CLASS.question}`),
+    answers: page.locator(`${sent}${CLASS.answer}`),
+    emailLinks: page.locator(`${sent} ${EMAIL_LINK}`),
+    whereFrom: page.locator(`${sent} ${CLASS.from}`),
+  };
+}
+
+/** A visitor's chat, in the sidebar: its first, the newest. */
+export const firstChatRow = (page: Page): Locator =>
+  page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first();

@@ -22,7 +22,6 @@ export default defineConfig<object, { siteUnderTest: SiteUnderTest }>({
   },
   projects: [
     { name: "site", use: { siteUnderTest: OWN_SITE } },
-    // The checks not yet in the runner's own form are made for the repo's own site alone.
-    { name: "sample", use: { siteUnderTest: SAMPLE_SITE }, testIgnore: "**/legacy.spec.ts" },
+    { name: "sample", use: { siteUnderTest: SAMPLE_SITE } },
   ],
 });
