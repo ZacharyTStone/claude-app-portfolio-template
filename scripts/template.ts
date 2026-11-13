@@ -49,6 +49,7 @@ const SHARED_NOW = [
   ".htmlvalidate.json",
   "knip.jsonc",
   ".node-version",
+  ".npmrc",
   ".prettierignore",
   ".prettierrc.json",
   "package.json",
