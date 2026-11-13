@@ -8,13 +8,13 @@ export type Staying = {
   /** When the loop clears, in seconds: what a story built up fades from `from`, and is gone by `to`. */
   clears: { from: number; to: number };
   /** For what comes at `at` and stays until the loop clears. */
-  since: (at: number, fade?: number) => Shape;
+  since(at: number, fade?: number): Shape;
   /** For what the loop starts with and changes (a queue in its first order, a count): it comes as the loop
       starts, as fast as the loop clears, and goes when it does. */
-  fromTheStart: () => Shape;
+  fromTheStart(): Shape;
   /** For what something else brings in (a line that draws itself, text typed a letter at a time): there until
       the loop clears. */
-  untilClear: () => Shape;
+  untilClear(): Shape;
 };
 
 /** When a loop clears, if it isn't told: it starts this long before the loop ends, and takes this long. */

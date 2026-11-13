@@ -8,15 +8,15 @@ import { justBefore, type Frame, type Values } from "./values.ts";
 export type Moments = {
   /** A ring that spreads from a point and fades: something happened here. One ring can't start again before it
       has gone: give each of two that overlap a ripple of its own. */
-  ripple: (at: Point, times: number[], look?: { color?: string; reach?: number }) => Shape;
+  ripple(at: Point, times: number[], look?: { color?: string; reach?: number }): Shape;
   /** Opacity that jumps to `peak` and falls away over `fall` seconds: a flash on whatever it's put on (resting
       at 0). With no times, it never flashes. */
-  flash: (times: number[], look?: { peak?: number; fall?: number }) => Shape;
+  flash(times: number[], look?: { peak?: number; fall?: number }): Shape;
   /** A light that comes on over something and falls away, there only while the picture moves. `overlay` is the
       lit look, drawn over what it lights; `look` is `flash`'s. */
-  light: (overlay: Shape, times: number[], look?: { peak?: number; fall?: number }) => Shape;
+  light(overlay: Shape, times: number[], look?: { peak?: number; fall?: number }): Shape;
   /** The edge of a box lighting as something arrives, and fading over `fall` seconds. `radius` is the box's. */
-  edgeLight: (at: Place, times: number[], look?: { radius?: number; fall?: number }) => Shape;
+  edgeLight(at: Place, times: number[], look?: { radius?: number; fall?: number }): Shape;
 };
 
 /** A ripple's ring: how big it starts, how thick and how bright, and how long it takes to go. */

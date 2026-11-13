@@ -13,23 +13,23 @@ export type Values = {
   /** How long the loop is: every motion in it lasts that long, and repeats for ever. */
   seconds: number;
   /** An attribute's values over the loop: `track("opacity", [[1, 0], [1.4, 1]])`. */
-  track: (attribute: string, frames: Frame[], pace?: Pace) => Shape;
+  track(attribute: string, frames: Frame[], pace?: Pace): Shape;
   /** A transform's values over the loop: `transform("scale", [[2, 0], [2.3, 1]])`,
       `transform("translate", [[0, "0 0"], [1, "0 -40"]])`. A scale is about the shape's own (0, 0): draw it
       around there, in a group moved into place (`placed`). */
-  transform: (kind: "scale" | "translate" | "rotate", frames: Frame[], pace?: Pace) => Shape;
+  transform(kind: "scale" | "translate" | "rotate", frames: Frame[], pace?: Pace): Shape;
   /** Shown from `from` to `to` (seconds), fading in and out over `fade`. The shape it's on should rest at
       opacity 0, or at 1 if it belongs in the still picture. */
-  shown: (from: number, to: number, fade?: number) => Shape;
+  shown(from: number, to: number, fade?: number): Shape;
   /** One text after another in the same place: `first` until the first change, then each [seconds, text] from
       its time on. `write` draws a text where it goes. The still picture shows `first`, or the last of them if
       the picture `rests` on that. */
-  changing: (
+  changing(
     first: string,
     changes: Array<[seconds: number, text: string]>,
     write: (text: string) => Shape,
     rests?: "first" | "last",
-  ) => Shape;
+  ): Shape;
 };
 
 /** The easing every smooth move has, as SVG's `keySplines` writes a cubic Bézier curve; and none. */

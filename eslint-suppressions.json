@@ -1,14 +1,4 @@
 {
-  "scripts/diagram/loop/arriving.ts": {
-    "max-params": {
-      "count": 2
-    }
-  },
-  "scripts/diagram/loop/passing.ts": {
-    "max-params": {
-      "count": 2
-    }
-  },
   "src/components/Inline.astro": {
     "no-nested-ternary": {
       "count": 3

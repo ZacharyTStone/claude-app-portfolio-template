@@ -9,15 +9,15 @@ export type Passing = {
   /** A shape, or several, carried along a path between `from` and `to`: a file on its way, a page, a question.
       Draw it around (0, 0). `back` and `pace` are `along`'s. It comes and goes over `fade` seconds, and starts
       to go `fadesBefore` it arrives. */
-  carried: (
+  carried(
     what: Shape | Shape[],
     d: string,
     from: number,
     to: number,
     look?: { back?: boolean; pace?: "smooth" | "even"; fade?: number; fadesBefore?: number },
-  ) => Shape;
+  ): Shape;
   /** A dot that travels a path between `from` and `to`, with a soft glow. */
-  traveller: (d: string, from: number, to: number, look?: { color?: string; radius?: number; back?: boolean }) => Shape;
+  traveller(d: string, from: number, to: number, look?: { color?: string; radius?: number; back?: boolean }): Shape;
 };
 
 const ORIGIN = { x: 0, y: 0 };
@@ -25,6 +25,7 @@ const ORIGIN = { x: 0, y: 0 };
 const TRAVELLER = { glowReach: 2.2, glowOpacity: 0.22, fade: 0.12 } as const;
 
 export function passingOver({ seconds, track, along }: Pick<Values, "seconds" | "track"> & Lines): Passing {
+  // eslint-disable-next-line max-params -- The kit's public call, which every site's diagrams make: the shapes, the path, from, to, and how.
   const carried: Passing["carried"] = (what, d, from, to, look = {}) => {
     const { back = false, pace = "smooth", fade = 0.15, fadesBefore = 0.05 } = look;
     const whileCarried = track(

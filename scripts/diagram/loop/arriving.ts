@@ -11,19 +11,19 @@ import type { Values } from "./values.ts";
 export type Arriving = {
   /** A shape drawn around (0, 0), put at `at`, that pops into being at `when`: from nothing to a little more
       than its size, and back. */
-  popping: (what: Shape, at: Point, when: number) => Shape;
+  popping(what: Shape, at: Point, when: number): Shape;
   /** A shape that comes at `when` by rising `by` into its place. */
-  rising: (what: Shape, when: number, by?: number) => Shape;
+  rising(what: Shape, when: number, by?: number): Shape;
   /** A shape drawn around (0, 0) that rests at `to`, having glided there from `from` between `moves.from` and
       `moves.to` (seconds), along a slight curve (`lift`, as `arc` has it). It comes at `moves.comes`, or as it
       sets off. */
-  gliding: (
+  gliding(
     what: Shape,
     from: Point,
     to: Point,
     moves: { comes?: number; from: number; to: number },
     lift?: number,
-  ) => Shape;
+  ): Shape;
 };
 
 /** Popping in: how long a shape takes to swell past its size, how far past, when it has settled, and how fast
@@ -50,6 +50,7 @@ export function arrivingOver({ transform, along, since }: Pick<Values, "transfor
     return moving(group({}, what), settling, since(when));
   };
 
+  // eslint-disable-next-line max-params -- The kit's public call, which every site's diagrams make: the shape, from where, to where, when, and how curved.
   const gliding: Arriving["gliding"] = (what, from, to, moves, lift = 0.12) => {
     // The path is written from where it ends, so that the shape rests there when nothing moves it: in the still.
     const path = arc({ x: from.x - to.x, y: from.y - to.y }, ORIGIN, lift);
