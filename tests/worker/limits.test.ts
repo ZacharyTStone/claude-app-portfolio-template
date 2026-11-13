@@ -4,7 +4,7 @@
    model isn't asked. What a question costs is in cost.test.ts. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { WARN_AT_QUESTIONS_LEFT } from "../../src/worker/ask/handler.ts";
+import { WARN_AT_QUESTIONS_LEFT } from "../../src/worker/ask/outcome.ts";
 import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
 import { ASK_GUARD_KEYS, MAX_KEYS_PER_DELETE } from "../../src/worker/guard/ask-guard.ts";
 import { ASK_GUARD_NAME, ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
