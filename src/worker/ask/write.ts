@@ -10,18 +10,12 @@
    was written from (handler.ts), for the page to show under it. */
 import { isReplyText } from "../../contracts/ask.ts";
 import { isString } from "../../contracts/guards.ts";
-import {
-  MAX_WRITE_TOKENS,
-  MAX_WRITE_TRIES,
-  MAX_WRITTEN_LENGTH,
-  MODEL_OPTIONS,
-  NONE,
-  WRITE_TIMEOUT_MS,
-} from "../constants.ts";
+import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, NONE, WRITE_TIMEOUT_MS } from "../constants.ts";
 import { get } from "../lib/shape.ts";
 import { withinTime } from "../lib/time.ts";
 import { NO_TOKENS, estimateJsonTokens, tokensUsed, type Tokens } from "./cost.ts";
 import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./grounded.ts";
+import { reasoningOptionsOf } from "./known-models.ts";
 import { ranOutOfRoom } from "./pick.ts";
 import { firstName, languageName } from "./wording.ts";
 
@@ -150,7 +144,7 @@ export const callForText = (
   maxTokens: number,
   timeoutMs: number,
 ): Promise<unknown> =>
-  withinTime(ai.run(model, { ...prompt, ...MODEL_OPTIONS.get(model), max_completion_tokens: maxTokens }), timeoutMs);
+  withinTime(ai.run(model, { ...prompt, ...reasoningOptionsOf(model), max_completion_tokens: maxTokens }), timeoutMs);
 
 /** The tokens one such call is counted as using. A call cut off by the
     clock (`modelReply` is undefined) is paid for all the same: counted as

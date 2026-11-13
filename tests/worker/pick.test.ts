@@ -6,8 +6,8 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AskIndex } from "../../src/contracts/ask.ts";
 import { readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
+import { DEFAULT_MODEL } from "../../src/worker/ask/known-models.ts";
 import {
-  DEFAULT_MODEL,
   INAPPROPRIATE,
   MAX_PICK_TOKENS,
   MAX_PLAIN_PICK_TOKENS,

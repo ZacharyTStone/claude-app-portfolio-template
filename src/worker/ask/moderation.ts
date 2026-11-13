@@ -1,15 +1,11 @@
 /* Llama Guard's verdict on a question, beside the picker's own judgement
    (it can call a question "inappropriate"): either turns it away. Llama
    Guard has no category for an attempt to redirect the model; the picker does. */
-import {
-  LLAMA_GUARD_MODEL,
-  LLAMA_GUARD_OPTIONS,
-  LLAMA_GUARD_PROMPT_TOKENS,
-  LLAMA_GUARD_TIMEOUT_MS,
-} from "../constants.ts";
+import { LLAMA_GUARD_OPTIONS, LLAMA_GUARD_PROMPT_TOKENS, LLAMA_GUARD_TIMEOUT_MS } from "../constants.ts";
 import { get } from "../lib/shape.ts";
 import { withinTime } from "../lib/time.ts";
 import { NO_TOKENS, estimateTokens, tokensUsed, type Tokens } from "./cost.ts";
+import { LLAMA_GUARD_MODEL } from "./known-models.ts";
 
 /** Llama Guard's verdict on a question, and the tokens its call used. */
 export type Verdict = { isUnsafe: boolean; tokens: Tokens };

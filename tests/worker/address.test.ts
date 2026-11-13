@@ -8,13 +8,12 @@ import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
 import { addressToOwner, addressesOwnerIn, checkAddressed, type Addressing } from "../../src/worker/ask/address.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
+import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import {
   ASK_GUARD_REPLY,
-  DEFAULT_MODEL,
   INAPPROPRIATE,
   MAX_ADDRESS_TOKENS,
   MAX_WRITE_TOKENS,
-  MODEL_OPTIONS,
   NONE,
 } from "../../src/worker/constants.ts";
 import {
@@ -215,7 +214,7 @@ test("the model is told whose site it is, to say the question to them and to cha
   assert.deepEqual(user, { role: "user", content: ADDRESSING.question });
   assert.equal(sent[0]?.temperature, 0);
   assert.equal(sent[0]?.max_completion_tokens, MAX_ADDRESS_TOKENS);
-  assert.deepEqual(sent[0]?.chat_template_kwargs, MODEL_OPTIONS.get(DEFAULT_MODEL)?.chat_template_kwargs);
+  assert.deepEqual(sent[0]?.chat_template_kwargs, reasoningOptionsOf(DEFAULT_MODEL).chat_template_kwargs);
 });
 
 test("a question is said to the owner on an English page only", () => {

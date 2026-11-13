@@ -1,6 +1,7 @@
 /* What the Worker is given: its bindings, and its settings (text, each
    explained in wrangler.jsonc), with the default for each one not set. */
-import { DEFAULT_MODEL, DEFAULT_VISITOR_SALT, MODEL_PRICES, UNLISTED_MODEL_PRICE, type Price } from "./constants.ts";
+import { DEFAULT_MODEL, priceOf, type Price } from "./ask/known-models.ts";
+import { DEFAULT_VISITOR_SALT } from "./constants.ts";
 import { positiveNumber } from "./lib/shape.ts";
 
 /** The Worker's bindings and variables, as wrangler.jsonc names them. */
@@ -18,7 +19,7 @@ export type Env = {
   /** The Workers AI model that picks and writes. */
   ASK_MODEL?: string;
   /** "5500/36400": what ASK_MODEL costs, in Neurons for a million tokens
-      read and a million written, if it isn't the price in constants.ts. */
+      read and a million written, if it isn't the price in ask/known-models.ts. */
   ASK_MODEL_PRICE?: string;
   /** Questions a day, for the whole site. */
   ASK_DAILY_LIMIT?: string;
@@ -105,7 +106,7 @@ export function readSettings(env: Env): Settings {
   return {
     enabled: env.ASK_ENABLED === "true",
     model,
-    price: parsePrice(env.ASK_MODEL_PRICE) ?? MODEL_PRICES.get(model) ?? UNLISTED_MODEL_PRICE,
+    price: parsePrice(env.ASK_MODEL_PRICE) ?? priceOf(model),
     dailyLimit: positiveNumber(env.ASK_DAILY_LIMIT) ?? DEFAULTS.dailyLimit,
     neuronBudget: positiveNumber(env.ASK_DAILY_NEURONS) ?? DEFAULTS.neuronBudget,
     visitorLimit: positiveNumber(env.ASK_VISITOR_LIMIT) ?? DEFAULTS.visitorLimit,

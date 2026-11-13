@@ -5,16 +5,10 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
+import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import { write, writesIn, type Writing } from "../../src/worker/ask/write.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
-import {
-  DEFAULT_MODEL,
-  MAX_WRITE_TOKENS,
-  MAX_WRITTEN_LENGTH,
-  MODEL_OPTIONS,
-  NONE,
-  MAX_WRITE_TRIES,
-} from "../../src/worker/constants.ts";
+import { MAX_WRITE_TOKENS, MAX_WRITTEN_LENGTH, NONE, MAX_WRITE_TRIES } from "../../src/worker/constants.ts";
 import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, writer, wrote } from "./fixtures.ts";
 
 const logs = captureLogs();
@@ -51,7 +45,7 @@ test("a reply written from the lines is the reply: the model has the lines, and 
   assert.deepEqual(user, { role: "user", content: WRITING.question });
   assert.equal(sent[0]?.temperature, 0);
   assert.equal(sent[0]?.max_completion_tokens, MAX_WRITE_TOKENS);
-  assert.deepEqual(sent[0]?.chat_template_kwargs, MODEL_OPTIONS.get(DEFAULT_MODEL)?.chat_template_kwargs);
+  assert.deepEqual(sent[0]?.chat_template_kwargs, reasoningOptionsOf(DEFAULT_MODEL).chat_template_kwargs);
 });
 
 test("a Japanese page's reply is asked for in Japanese; a language the check can't read, not at all", async () => {

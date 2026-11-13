@@ -17,15 +17,7 @@
 
    Every reply is an AskResponse, or a 4xx. */
 import { isCitedLines, type AskAnswer, type AskResponse } from "../../contracts/ask.ts";
-import {
-  INAPPROPRIATE,
-  LLAMA_GUARD_MODEL,
-  LOGGED_NEURON_DECIMALS,
-  MODEL_PRICES,
-  NONE,
-  UNLISTED_MODEL_PRICE,
-  WARN_AT_QUESTIONS_LEFT,
-} from "../constants.ts";
+import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, NONE, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
 import { readSettings, type Env, type Settings } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
@@ -34,6 +26,7 @@ import { addressToOwner, addressesOwnerIn, type Addressed, type Unaddressed } fr
 import { readChoices, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
+import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
 import { citedPieces, joinPieces, quote, type Piece, type QuoteCheck, type Quoted } from "./quote.ts";
@@ -281,11 +274,10 @@ async function pickWhileModerating(
     pick(ai, settings.model, question, choices),
     llamaGuardVerdict(ai, question),
   ]);
-  const llamaGuardPrice = MODEL_PRICES.get(LLAMA_GUARD_MODEL) ?? UNLISTED_MODEL_PRICE;
   return {
     picked,
     isInappropriate: picked.id === INAPPROPRIATE || verdict.isUnsafe,
-    costNeurons: neuronCost(picked.tokens, settings.price) + neuronCost(verdict.tokens, llamaGuardPrice),
+    costNeurons: neuronCost(picked.tokens, settings.price) + neuronCost(verdict.tokens, priceOf(LLAMA_GUARD_MODEL)),
   };
 }
 

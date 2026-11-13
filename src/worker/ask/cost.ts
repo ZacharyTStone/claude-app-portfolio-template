@@ -1,10 +1,10 @@
 /* What a question costs: the tokens each model call read and wrote, as
-   Workers AI reports them, priced in Neurons (MODEL_PRICES, in
-   constants.ts). AskGuard adds up the day's, and stops at the budget
-   (ASK_DAILY_NEURONS): the allowance is kept by what was used, not by a
-   guess at it. */
-import { MIN_BYTES_PER_TOKEN, TOKENS_PER_PRICE, type Price } from "../constants.ts";
+   Workers AI reports them, priced in Neurons (known-models.ts). AskGuard
+   adds up the day's, and stops at the budget (ASK_DAILY_NEURONS): the
+   allowance is kept by what was used, not by a guess at it. */
+import { MIN_BYTES_PER_TOKEN, TOKENS_PER_PRICE } from "../constants.ts";
 import { get } from "../lib/shape.ts";
+import type { Price } from "./known-models.ts";
 
 /** The tokens a call read (`input`) and wrote (`output`). */
 export type Tokens = { input: number; output: number };

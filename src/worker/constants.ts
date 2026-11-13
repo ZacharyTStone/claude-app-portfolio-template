@@ -1,6 +1,7 @@
-/* The Worker's fixed names and numbers: its paths, models, prices, limits,
-   and what AskGuard stores. The settings (ASK_*) are in env.ts, and the
-   contract with the page in src/contracts/ask.ts.
+/* The Worker's fixed names and numbers: its paths, limits, and what
+   AskGuard stores. The settings (ASK_*) are in env.ts, the models and
+   their prices in ask/known-models.ts, and the contract with the page in
+   src/contracts/ask.ts.
 
    Two things here are called a guard. Llama Guard (LLAMA_GUARD_*) is the
    model that reads each question for abuse; AskGuard (ASK_GUARD_*) is the
@@ -17,9 +18,6 @@ export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;
 
 // ---- The picker ------------------------------------------------------------------
 
-/** The model that picks, unless ASK_MODEL names another. */
-export const DEFAULT_MODEL = "@cf/zai-org/glm-4.7-flash";
-
 /** The most the picker may write: its tool call, with the sentence or two
     of thinking the call starts with (pick.ts), and any reasoning of the
     model's own. What it writes costs several times what it reads, and the
@@ -29,19 +27,6 @@ export const MAX_PICK_TOKENS = 1024;
 /** The most a model told not to reason on its own may write: the call's
     thinking is a sentence or two, and the rest of it a few dozen tokens. */
 export const MAX_PLAIN_PICK_TOKENS = 512;
-
-/** How each model is told to keep its own reasoning short or off: the
-    thinking the pick needs is in the tool call, where it's a sentence or
-    two and the log can show it. With that, how much a model that doesn't
-    reason may write. Any other model is called without options. */
-export const MODEL_OPTIONS: ReadonlyMap<string, Record<string, unknown>> = new Map([
-  [DEFAULT_MODEL, { chat_template_kwargs: { enable_thinking: false }, max_completion_tokens: MAX_PLAIN_PICK_TOKENS }],
-  ["@cf/qwen/qwen3.8-27b", { reasoning_effort: "low" }],
-  [
-    "@cf/deepseek-ai/deepseek-v4.1-flash-1017",
-    { reasoning_effort: "none", max_completion_tokens: MAX_PLAIN_PICK_TOKENS },
-  ],
-]);
 
 /** The one tool the picker may call. */
 export const PICK_TOOL_NAME = "pick_answer";
@@ -96,9 +81,6 @@ export const ADDRESS_TIMEOUT_MS = 3000;
 
 // ---- Llama Guard -----------------------------------------------------------------
 
-/** Llama Guard, which reads every question beside the picker. */
-export const LLAMA_GUARD_MODEL = "@cf/meta/llama-guard-3-8b";
-
 /** How it's run: its verdict ("safe", or "unsafe" and the categories) is a
     few tokens, and the first word is all that's read, so it's cut short
     and not left to chance. */
@@ -114,26 +96,8 @@ export const LLAMA_GUARD_PROMPT_TOKENS = 250;
 
 // ---- What a call costs -----------------------------------------------------------
 
-/** A model's price: Neurons for a million tokens read (`input`), and for a
-    million written (`output`)
-    (developers.cloudflare.com/workers-ai/platform/pricing). */
-export type Price = { input: number; output: number };
-
 /** How many tokens a Price is for. */
 export const TOKENS_PER_PRICE = 1_000_000;
-
-/** The prices of the models above. The day's budget (ASK_DAILY_NEURONS) is
-    counted with these, so when Cloudflare changes one, change it here. */
-export const MODEL_PRICES: ReadonlyMap<string, Price> = new Map([
-  [DEFAULT_MODEL, { input: 5_500, output: 36_400 }],
-  ["@cf/qwen/qwen3.8-27b", { input: 40_909, output: 290_909 }],
-  ["@cf/deepseek-ai/deepseek-v4.1-flash-1017", { input: 27_273, output: 109_091 }],
-  [LLAMA_GUARD_MODEL, { input: 44_003, output: 2_730 }],
-]);
-
-/** A model with no price here is counted at the dearest picker's, so the
-    budget stops early rather than late; ASK_MODEL_PRICE gives its own. */
-export const UNLISTED_MODEL_PRICE: Price = { input: 40_909, output: 290_909 };
 
 /** The fewest bytes of text a token is counted as, for a call that didn't
     say what it used (cost.ts): a token is rarely under three bytes of

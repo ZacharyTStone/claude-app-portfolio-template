@@ -4,11 +4,11 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import type { AskAnswer, AskIndex } from "../../src/contracts/ask.ts";
+import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
 import {
   ASK_GUARD_PATH,
   ASK_GUARD_REPLY,
   ASK_INDEX_PATH,
-  LLAMA_GUARD_MODEL,
   MAX_ADDRESS_TOKENS,
   PICK_TOOL_NAME,
   VISITOR_ADDRESS_HEADER,

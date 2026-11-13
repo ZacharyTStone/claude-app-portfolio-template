@@ -77,10 +77,11 @@
   //   // unless you choose to keep them and say so.
   //   "ASK_LOG_QUESTIONS": "false",
   //   // Any Workers AI text model with function calling;
-  //   // src/worker/constants.ts has the settings and the prices for the
-  //   // ones it's been tried with. Another model is counted at the dearest
-  //   // of those prices unless ASK_MODEL_PRICE gives its own, as Neurons
-  //   // for a million tokens read and a million written: "5500/36400".
+  //   // src/worker/ask/known-models.ts has the settings and the prices for
+  //   // the ones it's been tried with. Another model is counted at the
+  //   // dearest of those prices unless ASK_MODEL_PRICE gives its own, as
+  //   // Neurons for a million tokens read and a million written:
+  //   // "5500/36400".
   //   "ASK_MODEL": "@cf/zai-org/glm-4.7-flash"
   // },
   // ---- End of Ask -----------------------------------------------------------

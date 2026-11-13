@@ -7,15 +7,17 @@ import { neuronCost, estimateTokens, estimateJsonTokens, tokensUsed } from "../.
 import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import {
   DEFAULT_MODEL,
+  KNOWN_MODELS,
   LLAMA_GUARD_MODEL,
+  UNLISTED_MODEL_PRICE,
+  type Price,
+} from "../../src/worker/ask/known-models.ts";
+import {
   LLAMA_GUARD_OPTIONS,
   ASK_GUARD_PATH,
   LLAMA_GUARD_PROMPT_TOKENS,
   ASK_GUARD_REPLY,
   INAPPROPRIATE,
-  MODEL_PRICES,
-  UNLISTED_MODEL_PRICE,
-  type Price,
 } from "../../src/worker/constants.ts";
 import {
   UNWRITTEN,
@@ -34,7 +36,7 @@ const logs = captureLogs();
 
 // A model's price, which it must have.
 function priceOf(model: string): Price {
-  const price = MODEL_PRICES.get(model);
+  const price = KNOWN_MODELS.get(model)?.price;
   assert.ok(price, `${model} has a price`);
   return price;
 }
@@ -120,7 +122,7 @@ test("the picker is priced as its model is: listed, not listed, or as ASK_MODEL_
   for (const bad of ["1000", "1000/", "0/2000", "a/b", "1000/2000/3000", ""]) {
     near(await cost({ ASK_MODEL_PRICE: bad }), costAt(PICKER));
   }
-  for (const [model, price] of MODEL_PRICES) {
+  for (const [model, { price }] of KNOWN_MODELS) {
     assert.ok(
       price.input <= UNLISTED_MODEL_PRICE.input || model === LLAMA_GUARD_MODEL,
       `${model} reads for no more than a model not listed`,

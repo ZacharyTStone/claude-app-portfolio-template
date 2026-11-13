@@ -8,15 +8,16 @@ import { isString } from "../../contracts/guards.ts";
 import {
   INAPPROPRIATE,
   MAX_PICK_TOKENS,
+  MAX_PLAIN_PICK_TOKENS,
   MAX_QUOTED_LINES,
   MAX_THOUGHT_LENGTH,
-  MODEL_OPTIONS,
   NONE,
   PICK_TOOL_NAME,
 } from "../constants.ts";
 import { arrayOrEmpty, get } from "../lib/shape.ts";
 import type { Choices } from "./answers.ts";
 import { NO_TOKENS, estimateJsonTokens, tokensUsed, type Tokens } from "./cost.ts";
+import { hasReasoningOff, reasoningOptionsOf } from "./known-models.ts";
 import { withNumbers } from "./quote.ts";
 import { firstName, languageName } from "./wording.ts";
 
@@ -134,8 +135,8 @@ export async function pick(ai: Ai, model: string, question: string, choices: Cho
     ...prompt,
     tool_choice: { type: "function", function: { name: PICK_TOOL_NAME } },
     temperature: 0,
-    max_completion_tokens: MAX_PICK_TOKENS,
-    ...MODEL_OPTIONS.get(model),
+    max_completion_tokens: hasReasoningOff(model) ? MAX_PLAIN_PICK_TOKENS : MAX_PICK_TOKENS,
+    ...reasoningOptionsOf(model),
   });
   // A reply that doesn't say what it used is counted by its size.
   const tokens = tokensUsed(modelReply) ?? {
