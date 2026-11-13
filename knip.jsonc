@@ -1,0 +1,24 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // What other repos import: the diagram kit, and the path a site made before src/config imports its types from.
+  "entry": ["scripts/diagram.ts", "src/shared/config.ts"],
+  // A site's own content.
+  "ignore": ["site.config.ts", "diagrams/**", "examples/**"],
+  // Temporary: the exports nothing imported on the day knip came. Delete a line, run `npm run knip`, and
+  // unexport or delete what it prints. This block goes when its last line does.
+  "ignoreIssues": {
+    "src/app/lib/markdown.ts": ["exports"],
+    "src/app/lib/motion.ts": ["exports"],
+    "src/app/replies.ts": ["exports"],
+    "src/config/blocks.ts": ["types"],
+    "src/config/strings.ts": ["types"],
+    "src/contracts/ask.ts": ["exports", "types"],
+    "src/site/security-headers.ts": ["exports"],
+    "src/site/validate.ts": ["exports"],
+    "src/worker/ask/address.ts": ["types"],
+    "src/worker/ask/model.ts": ["types"],
+    "src/worker/env.ts": ["exports"],
+    "tests/browser/helpers.ts": ["exports", "types"],
+    "tests/browser/site.ts": ["types"]
+  }
+}

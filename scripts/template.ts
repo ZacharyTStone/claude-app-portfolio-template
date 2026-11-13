@@ -55,6 +55,7 @@ export const SHARED = [
   "eslint-suppressions.json",
   ".gitignore",
   ".htmlvalidate.json",
+  "knip.jsonc",
   ".node-version",
   ".prettierignore",
   ".prettierrc.json",

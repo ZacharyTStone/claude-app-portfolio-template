@@ -10,7 +10,7 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "verify": "npm run format:check && npm run lint && npm run typecheck && npm test && npm run lint:html && npm run fonts:check && npm run test:browser",
+    "verify": "npm run format:check && npm run lint && npm run knip && npm run typecheck && npm test && npm run lint:html && npm run fonts:check && npm run test:browser",
     "update-template": "node scripts/update-template.ts",
     "typecheck": "astro check && tsc -p src/app && tsc -p src/worker && tsc -p tests/worker && tsc -p tests/browser",
     "test": "npm run build && node --test --test-reporter=dot \"tests/**/*.test.ts\"",
@@ -21,6 +21,7 @@
     "format": "prettier --write \"**/*.{ts,js,json,astro}\"",
     "format:check": "prettier --check \"**/*.{ts,js,json,astro}\"",
     "lint": "eslint",
+    "knip": "knip --no-config-hints",
     "lint:html": "node scripts/require-build.ts && html-validate dist"
   },
   "devDependencies": {
@@ -33,6 +34,7 @@
     "eslint": "10.14.0",
     "eslint-plugin-astro": "3.2.1",
     "html-validate": "11.18.0",
+    "knip": "6.45.1",
     "playwright": "1.64.1",
     "prettier": "3.9.10",
     "prettier-plugin-astro": "1.1.2",
