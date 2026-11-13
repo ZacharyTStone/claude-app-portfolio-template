@@ -42,7 +42,9 @@
   //   // "false" turns /ask off without a code change (typed questions then
   //   // get the "Something else" reply).
   //   "ASK_ENABLED": "true",
-  //   // Questions sent to the model per day (UTC), for the whole site.
+  //   // Questions sent to the model per day (UTC), for the whole site. No
+  //   // more than a third of them are taken in any one hour, so a flood ends
+  //   // Ask for the rest of that hour, not of the day.
   //   "ASK_DAILY_LIMIT": "200",
   //   // What those questions may cost per day, in Workers AI Neurons, for
   //   // the whole site. Each question's cost is counted from the tokens its
@@ -57,7 +59,8 @@
   //   // Questions per visitor (hashed address) per day. With ten left (or a
   //   // third of a smaller limit) they're told how many; past it, that
   //   // asking runs on a free service. The lower this is, the more
-  //   // addresses it takes to use up the site's day.
+  //   // addresses it takes to use up the site's day. The addresses of one
+  //   // network (an IPv4 /24, an IPv6 /48) may ask twice this between them.
   //   "ASK_VISITOR_LIMIT": "30",
   //   // How long an address (hashed) can't use /ask after an inappropriate
   //   // question.

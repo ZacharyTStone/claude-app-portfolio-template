@@ -10,6 +10,7 @@ import {
   VISITOR_HASH_BYTES,
   hashAddress,
   visitorAddress,
+  visitorNetwork,
 } from "../../src/worker/lib/visitor.ts";
 
 const addressOf = (address: string) =>
@@ -95,6 +96,25 @@ test("visitorAddress: IPv4 as it is, IPv6 as its /64, an IPv4 in IPv6 as the IPv
   assert.equal(address("2001:db8::"), "2001:db8:0:0::/64");
   assert.equal(address("::ffff:203.0.113.9"), "203.0.113.9");
   assert.equal(address("not:an:address"), "not:an:address");
+});
+
+const networkOf = (address: string) =>
+  visitorNetwork(new Request("https://site.example/ask", { headers: { [VISITOR_ADDRESS_HEADER]: address } }));
+
+test("an address's network is its /24, or for IPv6 its /48; what isn't an address is its own", () => {
+  for (const [address, network] of [
+    ["203.0.113.9", "203.0.113.0/24"],
+    ["203.0.113.200", "203.0.113.0/24"],
+    ["::ffff:203.0.113.9", "203.0.113.0/24"],
+    ["2001:db8:1:2::1", "2001:db8:1::/48"],
+    ["2001:DB8:1:ffff:aaaa::2", "2001:db8:1::/48"],
+    ["::1", "0:0:0::/48"],
+    ["not:an:address", "not:an:address"],
+    ["1.2.3", "1.2.3"],
+  ] as const) {
+    assert.equal(networkOf(address), network, address);
+  }
+  assert.equal(visitorNetwork(new Request("https://site.example/ask")), UNKNOWN_VISITOR_ADDRESS);
 });
 
 test("an address is hashed with the salt, to the first half of a SHA-256 in hex", async () => {

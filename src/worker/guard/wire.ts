@@ -6,14 +6,24 @@ import { positiveNumber } from "../lib/shape.ts";
 /** The name the site's one AskGuard is found by. */
 export const ASK_GUARD_NAME = "ask";
 
-/** The day's allowances: the questions the whole site may be asked, the
-    questions one visitor may ask, and the Neurons the site's may cost. */
-export type DayLimits = { siteLimit: number; visitorLimit: number; neuronBudget: number };
+/** The most that may be asked: of the whole site in a day and in an hour,
+    by one visitor and by one network in a day; and the Neurons the day's
+    questions may cost. */
+export type DayLimits = {
+  siteLimit: number;
+  hourLimit: number;
+  visitorLimit: number;
+  networkLimit: number;
+  neuronBudget: number;
+};
+
+/** Who's asking: the hash of their address, and of the network it's in. */
+export type Asker = { visitorHash: string; networkHash: string };
 
 /** What AskGuard is asked: to take one question from the day's allowances,
     to block a visitor, or to add what a question cost to the day's. */
 export type Asked =
-  | { ask: "take"; visitorHash: string; limits: DayLimits }
+  | ({ ask: "take"; limits: DayLimits } & Asker)
   | { ask: "block"; visitorHash: string; hours: number }
   | { ask: "spend"; neurons: number };
 
@@ -27,9 +37,12 @@ function queryOf(asked: Asked): Record<string, string> {
     case "take":
       return {
         limit: String(asked.limits.siteLimit),
+        hourly: String(asked.limits.hourLimit),
         each: String(asked.limits.visitorLimit),
+        shared: String(asked.limits.networkLimit),
         budget: String(asked.limits.neuronBudget),
         who: asked.visitorHash,
+        net: asked.networkHash,
       };
     case "block":
       return { hours: String(asked.hours), who: asked.visitorHash };
@@ -41,14 +54,20 @@ function queryOf(asked: Asked): Record<string, string> {
 export const urlAsking = (asked: Asked): string =>
   `${ORIGIN}${ASK_GUARD_PATH[asked.ask]}?${new URLSearchParams(queryOf(asked))}`;
 
-function readTake(query: URLSearchParams): Asked | undefined {
-  const visitorHash = query.get("who");
-  const siteLimit = positiveNumber(query.get("limit"));
-  const visitorLimit = positiveNumber(query.get("each"));
+function readLimits(query: URLSearchParams): DayLimits | undefined {
+  const [siteLimit, hourLimit, visitorLimit, networkLimit] = ["limit", "hourly", "each", "shared"].map((name) =>
+    positiveNumber(query.get(name)),
+  );
   // A request without a budget has none, as before there was one.
   const neuronBudget = query.has("budget") ? positiveNumber(query.get("budget")) : Infinity;
-  if (!visitorHash || siteLimit === null || visitorLimit === null || neuronBudget === null) return undefined;
-  return { ask: "take", visitorHash, limits: { siteLimit, visitorLimit, neuronBudget } };
+  if (!siteLimit || !hourLimit || !visitorLimit || !networkLimit || neuronBudget === null) return undefined;
+  return { siteLimit, hourLimit, visitorLimit, networkLimit, neuronBudget };
+}
+
+function readTake(query: URLSearchParams): Asked | undefined {
+  const [visitorHash, networkHash] = [query.get("who"), query.get("net")];
+  const limits = readLimits(query);
+  return visitorHash && networkHash && limits ? { ask: "take", visitorHash, networkHash, limits } : undefined;
 }
 
 function readBlock(query: URLSearchParams): Asked | undefined {

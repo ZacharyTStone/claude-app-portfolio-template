@@ -1,7 +1,7 @@
 /* Whether a question may go to the model. */
 import type { Env } from "../env.ts";
 import type { Guard } from "../guard/client.ts";
-import { hashAddress, visitorAddress } from "../lib/visitor.ts";
+import { hashAddress, visitorAddress, visitorNetwork } from "../lib/visitor.ts";
 import type { Settings } from "../settings.ts";
 import { readChoices, type Choices } from "./answers.ts";
 import type { Outcome } from "./outcome.ts";
@@ -56,7 +56,8 @@ export async function admit(
   // after: one less wait.
   const choicesBeingRead = readChoices(env.ASSETS, request, askRequest.lang);
   choicesBeingRead.catch(() => {}); // a reply before it's awaited leaves it unhandled otherwise
-  const gate = await guard.takeQuestion(visitorHash);
+  const networkHash = await hashAddress(visitorNetwork(request), settings.salt);
+  const gate = await guard.takeQuestion({ visitorHash, networkHash });
   if (gate.state !== "ok") return { kind: "refused", why: gate.state, visitorLimit, question: askRequest.question };
   return { kind: "admitted", askRequest, visitorHash, questionsLeft: gate.questionsLeft, choicesBeingRead };
 }
