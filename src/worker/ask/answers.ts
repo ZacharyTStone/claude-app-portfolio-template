@@ -1,8 +1,9 @@
 /* The answers the model picks from: /ask.json, an AskIndex the build
    writes from the site's config, read through ASSETS like any other file. */
 import * as v from "valibot";
-import { AskIndexSchema, type AskAnswer } from "../../contracts/ask.ts";
-import { ASK_INDEX_PATH } from "../constants.ts";
+import { ASK_INDEX_FILE, AskIndexSchema, type AskAnswer } from "../../contracts/ask.ts";
+
+export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;
 
 /** What the model picks from for one question, and whose site it is. */
 export type Choices = {

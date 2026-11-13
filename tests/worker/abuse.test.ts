@@ -4,11 +4,11 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
-import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
+import { LLAMA_GUARD_OPTIONS, llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
+import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
-import { INAPPROPRIATE, LLAMA_GUARD_OPTIONS, VISITOR_ADDRESS_HEADER } from "../../src/worker/constants.ts";
 import { ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
-import { visitorAddress } from "../../src/worker/lib/visitor.ts";
+import { VISITOR_ADDRESS_HEADER, visitorAddress } from "../../src/worker/lib/visitor.ts";
 import { SETTINGS } from "../../src/worker/settings.ts";
 import {
   ADDRESS,

@@ -17,7 +17,6 @@
 
    Every reply is an AskResponse, or a 4xx. */
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
-import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
 import type { Env } from "../env.ts";
 import { guardFor, type Guard } from "../guard/client.ts";
 import type { Gate } from "../guard/wire.ts";
@@ -30,6 +29,7 @@ import { covers } from "./coverage.ts";
 import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
+import { INAPPROPRIATE } from "./prompts/pick.ts";
 import type { QuoteCheck } from "./quote.ts";
 import { NONE } from "./prompts/wording.ts";
 import { NO_REPLY, replyFrom } from "./reply.ts";
@@ -87,7 +87,9 @@ type LogLine = {
 };
 const log = (line: LogLine) => console.log(JSON.stringify(line));
 
-// Neurons as the log has them: to LOGGED_NEURON_DECIMALS decimal places.
+/** How many decimal places a question's cost has in the log, in Neurons. */
+const LOGGED_NEURON_DECIMALS = 1;
+
 function roundedForLog(neurons: number): number {
   const scale = 10 ** LOGGED_NEURON_DECIMALS;
   return Math.round(neurons * scale) / scale;
@@ -256,9 +258,10 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
   }
 }
 
-// A visitor is told how many questions they have left once it's this few:
-// WARN_AT_QUESTIONS_LEFT, or a third of a limit too small for that to be
-// near its end.
+/** A visitor with this many questions or fewer left today is told so. */
+export const WARN_AT_QUESTIONS_LEFT = 10;
+
+// Or a third of a limit too small for that to be near its end.
 const warnAtQuestionsLeft = (visitorLimit: number) => Math.min(WARN_AT_QUESTIONS_LEFT, Math.floor(visitorLimit / 3));
 
 /** What the picker chose, and what the two models made of the question. */

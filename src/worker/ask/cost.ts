@@ -2,8 +2,12 @@
    Workers AI reports them, priced in Neurons (known-models.ts). AskGuard
    adds up the day's, and stops at the budget (ASK_DAILY_NEURONS): the
    allowance is kept by what was used, not by a guess at it. */
-import { MIN_BYTES_PER_TOKEN, TOKENS_PER_PRICE } from "../constants.ts";
-import type { Price } from "./known-models.ts";
+import { TOKENS_PER_PRICE, type Price } from "./known-models.ts";
+
+/** The fewest bytes of text a token is counted as, for a call that didn't
+    say what it used: a token is rarely under three bytes of English, or
+    under one Japanese character (three bytes), so the count errs high. */
+const MIN_BYTES_PER_TOKEN = 3;
 
 /** The tokens a call read (`input`) and wrote (`output`). */
 export type Tokens = { input: number; output: number };

@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { neuronCost, estimateTokens, estimateJsonTokens } from "../../src/worker/ask/cost.ts";
-import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
+import { LLAMA_GUARD_OPTIONS, LLAMA_GUARD_PROMPT_TOKENS, llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import {
   DEFAULT_MODEL,
   KNOWN_MODELS,
@@ -12,7 +12,7 @@ import {
   UNLISTED_MODEL_PRICE,
   type Price,
 } from "../../src/worker/ask/known-models.ts";
-import { LLAMA_GUARD_OPTIONS, LLAMA_GUARD_PROMPT_TOKENS, INAPPROPRIATE } from "../../src/worker/constants.ts";
+import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
 import { ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import {
   UNWRITTEN,

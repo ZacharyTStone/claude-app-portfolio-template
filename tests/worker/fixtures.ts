@@ -4,12 +4,14 @@
 import assert from "node:assert/strict";
 import { mock } from "node:test";
 import type { AskAnswer, AskIndex } from "../../src/contracts/ask.ts";
+import { ASK_INDEX_PATH } from "../../src/worker/ask/answers.ts";
 import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
+import { PICK_TOOL_NAME } from "../../src/worker/ask/prompts/pick.ts";
 import { MAX_TO_OWNER_TOKENS } from "../../src/worker/ask/to-owner.ts";
-import { ASK_INDEX_PATH, PICK_TOOL_NAME, VISITOR_ADDRESS_HEADER } from "../../src/worker/constants.ts";
 import type { Env } from "../../src/worker/env.ts";
 import { ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import worker from "../../src/worker/index.ts";
+import { VISITOR_ADDRESS_HEADER } from "../../src/worker/lib/visitor.ts";
 
 // A small ask.json, in the shape the build writes.
 export const EN: AskAnswer[] = [

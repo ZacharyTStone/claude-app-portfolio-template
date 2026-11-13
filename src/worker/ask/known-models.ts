@@ -12,6 +12,8 @@ export const LLAMA_GUARD_MODEL = "@cf/meta/llama-guard-3-8b";
     (`output`): developers.cloudflare.com/workers-ai/platform/pricing. */
 export type Price = { input: number; output: number };
 
+export const TOKENS_PER_PRICE = 1_000_000;
+
 export type KnownModel = {
   price: Price;
   /** What keeps its own reasoning short or off. The thinking a pick needs

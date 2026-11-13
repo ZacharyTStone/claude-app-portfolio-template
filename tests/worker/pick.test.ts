@@ -5,17 +5,17 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { AskIndex } from "../../src/contracts/ask.ts";
-import { readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
 import { DEFAULT_MODEL } from "../../src/worker/ask/known-models.ts";
 import { MAX_QUOTED_LINES } from "../../src/worker/ask/lines.ts";
-import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import {
-  INAPPROPRIATE,
   MAX_PICK_TOKENS,
   MAX_PLAIN_PICK_TOKENS,
   MAX_THOUGHT_LENGTH,
-  PICK_TOOL_NAME,
-} from "../../src/worker/constants.ts";
+  readTextPick,
+  readToolCall,
+} from "../../src/worker/ask/pick.ts";
+import { INAPPROPRIATE, PICK_TOOL_NAME } from "../../src/worker/ask/prompts/pick.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import {
   EN,
   IDS,

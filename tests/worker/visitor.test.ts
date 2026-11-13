@@ -4,8 +4,13 @@
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
 import { test } from "node:test";
-import { UNKNOWN_VISITOR_ADDRESS, VISITOR_ADDRESS_HEADER, VISITOR_HASH_BYTES } from "../../src/worker/constants.ts";
-import { hashAddress, visitorAddress } from "../../src/worker/lib/visitor.ts";
+import {
+  UNKNOWN_VISITOR_ADDRESS,
+  VISITOR_ADDRESS_HEADER,
+  VISITOR_HASH_BYTES,
+  hashAddress,
+  visitorAddress,
+} from "../../src/worker/lib/visitor.ts";
 
 const addressOf = (address: string) =>
   visitorAddress(new Request("https://site.example/ask", { headers: { [VISITOR_ADDRESS_HEADER]: address } }));
