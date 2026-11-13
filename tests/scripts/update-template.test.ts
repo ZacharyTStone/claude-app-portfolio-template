@@ -77,20 +77,24 @@ const siteRepo = (name: string) =>
     "old-tool.py": "old",
   });
 
-/** Runs a site's own copy of the update, as `npm run update-template -- <template>` does, taking the template
-    from a folder: never from the network. `flags` go after the template; `env` stands in for GIT_ENV. */
-function runUpdate(site: string, template: string, options: { flags?: string[]; env?: NodeJS.ProcessEnv } = {}) {
-  const { flags = [], env = GIT_ENV } = options;
-  const script = join(site, "scripts/update-template.ts");
-  return spawnSync(process.execPath, [script, pathToFileURL(template).href, ...flags], {
+/** Runs a site's own copy of the update with these arguments, as `npm run update-template -- …` does. */
+function runUpdateWith(site: string, args: string[], env: NodeJS.ProcessEnv = GIT_ENV) {
+  return spawnSync(process.execPath, [join(site, "scripts/update-template.ts"), ...args], {
     cwd: site,
     env,
     encoding: "utf8",
   });
 }
 
+/** Runs the update taking the template from a folder: never from the network. `flags` go after the
+    template; `env` stands in for GIT_ENV. */
+function runUpdate(site: string, template: string, options: { flags?: string[]; env?: NodeJS.ProcessEnv } = {}) {
+  return runUpdateWith(site, [pathToFileURL(template).href, ...(options.flags ?? [])], options.env);
+}
+
 const site = siteRepo("site");
-const update = runUpdate(site, templateRepo("template"));
+const template = templateRepo("template");
+const update = runUpdate(site, template);
 
 test("an update of a site made from an older template succeeds", () => {
   assert.equal(update.status, 0, update.stderr);
@@ -228,4 +232,41 @@ test("an update refuses a template with a link at a shared path, and copies noth
   assert.match(result.stderr, /more-docs is a link to somewhere else/);
   assert.ok(!existsSync(join(mine, "more-docs")));
   assert.equal(readText(mine, "src/app.ts"), "old");
+});
+
+test("an update says where the template is from, and the exact commit, before the first file it lists", () => {
+  const said = new RegExp(`^Template: ${pathToFileURL(template).href}\nCommit:   [0-9a-f]{40} First\n`);
+  assert.match(update.stdout, said);
+});
+
+test("an update lists what it will add, change and remove before it says it's done", () => {
+  const listed = update.stdout.indexOf("changed  src/app.ts");
+  const done = update.stdout.indexOf("shared files now match the template");
+  assert.ok(listed > 0 && listed < done, update.stdout);
+});
+
+test("an update it then refuses has still said which template and commit it read", () => {
+  const result = runUpdate(siteRepo("site-told"), templateSharing("template-told", ["../beside"]));
+  assert.match(result.stdout, /^Template: .*\nCommit: {3}[0-9a-f]{40} First\n/);
+});
+
+/** The audit's proof D: git's settings, here from the environment, send the address somewhere else. */
+test("an update says where git really fetched the template from, when its settings send the address elsewhere", () => {
+  const asked = "https://template.invalid/owner/repo";
+  const elsewhere = pathToFileURL(templateRepo("template-elsewhere")).href;
+  const redirecting = {
+    ...GIT_ENV,
+    GIT_CONFIG_COUNT: "1",
+    GIT_CONFIG_KEY_0: `url.${elsewhere}.insteadOf`,
+    GIT_CONFIG_VALUE_0: asked,
+  };
+  const result = runUpdateWith(siteRepo("site-redirected"), [asked], redirecting);
+  assert.match(result.stdout, new RegExp(`^Template: ${asked}, which git fetched from ${elsewhere}\n`));
+});
+
+/** Without "--", git reads this as an option, and takes the next argument for the address. */
+test("an address that starts with a dash is given to git as an address, not as an option", () => {
+  const result = runUpdateWith(siteRepo("site-dash"), ["--", "--upload-pack=anything"]);
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /repository '--upload-pack=anything' does not exist/);
 });

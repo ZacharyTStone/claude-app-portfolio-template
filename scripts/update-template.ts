@@ -24,7 +24,9 @@ function main(): void {
 
   const templateClone = mkdtempSync(join(tmpdir(), "template-"));
   try {
-    runGit(["clone", "--quiet", "--depth", "1", templateSource, templateClone], SITE_ROOT);
+    // After "--", git reads the address as an address, whatever it starts with.
+    runGit(["clone", "--quiet", "--depth", "1", "--", templateSource, templateClone], SITE_ROOT);
+    console.log(whatIsApplied(templateSource, templateClone));
     takeSharedFilesFrom(templateClone);
   } finally {
     rmSync(templateClone, { recursive: true, force: true });
@@ -45,17 +47,26 @@ function refuseUncommittedChanges(): void {
     throw new Error("Commit or stash your changes first, so that `git diff` then shows only the template's.");
 }
 
+/** Where the template came from and the exact commit that's applied, to say before anything is changed. Git's
+    own settings can send an address elsewhere (`url.….insteadOf`): then both are said. */
+function whatIsApplied(askedFor: string, templateClone: string): string {
+  const fetchedFrom = runGit(["remote", "get-url", "origin"], templateClone);
+  const address = fetchedFrom === askedFor ? askedFor : `${askedFor}, which git fetched from ${fetchedFrom}`;
+  const commit = runGit(["log", "-1", "--format=%H %s"], templateClone);
+  return `Template: ${address}\nCommit:   ${commit}\n`;
+}
+
+/** Says what the update will add, change and remove, then does it. */
 function takeSharedFilesFrom(templateClone: string): void {
-  const templateCommit = runGit(["log", "-1", "--format=%h %s"], templateClone);
   const changes = changesBetween(templateClone, SITE_ROOT, listToFollow(templateClone));
   const changeLines = describeChanges(changes);
   if (changeLines.length === 0) {
-    console.log(`Up to date with the template (${templateCommit}).`);
+    console.log("Up to date with the template.");
     return;
   }
-  applyChanges(templateClone, SITE_ROOT, changes);
   console.log(`${changeLines.join("\n")}\n`);
-  console.log(`${changeLines.length} shared files now match the template, as of ${templateCommit}.`);
+  applyChanges(templateClone, SITE_ROOT, changes);
+  console.log(`${changeLines.length} shared files now match the template.`);
   console.log("Next: `npm ci`, then `npm run verify`. `git diff` shows what changed; commit it once it passes.");
 }
 
