@@ -2,14 +2,14 @@
    it's laid out like. Nothing changes the page until start(). */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
-import { find, findAll, isComposing } from "./lib/dom.ts";
+import { clone, find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccountMenu } from "./account-menu.ts";
-import { initCard, toggleCard, wireComposer } from "./question-card/card.ts";
-import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } from "./conversation/chats.ts";
+import { initCard, wireComposer } from "./question-card/card.ts";
+import { dropEmptyChat, forgetChats, initChats, restoreChats } from "./conversation/chats.ts";
 import { foldable } from "./folding.ts";
-import { greet } from "./greeting.ts";
-import { focusHome, initHome } from "./home.ts";
-import { root, sidebar } from "./page.ts";
+import { focusHome, greet, initHome } from "./home.ts";
+import { finishOpening, goHome, openNewChat, startOnPhone } from "./navigation.ts";
+import { askedTab, root, sidebar } from "./page.ts";
 import { initPanel, tellPanelToggles } from "./panel.ts";
 import { addPersonalTabs } from "./personal-tabs.ts";
 import { initPlay } from "./play.ts";
@@ -18,15 +18,8 @@ import { wireTitle } from "./rename.ts";
 import { initRevealOnScroll } from "./reveal-on-scroll.ts";
 import { resetThreads } from "./conversation/send.ts";
 import { initShare } from "./share.ts";
-import {
-  closeDrawer,
-  closeDrawerAndReturnFocus,
-  initSidebar,
-  isAddressOnDrawer,
-  isDrawerOpen,
-  isWide,
-} from "./sidebar.ts";
-import { clearHash, currentTab, finishOpening, sync } from "./tabs.ts";
+import { closeDrawer, closeDrawerAndReturnFocus, initSidebar, isAddressOnDrawer, isDrawerOpen } from "./sidebar.ts";
+import { clearHashReplacingHistory, currentTab, focusOpenTab, showOpenTab } from "./tabs.ts";
 import { addRowMenu, addTitleMenu, initThreadMenus } from "./thread-menu.ts";
 import { initToast } from "./toast.ts";
 import { closeViewer, closeViewerAndReturnFocus, initViewer, isViewerOpen, viewerCoversScreen } from "./viewer.ts";
@@ -41,19 +34,22 @@ start();
 function start(): void {
   // For the stylesheet: what needs JavaScript can show.
   root.classList.add(PAGE_CLASSES.js);
-  const ownParts = completeThePage();
+  // Before anything changes it: each personal answer's tab, and each
+  // chat's, is a copy of "Something else" as the page was built.
+  const tabPattern = clone(askedTab);
+  const ownParts = completeThePage(tabPattern);
   // Before a tab is wired: the question card names its choices after the
   // sidebar's rows as the page has them, and wiring a tab that was renamed
   // in this browser renames its row.
-  startFeatures();
+  startFeatures(tabPattern);
   wire(ownParts);
   restoreChatsUnlessRefreshed();
   followTheAddress();
 }
 
 /** From here on a personal answer's tab is a tab like any other. */
-function completeThePage(): OwnParts {
-  addPersonalTabs();
+function completeThePage(tabPattern: HTMLElement): OwnParts {
+  addPersonalTabs(tabPattern);
   return {
     tabs: findAll(document, CLASS_SELECTOR.tab),
     tabRows: findAll(sidebar, PART_SELECTOR.tabRow),
@@ -61,9 +57,9 @@ function completeThePage(): OwnParts {
   };
 }
 
-function startFeatures(): void {
+function startFeatures(tabPattern: HTMLElement): void {
   initToast();
-  initChats({ wireTab, addRowMenu });
+  initChats({ tabPattern, wireTab, addRowMenu, goHome });
   greet();
   initSidebar();
   initPopup();
@@ -106,8 +102,11 @@ function handleLinksHere(): void {
     goHome();
     focusHome();
   });
-  handleHere(find(sidebar, CLASS_SELECTOR.newTab), newChat);
-  handleHere(find(document, CLASS_SELECTOR.skip), () => sync(true));
+  handleHere(find(sidebar, CLASS_SELECTOR.newTab), openNewChat);
+  handleHere(find(document, CLASS_SELECTOR.skip), () => {
+    showOpenTab();
+    focusOpenTab();
+  });
 }
 
 /** A link that's handled here, not followed. */
@@ -133,7 +132,7 @@ function restoreChatsUnlessRefreshed(): void {
   if (!wasPageRefreshed()) return restoreChats();
   forgetChats();
   const namesNoTab = location.hash && !currentTab();
-  if (namesNoTab) clearHash(true);
+  if (namesNoTab) clearHashReplacingHistory();
 }
 
 function wasPageRefreshed(): boolean {
@@ -144,7 +143,7 @@ function wasPageRefreshed(): boolean {
 /** From now on, and first for the address the page was opened at. */
 function followTheAddress(): void {
   addEventListener("hashchange", onAddressChange);
-  sync(false);
+  showOpenTab();
   startOnPhone();
   focusHome();
 }
@@ -162,23 +161,10 @@ function onAddressChange(): void {
   if (!openedDrawer) closeDrawer();
   resetThreads();
   dropEmptyChat();
-  sync(!openedDrawer);
+  showOpenTab();
+  if (!openedDrawer) focusOpenTab();
   // Back on the home screen, the cursor is in its box again.
   focusHome();
   finishOpening();
   startOnPhone();
-}
-
-/** On a phone the start is a new chat with the question card open, not the
-    home screen: where a visit starts, unless the address names a tab, and
-    where Back to it goes (the empty chat it was is gone). Nothing has been
-    touched in it yet, so focus stays on its heading. */
-function startOnPhone(): void {
-  if (isWide() || currentTab() || isDrawerOpen()) return;
-  // The chat takes the home screen's place in the history: left there, the
-  // home screen would open another chat each time Back reached it.
-  const replaceInHistory = true;
-  newChat(replaceInHistory, (chatTab) =>
-    toggleCard(find(chatTab, CLASS_SELECTOR.composer), chatTab, { moveFocus: false }),
-  );
 }

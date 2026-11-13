@@ -12,12 +12,14 @@ import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
 import { deleteChat } from "./conversation/chats.ts";
 import { asMenu, menuRow, toggleMenu } from "./menu.ts";
+import { openTab } from "./navigation.ts";
 import { questionText } from "./conversation/page-answers.ts";
 import { sidebar, words } from "./page.ts";
 import { popupAttributes } from "./popup.ts";
+import { openCard } from "./question-card/card.ts";
 import { renameTab } from "./rename.ts";
 import { withSubmenu } from "./submenu.ts";
-import { isChat, openTab, tabLink } from "./tabs.ts";
+import { isChat, tabLink } from "./tabs.ts";
 import { sayCopied } from "./toast.ts";
 
 /** How long a question jumped to is outlined. */
@@ -165,11 +167,10 @@ function deleteRow(chatTab: HTMLElement): HTMLElement {
   return row;
 }
 
-/** "Ask a follow-up" presses the tab's composer, which opens the question
-    card. */
+/** "Ask a follow-up" opens the question card in the tab. */
 function followUpRow(tab: HTMLElement): HTMLElement {
   const row = menuRow(words.menuFollowUp);
-  row.addEventListener("click", () => find(tab, CLASS_SELECTOR.composer).click());
+  row.addEventListener("click", () => openCard(tab));
   return row;
 }
 

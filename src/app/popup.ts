@@ -40,7 +40,7 @@ type Opening = {
 };
 
 /** Opens `popup` from `trigger`, in place of any other that's open. */
-function openPopup(popup: HTMLElement, trigger: HTMLElement, { prepare, firstFocus }: Opening = {}): void {
+export function openPopup(popup: HTMLElement, trigger: HTMLElement, { prepare, firstFocus }: Opening = {}): void {
   closePopup();
   prepare?.();
   popup.hidden = false;

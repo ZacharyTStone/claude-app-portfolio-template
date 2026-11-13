@@ -8,7 +8,14 @@ import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
 import { asButton, find, findAll, make, onEnter, parentOf } from "../lib/dom.ts";
 import { stepFocus } from "../lib/focus.ts";
-import { closePopup, closePopupAndReturnFocus, popupAttributes, togglePopup } from "../popup.ts";
+import {
+  closePopup,
+  closePopupAndReturnFocus,
+  isPopupOpenFrom,
+  openPopup,
+  popupAttributes,
+  togglePopup,
+} from "../popup.ts";
 import { questionCard } from "../page.ts";
 import { threadChoice, typedQuestion, type Exchange } from "../conversation/exchange.ts";
 import { firstQuestionOf } from "../conversation/page-answers.ts";
@@ -263,31 +270,43 @@ function onCardKey(event: KeyboardEvent): void {
 
 // ---- Opening it --------------------------------------------------------------------
 
-/** Opens the card over a tab's composer (or closes it, if that's where
-    it's open). Its first choice gets focus, unless `moveFocus` is off: a
-    visit that starts with the card open hasn't touched anything yet. */
-export function toggleCard(
-  composer: HTMLElement,
-  tab: HTMLElement,
-  { moveFocus = true }: { moveFocus?: boolean } = {},
-): void {
-  togglePopup(card, composer, {
+/** How the card opens over a tab's composer: in that tab, listing the
+    topics. */
+function cardOpening(composer: HTMLElement, tab: HTMLElement): { prepare: () => void } {
+  return {
     prepare() {
       cardTab = tab;
       listChoices(null, { moveFocus: false });
       parentOf(composer).append(card);
     },
-    firstFocus: () => (moveFocus ? choiceControls()[0] : undefined),
-  });
+  };
 }
 
-/** A tab's composer: it opens the card, over itself. */
+const firstChoice = (): HTMLElement | undefined => choiceControls()[0];
+
+/** A tab's composer: a press opens the card over it, or closes the card if
+    that's where it's open. */
 export function wireComposer(composer: HTMLElement, tab: HTMLElement): void {
   asButton(composer, popupAttributes(PAGE_IDS.questionCard, "dialog"));
   composer.addEventListener("click", (event) => {
     event.preventDefault();
-    toggleCard(composer, tab);
+    togglePopup(card, composer, { ...cardOpening(composer, tab), firstFocus: firstChoice });
   });
+}
+
+/** Opens the card in a tab, with focus on its first choice. One that's
+    open there already is left as it is. */
+export function openCard(tab: HTMLElement): void {
+  const composer = find(tab, CLASS_SELECTOR.composer);
+  if (isPopupOpenFrom(composer)) return;
+  openPopup(card, composer, { ...cardOpening(composer, tab), firstFocus: firstChoice });
+}
+
+/** Opens the card in a tab and leaves focus where it is: a visit that
+    starts with the card open hasn't touched anything yet. */
+export function openCardLeavingFocus(tab: HTMLElement): void {
+  const composer = find(tab, CLASS_SELECTOR.composer);
+  openPopup(card, composer, cardOpening(composer, tab));
 }
 
 /** Builds the card. Its choices are named from the sidebar, so this comes

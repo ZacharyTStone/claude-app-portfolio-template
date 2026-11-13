@@ -8,7 +8,7 @@ import { local } from "./lib/storage.ts";
 import { renameChat } from "./conversation/chats.ts";
 import { root, words } from "./page.ts";
 import { givenNameFrom, givenNamesIn, rowTextFor } from "./tab-names.ts";
-import { currentTab, isChat, rowFor, setTitle } from "./tabs.ts";
+import { isChat, rowFor, showTabName } from "./tabs.ts";
 
 /** In localStorage, per language. */
 const NAMES_KEY = `portfolio:names:${root.lang}`;
@@ -122,10 +122,9 @@ function showName(tab: HTMLElement): void {
   if (!ownName) return;
   const givenName = givenNames.get(tab.id);
   const title = givenName ?? ownName.title;
-  find(tab, CLASS_SELECTOR.titleText).textContent = title;
+  showTabName(tab, title);
   const rowText = rowTextNode(tab.id);
   if (rowText) rowText.data = rowTextFor(givenName, ownName.rowText);
-  if (tab === currentTab()) setTitle(title);
 }
 
 /** The words of a tab's sidebar row: its first text, before any dot. */

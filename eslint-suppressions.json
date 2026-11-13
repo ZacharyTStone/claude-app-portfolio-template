@@ -17,11 +17,6 @@
       "count": 5
     }
   },
-  "src/app/tabs.ts": {
-    "complexity": {
-      "count": 1
-    }
-  },
   "src/components/Inline.astro": {
     "no-nested-ternary": {
       "count": 3
