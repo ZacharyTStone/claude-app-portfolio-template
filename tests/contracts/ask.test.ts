@@ -7,7 +7,14 @@ import { test } from "node:test";
 import * as v from "valibot";
 import {
   AskResponseSchema,
+  MAX_CITED_LENGTH,
+  MAX_CITED_LINES,
+  MAX_QUESTION_LENGTH,
   MAX_REPLY_LENGTH,
+  isCitedLines,
+  isLabel,
+  isQuestionToOwner,
+  labelled,
   parseAnswerId,
   personalAnswerId,
   threadAnswerId,
@@ -19,8 +26,6 @@ import {
   type AskSkipped,
   type AskUnanswered,
 } from "../../src/contracts/ask.ts";
-
-// ---- An answer's id --------------------------------------------------------------------
 
 test("a thread's answer id is read back as its tab and which answer", () => {
   assert.deepEqual(parseAnswerId(threadAnswerId("work", 2)), { tabId: "work", answerNumber: 2 });
@@ -58,8 +63,6 @@ for (const [what, id] of Object.entries(NOT_ANSWER_IDS)) {
     assert.equal(parseAnswerId(id), null);
   });
 }
-
-// ---- /ask's reply ----------------------------------------------------------------------
 
 const REPLY = "Sam has written TypeScript since 2019.";
 
@@ -133,3 +136,80 @@ test("one field tells a reply's kind: a reply's text is only read from an answer
   const replied: AskReplied | null = response.reply !== undefined ? response : null;
   assert.equal(replied?.reply, REPLY);
 });
+
+const LABELS = ["(picture: A)", "(link: B (C))"];
+const NOT_LABELS = ["(An aside.)", "picture: A", "(picture: A) and more", "He said (link: B)"];
+
+for (const line of LABELS) {
+  test(`a label: ${line}`, () => {
+    assert.equal(isLabel(line), true);
+  });
+}
+
+for (const line of NOT_LABELS) {
+  test(`not a label, which is a whole line that names a picture or a link: ${line}`, () => {
+    assert.equal(isLabel(line), false);
+  });
+}
+
+const QUESTIONS_TO_OWNER = {
+  "a question": "Do you know testing?",
+  "one as long as a question may be": "x".repeat(MAX_QUESTION_LENGTH),
+};
+
+const NOT_QUESTIONS_TO_OWNER: Record<string, unknown> = {
+  "one too long": "x".repeat(MAX_QUESTION_LENGTH + 1),
+  "two lines": "Do you know\ntesting?",
+  "one with a hidden character": "Do you know testing?\u200b",
+  "spaces alone": "  ",
+  "a number": 42,
+  "a list": ["Do you know testing?"],
+  nothing: undefined,
+};
+
+for (const [what, value] of Object.entries(QUESTIONS_TO_OWNER)) {
+  test(`the page takes as the question said to the owner: ${what}`, () => {
+    assert.equal(isQuestionToOwner(value), true);
+  });
+}
+
+for (const [what, value] of Object.entries(NOT_QUESTIONS_TO_OWNER)) {
+  test(`the page doesn't take as the question said to the owner: ${what}`, () => {
+    assert.equal(isQuestionToOwner(value), false);
+  });
+}
+
+const LINE = "Alex has been at Acme since 2024.";
+
+const CITED_LINES = {
+  "one line": [LINE],
+  "as many lines as may be cited": Array.from({ length: MAX_CITED_LINES }, () => LINE),
+  "one line as long as all may be together": ["x".repeat(MAX_CITED_LENGTH)],
+  "two lines that long together": ["x".repeat(MAX_CITED_LENGTH / 2), "y".repeat(MAX_CITED_LENGTH / 2)],
+};
+
+const NOT_CITED_LINES: Record<string, unknown> = {
+  "text that isn't a list": LINE,
+  "an object that looks like a list": { 0: LINE, length: 1 },
+  "no lines": [],
+  "one line too many": Array.from({ length: MAX_CITED_LINES + 1 }, () => LINE),
+  "lines too long together": ["x".repeat(MAX_CITED_LENGTH / 2), "y".repeat(MAX_CITED_LENGTH / 2 + 1)],
+  "a number among them": [LINE, 7],
+  "null among them": [LINE, null],
+  "an empty line": [LINE, "  "],
+  "a line with a line break in it": [`${LINE}\n${LINE}`],
+  "a line with a hidden character": [`${LINE}\u200b`],
+  "a label among them": [LINE, labelled("picture", "The home page")],
+};
+
+for (const [what, lines] of Object.entries(CITED_LINES)) {
+  test(`the page takes as the lines under a reply: ${what}`, () => {
+    assert.equal(isCitedLines(lines), true);
+  });
+}
+
+for (const [what, lines] of Object.entries(NOT_CITED_LINES)) {
+  test(`the page doesn't take as the lines under a reply: ${what}`, () => {
+    assert.equal(isCitedLines(lines), false);
+  });
+}

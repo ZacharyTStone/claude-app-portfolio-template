@@ -5,7 +5,6 @@
    typed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
 import { MAX_TO_OWNER_TOKENS, rewriteToOwner, saysToOwnerIn } from "../../src/worker/ask/to-owner.ts";
 import type { Rewriting } from "../../src/worker/ask/prompts/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
@@ -19,22 +18,6 @@ import { models, toolCall, using, writer, wrote } from "./support/models.ts";
 import { UNADDRESSED, lines, stubs } from "./support/worker.ts";
 
 const OWNER = INDEX.name;
-
-test("isQuestionToOwner: what the page takes as the question said to the owner", () => {
-  assert.ok(isQuestionToOwner("Do you know testing?"));
-  assert.ok(isQuestionToOwner("x".repeat(MAX_QUESTION_LENGTH)));
-  for (const [why, value] of [
-    ["too long", "x".repeat(MAX_QUESTION_LENGTH + 1)],
-    ["two lines", "Do you know\ntesting?"],
-    ["a hidden character", "Do you know testing?\u200b"],
-    ["empty", "  "],
-    ["not text", 42],
-    ["not text", ["Do you know testing?"]],
-    ["not there", undefined],
-  ] as const) {
-    assert.ok(!isQuestionToOwner(value), why);
-  }
-});
 
 const ADDRESSING: Rewriting = {
   question: "Has Alex worked with Vue?",

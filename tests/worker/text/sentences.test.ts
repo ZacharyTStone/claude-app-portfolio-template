@@ -2,7 +2,7 @@
    Each table is a rule of where a sentence ends, and each row a text. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { isLabel, labelled } from "../../../src/contracts/ask.ts";
+import { labelled } from "../../../src/contracts/ask.ts";
 import { piecesOf } from "../../../src/worker/ask/text/sentences.ts";
 import { eachRow } from "../rows.ts";
 
@@ -144,11 +144,4 @@ test("a label is one piece, whatever is in it, and no sentence", () => {
     { text: caption, sentence: false },
     { text: "(link: Resume (EN))", sentence: false },
   ]);
-});
-
-test("only a line that is a picture's or a link's name, and nothing else, is a label", () => {
-  for (const line of ["(picture: A)", "(link: B (C))"]) assert.ok(isLabel(line), line);
-  for (const line of ["(An aside.)", "picture: A", "(picture: A) and more", "He said (link: B)"]) {
-    assert.ok(!isLabel(line), line);
-  }
 });

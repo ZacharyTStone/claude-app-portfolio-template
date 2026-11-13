@@ -8,7 +8,6 @@ import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-mo
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, write, writesIn } from "../../src/worker/ask/write.ts";
 import type { Writing } from "../../src/worker/ask/prompts/reply.ts";
-import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
 import { writer, wrote } from "./support/models.ts";
 import { eachRow } from "./rows.ts";
 
@@ -207,27 +206,4 @@ test("past its time, there's no reply, and the call is counted as if it wrote al
     await write(none.ai, DEFAULT_MODEL, WRITING, 0).then(({ why, tries }) => [why, tries, none.sent.length]),
     ["late", 0, 0],
   );
-});
-
-test("isCitedLines: what the page takes as the lines under a reply", () => {
-  const line = "Alex has been at Acme since 2024.";
-  assert.ok(isCitedLines([line]));
-  assert.ok(isCitedLines(Array.from({ length: MAX_CITED_LINES }, () => line)));
-  assert.ok(isCitedLines(["x".repeat(MAX_CITED_LENGTH)]));
-  assert.ok(isCitedLines(["x".repeat(MAX_CITED_LENGTH / 2), "y".repeat(MAX_CITED_LENGTH / 2)]));
-  for (const [why, lines] of [
-    ["not a list", line],
-    ["not a list", { 0: line, length: 1 }],
-    ["none", []],
-    ["too many", Array.from({ length: MAX_CITED_LINES + 1 }, () => line)],
-    ["too long together", ["x".repeat(MAX_CITED_LENGTH / 2), "y".repeat(MAX_CITED_LENGTH / 2 + 1)]],
-    ["one isn't text", [line, 7]],
-    ["one isn't text", [line, null]],
-    ["one is empty", [line, "  "]],
-    ["one has a line break", [`${line}\n${line}`]],
-    ["one has a hidden character", [`${line}\u200b`]],
-    ["one is a label", [line, labelled("picture", "The home page")]],
-  ] as const) {
-    assert.ok(!isCitedLines(lines), why);
-  }
 });
