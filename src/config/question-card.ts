@@ -1,7 +1,5 @@
-/* The question card's data: each language's `questions` in site.config.ts
-   is a QuestionCard. Portfolio.astro writes it into the page as JSON, and
-   src/app/page.ts checks it field by field before the browser code builds
-   the card from it: a field added here needs its check there.
+/* Each language's `questions`: the card over the composer of every tab,
+   which needs JavaScript. The page carries it to the browser code as JSON.
 
        questions: {
          ask: "What would you like to know?",
@@ -14,16 +12,15 @@
          ui: { … },
        } */
 
-import type { Markdown } from "./markdown.ts";
+import type { TextBlock } from "./blocks.ts";
 
-/** The question card, as site.config.ts has it and the page carries it:
-    the card over the composer of every tab, which needs JavaScript. */
 export type QuestionCard = {
   /** The card's question, and what the home screen's box asks: "What would
       you like to know?" */
   ask: string;
-  /** The choices under it, in order. Four or fewer read best (the build
-      says so past that): group the rest under a topic with `choices`. */
+  /** The choices under the question, in order. Four or fewer read best
+      (the build says so past that): group the rest under a topic with
+      `choices`. */
   topics: Topic[];
   /** The answers that aren't in a thread. With none, leave the list empty. */
   personal: PersonalAnswer[];
@@ -31,12 +28,11 @@ export type QuestionCard = {
   ui: QuestionCardWords;
 };
 
-/** A topic in the question card: it opens a thread at once (`tab`), or
-    asks a second question (`ask`) over what to pick from: threads
-    (`choices`), or the personal answers (`personal`). */
+/** A topic opens a thread at once (`tab`), or asks a second question
+    (`ask`) over what to pick from: threads (`choices`), or the personal
+    answers (`personal`). */
 export type Topic = TabTopic | ChoicesTopic | PersonalTopic;
 
-/** What every topic says of itself in the card's first step. */
 type TopicLabel = {
   /** What the choice says: "My work". */
   label: string;
@@ -45,38 +41,37 @@ type TopicLabel = {
   hint?: string;
 };
 
-/** A topic that opens a thread at once. */
 export type TabTopic = TopicLabel & {
   /** The id of the thread the topic opens. */
   tab: string;
   ask?: never;
   choices?: never;
+  /** Only the topic that lists the personal answers has it. */
   personal?: false;
 };
 
-/** A topic that asks which thread, as its second step. */
 export type ChoicesTopic = TopicLabel & {
   /** The second question, over the choices: "Which job?" */
   ask: string;
   /** The threads to choose from. */
   choices: Choice[];
   tab?: never;
+  /** Only the topic that lists the personal answers has it. */
   personal?: false;
 };
 
-/** The topic that lists the personal answers (but for the hidden ones) as
-    its second step. */
 export type PersonalTopic = TopicLabel & {
   /** The second question, over the personal answers: "Such as?" */
   ask: string;
+  /** Lists the personal answers, but for the hidden ones, as the topic's
+      second step. */
   personal: true;
   tab?: never;
   choices?: never;
 };
 
-/** A choice in the question card that opens a thread. */
 export type Choice = {
-  /** The thread's id. */
+  /** The id of the thread it opens. */
   tab: string;
   /** Leave out to use the thread's name in the sidebar. */
   label?: string;
@@ -84,17 +79,16 @@ export type Choice = {
   hint?: string;
 };
 
-/** An answer that isn't in a thread. Each gets its own tab. Hidden ones
-    aren't in the card, but /ask can pick them. */
+/** An answer that isn't in a thread. Each gets its own tab. */
 export type PersonalAnswer = {
-  /** Its own id (ID_PATTERN, as a thread's): "food". Its tab is at
-      #personal-food, and /ask names its answer "personal-food.1". */
+  /** ID_PATTERN, as a thread's: "food". Its tab is at #personal-food, and
+      /ask names its answer "personal-food.1". */
   id: string;
   /** The question, as a visitor would type it: what the card lists it by,
       and the message its tab shows. */
   q: string;
-  /** Paragraphs, or lists of lines. */
-  a: Array<Markdown | Markdown[]>;
+  /** The answer: paragraphs, and lists of lines. */
+  a: TextBlock[];
   /** The tab's name (the question, if left out). */
   title?: string;
   /** A line under the question in the card (the question again, if left
@@ -106,19 +100,20 @@ export type PersonalAnswer = {
   hidden?: boolean;
 };
 
-/** The question card's own wording. */
 export type QuestionCardWords = {
   /** The placeholder of the box for a question of the visitor's own: "Ask
       your own question". */
   else: string;
   /** That box's name, for screen readers. */
   elseLabel: string;
-  /** The button that sends it, and the home screen's: "Ask". */
+  /** The button that sends the visitor's question, and the home screen's:
+      "Ask". */
   send: string;
   /** The button that goes from a topic's choices back to the topics:
       "Back". */
   back: string;
-  /** Beside that button, which step of the card this is: "{n} of {total}". */
+  /** Beside the back button, which step of the card this is: "{n} of
+      {total}". */
   step: string;
   /** The card's name, for screen readers: "Ask a follow-up". */
   followUp: string;

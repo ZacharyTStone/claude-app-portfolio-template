@@ -1,71 +1,109 @@
-/* The content model: what an answer on the site is made of. site.config.ts
-   is written in these types, the build turns them into HTML
-   (src/components/Block.astro and the component each kind names), and the
-   browser renders personal answers from the same data. Ask and llms.txt
-   read every answer as plain text, a line for each block
-   (src/site/answers.ts).
-
-   An answer is a list of blocks, top to bottom:
+/* What an answer is made of. An answer is a list of blocks, top to bottom:
 
        a: [
          "A paragraph, with **bold** and a [link](#work).",
          ["A list's first item", "and its second"],
          { card: { file: "acme.yaml", lines: [["role", "Engineer"]] } },
          { link: { name: "Resume", kind: "PDF", href: "/assets/resume.pdf", icon: "file" } },
-       ] */
+       ]
+
+   The pages draw each block (src/components/Block.astro); Ask and llms.txt
+   read it as a line of plain text (src/site/answers.ts). */
 
 import type { Language } from "./language.ts";
 import type { Markdown } from "./markdown.ts";
 
-// ---- File cards ----------------------------------------------------------------
+/** A paragraph, or a list of lines. */
+export type TextBlock = Markdown | Markdown[];
 
-/** A value in a file card: a line ("Engineer"), several lines (the first
-    beside the key, the rest under it: ["TypeScript", "Astro"]), or one in
-    the accent colour ({ accent: "Hiring" }). */
-export type CardValue = string | string[] | { accent: string };
+/** A block that isn't text: an object with one key, which says what kind
+    it is. */
+export type NamedBlock =
+  | {
+      /** A file card, drawn like a small config file. */
+      card: FileCard;
+    }
+  | {
+      /** A link, drawn as a tile: an icon, a name, and what kind of thing
+          it is. */
+      link: LinkCard;
+    }
+  | {
+      /** Amounts on one scale, drawn as bars. */
+      bars: Bars;
+    }
+  | {
+      /** Steps in order, drawn as boxes with an arrow from each to the next. */
+      flow: Flow;
+    }
+  | {
+      /** A picture: a screenshot, a diagram. */
+      image: Picture;
+    }
+  | {
+      /** Pictures side by side, while there's room for two. */
+      images: Picture[];
+    }
+  | {
+      /** Someone else's words about your work. */
+      quote: Quote;
+    }
+  | {
+      /** A heading inside a long answer, to set its parts apart. */
+      heading: Heading;
+    };
 
-/** A line in a file card: [key, value, comment?], drawn as
-    `key: value  # comment`. */
+export type Block = TextBlock | NamedBlock;
+
+/** What each kind of named block holds, under the name of its kind:
+    { card: FileCard; link: LinkCard; bars: Bars; … }. It's made from
+    NamedBlock, so a kind added there is here too. */
+export type BlockByKind = {
+  [Named in NamedBlock as keyof Named]: Named[keyof Named];
+};
+
+/** One line ("Engineer"), several (the first beside the key, the rest
+    under it: ["TypeScript", "Astro"]), or one in the accent colour. */
+export type CardValue =
+  | string
+  | string[]
+  | {
+      /** The value, drawn in the accent colour: "Hiring". */
+      accent: string;
+    };
+
+/** Drawn as `key: value  # comment`. */
 export type CardLine = [key: string, value: CardValue, comment?: string];
 
-/** A file card, drawn like a small config file: its name over lines of
-    `key: value`, the values in one column.
+/** Its name over lines of `key: value`, the values in one column.
 
         { file: "acme.yaml", lines: [["role", "Engineer", "since 2020"], ["stack", ["TypeScript", "Astro"]]] } */
 export type FileCard = {
-  /** The file's name, in the card's heading: "acme.yaml". */
+  /** In the card's heading: "acme.yaml". */
   file: string;
-  /** Its lines, top to bottom. */
+  /** Top to bottom, each [key, value] or [key, value, comment]. */
   lines: CardLine[];
   /** Spaces between the longest key and the values (1). */
   gap?: number;
 };
 
-// ---- Link cards ----------------------------------------------------------------
-
-/** A link drawn as one of the app's artifact tiles: an icon in a square,
-    then a name over what kind of thing it is. */
 export type LinkCard = {
   /** The first line: "Resume". It's also what the viewer calls the link
       when it opens there, and all Ask and llms.txt read of it. */
   name: string;
   /** The second line, smaller: "PDF", "github.com/alex-example". */
   kind: string;
-  /** Where it goes: a web address (which opens in a new tab), a path on
-      the site ("/assets/resume.pdf"), mailto:… or #thread. One the
-      config's `viewer` lists opens in the viewer. */
+  /** A web address (which opens in a new tab), a path on the site
+      ("/assets/resume.pdf"), mailto:… or #thread. One the config's
+      `viewer` lists opens in the viewer. */
   href: string;
-  /** The tile's icon: one of the .i-* classes in src/styles by its name
-      ("file"), or "github" or "linkedin", which are drawn as lettered
-      badges. */
+  /** One of the .i-* classes in src/styles by its name ("file"), or
+      "github" or "linkedin", which are drawn as lettered badges. */
   icon: string;
 };
 
-// ---- Figures -------------------------------------------------------------------
-
-/** Amounts on one scale, drawn as bars from one baseline: a before and an
-    after, or one version beside the next. At least two, or it's a number,
-    not a chart: write that in the text.
+/** A before and an after, or one version beside the next, from one
+    baseline. One number alone is a sentence, not a chart.
 
         { title: "Time to load", note: "63% faster", rows: [
           { label: "Before", value: "1.04 s", amount: 1040 },
@@ -74,39 +112,42 @@ export type LinkCard = {
 export type Bars = {
   /** What's measured: "Time to load". */
   title: string;
-  /** The bars, top to bottom: FIGURE_LIMITS.bars says how many. */
+  /** Top to bottom: two to six (FIGURE_LIMITS.bars). */
   rows: BarRow[];
-  /** What the bars come to, beside the title: "64% faster". */
+  /** What the bars come to, beside the title: "63% faster". */
   note?: string;
 };
 
-/** One bar. `value` is the amount as it's written at the bar's tip
-    ("385 ms"), and `amount` the number its length is drawn from, in the
-    same unit on every row (385). `accent` draws it in the accent colour,
-    for the row the figure is about; the others are grey. */
-export type BarRow = { label: string; value: string; amount: number; accent?: boolean };
+export type BarRow = {
+  /** What the bar is: "Before". */
+  label: string;
+  /** The amount as it's written at the bar's tip: "385 ms". */
+  value: string;
+  /** The number the bar's length is drawn from, above zero and in the
+      same unit on every row: 385. */
+  amount: number;
+  /** true for the row the figure is about, drawn in the accent colour;
+      the others are grey. */
+  accent?: boolean;
+};
 
-/** Steps in order, drawn as boxes with an arrow from each to the next: a
-    pipeline, or the way a request goes. Two to five.
+/** A pipeline, or the way a request goes.
 
         { title: "What happens to an order", steps: [
           { name: "The till", note: "takes the order" },
           { name: "The kitchen", note: "makes it" },
-          { name: "The counter", note: "calls the name" },
         ] } */
 export type Flow = {
   /** What the steps are, over the figure: "What happens to an order". */
   title: string;
-  /** The steps, first to last: FIGURE_LIMITS.flow says how many. */
+  /** First to last: two to five (FIGURE_LIMITS.flow). */
   steps: FlowStep[];
 };
 
-/** One step of a flow: its name, and optionally what it does, in a few
-    words. */
 export type FlowStep = {
-  /** The step's name, in bold: "The till". */
+  /** In bold: "The till". */
   name: string;
-  /** What it does, after the name: "takes the order". */
+  /** What the step does, after its name: "takes the order". */
   note?: string;
 };
 
@@ -116,38 +157,26 @@ export const FIGURE_LIMITS = {
   flow: { min: 2, max: 5 },
 } as const;
 
-// ---- Pictures, quotes and headings ---------------------------------------------
+/** A picture that moves (an SVG with its own animation, as `npm run
+    diagrams` writes) names itself without its motion as `still`. One whose
+    file says how long it plays rests as its still, with a Play button; any
+    other moves all the time.
 
-/** A picture of the thing itself, such as a screenshot, or a diagram: a
-    file on the site ("/assets/app.webp"), its size in pixels (so the page
-    keeps its place while it loads), and `alt`, which says what it shows to
-    anyone who can't see it. With `href`, the picture links there.
-
-        { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" }
-
-    A picture that moves (an SVG with its own animation, as `npm run
-    diagrams` writes: AGENTS.md, "Adding a picture that moves") names the
-    same picture without its motion as `still`:
-
-        { src: "/assets/how.svg", still: "/assets/how-still.svg", alt: "…", width: 1600, height: 800 }
-
-    One whose file says how long it plays (a diagram's `plays`) is a
-    picture a visitor plays: it's shown still, dimmed, with a Play button,
-    and moves once that's pressed. Any other moves all the time, as a
-    marker that pulses on a map does. */
+        { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" } */
 export type Picture = {
-  /** The picture's file: a path on the site. */
+  /** The picture's file: a path on the site ("/assets/app.webp"). */
   src: string;
-  /** For a picture that moves: the same picture, still. It's what a picture
-      a visitor plays shows until it's played, and after; and what a visitor
-      who has asked their computer for less motion is shown of one that
-      moves all the time. */
+  /** For a picture that moves: the same picture, still. A picture a
+      visitor plays shows it until it's played, and after; one that moves
+      all the time shows it to a visitor who has asked for less motion. */
   still?: string;
-  /** What it shows, for anyone who can't see it. The build stops without
-      one. */
+  /** What the picture shows, for anyone who can't see it. The build stops
+      without one. */
   alt: string;
-  /** The file's size in pixels. */
+  /** The file's width in pixels, so the page keeps its place while it
+      loads. */
   width: number;
+  /** The file's height in pixels. */
   height: number;
   /** A line under the picture. It's also what the viewer calls the picture
       when its `href` opens there (its `alt`, without one), and all Ask and
@@ -156,56 +185,30 @@ export type Picture = {
   /** Where a click on the picture goes, as a link card's `href`. Leave out
       for a picture that isn't a link. */
   href?: string;
-  /** Shown small and round, as a portrait is. */
+  /** true for a picture shown small and round, as a portrait is. */
   round?: boolean;
 };
 
-/** Someone else's words about your work, and who said them. `by` can be
-    their part rather than their name ("A fellow engineer"). */
-export type Quote = { text: string; by: string };
-
-/** A heading inside a long answer, to set its parts apart: the part's
-    name, and optionally a word over it saying what kind of part it is
-    ("Project"). */
-export type Heading = { title: string; label?: string };
-
-// ---- A part of an answer -------------------------------------------------------
-
-/** One part of an answer: a paragraph (a string), a list (an array of
-    strings, an item each), or an object named for what it is: a file card,
-    a link, a figure (bars or a flow), a picture, a quote or a heading. */
-export type Block =
-  | Markdown
-  | Markdown[]
-  | { card: FileCard }
-  | { link: LinkCard }
-  | { bars: Bars }
-  | { flow: Flow }
-  | { image: Picture }
-  /** Pictures side by side, while there's room for two. */
-  | { images: Picture[] }
-  | { quote: Quote }
-  | { heading: Heading };
-
-/** What each kind of block that's an object holds, under the name of its
-    kind: { card: FileCard; link: LinkCard; bars: Bars; … }. It's made from
-    Block, so a kind added there is here too. */
-export type BlockByKind = {
-  [Named in Exclude<Block, Markdown | Markdown[]> as keyof Named]: Named[keyof Named];
+export type Quote = {
+  /** What they said. */
+  text: string;
+  /** Who said it: their name, or their part ("A fellow engineer"). */
+  by: string;
 };
 
-// ---- Reading an answer's blocks -------------------------------------------------
+export type Heading = {
+  /** The part's name. */
+  title: string;
+  /** A word over the title saying what kind of part it is: "Project". */
+  label?: string;
+};
 
-/** Whether a block is words alone: a paragraph, or a list of lines. Every
-    other block is an object with one key that says what it is. */
-export const isTextBlock = (block: Block): block is Markdown | Markdown[] =>
-  typeof block !== "object" || Array.isArray(block);
+export const isTextBlock = (block: Block): block is TextBlock => typeof block !== "object" || Array.isArray(block);
 
-/** Every block of every answer in a language's threads. */
 export const answerBlocksIn = (language: Language): Block[] =>
   language.threads.flatMap((thread) => thread.messages.flatMap((message) => message.a));
 
-/** The pictures in a block: one, a row of them, or none. */
+/** One picture, a row of them, or none. */
 export function picturesIn(block: Block): Picture[] {
   if (isTextBlock(block)) return [];
   if ("image" in block) return [block.image];
