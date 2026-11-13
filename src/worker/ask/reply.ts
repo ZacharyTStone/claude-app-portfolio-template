@@ -29,9 +29,6 @@ export type Reply =
   | ({ text: string; cited?: undefined } & Made)
   | ({ text?: undefined; cited?: undefined } & Made);
 
-/** No answer is shown, so there's nothing to reply from. */
-export const NO_REPLY: Reply = { quoted: null };
-
 /** A question, and what the picker chose for it. */
 export type Asked = {
   /** The visitor's question, as they typed it. */
