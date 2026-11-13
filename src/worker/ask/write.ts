@@ -45,8 +45,9 @@ export type Written =
   | ({ outcome: "sent"; reply: string; why?: undefined; unsourced?: undefined } & Attempts)
   | ({ outcome: "dropped"; reply?: undefined; why: Unwritten; unsourced?: string[] } & Attempts);
 
-// "…", “…”, 「…」, 『…』: some models put them round a reply.
-const QUOTES_AROUND = /^["“「『]+|["”」』]+$/g;
+// "…", “…”, 「…」, 『…』: some models put them round a reply. A closing run
+// is tried only where it starts, so a long one is read once.
+const QUOTES_AROUND = /^["“「『]+|(?<!["”」』])["”」』]+$/g;
 
 // "none", "None.", "none。".
 const ONLY_NONE = new RegExp(`^${NONE}[.。!]?$`, "i");

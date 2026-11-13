@@ -174,6 +174,14 @@ eachRow(
     assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).reply, "Alex knows Svelte."),
 );
 
+test("a long run of quotation marks is taken off in time that grows with its length alone", async () => {
+  const said = `${"”".repeat(16_000)}x`;
+  const started = performance.now();
+  await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING);
+  const took = performance.now() - started;
+  assert.ok(took < 50, `16,000 marks took ${Math.round(took)} ms`);
+});
+
 test("marks inside a reply are the reply's own", async () => {
   const said = 'Alex knows "Svelte" well.';
   assert.equal((await write(writer(wrote(said)).ai, DEFAULT_MODEL, WRITING)).reply, said);
