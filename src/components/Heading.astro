@@ -1,0 +1,17 @@
+---
+import type { Heading } from "../config/blocks.ts";
+
+interface Props {
+  heading: Heading;
+}
+const { title, label } = Astro.props.heading;
+---
+
+<h3>
+  {label && (
+    <>
+      <span>{label}</span>{" "}
+    </>
+  )}
+  {title}
+</h3>

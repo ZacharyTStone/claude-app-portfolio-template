@@ -1,0 +1,16 @@
+---
+import type { Quote } from "../config/blocks.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+
+interface Props {
+  quote: Quote;
+}
+const { text, by } = Astro.props.quote;
+---
+
+<figure class={PAGE_CLASSES.quote}>
+  <blockquote>
+    <p>{text}</p>
+  </blockquote>
+  <figcaption>{by}</figcaption>
+</figure>
