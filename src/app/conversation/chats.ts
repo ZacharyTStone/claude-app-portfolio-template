@@ -6,13 +6,14 @@ import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
 import { STORAGE } from "../constants.ts";
-import { readSavedChats, type SavedChat } from "./saved-chats.ts";
+import type { Exchange } from "./exchange.ts";
+import { messagesOf, questionOf } from "./messages.ts";
+import { readExchange, readSavedChats, toSaved, withChat, withoutChat, type SavedChat } from "./saved-chats.ts";
 import { clone, find, make } from "../lib/dom.ts";
 import { local } from "../lib/storage.ts";
 import { foldable } from "../folding.ts";
 import { isPopupOpenFrom } from "../popup.ts";
 import { askedTab, main, root, sidebar, siteName, tagline, words } from "../page.ts";
-import { bubble, messagesFor, questionFor, type Source } from "./replies.ts";
 import { closeDrawerAndReturnFocus, isWide } from "../sidebar.ts";
 import { clearHash, copyTab, currentTab, openTab, setTitle, sync } from "../tabs.ts";
 import { say } from "../toast.ts";
@@ -59,12 +60,18 @@ function wire(): ChatWiring {
   return wiring;
 }
 
-// One chat, written over what's saved now (or taken out of it, once it's
-// deleted): another window may have saved chats of its own since.
-function storeChat(chat: Chat, keep: boolean): void {
-  const others = readChats().filter((saved) => saved.id !== chat.id);
-  const { id, title, sources, created } = chat;
-  local.setJson(SAVED, keep && sources.length ? [...others, { id, title, sources, created }] : others);
+const readChats = (): SavedChat[] => readSavedChats(local.getJson(SAVED), Date.now());
+
+const asSaved = ({ id, title, sources, created }: Chat): SavedChat => ({ id, title, sources, created });
+
+/** Written over what's saved now, not over what this window read: another
+    window may have saved chats of its own since. */
+function saveChat(chat: Chat): void {
+  local.setJson(SAVED, withChat(readChats(), asSaved(chat)));
+}
+
+function forgetChat(chat: Chat): void {
+  local.setJson(SAVED, withoutChat(readChats(), chat.id));
 }
 
 function makeChat({
@@ -84,8 +91,8 @@ function makeChat({
 
 // Named after its first question, unless it's been renamed.
 function showChatName(chat: Chat): void {
-  const first = chat.sources[0];
-  const name = chat.title || (first && questionFor(first)) || words.newChat;
+  const [first] = chat.sources;
+  const name = chat.title || (first && questionOf(readExchange(first))) || words.newChat;
   find(chat.tab, CLASS_SELECTOR.titleText).textContent = name;
   if (chat.row) find(chat.row, CLASS_SELECTOR.rowName).textContent = name;
   if (chat.tab === currentTab()) setTitle(name);
@@ -123,16 +130,13 @@ function listChat(chat: Chat): void {
   showChatName(chat);
 }
 
-/** Everything sent in a chat, shown at once. */
+/** Everything sent in a chat, shown at once. Nothing, for a tab that isn't
+    a chat or a chat that's been deleted. */
 export function showChat(tab: HTMLElement): void {
   const chat = chatOf(tab);
-  if (!chat) return; // deleted
-  const thread = find(tab, CLASS_SELECTOR.thread);
-  thread.replaceChildren();
-  for (const source of chat.sources) {
-    const messages = messagesFor(source);
-    if (messages) thread.append(bubble(messages.question), ...messages.answer);
-  }
+  if (!chat) return;
+  const messages = chat.sources.flatMap((saved) => messagesOf(readExchange(saved)));
+  find(tab, CLASS_SELECTOR.thread).replaceChildren(...messages);
 }
 
 // Changes a chat, if it's still there; its name, and what's saved, follow.
@@ -141,20 +145,25 @@ function changeChat(tab: HTMLElement, change: (chat: Chat) => void): void {
   if (!chat) return;
   change(chat);
   showChatName(chat);
-  storeChat(chat, true);
+  saveChat(chat);
 }
 
-/** Something's been sent in a chat: it's kept, and listed. */
-export function chatSent(tab: HTMLElement, source: Source): void {
+/** Something's been sent in a chat: it's kept, and the chat listed. Says
+    where in the chat it's kept, for updateInChat; null if the chat is gone. */
+export function addToChat(tab: HTMLElement, exchange: Exchange): number | null {
+  const chat = chatOf(tab);
   changeChat(tab, (chat) => {
-    chat.sources.push(source);
+    chat.sources.push(toSaved(exchange));
     if (!chat.row) listChat(chat);
     if (emptyChat === chat) emptyChat = null;
   });
+  return chat ? chat.sources.length - 1 : null;
 }
 
-/** What was sent in a chat has changed (/ask has answered). */
-export const chatChanged = (tab: HTMLElement): void => changeChat(tab, () => {});
+/** What was sent in a chat is kept as it is now: /ask has answered it. */
+export function updateInChat(tab: HTMLElement, place: number, exchange: Exchange): void {
+  changeChat(tab, (chat) => (chat.sources[place] = toSaved(exchange)));
+}
 
 export function renameChat(tab: HTMLElement, value: string): void {
   changeChat(tab, (chat) => (chat.title = value || null));
@@ -171,7 +180,7 @@ export function deleteChat(tab: HTMLElement): void {
     list.previousElementSibling?.remove();
     list.remove();
   }
-  storeChat(chat, false);
+  forgetChat(chat);
   // Focus was in what's gone (the tab, or its row's "…").
   if (tab === currentTab()) goHome();
   else sync(true);
@@ -213,8 +222,6 @@ export function dropEmptyChat(): void {
   emptyChat.tab.remove();
   emptyChat = null;
 }
-
-const readChats = (): SavedChat[] => readSavedChats(local.getJson(SAVED), Date.now());
 
 /** Forgets the chats saved in this browser, in every language. */
 export const forgetChats = (): void => local.clear(STORAGE.chats);

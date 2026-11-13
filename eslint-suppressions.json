@@ -17,16 +17,6 @@
       "count": 5
     }
   },
-  "src/app/conversation/replies.ts": {
-    "complexity": {
-      "count": 2
-    }
-  },
-  "src/app/conversation/send.ts": {
-    "complexity": {
-      "count": 3
-    }
-  },
   "src/app/tabs.ts": {
     "complexity": {
       "count": 1

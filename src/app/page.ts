@@ -55,15 +55,6 @@ export const greetings = readGreetings();
 /** Who this is, in one line. */
 export const tagline = homeBody.getAttribute(DATA.tagline);
 
-/** A question's words, without the "Question:" said only to screen readers. */
-export function questionText(question: Element): string {
-  return [...question.childNodes]
-    .filter((node) => !(node instanceof Element && node.matches(CLASS_SELECTOR.srOnly)))
-    .map((node) => node.textContent)
-    .join("")
-    .trim();
-}
-
 /** The question card as the build wrote it into the page: its topics, and
     the personal answers. */
 export const questionCard = JSON.parse(byId(PAGE_IDS.questionCardData).textContent) as QuestionCard;

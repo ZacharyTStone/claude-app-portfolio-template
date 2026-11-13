@@ -10,7 +10,8 @@ import { asButton, find, findAll, make, onEnter, parentOf } from "../lib/dom.ts"
 import { stepFocus } from "../lib/focus.ts";
 import { closePopup, closePopupAndReturnFocus, popupAttributes, togglePopup } from "../popup.ts";
 import { questionCard } from "../page.ts";
-import { questionFor, type Source } from "../conversation/replies.ts";
+import { threadChoice, typedQuestion, type Exchange } from "../conversation/exchange.ts";
+import { firstQuestionOf } from "../conversation/page-answers.ts";
 import { send } from "../conversation/send.ts";
 import { isChat, rowFor } from "../tabs.ts";
 
@@ -55,7 +56,7 @@ function tabChoice(tabId: string, label?: string, hint?: string): TabChoice | nu
     kind: "tab",
     tabId,
     label: label ?? rowName ?? find(tab, CLASS_SELECTOR.title).textContent,
-    hint: hint ?? rowHint ?? questionFor({ tab: tabId }) ?? "",
+    hint: hint ?? rowHint ?? firstQuestionOf(tabId) ?? "",
   };
 }
 
@@ -78,7 +79,7 @@ function tabChoicesOf(topic: Topic): TabChoice[] {
 function topicChoice(topic: Topic): CardChoice | null {
   if (topic.tab) {
     // A topic's hint is its tab's first question, not the row's second line.
-    const hint = topic.hint ?? questionFor({ tab: topic.tab }) ?? undefined;
+    const hint = topic.hint ?? firstQuestionOf(topic.tab) ?? undefined;
     return tabChoice(topic.tab, topic.label, hint);
   }
   const tabChoices = tabChoicesOf(topic);
@@ -143,9 +144,9 @@ const choiceControls = (): HTMLElement[] => findAll(choiceList, "a, button");
 
 /** Sends what was chosen or typed into the tab the card was opened in, and
     closes the card. */
-function sendFromCard(source: Source): void {
+function sendFromCard(exchange: Exchange): void {
   closePopupAndReturnFocus();
-  if (cardTab) send(cardTab, source);
+  if (cardTab) void send(cardTab, exchange);
 }
 
 /** Whether a choice is the tab the card was opened in, or holds it. */
@@ -189,7 +190,7 @@ function tabChoiceLink(choice: TabChoice, parts: HTMLElement[]): HTMLElement {
   link.addEventListener("click", (event) => {
     if (!cardTab || !isChat(cardTab)) return closePopup();
     event.preventDefault();
-    sendFromCard({ tab: choice.tabId });
+    sendFromCard(threadChoice(choice.tabId));
   });
   return link;
 }
@@ -218,7 +219,7 @@ function sendOwnQuestion(): void {
   const question = ownQuestionInput.value.trim();
   if (!question) return ownQuestionInput.focus();
   ownQuestionInput.value = "";
-  sendFromCard({ question });
+  sendFromCard(typedQuestion(question));
 }
 
 // ---- The card's keys ---------------------------------------------------------------

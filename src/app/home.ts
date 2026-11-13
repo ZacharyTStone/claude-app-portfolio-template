@@ -5,7 +5,7 @@ import { DATA } from "../contracts/page-attributes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { newChat } from "./conversation/chats.ts";
 import { findAll, onEnter, query } from "./lib/dom.ts";
-import type { Source } from "./conversation/replies.ts";
+import { questionWithAnswer, typedQuestion, type Exchange } from "./conversation/exchange.ts";
 import { send } from "./conversation/send.ts";
 import { isWide } from "./sidebar.ts";
 import { currentTab } from "./tabs.ts";
@@ -19,10 +19,10 @@ const homeInput = document.querySelector<HTMLInputElement>(HOME_INPUT);
 
 /** Sends a question into a new chat, without the question card that a new
     chat opens with. */
-function askInNewChat(source: Source): void {
+function askInNewChat(exchange: Exchange): void {
   // Back from the chat returns to the home screen: it isn't replaced.
   const replaceInHistory = false;
-  newChat(replaceInHistory, (chatTab) => void send(chatTab, source));
+  newChat(replaceInHistory, (chatTab) => void send(chatTab, exchange));
 }
 
 /** Sends what's typed in the box, and empties it. With nothing typed, the
@@ -31,7 +31,7 @@ function sendTypedQuestion(): void {
   const question = homeInput?.value.trim();
   if (!homeInput || !question) return homeInput?.focus();
   homeInput.value = "";
-  askInNewChat({ question });
+  askInNewChat(typedQuestion(question));
 }
 
 /** The cursor in the box, where the home screen shows (not on a phone,
@@ -51,6 +51,6 @@ export function initHome(): void {
   for (const starter of findAll(document, ATTRIBUTE_SELECTOR.prompt)) {
     const question = starter.textContent.trim();
     const answer = starter.getAttribute(DATA.prompt);
-    if (question && answer) starter.addEventListener("click", () => askInNewChat({ question, answer }));
+    if (question && answer) starter.addEventListener("click", () => askInNewChat(questionWithAnswer(question, answer)));
   }
 }
