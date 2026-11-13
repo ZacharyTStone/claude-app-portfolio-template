@@ -18,7 +18,7 @@
   // Turn it on in an account on the Workers Free plan: there, anything past
   // Cloudflare's daily limits is refused, never billed. On Workers Paid the
   // same flood is billed, and the limits below are all that's in its way:
-  // read "What Ask can cost" in the README first.
+  // read "What Ask can cost" in docs/ask.md first.
   //
   // // The one Worker script (src/worker, bundled by wrangler) answers POST
   // // /ask; a file is served without running it.
