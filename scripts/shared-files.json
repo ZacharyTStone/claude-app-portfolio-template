@@ -24,6 +24,7 @@
     "tests/styles",
     "tests/app",
     "tests/contracts",
+    "tests/docs",
     "tests/worker",
     "tests/ask-eval.ts",
     "public/assets/icons",
