@@ -103,9 +103,9 @@ export function withChat(saved: SavedChat[], chat: SavedChat): SavedChat[] {
 const SAVED_OUTCOME: ByOutcome<Omit<SavedQuestion, "question">> = {
   unasked: () => ({}),
   answered: ({ outcome }) => ({ answer: outcome.answerId }),
-  replied: ({ outcome: { answerId, reply, citedLines } }) => ({
+  replied: ({ outcome: { answerId, replyText, citedLines } }) => ({
     answer: answerId,
-    reply,
+    reply: replyText,
     ...(citedLines.length ? { cited: citedLines } : {}),
   }),
   unanswered: ({ outcome }) => ({ answer: null, ...(outcome.toOwner ? { toOwner: outcome.toOwner } : {}) }),
@@ -133,7 +133,7 @@ function readOutcome(saved: SavedQuestion): Outcome {
 
 function readAnswer(answerId: string, { reply, cited }: SavedQuestion): Outcome {
   if (!isReplyText(reply)) return { kind: "answered", answerId };
-  return { kind: "replied", answerId, reply, citedLines: isCitedLines(cited) ? cited : [] };
+  return { kind: "replied", answerId, replyText: reply, citedLines: isCitedLines(cited) ? cited : [] };
 }
 
 /** What was saved, as the exchange it was. */

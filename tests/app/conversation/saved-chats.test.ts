@@ -12,7 +12,7 @@ import {
   typedQuestion,
   type Exchange,
   type Outcome,
-} from "../../src/app/conversation/exchange.ts";
+} from "../../../src/app/conversation/exchange.ts";
 import {
   readExchange,
   readSavedChats,
@@ -21,7 +21,7 @@ import {
   withoutChat,
   type SavedChat,
   type SavedSource,
-} from "../../src/app/conversation/saved-chats.ts";
+} from "../../../src/app/conversation/saved-chats.ts";
 
 const NOW = 1_800_000_000_000;
 
@@ -248,13 +248,13 @@ const GOLDEN_EXCHANGES: Record<keyof typeof GOLDEN_SOURCES, Exchange> = {
   "a question with an answer and the reply /ask made from it": typed("TypeScript?", {
     kind: "replied",
     answerId: "work.2",
-    reply: REPLY,
+    replyText: REPLY,
     citedLines: [],
   }),
   "a question with a reply and the lines it was written from": typed("TypeScript?", {
     kind: "replied",
     answerId: "work.2",
-    reply: REPLY,
+    replyText: REPLY,
     citedLines: CITED,
   }),
   "a question from a blocked visitor": typed("Where are you based?", { kind: "blocked", isRemoved: false }),
@@ -296,11 +296,11 @@ const SAVED_AS: Record<string, { exchange: Exchange; saved: string }> = {
     saved: GOLDEN_SOURCES["a question with the answer /ask picked"].saved,
   },
   "a question with a reply": {
-    exchange: typed("TypeScript?", { kind: "replied", answerId: "work.2", reply: REPLY, citedLines: [] }),
+    exchange: typed("TypeScript?", { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: [] }),
     saved: GOLDEN_SOURCES["a question with an answer and the reply /ask made from it"].saved,
   },
   "a question with a reply and its lines": {
-    exchange: typed("TypeScript?", { kind: "replied", answerId: "work.2", reply: REPLY, citedLines: CITED }),
+    exchange: typed("TypeScript?", { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: CITED }),
     saved: GOLDEN_SOURCES["a question with a reply and the lines it was written from"].saved,
   },
   "a question with no answer": {
@@ -372,7 +372,7 @@ for (const [what, { saved, outcome }] of Object.entries(READ_IN_ONE_ORDER)) {
 }
 
 const answeredOnly: Outcome = { kind: "answered", answerId: "work.2" };
-const repliedWithoutLines: Outcome = { kind: "replied", answerId: "work.2", reply: REPLY, citedLines: [] };
+const repliedWithoutLines: Outcome = { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: [] };
 
 /** A reply, its lines and the question to the owner are shown as text a
     visitor's browser kept, so each is checked again as /ask's are. */

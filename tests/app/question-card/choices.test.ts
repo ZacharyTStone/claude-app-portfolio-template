@@ -3,8 +3,8 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { QuestionCard, Topic } from "../../src/config/question-card.ts";
-import { cardChoices, holdsTab, type TabOnPage } from "../../src/app/question-card/choices.ts";
+import type { QuestionCard, Topic } from "../../../src/config/question-card.ts";
+import { cardChoices, holdsTab, type TabOnPage } from "../../../src/app/question-card/choices.ts";
 
 const WORDING = { else: "", elseLabel: "", send: "", back: "", step: "", followUp: "" };
 

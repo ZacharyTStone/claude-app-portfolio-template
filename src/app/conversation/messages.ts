@@ -46,10 +46,10 @@ export function questionBubble(exchange: Exchange): HTMLElement {
   return bubble;
 }
 
-/** Adds a line to a reply, under its last answer. */
-export function addUnderReply(reply: Element[], line: Element): void {
-  const lastAnswer = reply.findLast((message) => message.matches(CLASS_SELECTOR.answer));
-  (lastAnswer ?? reply.at(-1))?.append(line);
+/** Adds a line to a reply's messages, under the last answer among them. */
+export function addUnderReply(replyMessages: Element[], line: Element): void {
+  const lastAnswer = replyMessages.findLast((message) => message.matches(CLASS_SELECTOR.answer));
+  (lastAnswer ?? replyMessages.at(-1))?.append(line);
 }
 
 /** "2 questions left today", for under a reply. */
@@ -65,8 +65,8 @@ function fromLine(tab: HTMLElement, wording: string): Element {
   return make("p", { class: PAGE_CLASSES.from }, before, link, after);
 }
 
-function addressEmail(somethingElse: Element, question: string): void {
-  const email = find(somethingElse, ATTRIBUTE_SELECTOR.emailBody);
+function addressEmail(message: Element, question: string): void {
+  const email = find(message, ATTRIBUTE_SELECTOR.emailBody);
   const [mailto = ""] = (email.getAttribute("href") ?? "").split("?");
   const subject = email.getAttribute(DATA.emailSubject) ?? "";
   const body = withQuestion(email.getAttribute(DATA.emailBody) ?? "", question);
@@ -78,17 +78,17 @@ function addressEmail(somethingElse: Element, question: string): void {
     message, and an email to write themselves: nothing they typed is shown
     back. */
 function somethingElse(asked: TypedQuestion): Element[] {
-  const reply = clone(find(askedTab, CLASS_SELECTOR.answer));
-  reply.querySelector(CLASS_SELECTOR.messageActions)?.remove();
+  const message = clone(find(askedTab, CLASS_SELECTOR.answer));
+  message.querySelector(CLASS_SELECTOR.messageActions)?.remove();
   const question = questionForOwner(asked);
-  addressEmail(reply, question);
-  const draft = reply.querySelector(CLASS_SELECTOR.draft);
+  addressEmail(message, question);
+  const draft = message.querySelector(CLASS_SELECTOR.draft);
   if (asked.outcome.kind === "blocked") draft?.remove();
   else if (draft) {
     const wording = draft.getAttribute(DATA.messageDraft) ?? "";
     find(draft, CLASS_SELECTOR.draftText).textContent = withQuestion(wording, question);
   }
-  return [reply];
+  return [message];
 }
 
 /** For an answer the page hasn't (the site has changed since it was kept). */
@@ -100,21 +100,23 @@ const somethingElseAsTyped = ({ question }: TypedQuestion): Element[] =>
 function sitesAnswer(asked: QuestionWith<"answered">): Element[] {
   const answer = findAnswer(asked.outcome.answerId);
   if (!answer) return somethingElseAsTyped(asked);
-  const reply = copyOfAnswer(answer);
-  if (!isPersonalTab(answer.tab.id)) addUnderReply(reply, fromLine(answer.tab, words.askFrom));
-  return reply;
+  const messages = copyOfAnswer(answer);
+  if (!isPersonalTab(answer.tab.id)) addUnderReply(messages, fromLine(answer.tab, words.askFrom));
+  return messages;
 }
 
 /** The reply /ask made, as text; under it the site's own lines it was
     written from, word for word, and a link to the tab the rest is in. */
 function madeReply(asked: QuestionWith<"replied">): Element[] {
-  const { answerId, reply, citedLines } = asked.outcome;
+  const { answerId, replyText, citedLines } = asked.outcome;
   const answer = findAnswer(answerId);
   if (!answer) return somethingElseAsTyped(asked);
-  const quoted = make("blockquote", { class: PAGE_CLASSES.cited }, ...citedLines.map((line) => make("p", {}, line)));
+  const quotedLines = citedLines.map((line) => make("p", {}, line));
+  const quoted = quotedLines.length ? [make("blockquote", { class: PAGE_CLASSES.cited }, ...quotedLines)] : [];
   const from = fromLine(answer.tab, isPersonalTab(answer.tab.id) ? words.askFromPersonal : words.askFrom);
-  const parts = [make("p", { class: PAGE_CLASSES.reply }, reply), ...(citedLines.length ? [quoted] : []), from];
-  return [make("div", { class: PAGE_CLASSES.answer }, ...parts)];
+  return [
+    make("div", { class: PAGE_CLASSES.answer }, make("p", { class: PAGE_CLASSES.reply }, replyText), ...quoted, from),
+  ];
 }
 
 /** Past the day's questions: a reminder that it's a free service. */
@@ -135,9 +137,9 @@ const REPLY_TO_A_QUESTION: ByOutcome<Element[]> = {
   limited: limitReminder,
 };
 
-/** The reply to an exchange: a chosen thread's answers, or what came of a
-    question typed in. */
-export function replyTo(exchange: Exchange): Element[] {
+/** The messages that reply to an exchange: a chosen thread's answers, or
+    what came of a question typed in. */
+export function replyMessages(exchange: Exchange): Element[] {
   if (exchange.kind === "typed") return byOutcome(exchange, REPLY_TO_A_QUESTION);
   const tab = document.getElementById(exchange.tabId);
   return tab ? copyOfThread(tab) : [];
@@ -146,4 +148,4 @@ export function replyTo(exchange: Exchange): Element[] {
 /** An exchange whole: its question, then its reply. Nothing for one that
     asks nothing. */
 export const messagesOf = (exchange: Exchange): Element[] =>
-  questionOf(exchange) === null ? [] : [questionBubble(exchange), ...replyTo(exchange)];
+  questionOf(exchange) === null ? [] : [questionBubble(exchange), ...replyMessages(exchange)];

@@ -10,7 +10,7 @@ export type Outcome =
   | { kind: "answered"; answerId: string }
   /** The reply /ask made from one of the site's answers, shown with the
       site's lines it was written from (none, when /ask sent none). */
-  | { kind: "replied"; answerId: string; reply: string; citedLines: string[] }
+  | { kind: "replied"; answerId: string; replyText: string; citedLines: string[] }
   /** No answer: how to reach the owner, with the question as /ask said it
       to them if it did. */
   | { kind: "unanswered"; toOwner?: string }
@@ -78,7 +78,7 @@ export function outcomeOf(response: AskResponse | null, isOnPage: (answerId: str
   if (response.limited) return { kind: "limited", limit: response.limit };
   if (!response.id || !isOnPage(response.id)) return unanswered(response.toOwner);
   if (!response.reply) return { kind: "answered", answerId: response.id };
-  return { kind: "replied", answerId: response.id, reply: response.reply, citedLines: response.cited ?? [] };
+  return { kind: "replied", answerId: response.id, replyText: response.reply, citedLines: response.cited ?? [] };
 }
 
 /** The question with what came of it. One /ask found inappropriate is kept

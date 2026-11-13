@@ -4,7 +4,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { AskResponse } from "../../src/contracts/ask.ts";
+import type { AskResponse } from "../../../src/contracts/ask.ts";
 import {
   isRemoved,
   isUnasked,
@@ -16,7 +16,7 @@ import {
   withOutcome,
   type Outcome,
   type TypedQuestion,
-} from "../../src/app/conversation/exchange.ts";
+} from "../../../src/app/conversation/exchange.ts";
 
 const REPLY = "Sam has written TypeScript since 2019.";
 const CITED = ["Sam writes TypeScript.", "Since 2019."];
@@ -33,11 +33,11 @@ const OUTCOMES: Record<string, { response: AskResponse | null; outcome: Outcome 
   },
   "an answer with a reply": {
     response: { id: "work.2", reply: REPLY },
-    outcome: { kind: "replied", answerId: "work.2", reply: REPLY, citedLines: [] },
+    outcome: { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: [] },
   },
   "an answer with a reply and the lines it was written from": {
     response: { id: "work.2", reply: REPLY, cited: CITED },
-    outcome: { kind: "replied", answerId: "work.2", reply: REPLY, citedLines: CITED },
+    outcome: { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: CITED },
   },
   "no answer": { response: { id: null }, outcome: { kind: "unanswered" } },
   "no answer, with the question said to the owner": {

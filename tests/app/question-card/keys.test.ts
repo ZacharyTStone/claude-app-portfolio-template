@@ -3,7 +3,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { actionForKey, type CardKeyAction } from "../../src/app/question-card/keys.ts";
+import { actionForKey, type CardKeyAction } from "../../../src/app/question-card/keys.ts";
 
 const ON_THE_TOPICS = false;
 const ON_A_TOPICS_TABS = true;

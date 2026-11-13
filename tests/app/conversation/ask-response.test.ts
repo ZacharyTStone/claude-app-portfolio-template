@@ -12,8 +12,8 @@ import {
   MAX_QUESTION_LENGTH,
   MAX_REPLY_LENGTH,
   type AskResponse,
-} from "../../src/contracts/ask.ts";
-import { lockFor, lockedResponse, parseAskResponse } from "../../src/app/conversation/ask-response.ts";
+} from "../../../src/contracts/ask.ts";
+import { lockFor, lockedResponse, parseAskResponse } from "../../../src/app/conversation/ask-response.ts";
 
 const REPLY = "Sam has written TypeScript since 2019.";
 const CITED = ["Sam writes TypeScript.", "Since 2019."];

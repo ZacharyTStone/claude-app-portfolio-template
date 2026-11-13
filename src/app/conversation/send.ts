@@ -12,7 +12,14 @@ import { isChat } from "../tabs.ts";
 import { ask } from "./ask.ts";
 import { addToChat, showChat, updateInChat } from "./chats.ts";
 import { isUnasked, outcomeOf, withOutcome, type Exchange, type TypedQuestion } from "./exchange.ts";
-import { addUnderReply, questionBubble, questionOf, questionsLeftNote, replyTo, showQuestionIn } from "./messages.ts";
+import {
+  addUnderReply,
+  questionBubble,
+  questionOf,
+  questionsLeftNote,
+  replyMessages,
+  showQuestionIn,
+} from "./messages.ts";
 import { isOnPage } from "./page-answers.ts";
 import { thinkingLine } from "./thinking.ts";
 
@@ -108,17 +115,17 @@ function keepOutcome(delivery: Delivery, asked: TypedQuestion, response: AskResp
 async function replyOnceItComes(delivery: Delivery, exchange: Exchange): Promise<Element[]> {
   const toAsk = askUrl && isUnasked(exchange) ? exchange : null;
   const [, response] = await Promise.all([pause(THINKING_MS), toAsk ? ask(toAsk.question) : null]);
-  const reply = replyTo(toAsk ? keepOutcome(delivery, toAsk, response) : exchange);
+  const messages = replyMessages(toAsk ? keepOutcome(delivery, toAsk, response) : exchange);
   const questionsLeft = response?.left;
-  if (questionsLeft !== undefined) addUnderReply(reply, questionsLeftNote(questionsLeft));
-  return reply;
+  if (questionsLeft !== undefined) addUnderReply(messages, questionsLeftNote(questionsLeft));
+  return messages;
 }
 
 /** Puts a reply in, a message at a time, until it's all in or something
     else is sent (the rest then goes in at once) or another tab opens. */
-async function showOneByOne(delivery: Delivery, reply: Element[]): Promise<void> {
-  delivery.replyMessages = reply;
-  while (delivery.shownCount < reply.length) {
+async function showOneByOne(delivery: Delivery, messages: Element[]): Promise<void> {
+  delivery.replyMessages = messages;
+  while (delivery.shownCount < messages.length) {
     if (delivery.shownCount > 0) await pause(BETWEEN_MESSAGES_MS);
     if (delivery.isHurried) return;
     // A chat stopped part way is shown whole, for when it's opened again.
@@ -136,10 +143,10 @@ export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> 
   const placeInChat = isChat(tab) ? addToChat(tab, exchange) : null;
   const delivery = begin(tab, exchange, placeInChat);
   current = delivery;
-  const reply = await replyOnceItComes(delivery, exchange);
-  if (delivery.isHurried) return delivery.thinkingLine.replaceWith(...reply.map(markSent));
+  const messages = await replyOnceItComes(delivery, exchange);
+  if (delivery.isHurried) return delivery.thinkingLine.replaceWith(...messages.map(markSent));
   delivery.thinkingLine.remove();
-  await showOneByOne(delivery, reply);
+  await showOneByOne(delivery, messages);
 }
 
 /** Back to the portfolio's own messages, when another tab opens. */
