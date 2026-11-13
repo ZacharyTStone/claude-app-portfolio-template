@@ -14,7 +14,7 @@ import { dirname, join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { after, test } from "node:test";
 import { applyChanges, changesBetween, describeChanges, OWN, SHARED, sharedFiles } from "../scripts/template.ts";
-import { ROOT } from "../src/site/constants.ts";
+import { ROOT } from "../src/site/repo.ts";
 
 const SCRATCH = mkdtempSync(join(tmpdir(), "template-test-"));
 after(() => rmSync(SCRATCH, { recursive: true, force: true }));

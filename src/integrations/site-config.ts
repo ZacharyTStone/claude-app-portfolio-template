@@ -4,7 +4,7 @@
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import type { SiteConfig } from "../config/site-config.ts";
-import { ROOT } from "../site/constants.ts";
+import { ROOT } from "../site/repo.ts";
 
 /** The environment variable that names another config to build. */
 export const SITE_CONFIG = "SITE_CONFIG";

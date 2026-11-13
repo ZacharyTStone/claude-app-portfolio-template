@@ -5,9 +5,9 @@
    default one. */
 import "../styles/app.css";
 import { REFERRER_POLICY } from "../site/security-headers.ts";
-import { ICONS } from "../site/constants.ts";
 import { site } from "../site/current.ts";
 import { pagePolicy } from "../site/files/headers-file.ts";
+import { FAVICONS } from "../site/icons.ts";
 
 interface Props {
   /** The page's language, as a code: "en". */
@@ -40,9 +40,9 @@ const policyForMetaTag = pagePolicy(site);
     <slot name="head" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content={site.config.themeColor} />
-    <link rel="icon" href={site.link(ICONS.svg)} type="image/svg+xml" />
-    <link rel="icon" href={site.link(ICONS.png)} type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href={site.link(ICONS.appleTouch)} />
+    <link rel="icon" href={site.link(FAVICONS.svg)} type="image/svg+xml" />
+    <link rel="icon" href={site.link(FAVICONS.png)} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={site.link(FAVICONS.appleTouch)} />
     {preload.map((fontPath) => (
       <link rel="preload" href={site.link(fontPath)} as="font" type="font/woff2" crossorigin />
     ))}

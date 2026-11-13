@@ -1,8 +1,11 @@
 /* schema.org Person data, for search engines: who the site is about. */
 
-import { JSON_INDENT, PERSON_FRAGMENT } from "./constants.ts";
-import { scriptJson } from "./script-json.ts";
+import { JSON_INDENT, scriptJson } from "./json.ts";
 import type { Page } from "./site.ts";
+
+/** The schema.org Person's id, after the site's address:
+    "https://example.com/#person". */
+const PERSON_FRAGMENT = "#person";
 
 /** A page's schema.org Person, as JSON for its <script
     type="application/ld+json">: the owner's name and job title in the

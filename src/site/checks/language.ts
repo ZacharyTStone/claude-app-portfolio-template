@@ -10,7 +10,6 @@ import { browserFollows } from "../../contracts/links.ts";
 import { hrefsIn } from "../../config/markdown.ts";
 import { SCRIPT_STRING_NAMES, PART_STRINGS } from "../../config/strings.ts";
 import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, personalTabId, titleId } from "../../contracts/page-ids.ts";
-import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
 import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
 import { checkBlock } from "./blocks.ts";
@@ -33,6 +32,10 @@ function everyStringIn(value: unknown): string[] {
   if (value && typeof value === "object") return Object.values(value).flatMap(everyStringIn);
   return [];
 }
+
+/** How much of a text one of the config's problems quotes to say which
+    text it means, in characters. */
+const PROBLEM_EXCERPT_LENGTH = 40;
 
 /** The start of a text, to name it by in a problem: all of it when it's
     short, or its first characters and "…". */

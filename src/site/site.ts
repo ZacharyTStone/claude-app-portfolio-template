@@ -5,7 +5,9 @@ import { trimEnd } from "es-toolkit";
 import type { Host, SiteConfig } from "../config/site-config.ts";
 import type { Language } from "../config/language.ts";
 import { basePath } from "./url.ts";
-import { DEFAULT_HOST } from "./constants.ts";
+
+/** Who serves the site when the config's `host` is left out. */
+const DEFAULT_HOST: Host = "cloudflare";
 
 /** A site as the build sees it: its config, and the answers to "which
     languages?" and "where is it?", worked out from the config once. */

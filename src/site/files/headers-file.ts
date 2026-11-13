@@ -6,6 +6,10 @@ import type { Host } from "../../config/site-config.ts";
 import { contentSecurityPolicy, frameOrigins, securityHeaders, type PolicyOptions } from "../security-headers.ts";
 import type { Site } from "../site.ts";
 
+/** The file a host reads the security headers from, beside the pages, if
+    it reads one at all. */
+export const HEADERS_FILE = "_headers";
+
 /** Hosts that read a _headers file from the folder they publish. */
 const HOSTS_THAT_READ_A_HEADERS_FILE: readonly Host[] = ["cloudflare", "netlify"];
 

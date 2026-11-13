@@ -9,7 +9,7 @@ import { createServer, type ServerResponse } from "node:http";
 import type { AddressInfo } from "node:net";
 import { extname, join, resolve, sep } from "node:path";
 import siteConfig from "../../site.config.ts";
-import { OUTPUT, ROOT } from "../../src/site/constants.ts";
+import { OUTPUT, ROOT } from "../../src/site/repo.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { frameOrigins, securityHeaders } from "../../src/site/security-headers.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
