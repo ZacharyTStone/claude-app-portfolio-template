@@ -16,7 +16,7 @@ import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { TIMING } from "./constants.ts";
-import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
+import { closestFrom, find, findAll, isPlainClick, make, onClick } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
 /** The picture that's playing. */
@@ -55,8 +55,7 @@ export function initPlay(): void {
   // where it is.
   for (const button of buttons) button.setAttribute("role", "button");
   if ("IntersectionObserver" in window) outOfSight = new IntersectionObserver(stopOutOfSight);
-  // On the document, so the copies of an answer that chats make work too.
-  document.addEventListener("click", (event) => {
+  onClick(CLASS_SELECTOR.stage, (_stage, event) => {
     const figure = playedFigureAt(event.target);
     if (!figure || !isPlainClick(event)) return;
     event.preventDefault();

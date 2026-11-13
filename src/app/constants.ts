@@ -1,6 +1,6 @@
-/* The numbers and storage keys only the script (and the browser checks)
-   count on. The page's ids, classes and data attributes are in
-   src/contracts, and what the site says comes from the page (page.ts). */
+/* What more than one file counts on: several of the script's modules, a
+   module and the browser checks, or a module and the stylesheet, which has
+   the number typed out. What one module alone uses is in that module. */
 
 export const STORAGE = {
   /** localStorage: the chats, per language (this, then the page's lang). */
@@ -23,13 +23,6 @@ export const TIMING = {
   betweenMessages: 140,
   /** How long /ask has to answer. */
   askTimeout: 12_000,
-  /** How long a toast ("Copied") shows, and a copy button says "Copied". */
-  toast: 3200,
-  copied: 1600,
-  /** How long a question jumped to is outlined. */
-  flash: 900,
-  /** How long a submenu stays after the mouse leaves it. */
-  submenuLinger: 250,
   /** How long after a panel section starts to slide into place the drag's
       hold on it is let go: the slide is over by then. */
   settle: 200,
@@ -48,11 +41,6 @@ export const SIZE = {
   wide: 800,
   /** How close a menu comes to the edge of the screen. */
   edge: 8,
-  /** A menu's padding: a submenu moves up by this, so its first row is
-      level with the row that opens it. */
-  menuPadding: 6,
-  /** How far left of its chevron the thread's menu starts. */
-  titleMenuShift: 12,
   /** How far below the top a question lands: one jumped to, or one just
       sent, once its reply is in. */
   jumpMargin: 16,

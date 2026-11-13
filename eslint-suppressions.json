@@ -30,11 +30,6 @@
       "count": 1
     }
   },
-  "src/app/main.ts": {
-    "no-warning-comments": {
-      "count": 1
-    }
-  },
   "src/app/replies.ts": {
     "complexity": {
       "count": 2
@@ -48,11 +43,6 @@
   "src/app/tabs.ts": {
     "complexity": {
       "count": 1
-    }
-  },
-  "src/app/thread-menu.ts": {
-    "no-warning-comments": {
-      "count": 3
     }
   },
   "src/components/Inline.astro": {

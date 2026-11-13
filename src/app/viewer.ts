@@ -11,7 +11,7 @@ import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { SIZE } from "./constants.ts";
-import { closestFrom, isPlainClick, make } from "./lib/dom.ts";
+import { isPlainClick, make, onClick } from "./lib/dom.ts";
 import { shell, words } from "./page.ts";
 
 /** What a framed page may do: run its own scripts as the site it's from,
@@ -125,9 +125,7 @@ export function closeViewerAndReturnFocus(): void {
     viewer at all. */
 export function initViewer(): void {
   if (!document.querySelector(PART_SELECTOR.viewerLink)) return;
-  // On the document, so the copies of an answer that chats make work too.
-  document.addEventListener("click", (event) => {
-    const link = closestFrom(event.target, PART_SELECTOR.viewerLink);
+  onClick(PART_SELECTOR.viewerLink, (link, event) => {
     if (!(link instanceof HTMLAnchorElement) || !isPlainClick(event)) return;
     event.preventDefault();
     openInViewer(link);

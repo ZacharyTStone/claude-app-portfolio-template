@@ -1,9 +1,16 @@
 /* A menu row with › opens a submenu beside it: on hover, a click, or the
    right arrow key. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SIZE, TIMING } from "./constants.ts";
+import { SIZE } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { asMenu, menuItems } from "./menu.ts";
+
+/** How long a submenu stays after the mouse leaves it. */
+const LINGER_MS = 250;
+
+/** A menu's padding in the stylesheet: a submenu moves up by this, so its
+    first row is level with the row that opens it. */
+const MENU_PADDING_PX = 6;
 
 type Submenu = {
   /** A menu inside the menu its row is in. */
@@ -51,7 +58,7 @@ function openOnClick(submenu: Submenu): void {
 }
 
 /** The mouse opens a submenu by hovering over its row, and leaves it open
-    for TIMING.submenuLinger after it leaves the row or the submenu: long
+    for a moment after it leaves the row or the submenu: long
     enough to cross from one to the other. Touch has no hover: it clicks. */
 function openOnHover(submenu: Submenu): void {
   const { popup, row } = submenu;
@@ -61,7 +68,7 @@ function openOnHover(submenu: Submenu): void {
   for (const part of [row, popup]) {
     part.addEventListener("pointerleave", (event) => {
       if (event.pointerType !== "mouse") return;
-      submenu.lingerTimer = setTimeout(() => hideSubmenu(submenu), TIMING.submenuLinger);
+      submenu.lingerTimer = setTimeout(() => hideSubmenu(submenu), LINGER_MS);
     });
   }
   popup.addEventListener("pointerenter", () => clearTimeout(submenu.lingerTimer));
@@ -106,7 +113,7 @@ function hideSubmenu({ popup, row }: Submenu): void {
 function placeSubmenu({ popup, row, parentMenu }: Submenu): void {
   popup.classList.remove(PAGE_CLASSES.below);
   popup.style.left = "";
-  popup.style.top = `${row.offsetTop - SIZE.menuPadding}px`;
+  popup.style.top = `${row.offsetTop - MENU_PADDING_PX}px`;
   const rightLimit = rightLimitFor(parentMenu);
   if (popup.getBoundingClientRect().right <= rightLimit) return;
   popup.classList.add(PAGE_CLASSES.below);
