@@ -7,7 +7,7 @@ import { isLabel, isReplyText } from "../../contracts/ask.ts";
 import { isArrayOf, isCount } from "../../contracts/guards.ts";
 import { JAPANESE_ENDS, piecesOf, type Piece } from "./text/sentences.ts";
 
-/** The most lines of an answer the picker may name for a reply. */
+/** The most the picker may name for a reply. */
 export const MAX_QUOTED_LINES = 2;
 
 export type Line = Piece & {
@@ -131,8 +131,7 @@ function gapAfter({ text, sentence }: Line): string {
   return JAPANESE_ENDS.has(text.at(-1) ?? "") ? "" : " ";
 }
 
-/** The lines as one text, as a reply quotes them and as the writer reads
-    them. */
+/** As a reply quotes them, and as the writer reads them. */
 export const joinLines = (lines: Line[]): string =>
   lines.map((line, at) => (at < lines.length - 1 ? `${line.text}${gapAfter(line)}` : line.text)).join("");
 

@@ -1,9 +1,7 @@
-/* The reply to a typed question: a sentence or two the model writes from
-   the lines the picker chose, answering the question as it was asked ("Does
-   he need a visa?" gets "No: he's a US citizen…", not the line itself). It
-   isn't taken at its word for the facts a check can tell: a reply that
-   fails the check is asked for once more, with what was wrong, and dropped
-   if it fails again. */
+/* A sentence or two the model writes from the lines the picker chose,
+   answering the question as it was asked ("Does he need a visa?" gets "No:
+   he's a US citizen…", not the line itself). It isn't taken at its word: a
+   reply that fails the check is asked for once more, then dropped. */
 import { isReplyText } from "../../contracts/ask.ts";
 import { checkReply, isCheckedLanguage } from "./checks/grounded.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
@@ -11,24 +9,20 @@ import { callForText, ranOutOfRoom, textIn, type Called } from "./model.ts";
 import { askAgainAfter, askForReply, type Failure, type Writing } from "./prompts/reply.ts";
 import { NONE } from "./prompts/wording.ts";
 
-/** The most the model may write for a reply: a sentence or two, in Japanese
-    too (where a character is about a token), and room for a model that
-    reasons a little first. A reply cut off at it is asked for again,
-    shorter. */
+/** A sentence or two, in Japanese too (where a character is about a
+    token), with room for a model that reasons a little first. */
 export const MAX_WRITE_TOKENS = 320;
 
-/** The longest reply it may write, in characters: a sentence or two, not a
-    paragraph. A longer one is asked for again, shorter. */
+/** In characters: a sentence or two, not a paragraph. */
 export const MAX_WRITTEN_LENGTH = 240;
 
-/** How many times it's asked: once, and once more with what was wrong. */
+/** Once, and once more with what was wrong. */
 export const MAX_WRITE_TRIES = 2;
 
-/** How long the writing may take in all, in milliseconds: past it, the
-    lines are quoted as they are. The page waits 12 s for /ask. */
+/** For every try together. The page waits 12 s for /ask. */
 const WRITE_TIMEOUT_MS = 5000;
 
-/** Whether replies are written in a language: one the check can read. */
+/** Only in a language the check can read. */
 export const writesIn = isCheckedLanguage;
 
 /** Why no reply was written: the last one failed (`long` or `words`, a
@@ -40,15 +34,13 @@ export const writesIn = isCheckedLanguage;
 export type Unwritten = Failure["why"] | "none" | "empty" | "late" | "error";
 
 type Attempts = {
-  /** How many times the model was asked. */
   tries: number;
-  /** The tokens its calls used, all together. */
+  /** Of every call together. */
   tokens: Tokens;
 };
 
-/** How the writing went: a reply that passed the check is `sent`; with
-    none, the writing is `dropped`, and `why` says why. `unsourced` has what
-    failed the last check, when that's why. */
+/** A reply that passed the check is `sent`. `unsourced` has what failed
+    the last check, when that's why none did. */
 export type Written =
   | ({ outcome: "sent"; reply: string; why?: undefined; unsourced?: undefined } & Attempts)
   | ({ outcome: "dropped"; reply?: undefined; why: Unwritten; unsourced?: string[] } & Attempts);
@@ -59,9 +51,8 @@ const QUOTES_AROUND = /^["“「『]+|["”」』]+$/g;
 // "none", "None.", "none。".
 const ONLY_NONE = new RegExp(`^${NONE}[.。!]?$`, "i");
 
-/** What the model wrote, as one of: the reply; why it may not be one, which
-    the model is told before it's asked again (`failure`, with what it
-    wrote); or why it isn't asked again (`why`). */
+/** The reply; or why what the model wrote isn't one, which it's told before
+    it's asked again (`failure`); or why it isn't asked again (`why`). */
 type Judged = { reply: string } | { failure: Failure; text: string } | { why: "empty" | "none" };
 
 function judge(modelReply: unknown, writing: Writing): Judged {
@@ -80,9 +71,7 @@ const sumOf = (one: Tokens, other: Tokens): Tokens => ({
   output: one.output + other.output,
 });
 
-/** The reply to `writing.question`, written by `model` from `writing.lines`
-    and checked against them, within `timeoutMs` in all. One the model can't
-    or won't write isn't asked for again. */
+/** A reply the model can't or won't write isn't asked for again. */
 export async function write(
   ai: Ai,
   model: string,

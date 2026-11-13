@@ -1,25 +1,20 @@
-/* The visitor's question, said to the owner. With no answer to show, the
-   page offers an email and a message with the question in them, and those
-   are written to the owner, where the question was typed about them ("Does
-   Alex know testing?"). So one small call rewrites it as said to them ("Do
+/* With no answer to show, the page offers an email and a message to the
+   owner with the question in them, where the question was typed about the
+   owner ("Does Alex know testing?"). So one small call says it to them ("Do
    you know testing?"). It's asked once: a rewrite that isn't the same
-   question (checks/same-question.ts), or doesn't come, leaves the question
-   as it was typed. */
+   question, or doesn't come, leaves the question as it was typed. */
 import { ownerNames, type Choices } from "./answers.ts";
 import { checkSameQuestion, type Refused } from "./checks/same-question.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { callForText, ranOutOfRoom, textIn, type Called } from "./model.ts";
 import { askForRewrite, isRewrittenLanguage, type Rewriting } from "./prompts/to-owner.ts";
 
-/** The most the model may write when it says a question to the owner: the
-    question over again, which is a line or two at its longest. One cut off
-    at it isn't used. */
+/** The question over again, which is a line or two at its longest. */
 export const MAX_TO_OWNER_TOKENS = 120;
 
-/** How long that may take, in milliseconds. The visitor waits for it. */
+/** The visitor waits for it. */
 const TO_OWNER_TIMEOUT_MS = 3000;
 
-/** Whether a question is said to the owner on a page in a language. */
 export const saysToOwnerIn = isRewrittenLanguage;
 
 /** Why a question wasn't said to the owner: the rewrite was refused; or
@@ -28,10 +23,8 @@ export const saysToOwnerIn = isRewrittenLanguage;
     - error: it couldn't be reached. */
 export type NotSaid = Refused | "empty" | "late" | "error";
 
-/** How saying a question to the owner went: a rewrite that passed the
-    check is `sent` as `toOwner`; with none, it's `dropped`, and `why` says
-    why. `rewrite` is what the model wrote, on one line, whether or not it
-    passed (for the log), and `tokens` what the call used. */
+/** A rewrite that passed the check is `sent` as `toOwner`. `rewrite` is
+    what the model wrote, whether or not it passed: for the log. */
 export type SaidToOwner =
   | { outcome: "sent"; toOwner: string; why?: undefined; rewrite: string; tokens: Tokens }
   | { outcome: "dropped"; toOwner?: undefined; why: NotSaid; rewrite?: string; tokens: Tokens };
@@ -48,8 +41,6 @@ const QUOTED_WHOLE = /^["“](.*)["”]$/;
 const withoutQuotesAround = (written: string, question: string): string =>
   OPENS_WITH_A_QUOTE.test(question) ? written : written.replace(QUOTED_WHOLE, "$1").trim();
 
-/** `rewriting.question` as it's said to the owner, rewritten by `model`
-    within `timeoutMs` and checked against the question. */
 export async function rewriteToOwner(
   ai: Ai,
   model: string,
@@ -76,9 +67,8 @@ export async function rewriteToOwner(
   return { outcome: "sent", toOwner: checked.toOwner, rewrite, tokens };
 }
 
-/** The question as it's said to the owner, for the email and the message the
-    page offers when no answer is shown. Undefined on a page in a language a
-    question isn't rewritten in: it then goes as it was typed. */
+/** Undefined on a page in a language a question isn't rewritten in: it
+    then goes as it was typed. */
 export function sayToOwner(
   ai: Ai,
   model: string,

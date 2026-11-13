@@ -1,8 +1,7 @@
 import { isLabel } from "../../../contracts/ask.ts";
 
-/** A piece of an answer's text. */
 export type Piece = {
-  /** Its words, trimmed. */
+  /** Trimmed. */
   text: string;
   /** Whether it's a sentence. One that isn't is a list's item, a card's
       row, a figure, a label, or what's left of a paragraph after its last
@@ -34,7 +33,6 @@ const TRAILING_BRACKET = /^\s*[(（](?:[^()（）]|[(（][^()（）]*[)）])*[)�
 export const piecesOf = (text: string): Piece[] =>
   placedPiecesOf(text).map(({ text, sentence }) => ({ text, sentence }));
 
-/** Where each of the text's pieces starts. */
 export const pieceStartsIn = (text: string): number[] => placedPiecesOf(text).map(({ start }) => start);
 
 function placedPiecesOf(text: string): PlacedPiece[] {

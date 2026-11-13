@@ -33,8 +33,8 @@ function quoteOf(named: Line[], all: Line[]): Quoted {
   return reply.length > MAX_REPLY_LENGTH ? dropped("length") : { outcome: "sent", reply };
 }
 
-/** The reply quoting the lines `numbers` names, each with the sentences it
-    can't be read without, in the answer's order. */
+/** The lines `numbers` names, each with the sentences it can't be read
+    without, in the answer's order. */
 export function quote(text: string, numbers: unknown): Quoted {
   if (namesNoLines(numbers)) return null;
   const all = numbered(text);

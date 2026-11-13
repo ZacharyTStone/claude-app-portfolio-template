@@ -18,7 +18,6 @@ import { withPlainCharacters } from "../text/words.ts";
       no word for "you" that the question hasn't. */
 export type Refused = "long" | "same" | "added" | "dropped" | "moved" | "about";
 
-/** A rewrite as it may be used, or why it may not be. */
 export type CheckedRewrite = { toOwner: string; why?: undefined } | { toOwner?: undefined; why: Refused };
 
 const SECOND_PERSON_WORDS: ReadonlySet<string> = new Set(["you", "your", "yours", "yourself"]);
@@ -158,9 +157,7 @@ function whyNotInOrder(asked: string[], written: string[], ownerWords: OwnerWord
 
 const countOfYou = (words: string[]): number => words.filter(isSecondPerson).length;
 
-/** `rewrite`, as it may go in the message to the owner in place of
-    `question`. `owner` is the owner's names, in every way the page writes
-    them. */
+/** `owner` is the owner's names, in every way the page writes them. */
 export function checkSameQuestion(rewrite: string, question: string, owner: string): CheckedRewrite {
   if (!isQuestionToOwner(rewrite)) return { why: "long" };
   const ownerWords = new Set(wordsOf(owner));
