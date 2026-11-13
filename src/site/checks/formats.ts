@@ -2,6 +2,8 @@
    The pages escape what they write, but escaping doesn't make a
    javascript: link safe to follow, or "../en" a folder's name. */
 
+import { readsAsAnotherSite } from "../../contracts/links.ts";
+
 /** A check that a value is text of one pattern. Anything that isn't text
     doesn't look like it. */
 const looksLike =
@@ -84,9 +86,10 @@ const SCHEME = /^([a-z][a-z0-9+.-]*):/i;
 const SAFE_SCHEMES = ["http", "https", "mailto"];
 
 /** Whether a link is safe to follow: a web or mailto address, #thread or a
-    path, with nothing in it a browser would skip over. */
+    path, with nothing in it a browser would skip over, and no path that a
+    browser reads as another site. */
 export function isSafeHref(href: string): boolean {
-  if (SPACE_OR_CONTROL_CHARACTER.test(href)) return false;
+  if (SPACE_OR_CONTROL_CHARACTER.test(href) || readsAsAnotherSite(href)) return false;
   const scheme = href.match(SCHEME)?.[1];
   return scheme === undefined || SAFE_SCHEMES.includes(scheme.toLowerCase());
 }

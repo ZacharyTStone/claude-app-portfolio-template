@@ -7,6 +7,7 @@ import { ENGLISH_STRINGS, isEnglish } from "../config/english-strings.ts";
 import type { Language } from "../config/language.ts";
 import type { Host, SiteConfig } from "../config/site-config.ts";
 import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES, type Strings } from "../config/strings.ts";
+import { readsAsAnotherSite } from "../contracts/links.ts";
 import { basePath } from "./url.ts";
 
 /** Who serves the site when the config's `host` is left out. */
@@ -56,9 +57,9 @@ function withEveryString(code: string, language: Language): SiteLanguage {
   return { ...language, strings: { ...fallback, ...stated } };
 }
 
-/** "/assets/og.png", or "/" alone. Not "//example.com/og.png", which a
-    browser reads as another site. */
-const PATH_FROM_SITE_ROOT = /^\/(?!\/)/;
+/** "/assets/og.png", or "/" alone. Not "//example.com/og.png" or
+    "/\example.com", which a browser reads as another site. */
+const isPathFromSiteRoot = (href: string): boolean => href.startsWith("/") && !readsAsAnotherSite(href);
 
 /** Throws if the config has no languages. */
 export function makeSite(config: SiteConfig): Site {
@@ -73,7 +74,7 @@ export function makeSite(config: SiteConfig): Site {
   // An address that isn't one is for the config's checks to report, not to crash on.
   const siteAddress = trimEnd(config.url, "/");
   const sitePath = URL.canParse(config.url) ? basePath(config.url) : "/";
-  const link = (href: string) => (PATH_FROM_SITE_ROOT.test(href) ? sitePath + href.slice(1) : href);
+  const link = (href: string) => (isPathFromSiteRoot(href) ? sitePath + href.slice(1) : href);
   const fileUrl = (pathFromSiteRoot: string) => siteAddress + pathFromSiteRoot;
   const pageFromSiteRoot = (code: string) => (code === main ? "/" : `/${code}/`);
   return {

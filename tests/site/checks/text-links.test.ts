@@ -23,6 +23,11 @@ testEachProblem([
     ],
   },
   {
+    wrong: "a link in the text with no scheme that a browser reads as another site",
+    change: (_, english) => (english.home.intro = "[hi](//example.org/x)"),
+    problems: [`en: a link in "[hi](//example.org/x)" links to "//example.org/x", ${NOT_A_SAFE_LINK}`],
+  },
+  {
     wrong: "links in the text to tabs that aren't there",
     change: (_, english) => {
       english.home.intro = "See [this](#nowhere).";

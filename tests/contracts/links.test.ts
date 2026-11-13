@@ -5,7 +5,7 @@
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { emailLink, QUESTION_PLACEHOLDER, withQuestion } from "../../src/contracts/links.ts";
+import { emailLink, newTabAttributes, QUESTION_PLACEHOLDER, withQuestion } from "../../src/contracts/links.ts";
 
 const EMAIL_TEMPLATE = "Hi Sam,\n\nA question from your portfolio:\n{question}\n\nThanks!";
 const SUBJECT = "A question & a hello";
@@ -63,3 +63,15 @@ test("the link is what the browser code sets for a visitor's question today", ()
   const setToday = `${address}?subject=${encodeURIComponent(SUBJECT)}&body=${encodeURIComponent(fill(EMAIL_TEMPLATE))}`;
   assert.equal(emailLink(address, SUBJECT, withQuestion(EMAIL_TEMPLATE, question)), setToday);
 });
+
+for (const href of ["https://example.com/x", "//example.com/x", "\\\\example.com/x", "/\\example.com/x"]) {
+  test(`${JSON.stringify(href)} goes to another site, so it opens in a new tab and tells that site nothing`, () => {
+    assert.deepEqual(newTabAttributes(href), { target: "_blank", rel: "noopener noreferrer" });
+  });
+}
+
+for (const href of ["#about", "/resume.pdf", "resume.pdf", "mailto:sam@example.com"]) {
+  test(`${JSON.stringify(href)} stays on this site or opens mail, so it gets no attributes`, () => {
+    assert.deepEqual(newTabAttributes(href), {});
+  });
+}

@@ -1,9 +1,14 @@
 /* How a link behaves, the same whether a page or the browser code makes it. */
 
+/** "//example.com", "\\example.com", "/\example.com": no scheme, but a
+    browser reads each as an address on another site, not a path on this
+    one. */
+export const readsAsAnotherSite = (href: string): boolean => /^[/\\]{2}/.test(href);
+
 /** A link to another site opens in a new tab, and tells that site nothing
     about this one. Any other link gets no attributes. */
 export const newTabAttributes = (href: string): { target?: string; rel?: string } =>
-  /^https?:/i.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
+  /^https?:/i.test(href) || readsAsAnotherSite(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
 
 /** Whether the browser code makes a link of one in the text it shows. It
     doesn't know the site's path, so a link to a file on the site

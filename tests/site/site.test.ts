@@ -21,6 +21,13 @@ test("a link to another site is left as it is", () => {
   assert.equal(underAPath.link("https://example.com/"), "https://example.com/");
 });
 
+for (const href of ["//example.com/x", "/\\example.com/x"]) {
+  test(`${JSON.stringify(href)}, which a browser reads as another site, isn't put under the site's path`, () => {
+    assert.equal(atTheRoot.link(href), href);
+    assert.equal(underAPath.link(href), href);
+  });
+}
+
 test("a file's full address is under the site's path", () => {
   assert.equal(underAPath.fileUrl("/assets/og.png"), "https://example.github.io/portfolio/assets/og.png");
 });
