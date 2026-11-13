@@ -7,7 +7,7 @@ import type { Thread } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import type { Page } from "../site/site.ts";
 import Block from "./Block.astro";
-import Card from "./Card.astro";
+import FileCard from "./FileCard.astro";
 import Inline from "./Inline.astro";
 import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
@@ -39,7 +39,7 @@ const lastMessageIndex = thread.messages.length - 1;
             <b>{message.read.file}</b>
             {statusAfterFile}
           </summary>
-          <Card card={message.read.card} />
+          <FileCard card={message.read.card} />
         </details>
       )}
       <div class={PAGE_CLASSES.answer}>

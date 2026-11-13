@@ -26,7 +26,7 @@
 .str { color: var(--syntax-string); }
 .acc { color: var(--accent); }
 
-/* Artifact cards (the resumes, a live site). */
+/* Link cards (the resumes, a live site). */
 .artifact {
   display: flex;
   align-items: center;
