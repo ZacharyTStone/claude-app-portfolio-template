@@ -1,5 +1,5 @@
-/* The stylesheet's source, as the config's checks read it: the icons a
-   config can name are the stylesheet's .i-* classes. */
+/* The icons a config can name: the stylesheet's .i-* classes, read from
+   its source. */
 
 import { readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";

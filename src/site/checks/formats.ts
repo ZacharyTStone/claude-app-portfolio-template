@@ -2,7 +2,7 @@
    The pages escape everything they write into an attribute or an address,
    but escaping doesn't make a javascript: link safe to follow, or a
    language code that isn't one a folder's name. Each function here answers
-   one question about one value; the config's checks (../validate.ts) say
+   one question about one value; the config's checks (check-site.ts) say
    what to tell the person when the answer is no. */
 
 /** "en", "pt-BR": two or three lowercase letters, then any number of

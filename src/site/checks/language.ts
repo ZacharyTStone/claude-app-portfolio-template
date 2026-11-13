@@ -1,7 +1,7 @@
 /* The checks of one language: everything its page says that points at
    something (a thread, an answer, an icon, a file) or has to look a certain
    way. Each is handed the language and what the checks share
-   (reporting.ts); ../validate.ts runs them in order, once for each
+   (reporting.ts); check-site.ts runs them in order, once for each
    language. */
 
 import { personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
@@ -15,7 +15,7 @@ import { panelRows } from "../panel.ts";
 import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
 import { checkBlock } from "./blocks.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
-import { isLocale, isPathOnSite } from "./shapes.ts";
+import { isLocale, isPathOnSite } from "./formats.ts";
 
 // ---- What the checks below share ---------------------------------------------------------
 

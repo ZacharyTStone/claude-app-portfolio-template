@@ -27,9 +27,10 @@ import { headersFile, pagePolicy } from "../src/site/files/headers-file.ts";
 import { llmsTxt } from "../src/site/files/llms-txt.ts";
 import { scriptJson } from "../src/site/script-json.ts";
 import { makePage, makeSite } from "../src/site/site.ts";
-import { iconsIn, readStylesheet, STYLES_FOLDER } from "../src/site/stylesheet.ts";
+import { iconsIn, readStylesheet, STYLES_FOLDER } from "../src/site/icons.ts";
 import { structuredData } from "../src/site/structured-data.ts";
-import { isSafeHref, validate } from "../src/site/validate.ts";
+import { checkSite } from "../src/site/checks/check-site.ts";
+import { isSafeHref } from "../src/site/checks/formats.ts";
 
 /** The stylesheet's source, as one text. */
 const stylesheet = readStylesheet(join(ROOT, STYLES_FOLDER));
@@ -148,7 +149,7 @@ function sampleConfig(overrides: Partial<SiteConfig> = {}): SiteConfig {
 const sampleConfigWithAsk = (): SiteConfig => sampleConfig({ host: "cloudflare", ask: { role: "an engineer" } });
 
 /** The problems the config's checks find in a config. */
-const problemsIn = (config: SiteConfig): string[] => validate(makeSite(config), stylesheetIcons).problems;
+const problemsIn = (config: SiteConfig): string[] => checkSite(makeSite(config), stylesheetIcons).problems;
 
 /** The problems the checks find once `change` is made to the sample: to the
     config as a whole, or to its English alone (so the languages may no
@@ -211,7 +212,7 @@ test("This site's config has no problems", () => {
 
 test("The sample has no problems, on every host", () => {
   for (const host of HOSTS) {
-    assert.deepEqual(validate(makeSite(sampleConfig({ host })), stylesheetIcons), { problems: [], notes: [] });
+    assert.deepEqual(checkSite(makeSite(sampleConfig({ host })), stylesheetIcons), { problems: [], notes: [] });
   }
 });
 

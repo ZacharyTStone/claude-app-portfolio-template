@@ -1,7 +1,7 @@
 /* The checks of the site as a whole: that its languages match, and the
    settings every language shares (the address, the links, the social card,
    Ask, the viewer). Each takes the site and reports through `problemUnless`;
-   ../validate.ts runs them in order. */
+   check-site.ts runs them in order. */
 
 import { isEqual } from "es-toolkit";
 import type { Language } from "../../config/language.ts";
@@ -20,7 +20,7 @@ import {
   isSiteAddress,
   isTimeZone,
   isWebAddress,
-} from "./shapes.ts";
+} from "./formats.ts";
 
 /** What has to be the same in every language: the ids, counts and order of
     everything an answer's id, a topic or a home prompt can name. Never the

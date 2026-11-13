@@ -6,7 +6,7 @@
 import { FIGURE_LIMITS, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
-import { isPathOnSite, isPixelCount } from "./shapes.ts";
+import { isPathOnSite, isPixelCount } from "./formats.ts";
 
 /** Checks one block of an answer. `where` starts each message with the
     place the block is in: `the thread "work"`. */
