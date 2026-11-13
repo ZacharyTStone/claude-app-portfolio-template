@@ -57,7 +57,7 @@ export const PAGE_CLASSES = {
   figure: "fig",
   /** A figure whose picture a visitor plays; in it, what holds the picture
       with its button over it; and the button. */
-  plays: "plays",
+  playedFigure: "plays",
   stage: "stage",
   playButton: "play",
   /** Someone else's words in an answer, with who said them. */
@@ -66,7 +66,7 @@ export const PAGE_CLASSES = {
   fileCard: "card",
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
-  menu: "menu",
+  menuButton: "menu",
   /** A button's words, in an element of their own, so a narrow screen can
       show its icon alone and keep its name: the share button's, which say
       "Copied" for a moment, and a played picture's "Play" and "Pause". */
@@ -82,19 +82,19 @@ export const PAGE_CLASSES = {
   newTab: "new",
   /** In the sidebar: a group's heading. The browser code makes one more,
       for the visitor's chats. */
-  group: "group",
+  groupHeading: "group",
   /** In the sidebar: the list of a group's rows. */
-  tabs: "tabs",
+  groupRows: "tabs",
   /** In a group's row: its first line, the tab's name. */
   rowName: "t",
   /** In a group's row: its second line. */
   rowHint: "s",
   /** In the sidebar: around the links to the other languages' pages. */
-  lang: "lang",
+  languageSwitch: "lang",
   /** Around the account row and its menu, at the foot of the sidebar. */
   account: "account",
   /** The account row itself, which opens the account menu. */
-  me: "me",
+  accountRow: "me",
   /** In the account menu: the row with your email address. */
   mailRow: "pop-mail",
   /** In the account menu: the line under the clock's two times, which the

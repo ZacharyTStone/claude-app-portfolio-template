@@ -30,14 +30,14 @@ const languageSwitch = languageCodes.map((code) => {
 });
 ---
 
-<nav class="side" id={PAGE_IDS.tabs} aria-label={strings.tabs}>
+<nav class="side" id={PAGE_IDS.sidebar} aria-label={strings.tabs}>
   <div class="brand">
     <button
       class="icon-btn ic i-sidebar side-toggle"
       type="button"
       data-js-only
       {...flag(DATA.sideToggle)}
-      aria-controls={PAGE_IDS.tabs}
+      aria-controls={PAGE_IDS.sidebar}
       aria-expanded="true"
       aria-label={strings.hideTabs}
       title={strings.hideTabs}
@@ -46,12 +46,17 @@ const languageSwitch = languageCodes.map((code) => {
       {config.name}
     </a>
     {hasLanguageSwitch && (
-      <span class={PAGE_CLASSES.lang}>
+      <span class={PAGE_CLASSES.languageSwitch}>
         {languageSwitch.map((language) =>
           language.isThisPage ? (
             <span aria-current="true">{language.label}</span>
           ) : (
-            <a href={language.href} hreflang={language.code} lang={language.code} {...{ [DATA.name]: language.name }}>
+            <a
+              href={language.href}
+              hreflang={language.code}
+              lang={language.code}
+              {...{ [DATA.languageName]: language.name }}
+            >
               {language.label}
             </a>
           ),
@@ -60,7 +65,7 @@ const languageSwitch = languageCodes.map((code) => {
     )}
     <a
       class={`${PAGE_CLASSES.drawerClose} btn-ghost ic i-close`}
-      href={`#${PAGE_IDS.top}`}
+      href={`#${PAGE_IDS.home}`}
       aria-label={strings.closeTabs}
     ></a>
   </div>
@@ -82,10 +87,10 @@ const languageSwitch = languageCodes.map((code) => {
 
   {groups.map((group) => (
     <>
-      <p class={PAGE_CLASSES.group} id={groupId(group.id)}>
+      <p class={PAGE_CLASSES.groupHeading} id={groupId(group.id)}>
         {group.label}
       </p>
-      <ul class={PAGE_CLASSES.tabs} aria-labelledby={groupId(group.id)}>
+      <ul class={PAGE_CLASSES.groupRows} aria-labelledby={groupId(group.id)}>
         {group.tabs.map((tabRow) => (
           <li>
             <a href={`#${tabRow.tab}`}>

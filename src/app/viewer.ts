@@ -1,7 +1,7 @@
 /* The viewer: a panel beside the conversation (the whole screen where
    there's no room beside it) that shows a link's page in a frame, as the app
    shows an artifact. The links that open in it are the ones the page marks
-   (DATA.view, from the config's `viewer`); every other link, and every link
+   (DATA.viewerAddress, from the config's `viewer`); every other link, and every link
    without JavaScript, opens as links do.
 
    The frame is made when the viewer opens and thrown away when it closes,
@@ -83,11 +83,11 @@ function makeFrame(address: string, name: string, place: HTMLElement): HTMLIFram
 }
 
 /** Shows a link's page in the viewer: the address and the name the link
-    carries for it (DATA.view, DATA.viewTitle). */
+    carries for it (DATA.viewerAddress, DATA.viewerTitle). */
 function openInViewer(link: HTMLAnchorElement): void {
-  const address = link.getAttribute(DATA.view);
+  const address = link.getAttribute(DATA.viewerAddress);
   if (!address) return;
-  const name = link.getAttribute(DATA.viewTitle) ?? "";
+  const name = link.getAttribute(DATA.viewerTitle) ?? "";
   viewer ??= makeViewer();
   const { panel, title, openInNewTab, framePlace } = viewer;
   title.textContent = name;

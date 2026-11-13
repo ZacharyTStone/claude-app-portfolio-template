@@ -119,7 +119,7 @@ export default (site: Site): Check[] => {
         await dragFirstSection(-pastTheNext);
         await page.waitForTimeout(TIMING.settle + SETTLE_MARGIN_MS);
         assert.equal(
-          await page.locator(`${ID.details} ${CLASS.dragging}`).count(),
+          await page.locator(`${ID.panel} ${CLASS.dragging}`).count(),
           1,
           "the section is still lifted while the mouse holds it",
         );
@@ -132,8 +132,8 @@ export default (site: Site): Check[] => {
       url: "./",
       skip: site.panel.length > 1 ? null : "the panel has one section",
       async test(page) {
-        const panel = page.locator(ID.details);
-        const toggle = page.locator(`${ID.top} [${DATA.panelToggle}]`);
+        const panel = page.locator(ID.panel);
+        const toggle = page.locator(`${ID.home} [${DATA.panelToggle}]`);
         await toggle.click();
         assert.ok(await panel.isHidden(), "the panel's button hides it");
         assert.equal(await toggle.getAttribute("aria-expanded"), "false", "the panel's button says it's hidden");
@@ -165,7 +165,7 @@ export default (site: Site): Check[] => {
 
 /** From the sidebar's first row, ArrowDown takes the focus to its second. */
 async function checkArrowDownGoesToTheNextRow(page: Page): Promise<void> {
-  const rows = page.locator(`${ID.tabs} ${CLASS.nav} a`);
+  const rows = page.locator(`${ID.sidebar} ${CLASS.nav} a`);
   await rows.first().focus();
   await page.keyboard.press("ArrowDown");
   assert.equal(
@@ -178,8 +178,8 @@ async function checkArrowDownGoesToTheNextRow(page: Page): Promise<void> {
 /** The sidebar's own button hides it, leaving the focus on the open tab's
     menu button; that button brings it back, and the focus goes back too. */
 async function checkSidebarHidesAndComesBack(page: Page, openTabId: string): Promise<void> {
-  const sidebar = page.locator(ID.tabs);
-  const menuButton = `#${openTabId} ${CLASS.menu}`;
+  const sidebar = page.locator(ID.sidebar);
+  const menuButton = `#${openTabId} ${CLASS.menuButton}`;
   await page.locator(`[${DATA.sideToggle}]`).click();
   assert.ok(await sidebar.isHidden(), "the sidebar's button hides it");
   assert.equal(await page.locator(`${menuButton}:focus`).count(), 1, "the focus is on the tab's menu button");

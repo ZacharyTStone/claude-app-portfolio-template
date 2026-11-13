@@ -12,22 +12,22 @@ export const PAGE_IDS = {
   /** The home screen. A link to #top closes the open tab, since the home
       screen shows whenever no tab is the address's target: the drawer's
       close button and the composer under every tab are such links. */
-  top: "top",
+  home: "top",
   /** The sidebar. A top bar's menu button links to #tabs, which opens the
       sidebar as a drawer on a phone, without JavaScript too. */
-  tabs: "tabs",
+  sidebar: "tabs",
   /** The <main> every tab is in: where "Skip to content" goes. */
   main: "main",
   /** The details panel: what its toggles say they control. */
-  details: "details",
+  panel: "details",
   /** The home screen's greeting, which the browser code rewrites for the
       visitor's time of day. */
-  hello: "hello",
+  greeting: "hello",
   /** The "Something else" tab. The browser code copies it for that reply,
       and for each personal answer's tab. */
   asked: "asked",
   /** The <script> that holds the question card's JSON. */
-  questions: "questions",
+  questionCardData: "questions",
   /** The account menu, which the account row opens. */
   accountMenu: "account-menu",
   /** Not in the built page; the browser code makes it: a thread's menu,
@@ -36,7 +36,7 @@ export const PAGE_IDS = {
   /** Made by the browser code: the shorter menu on a thread's sidebar row. */
   rowMenu: "row-menu",
   /** Made by the browser code: the question card. */
-  followUp: "follow-up",
+  questionCard: "follow-up",
   /** Made by the browser code: the heading of the goodbye "Log out" shows. */
   byeTitle: "bye-title",
 } as const;

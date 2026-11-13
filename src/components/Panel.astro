@@ -25,13 +25,13 @@ const listSections = LIST_SECTION_NAMES.flatMap((name) => {
 });
 ---
 
-<aside class="panel" id={PAGE_IDS.details} aria-label={strings.panel}>
+<aside class="panel" id={PAGE_IDS.panel} aria-label={strings.panel}>
   <button
     class="icon-btn ic i-close panel-close"
     type="button"
     data-js-only
     {...flag(DATA.panelToggle)}
-    aria-controls={PAGE_IDS.details}
+    aria-controls={PAGE_IDS.panel}
     aria-label={strings.closePanel}
     title={strings.closePanelTitle}
   ></button>

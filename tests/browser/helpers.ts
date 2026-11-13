@@ -66,10 +66,10 @@ export const VISITOR_ZONE = "America/New_York";
 export const OPEN_CHAT = `${CLASS.tab}[${DATA.chat}]:target`;
 
 /** The question card, while it shows. */
-export const OPEN_CARD = `${ID.followUp}:not([hidden])`;
+export const OPEN_CARD = `${ID.questionCard}:not([hidden])`;
 
 /** The sidebar while it's a phone's drawer, and open. */
-export const OPEN_DRAWER = `${ID.tabs}${CLASS.drawerOpen}`;
+export const OPEN_DRAWER = `${ID.sidebar}${CLASS.drawerOpen}`;
 
 /** The heading the script adds to the sidebar for the visitor's chats, there
     only while there's a chat to list. */
@@ -81,16 +81,16 @@ export const CHAT_ROWS = `${CHATS_HEADING} + ul a`;
 /** The link to email the owner, in the "Something else" reply: what a
     question gets when the site has no answer for it. The checks know that
     reply by this link. */
-export const EMAIL_LINK = `[${DATA.mail}]`;
+export const EMAIL_LINK = `[${DATA.emailBody}]`;
 
 /** A tab's row in the sidebar: its first, as a thread can be in the rows at
     the top and in a group too. */
-export const sidebarRow = (page: Page, tab: string): Locator => page.locator(`${ID.tabs} a[href="#${tab}"]`).first();
+export const sidebarRow = (page: Page, tab: string): Locator => page.locator(`${ID.sidebar} a[href="#${tab}"]`).first();
 
 /** The shell around the sidebar, the open tab and the details panel: the
     script sets the sidebar's width on it, and makes it inert behind the
     goodbye. */
-export const shell = (page: Page): Locator => page.locator(ID.tabs).locator("..");
+export const shell = (page: Page): Locator => page.locator(ID.sidebar).locator("..");
 
 /** The window's title while a tab is open: the tab's name, then the site's. */
 export const windowTitle = (tabName: string, site: Site): string => `${tabName}${SEPARATOR}${site.name}`;
@@ -329,7 +329,7 @@ export async function pickFirstTab(page: Page): Promise<string> {
 /** The question card's first choice that opens a tab, after opening the
     first topic when that asks which first. */
 export async function firstTabChoice(page: Page): Promise<Locator> {
-  const firstChoice = page.locator(`${ID.followUp} ${CLASS.options} li > *`).first();
+  const firstChoice = page.locator(`${ID.questionCard} ${CLASS.options} li > *`).first();
   // A choice that links to a tab opens it. One that doesn't is a topic: it
   // lists its own choices in the card, so the first is looked at again.
   while (!(await firstChoice.getAttribute("href"))) await firstChoice.click();

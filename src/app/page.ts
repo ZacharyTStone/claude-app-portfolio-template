@@ -35,15 +35,15 @@ export const words = readScriptStrings();
 export const askUrl = root.getAttribute(DATA.ask) ?? "";
 
 /** The sidebar of tabs. */
-export const side = byId(PAGE_IDS.tabs);
+export const side = byId(PAGE_IDS.sidebar);
 /** The shell around the sidebar, the open tab and the panel. */
 export const shell = parentOf(side);
 /** What holds the home screen and every tab; a chat's tab is added to it. */
 export const main = byId(PAGE_IDS.main);
 /** The details panel on the right. */
-export const detailsPanel = byId(PAGE_IDS.details);
+export const detailsPanel = byId(PAGE_IDS.panel);
 /** The home screen's greeting, which is its heading. */
-export const homeGreeting = byId(PAGE_IDS.hello);
+export const homeGreeting = byId(PAGE_IDS.greeting);
 /** The "Something else" tab: the reply to a question the site can't answer. */
 export const askedTab = byId(PAGE_IDS.asked);
 
@@ -158,11 +158,11 @@ const EMPTY_QUESTION_CARD: QuestionCard = {
 };
 
 /** The question card as the page carries it (the JSON in the element
-    PAGE_IDS.questions), or the empty one when that isn't JSON or isn't a
+    PAGE_IDS.questionCardData), or the empty one when that isn't JSON or isn't a
     question card. */
 function readQuestionCard(): QuestionCard {
   try {
-    const data: unknown = JSON.parse(document.getElementById(PAGE_IDS.questions)?.textContent ?? "");
+    const data: unknown = JSON.parse(document.getElementById(PAGE_IDS.questionCardData)?.textContent ?? "");
     return isQuestionCard(data) ? data : EMPTY_QUESTION_CARD;
   } catch {
     return EMPTY_QUESTION_CARD;

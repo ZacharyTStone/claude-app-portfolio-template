@@ -128,7 +128,7 @@ export const SELECTOR = {
   tab: `.${PAGE_CLASSES.tab}`,
   chatTab: has(DATA.chat),
   /** A top bar's button that opens the drawer, or brings the sidebar back. */
-  menuButton: `.${PAGE_CLASSES.menu}`,
+  menuButton: `.${PAGE_CLASSES.menuButton}`,
   panelToggle: has(DATA.panelToggle),
   /** The share button in a top bar, and the copy icon under an answer. */
   copyLink: has(DATA.copyLink),
@@ -140,16 +140,16 @@ export const SELECTOR = {
   newTab: `.${PAGE_CLASSES.nav} .${PAGE_CLASSES.newTab}`,
   navRow: `.${PAGE_CLASSES.nav} a`,
   /** A row in one of the sidebar's groups of tabs. */
-  tabRow: `.${PAGE_CLASSES.tabs} > li > a`,
+  tabRow: `.${PAGE_CLASSES.groupRows} > li > a`,
   rowName: `.${PAGE_CLASSES.rowName}`,
   rowHint: `.${PAGE_CLASSES.rowHint}`,
-  group: `.${PAGE_CLASSES.group}`,
+  group: `.${PAGE_CLASSES.groupHeading}`,
   foldButton: `.${CLASS.foldButton}`,
   /** The links to the other languages' pages. */
-  language: `.${PAGE_CLASSES.lang} a`,
+  language: `.${PAGE_CLASSES.languageSwitch} a`,
   account: `.${PAGE_CLASSES.account}`,
   /** The account row, which opens the account menu. */
-  me: `.${PAGE_CLASSES.me}`,
+  me: `.${PAGE_CLASSES.accountRow}`,
 
   // A tab.
   title: `.${PAGE_CLASSES.title}`,
@@ -178,7 +178,7 @@ export const SELECTOR = {
   /** In "Something else": the question it answers, the email link, and
       the LinkedIn message to copy (its text, and its copy button). */
   askedQuestion: `.${PAGE_CLASSES.askedQuestion}`,
-  mail: has(DATA.mail),
+  mail: has(DATA.emailBody),
   draft: `.${PAGE_CLASSES.draft}`,
   draftText: `.${PAGE_CLASSES.draftText}`,
   copyDraft: has(DATA.copyDraft),
@@ -191,7 +191,7 @@ export const SELECTOR = {
   // The details panel: its toggles (one in each top bar, and its close
   // button), its sections and their headings, and its contact links (the
   // config's panel.context).
-  panelToggles: `#${PAGE_IDS.top} ${has(DATA.panelToggle)}, #${PAGE_IDS.details} ${has(DATA.panelToggle)}`,
+  panelToggles: `#${PAGE_IDS.home} ${has(DATA.panelToggle)}, #${PAGE_IDS.panel} ${has(DATA.panelToggle)}`,
   panelSection: ":scope > section",
   panelHeading: "h2",
   contactLinks: `section[aria-labelledby="${panelId("context")}"] .rows a`,
@@ -208,14 +208,14 @@ export const SELECTOR = {
   logout: has(DATA.logout),
 
   // A link that opens in the viewer.
-  viewLink: `a${has(DATA.view)}`,
+  viewLink: `a${has(DATA.viewerAddress)}`,
 
   // What comes in as it's scrolled to: a quote, a file card.
   comesIntoView: `.${PAGE_CLASSES.quote}, .${PAGE_CLASSES.fileCard}`,
 
   // A picture a visitor plays: its figure, what holds the picture, and its
   // Play button.
-  playedFigure: `.${PAGE_CLASSES.plays}`,
+  playedFigure: `.${PAGE_CLASSES.playedFigure}`,
   stage: `.${PAGE_CLASSES.stage}`,
   playButton: `a${has(DATA.play)}`,
 } as const;

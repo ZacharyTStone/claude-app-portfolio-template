@@ -25,7 +25,7 @@ import type { PageElement } from "./helpers.ts";
 // The names themselves (ids, data-* attributes, classes, the clock's local
 // zone, the menus' letters, the hours of the day) are in src/contracts.
 
-/** PAGE_IDS as selectors: ID.hello is "#hello". */
+/** PAGE_IDS as selectors: ID.greeting is "#hello". */
 export const ID = mapValues(PAGE_IDS, (id) => `#${id}`);
 
 /** The classes of the page's parts (PAGE_CLASSES) and of what the script
@@ -33,7 +33,7 @@ export const ID = mapValues(PAGE_IDS, (id) => `#${id}`);
 export const CLASS = mapValues({ ...PAGE_CLASSES, ...SCRIPT_CLASS }, (name) => `.${name}`);
 
 /** The details panel's sections, in the order the page has them. */
-export const PANEL_SECTIONS = `${ID.details} > section`;
+export const PANEL_SECTIONS = `${ID.panel} > section`;
 
 /** The tab a link on the page opens: "about" for href="#about". */
 export const tabIdOf = (href: string | null): string => (href ?? "").slice(1);
@@ -307,7 +307,7 @@ async function readScriptWords(page: Page): Promise<ScriptStrings> {
     its groups'. A row that opens no thread (a link to another site, say)
     gives none. */
 async function readThreads(page: Page): Promise<Thread[]> {
-  const rows = `${ID.tabs} ${CLASS.nav} a[href^='#'], ${ID.tabs} ${CLASS.tabs} > li > a`;
+  const rows = `${ID.sidebar} ${CLASS.nav} a[href^='#'], ${ID.sidebar} ${CLASS.groupRows} > li > a`;
   const threads: Thread[] = [];
   for (const row of await page.locator(rows).all()) {
     const thread = await readThread(page, tabIdOf(await row.getAttribute("href")));
@@ -341,7 +341,7 @@ async function readThread(page: Page, id: string): Promise<Thread | null> {
 /** The sidebar's groups: each heading, and the tabs its rows open. */
 async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {
   const groups: SidebarGroup[] = [];
-  for (const heading of await page.locator(`${ID.tabs} ${CLASS.group}`).all()) {
+  for (const heading of await page.locator(`${ID.sidebar} ${CLASS.groupHeading}`).all()) {
     const id = (await heading.getAttribute("id")) ?? "";
     const hrefs = await readAttributeOfEach(page, `[id="${id}"] + ul a`, "href");
     groups.push({ id, tabs: hrefs.map(tabIdOf) });
@@ -352,7 +352,7 @@ async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {
 /** The other languages' pages, from the sidebar's links to them. */
 async function readLanguages(page: Page): Promise<LanguagePage[]> {
   const languages: LanguagePage[] = [];
-  for (const link of await page.locator(`${ID.tabs} ${CLASS.lang} a`).all()) {
+  for (const link of await page.locator(`${ID.sidebar} ${CLASS.languageSwitch} a`).all()) {
     languages.push({
       href: (await link.getAttribute("href")) ?? "",
       lang: (await link.getAttribute("hreflang")) ?? "",
@@ -370,9 +370,9 @@ async function readClock(page: Page): Promise<Clock | null> {
   for (const mood of CLOCK_MOODS) moods[mood] = await wording(DATA.mood(mood));
   return {
     zone: (await readAttribute(page, `${SELECTOR.clock} ${SELECTOR.ownerZone}`, DATA.zone)) ?? "UTC",
-    same: await wording(DATA.same),
-    ahead: await wording(DATA.ahead),
-    behind: await wording(DATA.behind),
+    same: await wording(DATA.clockSame),
+    ahead: await wording(DATA.clockAhead),
+    behind: await wording(DATA.clockBehind),
     moods,
   };
 }
@@ -380,7 +380,7 @@ async function readClock(page: Page): Promise<Clock | null> {
 /** The greeting for each part of the day, from the attributes around the
     home screen's greeting. */
 async function readGreetings(page: Page): Promise<Record<GreetingPart, string | null>> {
-  const aroundTheGreeting = page.locator(ID.hello).locator("..");
+  const aroundTheGreeting = page.locator(ID.greeting).locator("..");
   const greetings = {} as Record<GreetingPart, string | null>;
   for (const part of Object.keys(HOURS.greeting) as GreetingPart[]) {
     greetings[part] = await aroundTheGreeting.getAttribute(DATA.greet(part));
@@ -404,7 +404,7 @@ async function readPrompts(page: Page): Promise<Prompt[]> {
     script. It's the build's own (src/config/question-card.ts's QuestionCard),
     so it's read as that, not checked. */
 async function readQuestionCard(page: Page): Promise<QuestionCard> {
-  return JSON.parse((await page.locator(ID.questions).textContent()) ?? "") as QuestionCard;
+  return JSON.parse((await page.locator(ID.questionCardData).textContent()) ?? "") as QuestionCard;
 }
 
 /** The first link in a thread that the viewer opens, or null. */
@@ -416,8 +416,8 @@ async function readViewerLink(page: Page): Promise<ViewerLink | null> {
   return {
     tab: (await tab.getAttribute("id")) ?? "",
     href: (await link.getAttribute("href")) ?? "",
-    shown: (await link.getAttribute(DATA.view)) ?? "",
-    title: (await link.getAttribute(DATA.viewTitle)) ?? "",
+    shown: (await link.getAttribute(DATA.viewerAddress)) ?? "",
+    title: (await link.getAttribute(DATA.viewerTitle)) ?? "",
   };
 }
 

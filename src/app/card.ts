@@ -101,7 +101,7 @@ const cardWords = questionCard.ui;
 
 const card = make("div", {
   class: "ask follow-card",
-  id: PAGE_IDS.followUp,
+  id: PAGE_IDS.questionCard,
   role: "dialog",
   "aria-label": cardWords.followUp,
   hidden: "",
@@ -281,7 +281,7 @@ export function toggleCard(
 
 /** A tab's composer: it opens the card, over itself. */
 export function wireComposer(composer: HTMLElement, tab: HTMLElement): void {
-  asButton(composer, popupAttributes(PAGE_IDS.followUp, "dialog"));
+  asButton(composer, popupAttributes(PAGE_IDS.questionCard, "dialog"));
   composer.addEventListener("click", (event) => {
     event.preventDefault();
     toggleCard(composer, tab);

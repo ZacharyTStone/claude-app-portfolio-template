@@ -121,7 +121,7 @@ export default (site: Site): Check[] => {
       device: { ...desktop, javaScriptEnabled: false },
       async test(page) {
         assert.ok(await page.locator(`#${lastThread.id} ${CLASS.thread}`).isVisible(), "the tab's thread shows");
-        assert.ok(!(await page.locator(ID.top).isVisible()), "the home screen doesn't show behind the tab");
+        assert.ok(!(await page.locator(ID.home).isVisible()), "the home screen doesn't show behind the tab");
         // Its link would close the tab, so there's no skip link.
         await page.keyboard.press("Tab");
         assert.ok(await page.locator(CLASS.skip).isHidden(), "Tab brings up no skip link");
@@ -135,7 +135,7 @@ export default (site: Site): Check[] => {
         const card = page.locator(OPEN_CARD);
         const chat = page.locator(OPEN_CHAT);
         await card.waitFor();
-        await chat.locator(CLASS.menu).click();
+        await chat.locator(CLASS.menuButton).click();
         await sidebarRow(page, A.id).click();
         await waitForTabToOpen(page, A.id);
         // Once the page has caught up (the drawer closes on the hashchange).
@@ -143,14 +143,14 @@ export default (site: Site): Check[] => {
         await page.goBack();
         await chat.waitFor();
         await card.waitFor();
-        assert.ok(await page.locator(ID.top).isHidden(), "Back doesn't show the home screen");
+        assert.ok(await page.locator(ID.home).isHidden(), "Back doesn't show the home screen");
       },
     },
     {
       name: "printed: who this is first, dark text, no 'Something else'",
       url: "./",
       async test(page) {
-        await page.locator(ID.hello).waitFor();
+        await page.locator(ID.greeting).waitFor();
         await page.emulateMedia({ media: "print" });
         assert.ok(await page.locator(CLASS.printHead).isVisible(), "who this is heads the printed page");
         assert.ok(!(await page.locator(ID.asked).isVisible()), 'the "Something else" tab isn\'t printed');
@@ -183,18 +183,18 @@ export default (site: Site): Check[] => {
       device: iPhone,
       async test(page) {
         const drawer = page.locator(OPEN_DRAWER);
-        const menuButton = page.locator(`#${A.id} ${CLASS.menu}`);
-        const menuButtonWithFocus = page.locator(`#${A.id} ${CLASS.menu}:focus`);
+        const menuButton = page.locator(`#${A.id} ${CLASS.menuButton}`);
+        const menuButtonWithFocus = page.locator(`#${A.id} ${CLASS.menuButton}:focus`);
         await menuButton.click();
         await drawer.waitFor();
-        assert.equal(await page.locator(`${ID.tabs} :focus`).count(), 1, "the focus is in the drawer");
+        assert.equal(await page.locator(`${ID.sidebar} :focus`).count(), 1, "the focus is in the drawer");
 
         await page.keyboard.press("Escape");
         assert.equal(await drawer.count(), 0, "Escape closes the drawer");
         await menuButtonWithFocus.waitFor();
 
         await menuButton.click();
-        await page.locator(`${ID.tabs} ${CLASS.drawerClose}`).click();
+        await page.locator(`${ID.sidebar} ${CLASS.drawerClose}`).click();
         assert.equal(await drawer.count(), 0, "the drawer's close button closes it");
         await menuButtonWithFocus.waitFor();
 
@@ -211,8 +211,8 @@ export default (site: Site): Check[] => {
       url: `#${A.id}`,
       device: iPhone,
       async test(page) {
-        const drawerVisibility = () => computedStyle(page.locator(ID.tabs), "visibility");
-        await page.locator(`#${A.id} ${CLASS.menu}`).click();
+        const drawerVisibility = () => computedStyle(page.locator(ID.sidebar), "visibility");
+        await page.locator(`#${A.id} ${CLASS.menuButton}`).click();
         await page.locator(OPEN_DRAWER).waitFor();
         await slowMotionTo(page, SLOW_MOTION_RATE);
         await page.keyboard.press("Escape");

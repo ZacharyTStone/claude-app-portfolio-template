@@ -107,8 +107,8 @@ function chatsList(): HTMLElement {
   const id = groupId(CHATS_GROUP);
   const list = document.getElementById(id)?.nextElementSibling;
   if (list instanceof HTMLElement) return list;
-  const heading = make("p", { class: PAGE_CLASSES.group, id }, words.chats);
-  const made = make("ul", { class: PAGE_CLASSES.tabs, "aria-labelledby": id });
+  const heading = make("p", { class: PAGE_CLASSES.groupHeading, id }, words.chats);
+  const made = make("ul", { class: PAGE_CLASSES.groupRows, "aria-labelledby": id });
   find(side, SELECTOR.account).before(heading, made);
   foldable(heading);
   return made;

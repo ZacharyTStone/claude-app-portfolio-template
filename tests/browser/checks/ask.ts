@@ -98,7 +98,7 @@ async function checkQuestionSent(page: Page, scope: string, typed: string, sent:
 
 export default (site: Site): Check[] => {
   const { A, B, C, words, noAsk, askUrl, personalTopic, hiddenAnswers, shownAnswers } = site;
-  const mail = `[${DATA.mail}]`;
+  const mail = `[${DATA.emailBody}]`;
   const personal = site.questions.personal[0];
   return [
     {
@@ -180,7 +180,7 @@ export default (site: Site): Check[] => {
         await askInNewChat(page, "A question with a reply");
         await page.locator(`${OPEN_CHAT} ${CLASS.thread} ${CLASS.reply}`).waitFor();
         await revisit(page, site.url("./"));
-        await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first().click();
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
         await checkReplied(page, OPEN_CHAT, from);
       },
@@ -195,7 +195,7 @@ export default (site: Site): Check[] => {
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
         await checkReplied(page, OPEN_CHAT, from, CITED);
         await revisit(page, site.url("./"));
-        await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first().click();
         await checkReplied(page, OPEN_CHAT, from, CITED);
       },
     },
@@ -287,7 +287,7 @@ export default (site: Site): Check[] => {
         await askInNewChat(page, typed);
         await checkQuestionSent(page, OPEN_CHAT, typed, toOwner);
         await revisit(page, site.url("./"));
-        await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first().click();
         await checkQuestionSent(page, OPEN_CHAT, typed, toOwner);
       },
     },
@@ -477,9 +477,9 @@ export default (site: Site): Check[] => {
         await eventually(async () => assert.deepEqual(await messages(), [q, a, q, a]));
         // A third, then another tab before its reply is in, then back.
         await askIn(page, chat, "Third?");
-        await page.locator(`${ID.tabs} a[href="#${C?.id}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href="#${C?.id}"]`).first().click();
         await page.locator(`#${C?.id}:target`).waitFor();
-        await page.locator(`${ID.tabs} a[href="#${chat}"]`).click();
+        await page.locator(`${ID.sidebar} a[href="#${chat}"]`).click();
         await eventually(async () => assert.deepEqual(await messages(), [q, a, q, a, q, a]));
       },
     },
@@ -493,7 +493,7 @@ export default (site: Site): Check[] => {
           : null,
       async test(page) {
         await page.locator(`#${A.id} ${CLASS.composer}`).click();
-        const card = page.locator(ID.followUp);
+        const card = page.locator(ID.questionCard);
         if (personalTopic && shownAnswers.length > 1) {
           const topic = card
             .locator(`${CLASS.options} li > *`)
@@ -529,10 +529,10 @@ export default (site: Site): Check[] => {
         }, `${CLASS.thread} > ${CLASS.sent}`);
         assert.equal(sentAtOnce, 0, "nothing is sent anywhere");
         await page.locator(`#${tab}:target`).waitFor();
-        assert.ok(await page.locator(ID.followUp).isHidden(), "the card closes");
+        assert.ok(await page.locator(ID.questionCard).isHidden(), "the card closes");
         // In a chat, it's a message: the thread's first question, then its answers.
         await page.locator(`${CLASS.nav} ${CLASS.newTab}`).click();
-        await page.locator(`${ID.followUp}:not([hidden])`).waitFor();
+        await page.locator(`${ID.questionCard}:not([hidden])`).waitFor();
         const sent = await pickFirstTab(page);
         const q = page.locator(`#${sent} ${CLASS.thread} > ${CLASS.question}`).first();
         const question = ((await q.textContent()) ?? "").replace(
@@ -561,8 +561,8 @@ export default (site: Site): Check[] => {
         await askReturns(page, askUrl, { id: null });
         await askIn(page, A.id, "Could you start in spring?");
         await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.answer}${CLASS.sent}`).first().waitFor();
-        await page.locator(`${ID.tabs} a[href="#${C?.id}"]`).first().click();
-        await page.locator(`${ID.tabs} a[href="#${A.id}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href="#${C?.id}"]`).first().click();
+        await page.locator(`${ID.sidebar} a[href="#${A.id}"]`).first().click();
         await eventually(async () =>
           assert.equal(await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.sent}`).count(), 0),
         );

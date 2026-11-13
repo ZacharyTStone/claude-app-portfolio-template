@@ -100,7 +100,7 @@ export default (site: Site): Check[] => {
         await askInNewChatAndGetAReply(page, "Another question");
         assert.equal(await page.locator(CHAT_ROWS).count(), 1, "the next chat is listed");
         await page.reload();
-        await page.locator(ID.hello).waitFor();
+        await page.locator(ID.greeting).waitFor();
         await checkNoChatIsLeft(page);
       },
     },
@@ -108,7 +108,7 @@ export default (site: Site): Check[] => {
       name: '"New tab" clicked in a new chat leaves its question card open',
       url: "./",
       async test(page) {
-        const card = page.locator(ID.followUp);
+        const card = page.locator(ID.questionCard);
         const newTab = page.locator(`${CLASS.nav} ${CLASS.newTab}`);
         // The first opens the chat, and its card once it's open.
         await newTab.click();
@@ -125,7 +125,7 @@ export default (site: Site): Check[] => {
       url: "./",
       device: iPhone,
       async test(page) {
-        const card = page.locator(ID.followUp);
+        const card = page.locator(ID.questionCard);
         const chat = page.locator(OPEN_CHAT);
         await card.waitFor();
         const drawerRows = [
@@ -133,7 +133,7 @@ export default (site: Site): Check[] => {
           { row: CLASS.wordmark, called: "the name" },
         ];
         for (const { row, called } of drawerRows) {
-          await chat.locator(CLASS.menu).click();
+          await chat.locator(CLASS.menuButton).click();
           await page.locator(`${OPEN_DRAWER} ${row}`).click();
           await chat.waitFor();
           assert.ok(await card.isVisible(), `the card is open after a tap on ${called} in the drawer`);
@@ -148,7 +148,7 @@ export default (site: Site): Check[] => {
         const chevronWithFocus = page.locator(`#${A.id} ${CLASS.titleMenuButton}:focus`);
         // A row of the thread's menu, then a row of its submenu.
         await chevron.click();
-        await page.locator(`${ID.titleMenu} [${DATA.key}="${MENU_KEYS.copyLink}"]`).click();
+        await page.locator(`${ID.titleMenu} [${DATA.menuKey}="${MENU_KEYS.copyLink}"]`).click();
         await chevronWithFocus.waitFor();
         await chevron.click();
         await page.locator(`${ID.titleMenu} ${SUBMENU_ROW}`).click();
@@ -174,10 +174,10 @@ export default (site: Site): Check[] => {
         await page.keyboard.press("Escape");
 
         await page.locator(`#${A.id} ${CLASS.composer}`).click();
-        const cardBox = page.locator(`${ID.followUp} input`);
+        const cardBox = page.locator(`${ID.questionCard} input`);
         await cardBox.focus();
         await cardBox.dispatchEvent("keydown", { key: "Escape", ...STILL_COMPOSING });
-        assert.ok(await page.locator(ID.followUp).isVisible(), "the card is still open");
+        assert.ok(await page.locator(ID.questionCard).isVisible(), "the card is still open");
       },
     },
     {
@@ -230,14 +230,14 @@ export default (site: Site): Check[] => {
         await revisit(page, site.url(`#${A.id}`));
         const menu = page.locator(ID.accountMenu);
         const languages = menu.locator(CLASS.submenu);
-        await page.locator(CLASS.me).click();
+        await page.locator(CLASS.accountRow).click();
         await openSubmenuByKeyboard(page, menu);
         // Out of the menu while its submenu is open, and to another tab.
         await page.keyboard.press("Tab");
         await sidebarRow(page, C.id).click();
         await waitForTabToOpen(page, C.id);
 
-        await page.locator(CLASS.me).click();
+        await page.locator(CLASS.accountRow).click();
         assert.ok(await languages.isHidden(), "the submenu closed with its menu");
         await openSubmenuByKeyboard(page, menu);
         const hrefs = await attributeOfEach(languages.locator("a"), "href");
@@ -263,7 +263,7 @@ export default (site: Site): Check[] => {
       name: "the account menu: the time where you are, the language row keeping the tab, and Log out",
       url: `#${A.id}`,
       async test(page) {
-        const accountRow = page.locator(CLASS.me);
+        const accountRow = page.locator(CLASS.accountRow);
         const menu = page.locator(ID.accountMenu);
         await accountRow.click();
         await menu.waitFor();
@@ -273,7 +273,11 @@ export default (site: Site): Check[] => {
         await checkLanguageLinksKeepTheOpenTab(menu, site, A.id);
         await page.keyboard.press("Escape");
         assert.ok(await menu.isHidden(), "Escape closes the menu");
-        assert.equal(await page.locator(`${CLASS.me}:focus`).count(), 1, "the focus is back on the account row");
+        assert.equal(
+          await page.locator(`${CLASS.accountRow}:focus`).count(),
+          1,
+          "the focus is back on the account row",
+        );
 
         // "Log out" really does, and "Log back in" goes home.
         await accountRow.click();
@@ -296,9 +300,9 @@ export default (site: Site): Check[] => {
     Rename, ArrowDown takes it to Copy link, and End to "Jump to ›". */
 async function checkArrowKeysGoFromRenameToJumpTo(page: Page): Promise<void> {
   const focused = page.locator(":focus");
-  assert.equal(await focused.getAttribute(DATA.key), MENU_KEYS.rename, "the menu opens with the focus on Rename");
+  assert.equal(await focused.getAttribute(DATA.menuKey), MENU_KEYS.rename, "the menu opens with the focus on Rename");
   await page.keyboard.press("ArrowDown");
-  assert.equal(await focused.getAttribute(DATA.key), MENU_KEYS.copyLink, "ArrowDown goes on to Copy link");
+  assert.equal(await focused.getAttribute(DATA.menuKey), MENU_KEYS.copyLink, "ArrowDown goes on to Copy link");
   await page.keyboard.press("End");
   assert.equal(await focused.getAttribute("aria-haspopup"), "menu", "End goes to the last row, Jump to ›");
 }
@@ -367,7 +371,7 @@ async function checkChatIsWholeAndNamesTheWindow(page: Page, site: Site, questio
 async function deleteFirstChatFromItsRow(page: Page, deletedToast: string): Promise<void> {
   await page.locator(CHAT_ROWS).first().hover();
   await page.locator(`${CHATS_HEADING} + ul ${CLASS.rowMore}`).first().click();
-  await page.locator(`${ID.rowMenu} [${DATA.key}="${MENU_KEYS.delete}"]`).click();
+  await page.locator(`${ID.rowMenu} [${DATA.menuKey}="${MENU_KEYS.delete}"]`).click();
   await page.locator(`${CLASS.toast}${CLASS.show}`).filter({ hasText: deletedToast }).waitFor();
 }
 
@@ -393,7 +397,7 @@ async function serveHomeWithOneMoreLanguage(page: Page, home: string): Promise<v
     const response = await route.fetch();
     const html = await response.text();
     // The first link in the sidebar's list of languages, whole: <a …>…</a>.
-    const start = html.indexOf(">", html.indexOf(`class="${PAGE_CLASSES.lang}"`)) + 1;
+    const start = html.indexOf(">", html.indexOf(`class="${PAGE_CLASSES.languageSwitch}"`)) + 1;
     const link = html.slice(start, html.indexOf("</a>", start) + "</a>".length);
     const anotherLanguage = link.replace(HREFLANG, 'hreflang="xx"').replace(HREF, 'href="/xx/"');
     await route.fulfill({ response, body: html.replace(link, link + anotherLanguage) });

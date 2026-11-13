@@ -64,8 +64,8 @@ function showTimes(clock: HTMLElement, now: Date): void {
     "Same time", or "{n}h ahead" or "{n}h behind" with the hours put in.
     Nothing when the clock doesn't carry the words. */
 function hoursApartNote(clock: HTMLElement, hoursYouAreAhead: number): string | null | undefined {
-  if (hoursYouAreAhead === 0) return clock.getAttribute(DATA.same);
-  const wording = clock.getAttribute(hoursYouAreAhead > 0 ? DATA.ahead : DATA.behind);
+  if (hoursYouAreAhead === 0) return clock.getAttribute(DATA.clockSame);
+  const wording = clock.getAttribute(hoursYouAreAhead > 0 ? DATA.clockAhead : DATA.clockBehind);
   return wording?.replace("{n}", String(Math.abs(hoursYouAreAhead)));
 }
 
@@ -91,7 +91,7 @@ const languageRows = (hash: string): HTMLElement[] =>
   findAll(side, SELECTOR.language).map((languageLink) => {
     const language = languageLink.getAttribute("hreflang") ?? "";
     // The language's name in itself, if the link carries it.
-    const name = languageLink.getAttribute(DATA.name) ?? languageLink.textContent;
+    const name = languageLink.getAttribute(DATA.languageName) ?? languageLink.textContent;
     return menuRow(name, {
       href: `${languageLink.getAttribute("href")}${hash}`,
       hreflang: language,

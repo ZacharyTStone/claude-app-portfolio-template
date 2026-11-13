@@ -14,5 +14,5 @@ export const flag = (name: string): Record<string, string> => ({ [name]: "" });
     viewer calls it. Nothing for any other link, which opens as links do. */
 export function viewerLink(href: string, title: string): Record<string, string> {
   const frameAddress = site.config.viewer?.[href];
-  return frameAddress ? { [DATA.view]: frameAddress, [DATA.viewTitle]: title } : {};
+  return frameAddress ? { [DATA.viewerAddress]: frameAddress, [DATA.viewerTitle]: title } : {};
 }

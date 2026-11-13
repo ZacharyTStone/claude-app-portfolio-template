@@ -44,7 +44,7 @@ const Stage = playsForSeconds ? "div" : Fragment;
 const stageAttributes = playsForSeconds ? { class: PAGE_CLASSES.stage } : {};
 ---
 
-<figure class:list={[PAGE_CLASSES.figure, "shot", { round, [PAGE_CLASSES.plays]: playsForSeconds }]}>
+<figure class:list={[PAGE_CLASSES.figure, "shot", { round, [PAGE_CLASSES.playedFigure]: playsForSeconds }]}>
   <Stage {...stageAttributes}>
     <Frame {...frameAttributes}>
       {still && !playsForSeconds ? (

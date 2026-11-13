@@ -34,23 +34,23 @@ export const DATA = {
       icon under an answer: both copy the tab's address. */
   copyLink: "data-copy-link",
   /** On a language's link in the sidebar: the language's name, in itself. */
-  name: "data-name",
+  languageName: "data-name",
   /** On a chat's tab (the browser code makes chats): the chat's id. The
       stylesheet looks for it too. */
   chat: "data-chat",
   /** On a menu row: the letter that picks it (MENU_KEYS). */
-  key: "data-key",
+  menuKey: "data-key",
   /** No value. Marks the account menu's clock, which also has the next
       four: the wording the browser code writes the clock's note from. */
   clock: "data-clock",
   /** On the clock: what it says when your time and the visitor's are the
       same. */
-  same: "data-same",
+  clockSame: "data-same",
   /** On the clock: what it says when your time is ahead of the visitor's,
       with {n} for the hours between. */
-  ahead: "data-ahead",
+  clockAhead: "data-ahead",
   /** On the clock: what it says when your time is behind theirs. */
-  behind: "data-behind",
+  clockBehind: "data-behind",
   /** On the clock: what you're likely doing at each part of your day
       (HOURS.mood), as data-mood-morning and so on. */
   mood: (mood: ClockMood) => `data-mood-${mood}` as const,
@@ -70,19 +70,19 @@ export const DATA = {
   /** In "Something else", on the link that opens an email: the email's
       body as the config has it, before the question is put in. It is also
       how the browser code finds the link. */
-  mail: "data-mail",
+  emailBody: "data-mail",
   /** On the same link: the email's subject. */
-  subject: "data-subject",
+  emailSubject: "data-subject",
   /** In "Something else", around the LinkedIn message to copy: its text as
       the config has it, before the question is put in. */
-  draft: "data-draft",
+  messageDraft: "data-draft",
   /** No value. Marks that message's copy button. */
   copyDraft: "data-copy-draft",
   /** On a link that opens in the viewer (the config's `viewer`): the
       address the viewer shows in its frame. */
-  view: "data-view",
+  viewerAddress: "data-view",
   /** On the same link: what the viewer calls what it shows. */
-  viewTitle: "data-view-title",
+  viewerTitle: "data-view-title",
   /** On the Play button of a picture a visitor plays (a link to the
       picture as it moves, which is where it goes without JavaScript): how
       many seconds it plays, as the picture's own file says. */

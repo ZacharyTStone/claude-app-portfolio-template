@@ -62,7 +62,7 @@ if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
   </div>
 
   <!-- The question card's topics and the personal answers, for the script. -->
-  <script type="application/json" id={PAGE_IDS.questions} set:html={scriptJson(lang.questions)} />
+  <script type="application/json" id={PAGE_IDS.questionCardData} set:html={scriptJson(lang.questions)} />
   <script>
     import "../app/main.ts";
   </script>

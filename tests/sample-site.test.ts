@@ -127,7 +127,7 @@ test("the page's policy lets frames come from the viewer's site and no other, an
   for (const file of languagePageFiles) {
     const html = readBuiltFile(file);
     for (const address of frameAddresses) {
-      assert.ok(html.includes(`${DATA.view}="${address}"`), `${file} marks ${address}`);
+      assert.ok(html.includes(`${DATA.viewerAddress}="${address}"`), `${file} marks ${address}`);
     }
   }
 });

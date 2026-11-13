@@ -28,7 +28,7 @@ import { CLASS, ID, PANEL_SECTIONS, type Site } from "../site.ts";
 
 /** The home screen's box to type a question in, and the same box once it's
     ready to type in: the focus is in it. */
-const HOME_BOX = `${ID.top} ${CLASS.homeAsk} input`;
+const HOME_BOX = `${ID.home} ${CLASS.homeAsk} input`;
 const READY_HOME_BOX = `${HOME_BOX}:focus`;
 
 /** How long Share has to say its own name again after "Copied", in
@@ -46,11 +46,11 @@ export default (site: Site): Check[] => {
       name: "home: the greeting and one line, and the details panel",
       url: "./",
       async test(page) {
-        await page.locator(ID.hello).waitFor();
-        assert.equal(await page.locator(`${ID.top} ${CLASS.intro}`).count(), 1, "one line under the greeting");
+        await page.locator(ID.greeting).waitFor();
+        assert.equal(await page.locator(`${ID.home} ${CLASS.intro}`).count(), 1, "one line under the greeting");
         // A site may leave a part of the day without a greeting of its own.
         if (Object.values(site.greetings).every(Boolean)) {
-          const greeting = squash(await page.locator(ID.hello).textContent());
+          const greeting = squash(await page.locator(ID.greeting).textContent());
           assert.ok(
             greetingsAroundNow(site).includes(greeting),
             `the greeting is the one for the visitor's time of day, not "${greeting}"`,
@@ -91,7 +91,7 @@ export default (site: Site): Check[] => {
         assert.equal(await page.locator(HOME_BOX).inputValue(), "", "back on the home screen, its box is empty");
         // As it is from a thread's tab, by the name at the top.
         await page.goto(site.url(`#${A.id}`));
-        await page.locator(`${ID.tabs} ${CLASS.wordmark}`).click();
+        await page.locator(`${ID.sidebar} ${CLASS.wordmark}`).click();
         await page.locator(READY_HOME_BOX).waitFor();
       },
     },
@@ -117,7 +117,7 @@ export default (site: Site): Check[] => {
         // /ask would fail, and isn't asked: the page knows the answer.
         const askRequests: Request[] = [];
         await askReturns(page, site.askUrl, "fail", askRequests);
-        await page.locator(`${ID.top} [${DATA.prompt}="${prompt.answer}"]`).first().click();
+        await page.locator(`${ID.home} [${DATA.prompt}="${prompt.answer}"]`).first().click();
 
         await page.locator(OPEN_CHAT).waitFor();
         const thread = `${OPEN_CHAT} ${CLASS.thread}`;
@@ -187,7 +187,7 @@ export default (site: Site): Check[] => {
         }
 
         await page.locator(`#${A.id} ${CLASS.titleMenuButton}`).click();
-        await page.locator(`${ID.titleMenu} [${DATA.key}="${MENU_KEYS.copyLink}"]`).click();
+        await page.locator(`${ID.titleMenu} [${DATA.menuKey}="${MENU_KEYS.copyLink}"]`).click();
         await page.locator(`${CLASS.toast}${CLASS.show}`).filter({ hasText: words.copied }).waitFor();
         // "Copied" doesn't stay on Share.
         await share.filter({ hasText: shareName }).waitFor({ timeout: SHARE_NAMED_AGAIN_WITHIN_MS });
@@ -212,7 +212,7 @@ function answerNamed(page: Page, answerId: string): Locator {
 /** Pastes the clipboard into the question card's box (the card opened from
     a tab's composer), closes the card again, and says what was pasted. */
 async function pasteIntoTheCard(page: Page, tab: string): Promise<string> {
-  const cardBox = page.locator(`${ID.followUp} input`);
+  const cardBox = page.locator(`${ID.questionCard} input`);
   await page.locator(`#${tab} ${CLASS.composer}`).click();
   await cardBox.focus();
   await page.keyboard.press("ControlOrMeta+V");

@@ -13,7 +13,7 @@ const MENU_ROW = '[role="menuitem"]';
 const ENABLED_MENU_ROW = `${MENU_ROW}:not([aria-disabled="true"])`;
 
 /** One letter, "r" or "R": the key that picks the row with that letter
-    (DATA.key). */
+    (DATA.menuKey). */
 const LETTER_KEY = /^[a-z]$/i;
 
 /** The menu that's open, and the button it was opened from. */
@@ -103,7 +103,7 @@ function pressLinkBySpace(key: string): boolean {
     Ctrl or Cmd held it's a shortcut of the browser's. */
 function pressRowByLetter(event: KeyboardEvent, rows: HTMLElement[]): boolean {
   if (!LETTER_KEY.test(event.key) || event.altKey || event.ctrlKey || event.metaKey) return false;
-  const rowWithKey = rows.find((row) => row.getAttribute(DATA.key) === event.key.toLowerCase());
+  const rowWithKey = rows.find((row) => row.getAttribute(DATA.menuKey) === event.key.toLowerCase());
   rowWithKey?.click();
   return rowWithKey !== undefined;
 }
@@ -159,7 +159,7 @@ export function menuRow(label: string, { key, ...attributes }: MenuRowOptions = 
       type: isLink ? null : "button",
       role: "menuitem",
       tabindex: "-1",
-      [DATA.key]: key,
+      [DATA.menuKey]: key,
       ...attributes,
     },
     make("span", { class: "opt" }, label),

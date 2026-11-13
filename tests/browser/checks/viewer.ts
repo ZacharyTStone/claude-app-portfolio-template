@@ -35,7 +35,7 @@ export default (site: Site): Check[] => {
   const skip = site.viewer ? null : "the site has no viewer";
   const { tab, href, shown, title } = viewerLink;
   /** The link, in its tab. */
-  const link = (page: Page) => page.locator(`#${tab} a[${DATA.view}="${shown}"]`).first();
+  const link = (page: Page) => page.locator(`#${tab} a[${DATA.viewerAddress}="${shown}"]`).first();
   /** Clicks the link, with its site and the one the viewer frames stood in
       for, and waits for the viewer. */
   async function openViewer(page: Page): Promise<Locator> {
@@ -81,7 +81,7 @@ export default (site: Site): Check[] => {
           "the framed site isn't told where the visitor came from",
         );
         // It's in the details panel's place, and "Open in a new tab" is the link as it was.
-        assert.equal(await page.locator(ID.details).isVisible(), false, "the details panel makes room for the viewer");
+        assert.equal(await page.locator(ID.panel).isVisible(), false, "the details panel makes room for the viewer");
         const openInNewTab = viewer.locator(CLASS.viewerOpen);
         assert.equal(await openInNewTab.getAttribute("href"), href, '"Open in a new tab" goes where the link goes');
         assert.equal(await openInNewTab.getAttribute("target"), "_blank", '"Open in a new tab" opens a new tab');
@@ -130,7 +130,7 @@ export default (site: Site): Check[] => {
         await openViewer(page);
         await page.locator(`#${tab} [${DATA.panelToggle}]`).click();
         await page.locator(CLASS.viewer).waitFor({ state: "hidden" });
-        await page.locator(ID.details).waitFor({ state: "visible" });
+        await page.locator(ID.panel).waitFor({ state: "visible" });
       },
     },
     {

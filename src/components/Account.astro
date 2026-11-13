@@ -28,9 +28,9 @@ const otherLanguage = site.codes.find((code) => code !== pageLanguage);
 // For the script: how far apart your time and the visitor's are, and a
 // mood for each part of your day.
 const clockWording = {
-  [DATA.ahead]: clock.ahead,
-  [DATA.behind]: clock.behind,
-  [DATA.same]: clock.same,
+  [DATA.clockAhead]: clock.ahead,
+  [DATA.clockBehind]: clock.behind,
+  [DATA.clockSame]: clock.same,
   ...Object.fromEntries(CLOCK_MOODS.map((mood) => [DATA.mood(mood), clock.moods[mood]])),
 };
 // For the script: what the goodbye says when "Log out" is pressed.
@@ -42,7 +42,7 @@ const goodbyeWording = {
 ---
 
 <div class={PAGE_CLASSES.account}>
-  <div class={PAGE_CLASSES.me}>
+  <div class={PAGE_CLASSES.accountRow}>
     <span class="avatar" aria-hidden="true">
       {initial}
     </span>

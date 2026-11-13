@@ -139,13 +139,13 @@ function somethingElse(question: string, blocked: boolean): Element {
   const mail = find(answer, SELECTOR.mail);
   // The address, without the subject and body the page gives it.
   const [address = ""] = (find(askedTab, SELECTOR.mail).getAttribute("href") ?? "").split("?");
-  const subject = encodeURIComponent(mail.getAttribute(DATA.subject) ?? "");
-  const body = encodeURIComponent(fill(mail.getAttribute(DATA.mail) ?? ""));
+  const subject = encodeURIComponent(mail.getAttribute(DATA.emailSubject) ?? "");
+  const body = encodeURIComponent(fill(mail.getAttribute(DATA.emailBody) ?? ""));
   mail.setAttribute("href", `${address}?subject=${subject}&body=${body}`);
   const draft = answer.querySelector(SELECTOR.draft);
   if (draft instanceof HTMLElement && blocked) draft.remove();
   else if (draft instanceof HTMLElement)
-    find(draft, SELECTOR.draftText).textContent = fill(draft.getAttribute(DATA.draft) ?? "");
+    find(draft, SELECTOR.draftText).textContent = fill(draft.getAttribute(DATA.messageDraft) ?? "");
   return answer;
 }
 

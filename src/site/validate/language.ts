@@ -291,7 +291,7 @@ export function checkTextLinksOpenTabs({ language, threadIds, problemUnless }: L
     if (!href.startsWith("#")) continue;
     const tabId = href.slice(1);
     problemUnless(
-      threadIds.has(tabId) || tabId === PAGE_IDS.top || personalTabIds.includes(tabId),
+      threadIds.has(tabId) || tabId === PAGE_IDS.home || personalTabIds.includes(tabId),
       `a link in the text points at #${tabId}, which isn't a thread`,
     );
   }

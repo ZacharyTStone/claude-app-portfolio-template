@@ -134,7 +134,7 @@ initPlay();
 // Every tab in the page, the personal ones included, and the home screen's
 // top bar.
 findAll(document, SELECTOR.tab).forEach(wireTab);
-findAll(document, `#${PAGE_IDS.top} ${SELECTOR.menuButton}`).forEach(wireMenuButton);
+findAll(document, `#${PAGE_IDS.home} ${SELECTOR.menuButton}`).forEach(wireMenuButton);
 findAll(document, SELECTOR.panelToggles).forEach(wirePanelToggle);
 
 // The sidebar's groups, the panel, and a "…" on each row.

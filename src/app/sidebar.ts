@@ -40,7 +40,7 @@ function openDrawer(): void {
 
 /** The menu button of the top bar that's showing (the open tab's, or the
     home screen's): it opens the drawer, or brings the sidebar back. */
-const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.top), SELECTOR.menuButton);
+const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.home), SELECTOR.menuButton);
 
 /** Closes the drawer. Focus, if it was in the drawer, goes back to the
     menu button. */
@@ -105,7 +105,7 @@ const resizer = make("div", {
   role: "separator",
   tabindex: "0",
   "aria-orientation": "vertical",
-  "aria-controls": PAGE_IDS.tabs,
+  "aria-controls": PAGE_IDS.sidebar,
   "aria-label": words.resize,
   "aria-valuemin": String(SIZE.sidebarMin),
 });
