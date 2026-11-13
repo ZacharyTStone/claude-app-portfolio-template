@@ -2,6 +2,7 @@
    answered only by an answer that names it too: any other would read as a
    "no" the site never said. */
 import type { AskAnswer } from "../../contracts/ask.ts";
+import { hasCapitalInside, hasDigit, hasLetter, startsWithCapital, withoutDotsAndDashes } from "./text/words.ts";
 
 // Words that start a question, or are capitalised in one, without naming
 // anything the answer has to have.
@@ -50,10 +51,9 @@ export function namedIn(question: string, owner: string): string[] {
     const word = match[0];
     const term = comparable(word);
     if (term.length < MIN_NAME_LENGTH || ownerWords.has(term) || PLAIN_WORDS.has(term)) continue;
-    const hasCapitalInside = /\p{Lu}/u.test(word.slice(1));
-    const hasLettersAndDigits = /\p{L}/u.test(word) && /\p{N}/u.test(word);
-    const isCapitalisedMidSentence = /^\p{Lu}/u.test(word) && !startsSentence(text, match.index);
-    if (hasCapitalInside || hasLettersAndDigits || isCapitalisedMidSentence) named.add(term);
+    const hasLettersAndDigits = hasLetter(word) && hasDigit(word);
+    const isCapitalisedMidSentence = startsWithCapital(word) && !startsSentence(text, match.index);
+    if (hasCapitalInside(word) || hasLettersAndDigits || isCapitalisedMidSentence) named.add(term);
   }
   return [...named];
 }
@@ -77,8 +77,6 @@ function wordsIn(text: string): Set<string> {
 // the same thing ("PostgreSQL" for "Postgres"). With any other ending it's
 // another thing: "JavaScript" isn't "Java".
 const SAME_THING_ENDINGS = ["s", "es", "js", "ql", "sql"];
-
-const withoutDotsAndDashes = (word: string) => word.replace(/[.-]/g, "");
 
 /** The shortest name a slip of the keyboard is forgiven in. A shorter one
     is too near another thing's: "Vue" and "Vuex", "Nest" and "Next". */
