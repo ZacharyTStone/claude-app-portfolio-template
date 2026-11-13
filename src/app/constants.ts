@@ -5,8 +5,6 @@
 export const STORAGE = {
   /** localStorage: the chats, per language (this, then the page's lang). */
   chats: "portfolio:chats:",
-  /** localStorage: the names tabs were given, per language. */
-  names: "portfolio:names:",
   /** localStorage: the ids of the folded headings. */
   folded: "portfolio:folded",
   /** localStorage: the sidebar's width, once it's been resized. */
@@ -69,10 +67,6 @@ export const SIZE = {
   /** How far below the top a question lands: one jumped to, or one just
       sent, once its reply is in. */
   jumpMargin: 16,
-  /** A tab's name: its longest, and the box's least width while it's
-      renamed (both in characters). */
-  nameMax: 60,
-  nameBox: 6,
   /** From this width the viewer is beside the conversation, in the panel's
       place; below it, it covers the screen (the stylesheet's breakpoint). */
   viewerBeside: 1200,
