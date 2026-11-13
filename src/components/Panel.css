@@ -9,7 +9,7 @@
 .panel-close {
   position: absolute;
   z-index: 2;
-  top: calc((var(--topbar-h) - 32px) / 2);
+  top: calc((var(--topbar-h) - var(--control)) / 2);
   right: 8px;
 }
 .panel section + section {
@@ -27,8 +27,8 @@
 }
 /* The first is level with the top bar's buttons, as tall as theirs. */
 .panel section:first-of-type h2 {
-  height: 32px;
-  margin-block: calc((var(--topbar-h) - 32px) / 2) calc((var(--topbar-h) - 32px) / 2 + 2px);
+  height: var(--control);
+  margin-block: calc((var(--topbar-h) - var(--control)) / 2) calc((var(--topbar-h) - var(--control)) / 2 + 2px);
   padding-block: 0;
 }
 /* The heading's hover reaches past its words. */

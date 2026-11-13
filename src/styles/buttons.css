@@ -2,7 +2,7 @@
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  height: 32px;
+  height: var(--control);
   padding: 0 10px;
   border: 0;
   border-radius: 8px;
@@ -13,8 +13,8 @@
 .icon-button {
   display: inline-grid;
   place-items: center;
-  width: 32px;
-  height: 32px;
+  width: var(--control);
+  height: var(--control);
   padding: 0;
   border: 0;
   border-radius: 8px;

@@ -2,7 +2,7 @@
   position: fixed;
   left: 50%;
   bottom: 96px;
-  z-index: 40;
+  z-index: var(--layer-toast);
   max-width: calc(100vw - 32px);
   padding: 8px 14px;
   border-radius: 10px;

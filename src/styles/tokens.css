@@ -17,6 +17,7 @@
   --composer-hover: #363636;
   --menu: #2b2b2b;
   --rim: rgb(255 255 255 / 0.08); /* the edge of what's raised: a menu, the card, the composer */
+  --popup-shadow: 0 12px 40px rgb(0 0 0 / 0.5), inset 0 0 0 1px var(--rim);
   --composer-shadow: 0 4px 20px 0 rgb(0 0 0 / 0.075), inset 0 0 0 1px var(--rim);
   --code-bg: #1f1f1f;
   --code-edge: rgb(255 255 255 / 0.2);
@@ -32,9 +33,20 @@
   --sidebar-w: clamp(260px, 24vw, 385px);
   --panel-w: 320px;
   --topbar-h: 45px;
+  --control: 32px;
+  --control-small: 28px;
   --column: 824px;
   --gutter: 24px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* What lies over what, from the page up. */
+  --layer-resizer: 12;
+  --layer-drawer-backdrop: 15;
+  --layer-drawer: 20;
+  --layer-popup: 25;
+  --layer-over-popups: 30;
+  --layer-toast: 40;
+  --layer-goodbye: 60;
   /* A played picture comes in over its still, and gives way to it again, for this long. */
   --play-fade: 300ms;
 

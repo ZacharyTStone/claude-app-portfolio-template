@@ -4,6 +4,6 @@
   margin: -4px 0 0 -6px;
 }
 .message-actions .icon-button {
-  width: 28px;
-  height: 28px;
+  width: var(--control-small);
+  height: var(--control-small);
 }

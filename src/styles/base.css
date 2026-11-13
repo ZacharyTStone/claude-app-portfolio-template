@@ -71,7 +71,7 @@ html:not(.js) [data-js-only] {
   position: absolute;
   left: -9999px;
   top: 8px;
-  z-index: 30;
+  z-index: var(--layer-over-popups);
   padding: 6px 12px;
   border-radius: 8px;
   background: var(--text);

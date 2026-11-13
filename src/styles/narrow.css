@@ -21,7 +21,7 @@
   .side {
     position: fixed;
     inset: 0 auto 0 0;
-    z-index: 20;
+    z-index: var(--layer-drawer);
     width: min(320px, 86vw);
     translate: -100% 0;
     box-shadow: 0 0 40px rgb(0 0 0 / 0.5);
@@ -41,7 +41,7 @@
     content: "";
     position: fixed;
     inset: 0;
-    z-index: 15;
+    z-index: var(--layer-drawer-backdrop);
     background: rgb(0 0 0 / 0.5);
     opacity: 0;
     pointer-events: none;
@@ -79,7 +79,7 @@
     white-space: nowrap;
   }
   .topbar .actions .ghost-button {
-    width: 32px;
+    width: var(--control);
     padding: 0;
     justify-content: center;
   }
@@ -133,7 +133,7 @@
   .viewer {
     position: fixed;
     inset: 0;
-    z-index: 30;
+    z-index: var(--layer-over-popups);
     border-left: 0;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   }

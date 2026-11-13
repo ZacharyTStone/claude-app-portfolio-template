@@ -6,8 +6,8 @@
   position: absolute;
   top: 50%;
   right: 6px;
-  width: 28px;
-  height: 28px;
+  width: var(--control-small);
+  height: var(--control-small);
   translate: 0 -50%;
   opacity: 0;
 }
@@ -52,8 +52,8 @@
 }
 
 .title-menu-button {
-  width: 28px;
-  height: 28px;
+  width: var(--control-small);
+  height: var(--control-small);
   margin-left: -6px;
   flex: none;
 }

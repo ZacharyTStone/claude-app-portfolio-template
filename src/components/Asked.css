@@ -6,8 +6,8 @@
 }
 .draft-head .icon-button {
   margin-left: auto;
-  width: 28px;
-  height: 28px;
+  width: var(--control-small);
+  height: var(--control-small);
 }
 .draft-text {
   padding: 10px 12px;

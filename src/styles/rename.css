@@ -24,7 +24,7 @@
   position: absolute;
   top: calc(100% + 8px);
   left: 50%;
-  z-index: 30;
+  z-index: var(--layer-over-popups);
   padding: 3px 9px;
   border-radius: 7px;
   background: var(--menu);
