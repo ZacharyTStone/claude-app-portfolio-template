@@ -6,16 +6,14 @@ import type { Host } from "../../config/site-config.ts";
 import { contentSecurityPolicy, frameOrigins, securityHeaders, type PolicyOptions } from "../security-headers.ts";
 import type { Site } from "../site.ts";
 
-/** The file a host reads the security headers from, beside the pages, if
-    it reads one at all. */
 export const HEADERS_FILE = "_headers";
 
-/** Hosts that read a _headers file from the folder they publish. */
+/** They read it from the folder they publish. */
 const HOSTS_THAT_READ_A_HEADERS_FILE: readonly Host[] = ["cloudflare", "netlify"];
 
 const readsHeadersFile = (host: Host): boolean => HOSTS_THAT_READ_A_HEADERS_FILE.includes(host);
 
-/** In a _headers file, the line over the headers that go with every path. */
+/** The line over the headers that go with every path. */
 const EVERY_PATH = "/*";
 
 /** What the site's policy allows beyond its own files: /ask when Ask is
@@ -25,8 +23,7 @@ const policyOptions = ({ config }: Site): PolicyOptions => ({
   frames: frameOrigins(config.viewer),
 });
 
-/** The host's _headers file (every path gets every header), or null for a
-    host that doesn't read one. */
+/** Null for a host that doesn't read one. */
 export function headersFile(site: Site): string | null {
   if (!readsHeadersFile(site.host)) return null;
   const headers = securityHeaders({ ...policyOptions(site), hsts: site.config.hsts });
@@ -34,9 +31,8 @@ export function headersFile(site: Site): string | null {
   return `${EVERY_PATH}\n${headerLines.join("")}`;
 }
 
-/** The Content-Security-Policy for a page to carry itself (less
-    frame-ancestors, which only works as a header), or null where the host
-    sends it as a header. */
+/** The policy for a page to carry itself, or null where the host sends it
+    as a header. */
 export function pagePolicy(site: Site): string | null {
   if (readsHeadersFile(site.host)) return null;
   return contentSecurityPolicy({ ...policyOptions(site), meta: true });

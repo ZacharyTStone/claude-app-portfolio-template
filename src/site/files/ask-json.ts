@@ -6,9 +6,9 @@ import { JSON_INDENT } from "../json.ts";
 import { plainAnswers } from "../plain-answers.ts";
 import type { Site } from "../site.ts";
 
-/** /ask.json, as the text of the file: whose site it is, and every answer
-    in every language (AskIndex). It's written only for a site with Ask on;
-    for any other the owner's role is "". */
+/** Whose site it is, and every answer in every language (AskIndex). It's
+    written only for a site with Ask on: for any other the owner's role is
+    "". */
 export function askIndexJson(site: Site): string {
   const index: AskIndex = {
     name: site.config.name,

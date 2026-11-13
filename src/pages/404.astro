@@ -9,16 +9,14 @@ import { site } from "../site/current.ts";
 const { config, codes, main } = site;
 const { dir, meta, notFound } = site.language(main);
 
-/** The full stop or exclamation mark a heading ends with, as Latin or CJK
-    text writes it: the "." of "Not found." */
+/** The mark a heading ends with, as Latin or CJK text writes it. */
 const LAST_PUNCTUATION = /[.。!！]$/;
 // The window's title goes on after the heading's words ("Not found — Alex
-// Example"), so it leaves the heading's last mark out.
+// Example"), so it leaves the mark out.
 const titleWords = notFound.title.replace(LAST_PUNCTUATION, "");
 
-/** The `lang` attribute for a line in the language `code`: the other
-    languages' lines are marked as theirs, and the main one's are the
-    page's own. */
+/** Another language's line is marked as its own; the main one's is the
+    page's. */
 const langAttribute = (code: string) => (code === main ? undefined : code);
 ---
 

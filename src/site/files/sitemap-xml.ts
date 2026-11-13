@@ -2,19 +2,18 @@
 
 import type { Site } from "../site.ts";
 
-/** The sitemap's file, at the site's root: robots.txt points crawlers at
-    it. (The route that writes it is named for it: src/pages/sitemap.xml.ts.) */
+/** At the site's root: robots.txt points crawlers at it, and the route that
+    writes it is named for it (src/pages/sitemap.xml.ts). */
 export const SITEMAP_FILE = "sitemap.xml";
 
-/** Text made safe in XML, as content or inside a double-quoted attribute:
-    the four characters XML reads as markup there are written as entities.
-    The & goes first, or it would rewrite the entities the others make. */
+/** Safe as XML's content or inside a double-quoted attribute. The & goes
+    first, or it would rewrite the entities the others make. */
 const xmlSafe = (text: string): string =>
   text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
-/** sitemap.xml, as the text of the file: every language's page, each with
-    a link to itself and the others by language (hreflang), and to the main
-    one for any language the site doesn't have (x-default). */
+/** Every language's page, each with a link to every one by language
+    (hreflang), and to the main one for any language the site doesn't have
+    (x-default). */
 export function sitemapXml(site: Site): string {
   const { codes, main } = site;
   const alternate = (hreflang: string, pageUrl: string) =>
