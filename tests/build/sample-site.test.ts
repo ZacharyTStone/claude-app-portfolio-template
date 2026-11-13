@@ -3,7 +3,6 @@
    site may not show: a site under a path, in two languages, on a host that
    reads no headers, with a viewer and a picture that has a still. */
 import assert from "node:assert/strict";
-import { spawnSync } from "node:child_process";
 import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -13,35 +12,23 @@ import { escapeRegExp } from "es-toolkit";
 import { DATA, REDUCED_MOTION } from "../../src/contracts/page-attributes.ts";
 import { HEADERS_FILE, pagePolicy } from "../../src/site/files/headers-file.ts";
 import { FAVICONS } from "../../src/site/icons.ts";
-import { SITE_CONFIG } from "../../src/site/load-site-config.ts";
-import { ROOT } from "../../src/site/repo.ts";
 import { frameOrigins } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import sampleConfig from "../sample/site.config.ts";
+import { astroBuild } from "./astro-build.ts";
 import { builtSite, testBuiltSite } from "./built-site.ts";
 
 /** The folder the sample is built into, removed once the tests are done. */
 const BUILD_FOLDER = mkdtempSync(join(tmpdir(), "sample-site-"));
 after(() => rmSync(BUILD_FOLDER, { recursive: true, force: true }));
 
-const ASTRO = join(ROOT, "node_modules/astro/bin/astro.mjs");
-
-/** The build itself: `astro build`, with SITE_CONFIG naming the sample. */
-const astroBuild = spawnSync(process.execPath, [ASTRO, "build", "--outDir", BUILD_FOLDER], {
-  cwd: ROOT,
-  env: {
-    ...process.env,
-    [SITE_CONFIG]: fileURLToPath(new URL("../sample/site.config.ts", import.meta.url)),
-    ASTRO_TELEMETRY_DISABLED: "1",
-  },
-  encoding: "utf8",
-});
+const built = astroBuild(fileURLToPath(new URL("../sample/site.config.ts", import.meta.url)), BUILD_FOLDER);
 
 const sample = builtSite("the sample site", BUILD_FOLDER, sampleConfig);
 const policy = pagePolicy(makeSite(sampleConfig));
 
 test("the sample site builds", () => {
-  assert.equal(astroBuild.status, 0, astroBuild.stderr || astroBuild.stdout);
+  assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
 test("the sample site has a page for each of its two languages, and a 404 page", () => {

@@ -23,6 +23,16 @@ function typedFindings(config: SiteConfig, filePath: string, root: string): Find
   return problems.length ? { problems, notes: [] } : checkedFindings(config, root);
 }
 
+/** Where a report of the config goes: Astro's logger for this integration. */
+type Log = Record<"warn" | "error", (message: string) => void>;
+
+/** Says what was found: the advice, then every problem under the config's
+    file as it was named. */
+function report({ problems, notes }: Findings, fileName: string, log: Log): void {
+  for (const note of notes) log.warn(`${note}.`);
+  if (problems.length) log.error(`${fileName} has problems:\n- ${problems.join("\n- ")}`);
+}
+
 /** The Astro integration that checks the config Astro was started with. */
 export function checkConfig({ fileName, filePath, config }: LoadedSiteConfig): AstroIntegration {
   return {
@@ -32,9 +42,10 @@ export function checkConfig({ fileName, filePath, config }: LoadedSiteConfig): A
         const root = fileURLToPath(astroConfig.root);
         // `astro check` runs the type checker itself, and a preview builds nothing.
         const buildsPages = command === "build" || command === "dev";
-        const { problems, notes } = buildsPages ? typedFindings(config, filePath, root) : checkedFindings(config, root);
-        for (const note of notes) logger.warn(`${note}.`);
-        if (problems.length) throw new Error(`${fileName} has problems:\n- ${problems.join("\n- ")}`);
+        const findings = buildsPages ? typedFindings(config, filePath, root) : checkedFindings(config, root);
+        report(findings, fileName, logger);
+        // Thrown, Astro would call it an unhandled error and print a stack under it.
+        if (findings.problems.length) process.exit(1);
       },
     },
   };
