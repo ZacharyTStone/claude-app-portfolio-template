@@ -3,7 +3,8 @@
    find elements and read what's saved); it all starts here, at "The start"
    below, in an order whose reasons are written beside each step. */
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { CLASS, SELECTOR } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR } from "./constants.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccount } from "./account.ts";
 import { initCard, toggleCard, wireComposer } from "./card.ts";
@@ -85,7 +86,7 @@ function followAddress(): void {
   // The address can be the drawer's own (#tabs): then the drawer is what
   // opened, and focus isn't taken from it. Any other address closes it.
   const openedDrawer = isAddressOnDrawer();
-  if (!openedDrawer) side.classList.remove(CLASS.drawerOpen);
+  if (!openedDrawer) side.classList.remove(PAGE_CLASSES.drawerOpen);
   resetThreads();
   dropEmptyChat();
   sync(!openedDrawer);
@@ -101,7 +102,7 @@ function followAddress(): void {
 // such comment isn't known to depend on its place.
 
 // For the CSS: what needs JavaScript can show.
-root.classList.add(CLASS.js);
+root.classList.add(PAGE_CLASSES.js);
 initToast();
 
 // Before anything looks for the page's tabs (the card, and the wiring

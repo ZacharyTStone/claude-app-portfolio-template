@@ -13,7 +13,8 @@
    same: the presses are heard on the document, and the copy starts at
    rest (restStill). */
 import { DATA } from "../contracts/page-attributes.ts";
-import { CLASS, SELECTOR, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, TIMING } from "./constants.ts";
 import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
@@ -75,8 +76,8 @@ export function initPlay(): void {
 export function restStill(copy: Element): void {
   const figures = copy.matches(SELECTOR.playedFigure) ? [copy] : findAll(copy, SELECTOR.playedFigure);
   for (const figure of figures) {
-    figure.classList.remove(CLASS.playing);
-    for (const moving of findAll(figure, `.${CLASS.moving}`)) moving.remove();
+    figure.classList.remove(PAGE_CLASSES.playing);
+    for (const moving of findAll(figure, `.${PAGE_CLASSES.moving}`)) moving.remove();
     const button = figure.querySelector(SELECTOR.playButton);
     if (button) name(button, words.play);
   }
@@ -115,14 +116,14 @@ function play(figure: HTMLElement): void {
   if (!address) return;
   timesPlayed++;
   // The still under it has the picture's description.
-  const moving = make("img", { class: CLASS.moving, src: `${address}?${PLAY_NUMBER}=${timesPlayed}`, alt: "" });
+  const moving = make("img", { class: PAGE_CLASSES.moving, src: `${address}?${PLAY_NUMBER}=${timesPlayed}`, alt: "" });
   const nowPlaying: Playing = { figure, button, moving };
   moving.addEventListener(
     "load",
     () => {
       // Stopped, or another one played, while it loaded.
       if (playing !== nowPlaying) return;
-      moving.classList.add(CLASS.movingShown);
+      moving.classList.add(PAGE_CLASSES.movingShown);
       const seconds = Number(button.getAttribute(DATA.play));
       if (seconds > 0) nowPlaying.playsUntil = setTimeout(stop, seconds * 1000);
     },
@@ -131,7 +132,7 @@ function play(figure: HTMLElement): void {
   // A file that can't be had leaves the still as it was.
   moving.addEventListener("error", () => playing === nowPlaying && stop(), { once: true });
   button.before(moving);
-  figure.classList.add(CLASS.playing);
+  figure.classList.add(PAGE_CLASSES.playing);
   name(button, words.pause);
   outOfSight?.observe(figure);
   playing = nowPlaying;
@@ -145,9 +146,9 @@ function stop(): void {
   playing = null;
   clearTimeout(playsUntil);
   outOfSight?.unobserve(figure);
-  figure.classList.remove(CLASS.playing);
+  figure.classList.remove(PAGE_CLASSES.playing);
   name(button, words.play);
-  moving.classList.remove(CLASS.movingShown);
+  moving.classList.remove(PAGE_CLASSES.movingShown);
   setTimeout(() => moving.remove(), TIMING.playFade);
 }
 

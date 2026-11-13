@@ -5,7 +5,7 @@ import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../con
 import { CHATS_GROUP, groupId, ID_PREFIX } from "../contracts/page-ids.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { CLASS, SELECTOR, STORAGE } from "./constants.ts";
+import { SELECTOR, STORAGE } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
@@ -46,8 +46,8 @@ find(shell, SELECTOR.title).textContent = words.newChat;
 find(shell, SELECTOR.thread).replaceChildren(
   make(
     "div",
-    { class: CLASS.chatHello },
-    make("p", { class: CLASS.chatName }, siteName),
+    { class: PAGE_CLASSES.chatHello },
+    make("p", { class: PAGE_CLASSES.chatName }, siteName),
     ...(tagline ? [make("p", { class: PAGE_CLASSES.intro }, tagline)] : []),
   ),
 );

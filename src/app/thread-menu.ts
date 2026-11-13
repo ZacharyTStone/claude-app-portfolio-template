@@ -3,7 +3,7 @@
 import { MENU_KEYS } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
@@ -68,8 +68,8 @@ function followUpRow(tab: HTMLElement): HTMLElement {
 /** Scrolls a question to the top of its thread, and outlines it a moment. */
 function jumpToQuestion(question: HTMLElement, scroller: HTMLElement): void {
   scrollToTop(scroller, question, SIZE.jumpMargin);
-  question.classList.add(CLASS.flash);
-  setTimeout(() => question.classList.remove(CLASS.flash), TIMING.flash);
+  question.classList.add(PAGE_CLASSES.flash);
+  setTimeout(() => question.classList.remove(PAGE_CLASSES.flash), TIMING.flash);
 }
 
 /** A row for each question in the thread as it is now (a chat gains
@@ -141,7 +141,7 @@ export function addTitleMenu(tab: HTMLElement): void {
   heading.classList.remove(PAGE_CLASSES.iconAfter);
   const chevron = make("button", {
     type: "button",
-    class: `icon-btn ic i-down ${CLASS.titleMenuButton}`,
+    class: `icon-btn ic i-down ${PAGE_CLASSES.titleMenuButton}`,
     "aria-label": words.menuOptions,
     title: words.menuOptions,
     ...popupAttributes(PAGE_IDS.titleMenu),
@@ -163,11 +163,11 @@ export function addTitleMenu(tab: HTMLElement): void {
     room below in the sidebar. */
 function placeRowMenu(moreButton: HTMLElement): void {
   parentOf(moreButton).append(rowMenu);
-  rowMenu.classList.remove(CLASS.above);
+  rowMenu.classList.remove(PAGE_CLASSES.above);
   // Shown, so it can be measured.
   rowMenu.hidden = false;
   const lowestItCanReach = side.getBoundingClientRect().bottom - SIZE.edge;
-  if (rowMenu.getBoundingClientRect().bottom > lowestItCanReach) rowMenu.classList.add(CLASS.above);
+  if (rowMenu.getBoundingClientRect().bottom > lowestItCanReach) rowMenu.classList.add(PAGE_CLASSES.above);
 }
 
 /** A sidebar row's "…" button, shown on hover, for the shorter menu. */
@@ -177,7 +177,7 @@ export function addRowMenu(row: Element): void {
   if (!tab) return;
   const moreButton = make("button", {
     type: "button",
-    class: `icon-btn ic i-more ${CLASS.rowMore}`,
+    class: `icon-btn ic i-more ${PAGE_CLASSES.rowMore}`,
     "aria-label": words.menuMore,
     title: words.menuMore,
     ...popupAttributes(PAGE_IDS.rowMenu),

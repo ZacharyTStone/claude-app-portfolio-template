@@ -1,6 +1,7 @@
-/* The names and numbers only the script (and the browser checks) count on.
-   The names the pages write for it are in src/contracts, and what
-   the site says comes from the page (page.ts). */
+/* The numbers and storage keys only the script (and the browser checks)
+   count on, and the parts of the page it looks for. The page's ids, classes
+   and data attributes are in src/contracts, and what the site says comes
+   from the page (page.ts). */
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
@@ -18,99 +19,6 @@ export const STORAGE = {
   panelOrder: "portfolio:panel-order",
   /** sessionStorage: what /ask said that stops asking for the visit. */
   askLock: "portfolio:ask-locked",
-} as const;
-
-/** The classes the script sets or makes, for the stylesheet and the browser
-    checks. A class only the stylesheet needs is written where its element
-    is made. */
-export const CLASS = {
-  /** On <html>: what needs JavaScript can show. */
-  js: "js",
-  /** On the sidebar: the phone drawer is open. */
-  drawerOpen: "open",
-  /** On the shell: the sidebar, or the panel, is hidden. */
-  noSide: "no-side",
-  noPanel: "no-panel",
-  /** The sidebar's edge, and a panel section's grip; while either is dragged. */
-  resizer: "resizer",
-  grip: "grip",
-  resizing: "resizing",
-  dragging: "dragging",
-  /** A heading that folds what's under it, the button in it, and folded. */
-  foldable: "head-click",
-  foldButton: "head-btn",
-  folded: "folded",
-  /** A tab's title: the button around its words that renames the tab, its
-      words, the box it's renamed in, and the chevron for its menu. */
-  titleButton: "title-name",
-  titleText: "title-text",
-  titleInput: "title-input",
-  titleMenuButton: "title-chev",
-  /** A sidebar row's "…", for its menu. */
-  rowMore: "row-more",
-  /** What's been sent into a thread, not the portfolio's own messages. */
-  sent: "added",
-  /** A question /ask found inappropriate, now "Question removed". */
-  removed: "removed",
-  /** A question just jumped to. */
-  flash: "flash",
-  /** The "thinking" line while a reply is on its way: its dots, its seconds
-      and its word. */
-  thinking: "thinking",
-  thinkingDots: "dots",
-  thinkingTime: "thinking-time",
-  thinkingWord: "thinking-word",
-  /** A new chat's "who this is", until something's sent in it: the name. */
-  chatHello: "chat-hello",
-  chatName: "name",
-  /** The question card's choices, and a choice's words. */
-  options: "options",
-  optionLabel: "opt-t",
-  /** A submenu, and one shown below its row; a row's menu shown above it. */
-  submenu: "sub",
-  below: "below",
-  above: "above",
-  /** A copy icon that copied. */
-  done: "done",
-  /** The toast, and the toast while it shows. */
-  toast: "toast",
-  show: "show",
-  /** The line under a reply: the tab it's from, or the questions left. */
-  from: "from",
-  /** Under a typed question, the reply /ask sent (src/contracts/ask.ts), and
-      under that the site's own lines it was written from. */
-  reply: "reply",
-  cited: "cited",
-  /** The goodbye "Log out" shows: its contact links, and "Log back in". */
-  bye: "bye",
-  byeLinks: "bye-links",
-  byeBack: "bye-back",
-  /** The viewer (viewer.ts): the panel, its bar, the name of what it shows,
-      its "Open in a new tab" and "Close" buttons, and where its frame goes;
-      on the shell while it's open; on the frame's place until its page has
-      loaded. */
-  viewer: "viewer",
-  viewerBar: "viewer-bar",
-  viewerTitle: "viewer-title",
-  viewerOpen: "viewer-open",
-  viewerClose: "viewer-close",
-  viewerFrame: "viewer-frame",
-  viewing: "viewing",
-  viewerLoading: "loading",
-  /** A quote or a file card that comes in when it's scrolled to (seen.ts):
-      while it's out of sight; once it has come in; and, when several come
-      into view together, how far behind the first each one is. */
-  waiting: "waiting",
-  seen: "seen",
-  seenAfter1: "after-1",
-  seenAfter2: "after-2",
-  seenAfter3: "after-3",
-  /** A picture a visitor plays (play.ts): on its figure while it plays;
-      the picture as it moves, put over the still; and that picture once
-      it has loaded and shows. */
-  playing: "playing",
-  moving: "moving",
-  movingShown: "shown",
 } as const;
 
 /** What joins a tab's name and the site's in the window title, and the
@@ -144,7 +52,7 @@ export const SELECTOR = {
   rowName: `.${PAGE_CLASSES.rowName}`,
   rowHint: `.${PAGE_CLASSES.rowHint}`,
   group: `.${PAGE_CLASSES.groupHeading}`,
-  foldButton: `.${CLASS.foldButton}`,
+  foldButton: `.${PAGE_CLASSES.foldButton}`,
   /** The links to the other languages' pages. */
   language: `.${PAGE_CLASSES.languageSwitch} a`,
   account: `.${PAGE_CLASSES.account}`,
@@ -153,12 +61,12 @@ export const SELECTOR = {
 
   // A tab.
   title: `.${PAGE_CLASSES.title}`,
-  titleText: `.${CLASS.titleText}`,
-  titleButton: `.${CLASS.titleButton}`,
+  titleText: `.${PAGE_CLASSES.titleText}`,
+  titleButton: `.${PAGE_CLASSES.titleButton}`,
   scroll: `.${PAGE_CLASSES.scroll}`,
   thread,
   composer: `.${PAGE_CLASSES.composer}`,
-  chatHello: `.${CLASS.chatHello}`,
+  chatHello: `.${PAGE_CLASSES.chatHello}`,
 
   // The home screen: the box to type a question in, its send button, and
   // the questions to start with under it.
@@ -170,7 +78,7 @@ export const SELECTOR = {
   question: `.${PAGE_CLASSES.question}`,
   threadQuestion: `${thread} > .${PAGE_CLASSES.question}`,
   answer: `.${PAGE_CLASSES.answer}`,
-  sent: `.${CLASS.sent}`,
+  sent: `.${PAGE_CLASSES.sent}`,
   /** "Question: ", said to screen readers before each question. */
   srOnly: `.${PAGE_CLASSES.srOnly}`,
   /** The buttons under a thread's last answer. */
@@ -186,7 +94,7 @@ export const SELECTOR = {
   label: `.${PAGE_CLASSES.label}`,
 
   // Menus.
-  submenu: `.${CLASS.submenu}`,
+  submenu: `.${PAGE_CLASSES.submenu}`,
 
   // The details panel: its toggles (one in each top bar, and its close
   // button), its sections and their headings, and its contact links (the

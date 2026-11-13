@@ -4,7 +4,8 @@
 import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
 import { PAGE_IDS, personalTabId } from "../contracts/page-ids.ts";
 import { type Topic } from "../config/question-card.ts";
-import { CLASS, SELECTOR } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR } from "./constants.ts";
 import { asButton, find, findAll, make, onEnter, parentOf } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";
 import { closeMenu, popupAttributes, toggleMenu } from "./menus.ts";
@@ -116,7 +117,7 @@ const backButton = make("button", {
 const secondStepOfTwo = cardWords.step.replace("{n}", "2").replace("{total}", "2");
 const stepPager = make("div", { class: "pager" }, backButton, make("span", { class: "count" }, secondStepOfTwo));
 const cardQuestion = make("h2");
-const choiceList = make("ol", { class: CLASS.options });
+const choiceList = make("ol", { class: PAGE_CLASSES.options });
 const ownQuestionInput = make("input", {
   type: "text",
   class: "else-input",
@@ -164,7 +165,7 @@ function choiceParts(choice: CardChoice, number: number): HTMLElement[] {
     make(
       "span",
       { class: "opt" },
-      make("span", { class: CLASS.optionLabel }, choice.label),
+      make("span", { class: PAGE_CLASSES.optionLabel }, choice.label),
       make("span", { class: "opt-d" }, choice.hint),
     ),
   ];

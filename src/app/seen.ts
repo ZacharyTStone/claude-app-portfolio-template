@@ -2,21 +2,22 @@
    are then written out one after another (src/styles/motion.css has both).
 
    The page shows them whole without the script, and with motion reduced.
-   With it, the ones out of sight when the page starts wait (CLASS.waiting,
+   With it, the ones out of sight when the page starts wait (PAGE_CLASSES.waiting,
    which hides them without moving anything) until they're on screen, then
-   come in once (CLASS.seen). What's on screen is left alone once the page
+   come in once (PAGE_CLASSES.seen). What's on screen is left alone once the page
    has been up long enough to be read, and a copy of an answer in a chat
    never waits: nothing watches it. */
-import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { findAll } from "./lib/dom.ts";
 import { isMotionReduced } from "./lib/motion.ts";
 
 /** How far behind the first each one is, when several come into view
     together: the second, the third, and every one after. */
-const LATER = [CLASS.seenAfter1, CLASS.seenAfter2, CLASS.seenAfter3] as const;
+const LATER = [PAGE_CLASSES.seenAfter1, PAGE_CLASSES.seenAfter2, PAGE_CLASSES.seenAfter3] as const;
 
 /** Every class this file puts on an element. */
-const MARKS = [CLASS.waiting, CLASS.seen, ...LATER] as const;
+const MARKS = [PAGE_CLASSES.waiting, PAGE_CLASSES.seen, ...LATER] as const;
 
 /** Makes what's out of sight wait, and brings each in when it's scrolled to. */
 export function initSeen(): void {
@@ -28,7 +29,7 @@ export function initSeen(): void {
   const isPageBeingRead = performance.now() > TIMING.pageArrives;
   for (const element of findAll(document, SELECTOR.comesIntoView)) {
     if (isPageBeingRead && isOnScreen(element)) continue;
-    element.classList.add(CLASS.waiting);
+    element.classList.add(PAGE_CLASSES.waiting);
     watcher.observe(element);
   }
 }
@@ -52,8 +53,8 @@ function bringIn(entries: IntersectionObserverEntry[], watcher: IntersectionObse
   const arrived = entries.filter(isFarEnoughIn).map((entry) => entry.target);
   arrived.forEach((element, place) => {
     watcher.unobserve(element);
-    element.classList.remove(CLASS.waiting);
-    element.classList.add(CLASS.seen);
+    element.classList.remove(PAGE_CLASSES.waiting);
+    element.classList.add(PAGE_CLASSES.seen);
     const later = place > 0 ? LATER[Math.min(place, LATER.length) - 1] : undefined;
     if (later) element.classList.add(later);
   });

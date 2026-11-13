@@ -2,7 +2,8 @@
    a new name in, shown on its sidebar row too and remembered per browser
    and language. A chat keeps its own name (chats.ts). */
 import { isRecord, isString } from "../contracts/guards.ts";
-import { CLASS, SELECTOR, SIZE, STORAGE } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { find, isComposing, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { renameChat } from "./chats.ts";
@@ -98,7 +99,7 @@ function makeNameBox(nameNow: string): HTMLInputElement {
   const widthFor = (name: string) => Math.max(name.length, SIZE.nameBox);
   const nameBox = make("input", {
     type: "text",
-    class: CLASS.titleInput,
+    class: PAGE_CLASSES.titleInput,
     value: nameNow,
     size: String(widthFor(nameNow)),
     maxlength: String(SIZE.nameMax),
@@ -157,11 +158,11 @@ export function wireTitle(tab: HTMLElement): void {
     "button",
     {
       type: "button",
-      class: CLASS.titleButton,
+      class: PAGE_CLASSES.titleButton,
       "data-tip": words.menuRename,
       "aria-description": words.menuRename,
     },
-    make("span", { class: CLASS.titleText }, ...heading.childNodes),
+    make("span", { class: PAGE_CLASSES.titleText }, ...heading.childNodes),
   );
   heading.append(titleButton);
   titleButton.addEventListener("click", () => renameTab(tab));

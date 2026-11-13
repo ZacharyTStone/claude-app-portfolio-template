@@ -5,7 +5,7 @@ import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.t
 import { ID_PATTERN } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { CLASS, SELECTOR } from "./constants.ts";
+import { SELECTOR } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { restStill } from "./play.ts";
 import { showWhole } from "./seen.ts";
@@ -78,7 +78,7 @@ function fromLine(tab: HTMLElement, template: string): Element {
   const title = (tab.querySelector(SELECTOR.titleText) ?? tab.querySelector(SELECTOR.title))?.textContent;
   const [before = "", after = ""] = template.split("{tab}");
   const link = make("a", { href: `#${tab.id}` }, title?.trim() ?? tab.id);
-  return make("p", { class: CLASS.from }, before, link, after);
+  return make("p", { class: PAGE_CLASSES.from }, before, link, after);
 }
 
 // The tab and the question an answer's id names ("work.2": the second
@@ -97,7 +97,7 @@ export const isAnswer = (id: string): boolean => findAnswer(id) !== null;
 // The site's own lines a reply was written from, quoted under it: what the
 // site itself says, word for word, beside what the model made of it.
 const citedLines = (lines: string[]): HTMLElement =>
-  make("blockquote", { class: CLASS.cited }, ...lines.map((line) => make("p", {}, line)));
+  make("blockquote", { class: PAGE_CLASSES.cited }, ...lines.map((line) => make("p", {}, line)));
 
 /** One answer as /ask names it, word for word, ending with a link to its
     tab. With a reply from /ask, the reply instead, then the lines it was
@@ -114,7 +114,9 @@ export function answerFor(id: string, reply?: string, cited: string[] = []): Ele
     // away, in its tab.
     const from = fromLine(tab, personal ? words.askFromPersonal : words.askFrom);
     const source = cited.length ? [citedLines(cited)] : [];
-    return [make("div", { class: PAGE_CLASSES.answer }, make("p", { class: CLASS.reply }, reply), ...source, from)];
+    return [
+      make("div", { class: PAGE_CLASSES.answer }, make("p", { class: PAGE_CLASSES.reply }, reply), ...source, from),
+    ];
   }
   const answer: Element[] = [];
   for (let node = q.nextElementSibling; node && !node.matches(SELECTOR.question); node = node.nextElementSibling) {

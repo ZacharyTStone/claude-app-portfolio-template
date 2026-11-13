@@ -2,7 +2,8 @@
    resized. Arrow keys move between its rows. */
 import { clamp } from "es-toolkit";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { CLASS, SELECTOR, SIZE, STORAGE } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { byId, find, findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { isFocusOn, stepFocus } from "./lib/focus.ts";
@@ -29,11 +30,11 @@ export const isWide = (): boolean => widerThanPhone.matches;
 export const isAddressOnDrawer = (): boolean => side.matches(":target");
 
 /** Whether the phone drawer is open: by its class, or by the address. */
-export const isDrawerOpen = (): boolean => side.classList.contains(CLASS.drawerOpen) || isAddressOnDrawer();
+export const isDrawerOpen = (): boolean => side.classList.contains(PAGE_CLASSES.drawerOpen) || isAddressOnDrawer();
 
 /** Opens the drawer, with focus on the open tab's row, or else its first row. */
 function openDrawer(): void {
-  side.classList.add(CLASS.drawerOpen);
+  side.classList.add(PAGE_CLASSES.drawerOpen);
   const row = side.querySelector('[aria-current="page"]') ?? side.querySelector(SELECTOR.navRow);
   if (row instanceof HTMLElement) row.focus();
 }
@@ -46,7 +47,7 @@ const shownMenuButton = (): HTMLElement => find(currentTab() ?? byId(PAGE_IDS.ho
     menu button. */
 export function closeDrawer(): void {
   const hadFocus = side.contains(document.activeElement);
-  side.classList.remove(CLASS.drawerOpen);
+  side.classList.remove(PAGE_CLASSES.drawerOpen);
   if (isAddressOnDrawer()) clearHash();
   if (hadFocus) shownMenuButton().focus();
 }
@@ -56,7 +57,7 @@ export function closeDrawer(): void {
 // top bar's button brings it back. It shows again on every visit.
 
 function setSidebarHidden(isHidden: boolean): void {
-  shell.classList.toggle(CLASS.noSide, isHidden);
+  shell.classList.toggle(PAGE_CLASSES.noSide, isHidden);
   hideButton.setAttribute("aria-expanded", String(!isHidden));
 }
 
@@ -101,7 +102,7 @@ const WIDTH_PROPERTY = "--sidebar-w";
 /** The sidebar's edge. To screen readers it's a separator whose value is
     the sidebar's width. */
 const resizer = make("div", {
-  class: CLASS.resizer,
+  class: PAGE_CLASSES.resizer,
   role: "separator",
   tabindex: "0",
   "aria-orientation": "vertical",
@@ -154,10 +155,10 @@ function dragResizer(down: PointerEvent): void {
     setWidth(move.clientX - sidebarLeft);
   };
   const letGo = () => {
-    shell.classList.remove(CLASS.resizing);
+    shell.classList.remove(PAGE_CLASSES.resizing);
     if (hasMoved) setAndRememberWidth(widthShowing());
   };
-  shell.classList.add(CLASS.resizing);
+  shell.classList.add(PAGE_CLASSES.resizing);
   followPointer(resizer, down, moveEdgeToPointer, letGo);
 }
 

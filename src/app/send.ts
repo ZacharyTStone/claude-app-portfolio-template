@@ -3,7 +3,7 @@
    until another tab is opened; in a chat it's kept (chats.ts). */
 import type { AskResponse } from "../contracts/ask.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { find, make } from "./lib/dom.ts";
 import { pause, scrollToTop } from "./lib/motion.ts";
 import { ask } from "./ask.ts";
@@ -29,12 +29,18 @@ const THINKING_WORDS = words.thinkingWords.split("|").filter(Boolean);
 // as text added to the thread, a live region (main.ts): a label alone
 // isn't announced.
 function thinkingLine(): HTMLElement {
-  const time = make("span", { class: CLASS.thinkingTime, "aria-hidden": "true" });
+  const time = make("span", { class: PAGE_CLASSES.thinkingTime, "aria-hidden": "true" });
   const pick = THINKING_WORDS[Math.floor(Math.random() * THINKING_WORDS.length)] ?? words.thinking;
-  const word = make("span", { class: CLASS.thinkingWord, "aria-hidden": "true" }, pick);
-  const dots = make("span", { class: CLASS.thinkingDots, "aria-hidden": "true" }, make("i"), make("i"), make("i"));
+  const word = make("span", { class: PAGE_CLASSES.thinkingWord, "aria-hidden": "true" }, pick);
+  const dots = make(
+    "span",
+    { class: PAGE_CLASSES.thinkingDots, "aria-hidden": "true" },
+    make("i"),
+    make("i"),
+    make("i"),
+  );
   const said = make("span", { class: PAGE_CLASSES.srOnly }, words.thinking);
-  const line = make("div", { class: CLASS.thinking }, dots, time, word, said);
+  const line = make("div", { class: PAGE_CLASSES.thinking }, dots, time, word, said);
   const started = Date.now();
   const clock = setInterval(() => {
     if (!line.isConnected) return clearInterval(clock);
@@ -54,7 +60,7 @@ function keepReply(typed: TypedQuestion, reply: AskResponse | null, asked: HTMLE
     if (reply.flagged) {
       typed.question = words.askRemoved;
       if (asked.lastChild) asked.lastChild.nodeValue = words.askRemoved;
-      asked.classList.add(CLASS.removed);
+      asked.classList.add(PAGE_CLASSES.removed);
     }
   } else if (reply && "limited" in reply) typed.limited = reply.limit;
   else {
@@ -86,7 +92,7 @@ async function replyTo(tab: HTMLElement, source: Source, asked: HTMLElement): Pr
   // Few questions left today: say so, under the reply.
   const left = said && "left" in said ? said.left : undefined;
   if (left !== undefined) {
-    addToReply(reply, make("p", { class: CLASS.from }, words.askLeft.replace("{n}", String(left))));
+    addToReply(reply, make("p", { class: PAGE_CLASSES.from }, words.askLeft.replace("{n}", String(left))));
   }
   return reply;
 }
@@ -116,7 +122,7 @@ type Turn = {
 let current: Turn | null = null;
 
 function markSent(node: Element): Element {
-  node.classList.add(CLASS.sent);
+  node.classList.add(PAGE_CLASSES.sent);
   return node;
 }
 
