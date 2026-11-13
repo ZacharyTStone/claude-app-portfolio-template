@@ -25,6 +25,7 @@ export const SHARED = [
   // What a diagram is drawn with, and what writes its files. The diagrams
   // themselves (diagrams/) and the files they write are each site's own.
   "scripts/diagram.ts",
+  "scripts/diagram",
   "scripts/diagrams.ts",
   "scripts/template.ts",
   "scripts/update-template.ts",
