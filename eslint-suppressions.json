@@ -120,31 +120,9 @@
       "count": 5
     }
   },
-  "src/worker/ask/handler.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "max-lines-per-function": {
-      "count": 1
-    },
-    "max-params": {
-      "count": 1
-    },
-    "no-nested-ternary": {
-      "count": 2
-    },
-    "no-warning-comments": {
-      "count": 4
-    }
-  },
   "src/worker/ask/lines.ts": {
     "no-nested-ternary": {
       "count": 1
-    }
-  },
-  "src/worker/ask/pick.ts": {
-    "no-warning-comments": {
-      "count": 2
     }
   },
   "src/worker/ask/text/sentences.ts": {
@@ -159,24 +137,6 @@
   },
   "src/worker/ask/write.ts": {
     "no-warning-comments": {
-      "count": 2
-    }
-  },
-  "src/worker/constants.ts": {
-    "no-warning-comments": {
-      "count": 5
-    }
-  },
-  "src/worker/guard/ask-guard.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "no-warning-comments": {
-      "count": 2
-    }
-  },
-  "tests/ask-eval.ts": {
-    "complexity": {
       "count": 2
     }
   },
@@ -233,16 +193,6 @@
     },
     "no-warning-comments": {
       "count": 2
-    }
-  },
-  "tests/worker/fixtures.ts": {
-    "no-nested-ternary": {
-      "count": 1
-    }
-  },
-  "tests/worker/limits.test.ts": {
-    "no-warning-comments": {
-      "count": 1
     }
   },
   "tests/worker/quote.test.ts": {
