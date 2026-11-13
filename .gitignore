@@ -1,4 +1,7 @@
-.vscode
+# The editor's settings: yours, but for the two files every site shares
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # wrangler files
 .wrangler

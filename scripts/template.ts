@@ -48,6 +48,8 @@ export const SHARED = [
   "AGENTS.md",
   "CLAUDE.md",
   ".editorconfig",
+  ".vscode/extensions.json",
+  ".vscode/settings.json",
   ".gitignore",
   ".htmlvalidate.json",
   ".node-version",
