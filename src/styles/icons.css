@@ -1,5 +1,6 @@
 /* An icon is an SVG file (--icon) drawn as a mask over a background colour: an .icon's is the text colour. */
-.icon::before, .icon-after::after {
+.icon::before,
+.icon-after::after {
   content: "";
   display: inline-block;
   flex: none;
@@ -7,31 +8,86 @@
   height: 16px;
   background: currentColor;
 }
-.icon::before, .icon-after::after, .hello::before, .chat-hello::before, .group-heading::after, .account-row[role="button"]::after,
-.status summary::after, .pop .chevron, .options .on, .tick::before, .flow li + li::before {
+.icon::before,
+.icon-after::after,
+.hello::before,
+.chat-hello::before,
+.group-heading::after,
+.account-row[role="button"]::after,
+.status summary::after,
+.pop .chevron,
+.options .on,
+.tick::before,
+.flow li + li::before {
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
 }
-.i-plus { --icon: url("/assets/icons/plus.svg"); }
-.i-about { --icon: url("/assets/icons/about.svg"); }
-.i-skills { --icon: url("/assets/icons/skills.svg"); }
-.i-file { --icon: url("/assets/icons/file.svg"); }
-.i-contact { --icon: url("/assets/icons/contact.svg"); }
-.i-work { --icon: url("/assets/icons/experience.svg"); }
-.i-globe { --icon: url("/assets/icons/globe.svg"); }
-.i-copy { --icon: url("/assets/icons/copy.svg"); }
-.i-share { --icon: url("/assets/icons/share.svg"); }
-.i-sidebar { --icon: url("/assets/icons/sidebar.svg"); }
-.i-panel { --icon: url("/assets/icons/panel-right.svg"); }
-.i-close { --icon: url("/assets/icons/close.svg"); }
-.i-down { --icon: url("/assets/icons/chevron-down.svg"); }
-.i-out { --icon: url("/assets/icons/arrow-up-right.svg"); }
-.i-bolt { --icon: url("/assets/icons/bolt.svg"); }
-.i-logout { --icon: url("/assets/icons/logout.svg"); }
-.i-grip { --icon: url("/assets/icons/grip.svg"); }
-.i-more { --icon: url("/assets/icons/more.svg"); }
-.i-pen { --icon: url("/assets/icons/pencil.svg"); }
-.i-left { --icon: url("/assets/icons/chevron-left.svg"); }
-.i-back { --icon: url("/assets/icons/arrow-left.svg"); }
-.i-up { --icon: url("/assets/icons/arrow-up.svg"); }
-.i-play { --icon: url("/assets/icons/play.svg"); }
+.i-plus {
+  --icon: url("/assets/icons/plus.svg");
+}
+.i-about {
+  --icon: url("/assets/icons/about.svg");
+}
+.i-skills {
+  --icon: url("/assets/icons/skills.svg");
+}
+.i-file {
+  --icon: url("/assets/icons/file.svg");
+}
+.i-contact {
+  --icon: url("/assets/icons/contact.svg");
+}
+.i-work {
+  --icon: url("/assets/icons/experience.svg");
+}
+.i-globe {
+  --icon: url("/assets/icons/globe.svg");
+}
+.i-copy {
+  --icon: url("/assets/icons/copy.svg");
+}
+.i-share {
+  --icon: url("/assets/icons/share.svg");
+}
+.i-sidebar {
+  --icon: url("/assets/icons/sidebar.svg");
+}
+.i-panel {
+  --icon: url("/assets/icons/panel-right.svg");
+}
+.i-close {
+  --icon: url("/assets/icons/close.svg");
+}
+.i-down {
+  --icon: url("/assets/icons/chevron-down.svg");
+}
+.i-out {
+  --icon: url("/assets/icons/arrow-up-right.svg");
+}
+.i-bolt {
+  --icon: url("/assets/icons/bolt.svg");
+}
+.i-logout {
+  --icon: url("/assets/icons/logout.svg");
+}
+.i-grip {
+  --icon: url("/assets/icons/grip.svg");
+}
+.i-more {
+  --icon: url("/assets/icons/more.svg");
+}
+.i-pen {
+  --icon: url("/assets/icons/pencil.svg");
+}
+.i-left {
+  --icon: url("/assets/icons/chevron-left.svg");
+}
+.i-back {
+  --icon: url("/assets/icons/arrow-left.svg");
+}
+.i-up {
+  --icon: url("/assets/icons/arrow-up.svg");
+}
+.i-play {
+  --icon: url("/assets/icons/play.svg");
+}

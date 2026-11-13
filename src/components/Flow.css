@@ -1,4 +1,7 @@
-.flow ol { display: flex; gap: 28px; }
+.flow ol {
+  display: flex;
+  gap: 28px;
+}
 .flow li {
   position: relative;
   flex: 1 1 0;
@@ -10,8 +13,13 @@
   border-radius: 8px;
   background: var(--chip);
 }
-.flow li b { font: 500 14px/20px var(--sans); }
-.flow li span { color: var(--text-2); font: 400 13px/18px var(--sans); }
+.flow li b {
+  font: 500 14px/20px var(--sans);
+}
+.flow li span {
+  color: var(--text-2);
+  font: 400 13px/18px var(--sans);
+}
 .flow li + li::before {
   content: "";
   position: absolute;
@@ -25,6 +33,14 @@
   rotate: 90deg;
 }
 @container (max-width: 519px) {
-  .flow ol { flex-direction: column; gap: 24px; }
-  .flow li + li::before { top: -20px; left: 50%; margin: 0 0 0 -8px; rotate: 180deg; }
+  .flow ol {
+    flex-direction: column;
+    gap: 24px;
+  }
+  .flow li + li::before {
+    top: -20px;
+    left: 50%;
+    margin: 0 0 0 -8px;
+    rotate: 180deg;
+  }
 }

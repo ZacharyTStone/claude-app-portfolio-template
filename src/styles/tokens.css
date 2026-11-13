@@ -6,17 +6,17 @@
   --sidebar: #1f1f1f;
   --line: rgb(255 255 255 / 0.1);
   --hairline: rgb(255 255 255 / 0.04);
-  --text: rgb(255 255 255 / 0.93);   /* 15:1 on --page */
+  --text: rgb(255 255 255 / 0.93); /* 15:1 on --page */
   --text-2: rgb(255 255 255 / 0.57); /* 6.4:1 */
-  --text-3: rgb(255 255 255 / 0.4);  /* 3.8:1: icons and decoration only */
-  --placeholder: #a0a0a0;            /* 4.6:1 on --composer-hover (the app's #878787 is 3.4:1) */
+  --text-3: rgb(255 255 255 / 0.4); /* 3.8:1: icons and decoration only */
+  --placeholder: #a0a0a0; /* 4.6:1 on --composer-hover (the app's #878787 is 3.4:1) */
   --row-hover: rgb(255 255 255 / 0.075);
   --row-selected: rgb(255 255 255 / 0.15);
   --bubble: rgb(255 255 255 / 0.05);
   --composer: #303030;
   --composer-hover: #363636;
   --menu: #2b2b2b;
-  --rim: rgb(255 255 255 / 0.08);    /* the edge of what's raised: a menu, the card, the composer */
+  --rim: rgb(255 255 255 / 0.08); /* the edge of what's raised: a menu, the card, the composer */
   --composer-shadow: 0 4px 20px 0 rgb(0 0 0 / 0.075), inset 0 0 0 1px var(--rim);
   --code-bg: #1f1f1f;
   --code-edge: rgb(255 255 255 / 0.2);
@@ -45,8 +45,7 @@
 }
 
 :root:lang(ja) {
-  --sans: "Inter", "Noto Sans JP Subset", "Hiragino Sans", "Hiragino Kaku Gothic ProN",
-    "Yu Gothic", Meiryo, sans-serif;
+  --sans: "Inter", "Noto Sans JP Subset", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
   --serif: "Source Serif 4", "Noto Serif JP Subset", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --mono: "Geist Mono", "Noto Sans JP Subset", ui-monospace, Menlo, Consolas, monospace;
 }

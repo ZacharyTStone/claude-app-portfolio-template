@@ -1,12 +1,41 @@
 /* Strict line breaking, headings broken at phrase boundaries, proportional
    kana spacing (palt) on headings and interface labels but not in running
    text, and more line height, which Japanese needs at these sizes. */
-:lang(ja) :is(p, li) { line-break: strict; }
-:lang(ja) :is(.hello, .intro, .question, .row-words, .pop, .figure, .prompts) { word-break: auto-phrase; }
-:lang(ja) :is(.hello, .topbar .title, .nav, .group-rows .row-name, .group-heading, .pill, .language-switch,
-  .panel h2, .steps, .ghost-button, .link-card .name, .ask h2, .pop, .account-row, .figure, .prompts, .answer h3) {
+:lang(ja) :is(p, li) {
+  line-break: strict;
+}
+:lang(ja) :is(.hello, .intro, .question, .row-words, .pop, .figure, .prompts) {
+  word-break: auto-phrase;
+}
+:lang(ja)
+  :is(
+    .hello,
+    .topbar .title,
+    .nav,
+    .group-rows .row-name,
+    .group-heading,
+    .pill,
+    .language-switch,
+    .panel h2,
+    .steps,
+    .ghost-button,
+    .link-card .name,
+    .ask h2,
+    .pop,
+    .account-row,
+    .figure,
+    .prompts,
+    .answer h3
+  ) {
   font-feature-settings: "palt";
 }
-:lang(ja) .hello { line-height: 1.3; letter-spacing: 0.02em; }
-:lang(ja) :is(.thread, .intro) { line-height: 1.75; }
-:lang(ja) .question { letter-spacing: 0.02em; }
+:lang(ja) .hello {
+  line-height: 1.3;
+  letter-spacing: 0.02em;
+}
+:lang(ja) :is(.thread, .intro) {
+  line-height: 1.75;
+}
+:lang(ja) .question {
+  letter-spacing: 0.02em;
+}

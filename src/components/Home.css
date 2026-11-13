@@ -7,7 +7,9 @@
   align-items: center;
   padding: 24px var(--gutter) 20px;
 }
-.home-body > * { width: min(692px, 100%); }
+.home-body > * {
+  width: min(692px, 100%);
+}
 .hello {
   display: flex;
   align-items: center;
@@ -20,15 +22,31 @@
 }
 .hello::before {
   content: "";
-  width: 40px; height: 40px; flex: none;
+  width: 40px;
+  height: 40px;
+  flex: none;
   background: var(--accent);
   --icon: url("/assets/icons/sparkle.svg");
 }
-.intro { margin: 14px 0 0; text-align: center; color: var(--text-2); font: 400 15px/21px var(--sans); }
+.intro {
+  margin: 14px 0 0;
+  text-align: center;
+  color: var(--text-2);
+  font: 400 15px/21px var(--sans);
+}
 
 /* They sit a little above the middle: the extra space below lifts them. */
-.home .under { justify-content: center; margin-top: auto; padding-top: calc(32px + 6vh); text-align: center; }
-.home-ask { display: grid; gap: 14px; margin-top: 28px; }
+.home .under {
+  justify-content: center;
+  margin-top: auto;
+  padding-top: calc(32px + 6vh);
+  text-align: center;
+}
+.home-ask {
+  display: grid;
+  gap: 14px;
+  margin-top: 28px;
+}
 .home-ask .composer {
   display: flex;
   align-items: center;
@@ -38,7 +56,9 @@
 }
 .home-ask .composer:focus-within {
   background: var(--composer-hover);
-  box-shadow: 0 4px 20px 0 rgb(0 0 0 / 0.14), inset 0 0 0 1px rgb(255 255 255 / 0.14);
+  box-shadow:
+    0 4px 20px 0 rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px rgb(255 255 255 / 0.14);
 }
 .home-ask input {
   flex: 1;
@@ -50,8 +70,13 @@
   color: var(--text);
   font: 400 16px/24px var(--sans);
 }
-.home-ask input::placeholder { color: var(--placeholder); opacity: 1; }
-.home-ask input:focus-visible { box-shadow: none; }
+.home-ask input::placeholder {
+  color: var(--placeholder);
+  opacity: 1;
+}
+.home-ask input:focus-visible {
+  box-shadow: none;
+}
 /* Dim until there's something to send. */
 .home-ask .home-send {
   display: grid;
@@ -65,12 +90,25 @@
   background: var(--accent);
   color: #fff;
   cursor: pointer;
-  transition: opacity 0.2s var(--ease), filter 0.2s var(--ease);
+  transition:
+    opacity 0.2s var(--ease),
+    filter 0.2s var(--ease);
 }
-.home-ask .home-send:hover { filter: brightness(1.08); }
-.home-ask input:placeholder-shown + .home-send { opacity: 0.45; }
+.home-ask .home-send:hover {
+  filter: brightness(1.08);
+}
+.home-ask input:placeholder-shown + .home-send {
+  opacity: 0.45;
+}
 /* Narrower than the box, so four of them sit two and two, not three and one. */
-.prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; justify-self: center; }
+.prompts {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  max-width: 560px;
+  justify-self: center;
+}
 .prompts button {
   height: 34px;
   padding: 0 12px;
@@ -81,9 +119,14 @@
   color: var(--text-2);
   font: 400 14px/20px var(--sans);
   cursor: pointer;
-  transition: background-color 0.2s var(--ease), color 0.2s var(--ease);
+  transition:
+    background-color 0.2s var(--ease),
+    color 0.2s var(--ease);
 }
-.prompts button:hover { background: var(--row-hover); color: var(--text); }
+.prompts button:hover {
+  background: var(--row-hover);
+  color: var(--text);
+}
 .hint {
   display: flex;
   align-items: center;
@@ -93,4 +136,7 @@
   color: var(--text-2);
   font: 400 14px/20px var(--sans);
 }
-.hint::before { width: 15px; height: 15px; }
+.hint::before {
+  width: 15px;
+  height: 15px;
+}

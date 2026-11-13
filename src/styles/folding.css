@@ -1,7 +1,14 @@
 /* A click anywhere on the heading, its triangle included, presses the button inside it. */
-.foldable { cursor: pointer; border-radius: 8px; }
-.foldable:hover { background: var(--row-hover); }
-.foldable:has(> .fold-button:focus-visible) { box-shadow: var(--focus-ring); }
+.foldable {
+  cursor: pointer;
+  border-radius: 8px;
+}
+.foldable:hover {
+  background: var(--row-hover);
+}
+.foldable:has(> .fold-button:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
 .fold-button {
   min-width: 0;
   padding: 0;
@@ -15,4 +22,6 @@
   text-overflow: ellipsis;
   cursor: pointer;
 }
-.fold-button:focus-visible { box-shadow: none; }
+.fold-button:focus-visible {
+  box-shadow: none;
+}

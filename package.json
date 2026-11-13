@@ -18,8 +18,8 @@
     "fonts": "node scripts/fonts.ts",
     "fonts:check": "node scripts/fonts.ts --check",
     "diagrams": "node scripts/diagrams.ts",
-    "format": "prettier --write \"**/*.{ts,js,json,astro}\"",
-    "format:check": "prettier --check \"**/*.{ts,js,json,astro}\"",
+    "format": "prettier --write \"**/*.{ts,js,json,astro,css}\"",
+    "format:check": "prettier --check \"**/*.{ts,js,json,astro,css}\"",
     "lint": "eslint",
     "knip": "knip --no-config-hints",
     "lint:html": "node scripts/require-build.ts && html-validate dist"

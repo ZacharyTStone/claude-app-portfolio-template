@@ -1,5 +1,16 @@
 /* Laid out with the goodbye (goodbye.css). */
-.lost { min-height: 100dvh; }
-.lost .code { margin-bottom: 18px; font: 500 13px/20px var(--mono); color: var(--text-2); }
-.lost-links { margin-top: 28px; }
-.lost-links a { padding: 6px 14px; border-radius: 8px; }
+.lost {
+  min-height: 100dvh;
+}
+.lost .code {
+  margin-bottom: 18px;
+  font: 500 13px/20px var(--mono);
+  color: var(--text-2);
+}
+.lost-links {
+  margin-top: 28px;
+}
+.lost-links a {
+  padding: 6px 14px;
+  border-radius: 8px;
+}

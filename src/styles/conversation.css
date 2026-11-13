@@ -1,16 +1,70 @@
-.answer ul.plain { padding-left: 0; list-style: none; }
-.question.removed { color: var(--text-2); font-style: italic; }
-.answer .cited { display: grid; gap: 6px; margin: 0; padding: 2px 0 2px 14px; border-left: 2px solid var(--line); color: var(--text-2); font-size: 14px; line-height: 21px; }
-.answer .from { color: var(--text-2); font-size: 13px; line-height: 20px; }
-.thinking { display: flex; align-items: center; gap: 12px; margin: 2px 0; min-height: 21px; color: var(--text-2); font: 400 15px/21px var(--sans); }
-.thinking .thinking-dots { position: relative; width: 16px; height: 16px; flex: none; }
-.thinking .thinking-dots i { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-.thinking .thinking-dots i:nth-child(1) { left: 5.5px; top: 1.5px; }
-.thinking .thinking-dots i:nth-child(2) { left: 1px; top: 9.5px; }
-.thinking .thinking-dots i:nth-child(3) { left: 10px; top: 9.5px; }
-.thinking-time { font-variant-numeric: tabular-nums; }
-.thinking-time:empty { display: none; }
-.thinking-time::after { content: "·"; margin-left: 12px; }
+.answer ul.plain {
+  padding-left: 0;
+  list-style: none;
+}
+.question.removed {
+  color: var(--text-2);
+  font-style: italic;
+}
+.answer .cited {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--line);
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 21px;
+}
+.answer .from {
+  color: var(--text-2);
+  font-size: 13px;
+  line-height: 20px;
+}
+.thinking {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 2px 0;
+  min-height: 21px;
+  color: var(--text-2);
+  font: 400 15px/21px var(--sans);
+}
+.thinking .thinking-dots {
+  position: relative;
+  width: 16px;
+  height: 16px;
+  flex: none;
+}
+.thinking .thinking-dots i {
+  position: absolute;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+.thinking .thinking-dots i:nth-child(1) {
+  left: 5.5px;
+  top: 1.5px;
+}
+.thinking .thinking-dots i:nth-child(2) {
+  left: 1px;
+  top: 9.5px;
+}
+.thinking .thinking-dots i:nth-child(3) {
+  left: 10px;
+  top: 9.5px;
+}
+.thinking-time {
+  font-variant-numeric: tabular-nums;
+}
+.thinking-time:empty {
+  display: none;
+}
+.thinking-time::after {
+  content: "·";
+  margin-left: 12px;
+}
 .chat-hello {
   justify-self: center;
   display: grid;
@@ -19,8 +73,13 @@
   padding-top: 8vh;
   text-align: center;
 }
-.chat-hello .chat-name { font: 400 34px/1.1 var(--serif); letter-spacing: -0.02em; }
-.chat-hello .intro { margin: 0; }
+.chat-hello .chat-name {
+  font: 400 34px/1.1 var(--serif);
+  letter-spacing: -0.02em;
+}
+.chat-hello .intro {
+  margin: 0;
+}
 .chat-hello::before {
   content: "";
   width: 44px;

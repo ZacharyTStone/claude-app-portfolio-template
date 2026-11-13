@@ -1,5 +1,7 @@
 /* The "…" covers the row's dot while it shows. */
-.group-rows li { position: relative; }
+.group-rows li {
+  position: relative;
+}
 .row-more {
   position: absolute;
   top: 50%;
@@ -9,24 +11,71 @@
   translate: 0 -50%;
   opacity: 0;
 }
-.row-more::before { width: 16px; height: 16px; }
-.group-rows li:hover .row-more, .row-more:focus-visible, .row-more[aria-expanded="true"] { opacity: 1; }
-.row-more:hover, .row-more[aria-expanded="true"] { background: var(--row-selected); color: var(--text); }
+.row-more::before {
+  width: 16px;
+  height: 16px;
+}
+.group-rows li:hover .row-more,
+.row-more:focus-visible,
+.row-more[aria-expanded="true"] {
+  opacity: 1;
+}
+.row-more:hover,
+.row-more[aria-expanded="true"] {
+  background: var(--row-selected);
+  color: var(--text);
+}
 .group-rows li:hover .live,
-.group-rows li:has(.row-more:is(:focus-visible, [aria-expanded="true"])) .live { visibility: hidden; }
-@media (hover: none) { .row-more { opacity: 1; } .group-rows .live { visibility: hidden; } }
-.row-pop { top: calc(100% - 6px); right: 4px; }
+.group-rows li:has(.row-more:is(:focus-visible, [aria-expanded="true"])) .live {
+  visibility: hidden;
+}
+@media (hover: none) {
+  .row-more {
+    opacity: 1;
+  }
+  .group-rows .live {
+    visibility: hidden;
+  }
+}
+.row-pop {
+  top: calc(100% - 6px);
+  right: 4px;
+}
 /* The sidebar clips what sticks out of it, so the menu is only as wide as
    its row, unless its words need more. */
-.pop.row-pop { min-width: min(240px, 100% - 8px); }
-.row-pop.above { top: auto; bottom: calc(100% - 6px); }
+.pop.row-pop {
+  min-width: min(240px, 100% - 8px);
+}
+.row-pop.above {
+  top: auto;
+  bottom: calc(100% - 6px);
+}
 
-.title-menu-button { width: 28px; height: 28px; margin-left: -6px; flex: none; }
-.title-menu-button::before { width: 14px; height: 14px; }
-.title-menu-button[aria-expanded="true"] { background: var(--row-hover); color: var(--text); }
-.question.flash { box-shadow: 0 0 0 1.5px var(--accent); }
+.title-menu-button {
+  width: 28px;
+  height: 28px;
+  margin-left: -6px;
+  flex: none;
+}
+.title-menu-button::before {
+  width: 14px;
+  height: 14px;
+}
+.title-menu-button[aria-expanded="true"] {
+  background: var(--row-hover);
+  color: var(--text);
+}
+.question.flash {
+  box-shadow: 0 0 0 1.5px var(--accent);
+}
 
-.pop .danger { color: var(--danger); }
-.pop .danger .key { color: color-mix(in srgb, var(--danger) 70%, transparent); }
+.pop .danger {
+  color: var(--danger);
+}
+.pop .danger .key {
+  color: color-mix(in srgb, var(--danger) 70%, transparent);
+}
 
-.title-pop { top: calc(100% - 4px); }
+.title-pop {
+  top: calc(100% - 4px);
+}

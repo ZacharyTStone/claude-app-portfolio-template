@@ -1,21 +1,59 @@
 /* What moves by itself, and only for a visitor who hasn't asked for less motion. */
 @media (prefers-reduced-motion: no-preference) {
-  .tab:target .thread > * { animation: arrive 0.35s var(--ease) both; }
-  .tab:target .thread > :nth-child(2) { animation-delay: 0.08s; }
-  .tab:target .thread > :nth-child(3) { animation-delay: 0.16s; }
-  .tab:target .thread > :nth-child(4) { animation-delay: 0.24s; }
-  .tab:target .thread > :nth-child(5) { animation-delay: 0.32s; }
-  .tab:target .thread > :nth-child(6) { animation-delay: 0.4s; }
-  .tab:target .thread > :nth-child(n + 7) { animation-delay: 0.48s; }
+  .tab:target .thread > * {
+    animation: arrive 0.35s var(--ease) both;
+  }
+  .tab:target .thread > :nth-child(2) {
+    animation-delay: 0.08s;
+  }
+  .tab:target .thread > :nth-child(3) {
+    animation-delay: 0.16s;
+  }
+  .tab:target .thread > :nth-child(4) {
+    animation-delay: 0.24s;
+  }
+  .tab:target .thread > :nth-child(5) {
+    animation-delay: 0.32s;
+  }
+  .tab:target .thread > :nth-child(6) {
+    animation-delay: 0.4s;
+  }
+  .tab:target .thread > :nth-child(n + 7) {
+    animation-delay: 0.48s;
+  }
   /* Messages sent from the question card arrive as they're sent. */
-  .tab:target .thread > .sent { animation-delay: 0s; }
-  @keyframes arrive { from { opacity: 0; translate: 0 6px; } }
-  .thinking .thinking-dots { animation: dots-turn 3s linear infinite; }
-  .thinking .thinking-dots i { animation: dot 1.2s ease-in-out infinite; }
-  .thinking .thinking-dots i:nth-child(2) { animation-delay: 0.2s; }
-  .thinking .thinking-dots i:nth-child(3) { animation-delay: 0.4s; }
-  @keyframes dots-turn { to { rotate: 360deg; } }
-  @keyframes dot { 50% { opacity: 0.6; scale: 0.8; } }
+  .tab:target .thread > .sent {
+    animation-delay: 0s;
+  }
+  @keyframes arrive {
+    from {
+      opacity: 0;
+      translate: 0 6px;
+    }
+  }
+  .thinking .thinking-dots {
+    animation: dots-turn 3s linear infinite;
+  }
+  .thinking .thinking-dots i {
+    animation: dot 1.2s ease-in-out infinite;
+  }
+  .thinking .thinking-dots i:nth-child(2) {
+    animation-delay: 0.2s;
+  }
+  .thinking .thinking-dots i:nth-child(3) {
+    animation-delay: 0.4s;
+  }
+  @keyframes dots-turn {
+    to {
+      rotate: 360deg;
+    }
+  }
+  @keyframes dot {
+    50% {
+      opacity: 0.6;
+      scale: 0.8;
+    }
+  }
   .thinking-word {
     background: linear-gradient(90deg, var(--text-2) 40%, var(--text) 50%, var(--text-2) 60%) 0 0 / 300% 100%;
     -webkit-background-clip: text;
@@ -23,67 +61,210 @@
     color: transparent;
     animation: shimmer 2.4s linear infinite;
   }
-  @keyframes shimmer { from { background-position: 100% 0; } to { background-position: 0 0; } }
-  .tab:target .bars .bar { transform-box: fill-box; transform-origin: 0 50%; animation: grow 0.7s 0.25s var(--ease) both; }
-  .tab:target .bars text { animation: show 0.3s 0.8s var(--ease) both; }
-  @keyframes grow { from { transform: scaleX(0); } }
-  @keyframes show { from { opacity: 0; } }
-  .tab:target .flow li { animation: arrive 0.4s var(--ease) both; }
-  .tab:target .flow li::before { animation: show 0.3s var(--ease) both; }
-  .tab:target .flow li:nth-child(2), .tab:target .flow li:nth-child(2)::before { animation-delay: 0.3s; }
-  .tab:target .flow li:nth-child(3), .tab:target .flow li:nth-child(3)::before { animation-delay: 0.45s; }
-  .tab:target .flow li:nth-child(4), .tab:target .flow li:nth-child(4)::before { animation-delay: 0.6s; }
-  .tab:target .flow li:nth-child(5), .tab:target .flow li:nth-child(5)::before { animation-delay: 0.75s; }
-  .tab:target .flow li:first-child { animation-delay: 0.15s; }
-  .viewer { animation: viewer-in 0.25s var(--ease); }
-  @keyframes viewer-in { from { opacity: 0; translate: 16px 0; } }
-  .viewer-frame.viewer-loading::before { animation: idle 2.6s ease-in-out infinite; }
-  .chat-hello::before { animation: idle 2.6s ease-in-out infinite; }
-  @keyframes idle { 50% { translate: 0 -6px; rotate: 22deg; } }
-  .bye { animation: bye-in 0.35s var(--ease); }
-  @keyframes bye-in { from { opacity: 0; } }
+  @keyframes shimmer {
+    from {
+      background-position: 100% 0;
+    }
+    to {
+      background-position: 0 0;
+    }
+  }
+  .tab:target .bars .bar {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: grow 0.7s 0.25s var(--ease) both;
+  }
+  .tab:target .bars text {
+    animation: show 0.3s 0.8s var(--ease) both;
+  }
+  @keyframes grow {
+    from {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes show {
+    from {
+      opacity: 0;
+    }
+  }
+  .tab:target .flow li {
+    animation: arrive 0.4s var(--ease) both;
+  }
+  .tab:target .flow li::before {
+    animation: show 0.3s var(--ease) both;
+  }
+  .tab:target .flow li:nth-child(2),
+  .tab:target .flow li:nth-child(2)::before {
+    animation-delay: 0.3s;
+  }
+  .tab:target .flow li:nth-child(3),
+  .tab:target .flow li:nth-child(3)::before {
+    animation-delay: 0.45s;
+  }
+  .tab:target .flow li:nth-child(4),
+  .tab:target .flow li:nth-child(4)::before {
+    animation-delay: 0.6s;
+  }
+  .tab:target .flow li:nth-child(5),
+  .tab:target .flow li:nth-child(5)::before {
+    animation-delay: 0.75s;
+  }
+  .tab:target .flow li:first-child {
+    animation-delay: 0.15s;
+  }
+  .viewer {
+    animation: viewer-in 0.25s var(--ease);
+  }
+  @keyframes viewer-in {
+    from {
+      opacity: 0;
+      translate: 16px 0;
+    }
+  }
+  .viewer-frame.viewer-loading::before {
+    animation: idle 2.6s ease-in-out infinite;
+  }
+  .chat-hello::before {
+    animation: idle 2.6s ease-in-out infinite;
+  }
+  @keyframes idle {
+    50% {
+      translate: 0 -6px;
+      rotate: 22deg;
+    }
+  }
+  .bye {
+    animation: bye-in 0.35s var(--ease);
+  }
+  @keyframes bye-in {
+    from {
+      opacity: 0;
+    }
+  }
   /* src/app/reveal-on-scroll.ts marks a quote or a file card that was out of sight as it's scrolled to. When
      several come into view together, each waits its turn (--wait). */
-  .waiting { opacity: 0; }
-  .seen-after-1 { --wait: 0.16s; }
-  .seen-after-2 { --wait: 0.32s; }
-  .seen-after-3 { --wait: 0.48s; }
-  .quote.seen { animation: quote-in 0.9s var(--wait, 0s) var(--ease) both; }
-  .quote.seen blockquote { animation: arrive 0.45s calc(var(--wait, 0s) + 0.12s) var(--ease) both; }
-  .quote.seen figcaption { animation: arrive 0.4s calc(var(--wait, 0s) + 0.4s) var(--ease) both; }
-  @keyframes quote-in {
-    from { opacity: 0; border-left-color: var(--accent); }
-    35% { opacity: 1; }
-    60% { border-left-color: var(--accent); }
+  .waiting {
+    opacity: 0;
   }
-  .file-card.seen { animation: show 0.25s var(--wait, 0s) var(--ease) both; }
-  .file-card.seen .ok { animation: tick-in 0.4s calc(var(--wait, 0s) + 0.2s) var(--ease) both; }
-  @keyframes tick-in { from { opacity: 0; scale: 0.3; } 60% { scale: 1.3; } }
+  .seen-after-1 {
+    --wait: 0.16s;
+  }
+  .seen-after-2 {
+    --wait: 0.32s;
+  }
+  .seen-after-3 {
+    --wait: 0.48s;
+  }
+  .quote.seen {
+    animation: quote-in 0.9s var(--wait, 0s) var(--ease) both;
+  }
+  .quote.seen blockquote {
+    animation: arrive 0.45s calc(var(--wait, 0s) + 0.12s) var(--ease) both;
+  }
+  .quote.seen figcaption {
+    animation: arrive 0.4s calc(var(--wait, 0s) + 0.4s) var(--ease) both;
+  }
+  @keyframes quote-in {
+    from {
+      opacity: 0;
+      border-left-color: var(--accent);
+    }
+    35% {
+      opacity: 1;
+    }
+    60% {
+      border-left-color: var(--accent);
+    }
+  }
+  .file-card.seen {
+    animation: show 0.25s var(--wait, 0s) var(--ease) both;
+  }
+  .file-card.seen .ok {
+    animation: tick-in 0.4s calc(var(--wait, 0s) + 0.2s) var(--ease) both;
+  }
+  @keyframes tick-in {
+    from {
+      opacity: 0;
+      scale: 0.3;
+    }
+    60% {
+      scale: 1.3;
+    }
+  }
   /* The page allows no inline styles, so a line's place is counted here; past the sixteenth they come
      together. */
-  .file-card.seen .file-card-line { --line: 15; animation: show 0.12s calc(var(--wait, 0s) + 0.35s + var(--line) * 0.05s) var(--ease) both; }
-  .file-card.seen .file-card-line:first-child { --line: 0; }
-  .file-card.seen .file-card-line:nth-child(2) { --line: 1; }
-  .file-card.seen .file-card-line:nth-child(3) { --line: 2; }
-  .file-card.seen .file-card-line:nth-child(4) { --line: 3; }
-  .file-card.seen .file-card-line:nth-child(5) { --line: 4; }
-  .file-card.seen .file-card-line:nth-child(6) { --line: 5; }
-  .file-card.seen .file-card-line:nth-child(7) { --line: 6; }
-  .file-card.seen .file-card-line:nth-child(8) { --line: 7; }
-  .file-card.seen .file-card-line:nth-child(9) { --line: 8; }
-  .file-card.seen .file-card-line:nth-child(10) { --line: 9; }
-  .file-card.seen .file-card-line:nth-child(11) { --line: 10; }
-  .file-card.seen .file-card-line:nth-child(12) { --line: 11; }
-  .file-card.seen .file-card-line:nth-child(13) { --line: 12; }
-  .file-card.seen .file-card-line:nth-child(14) { --line: 13; }
-  .file-card.seen .file-card-line:nth-child(15) { --line: 14; }
-  .file-card.seen .file-card-line:nth-child(16) { --line: 15; }
-  .live { animation: live 2.6s ease-in-out infinite; }
-  @keyframes live { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent); } }
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  .pop, .follow-card { animation: pop-in 0.14s var(--ease); }
-  .pop.up, .follow-card { --from: 4px; }
-  @keyframes pop-in { from { opacity: 0; translate: 0 var(--from, -4px); } }
+  .file-card.seen .file-card-line {
+    --line: 15;
+    animation: show 0.12s calc(var(--wait, 0s) + 0.35s + var(--line) * 0.05s) var(--ease) both;
+  }
+  .file-card.seen .file-card-line:first-child {
+    --line: 0;
+  }
+  .file-card.seen .file-card-line:nth-child(2) {
+    --line: 1;
+  }
+  .file-card.seen .file-card-line:nth-child(3) {
+    --line: 2;
+  }
+  .file-card.seen .file-card-line:nth-child(4) {
+    --line: 3;
+  }
+  .file-card.seen .file-card-line:nth-child(5) {
+    --line: 4;
+  }
+  .file-card.seen .file-card-line:nth-child(6) {
+    --line: 5;
+  }
+  .file-card.seen .file-card-line:nth-child(7) {
+    --line: 6;
+  }
+  .file-card.seen .file-card-line:nth-child(8) {
+    --line: 7;
+  }
+  .file-card.seen .file-card-line:nth-child(9) {
+    --line: 8;
+  }
+  .file-card.seen .file-card-line:nth-child(10) {
+    --line: 9;
+  }
+  .file-card.seen .file-card-line:nth-child(11) {
+    --line: 10;
+  }
+  .file-card.seen .file-card-line:nth-child(12) {
+    --line: 11;
+  }
+  .file-card.seen .file-card-line:nth-child(13) {
+    --line: 12;
+  }
+  .file-card.seen .file-card-line:nth-child(14) {
+    --line: 13;
+  }
+  .file-card.seen .file-card-line:nth-child(15) {
+    --line: 14;
+  }
+  .file-card.seen .file-card-line:nth-child(16) {
+    --line: 15;
+  }
+  .live {
+    animation: live 2.6s ease-in-out infinite;
+  }
+  @keyframes live {
+    50% {
+      box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent);
+    }
+  }
+  .pop,
+  .follow-card {
+    animation: pop-in 0.14s var(--ease);
+  }
+  .pop.up,
+  .follow-card {
+    --from: 4px;
+  }
+  @keyframes pop-in {
+    from {
+      opacity: 0;
+      translate: 0 var(--from, -4px);
+    }
+  }
 }

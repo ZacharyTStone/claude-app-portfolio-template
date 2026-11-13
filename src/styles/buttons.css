@@ -22,13 +22,24 @@
   color: var(--text-2);
   cursor: pointer;
 }
-.ghost-button:hover, .icon-button:hover { background: var(--row-hover); color: var(--text); }
-.ask-send, .bye-back {
+.ghost-button:hover,
+.icon-button:hover {
+  background: var(--row-hover);
+  color: var(--text);
+}
+.ask-send,
+.bye-back {
   border: 0;
   border-radius: 9px;
   background: rgb(255 255 255 / 0.12);
   font: 500 15px/1 var(--sans);
   cursor: pointer;
 }
-.ask-send:hover, .bye-back:hover { background: rgb(255 255 255 / 0.18); }
-.icon-button.done { --icon: url("/assets/icons/check.svg"); color: var(--green); }
+.ask-send:hover,
+.bye-back:hover {
+  background: rgb(255 255 255 / 0.18);
+}
+.icon-button.done {
+  --icon: url("/assets/icons/check.svg");
+  color: var(--green);
+}

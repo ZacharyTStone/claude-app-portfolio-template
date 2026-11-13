@@ -1,7 +1,13 @@
 /* Wider than the panel, as a document needs the room, but it always leaves the conversation enough to be read. */
-.shell { --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px)); }
-.shell.viewing { --panel-col: var(--viewer-w); }
-.shell.viewing .panel { display: none; }
+.shell {
+  --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px));
+}
+.shell.viewing {
+  --panel-col: var(--viewer-w);
+}
+.shell.viewing .panel {
+  display: none;
+}
 .viewer {
   display: grid;
   grid-template-rows: var(--topbar-h) minmax(0, 1fr);
@@ -9,7 +15,13 @@
   border-left: 1px solid var(--line);
   background: var(--page);
 }
-.viewer-bar { display: flex; align-items: center; gap: 4px; min-width: 0; padding: 0 8px 0 16px; }
+.viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 8px 0 16px;
+}
 .viewer-title {
   flex: 1;
   min-width: 0;
@@ -36,7 +48,9 @@
   background: #fff;
   color-scheme: light;
 }
-.viewer-frame.viewer-loading iframe { visibility: hidden; }
+.viewer-frame.viewer-loading iframe {
+  visibility: hidden;
+}
 .viewer-frame.viewer-loading::before {
   content: "";
   position: absolute;
