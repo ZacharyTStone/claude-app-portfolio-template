@@ -1,7 +1,3 @@
-/* JSON replies. None is ever cached, and none is ever read as anything but
-   JSON. */
-
-/** The HTTP statuses /ask replies with, by name. */
 export const HTTP_STATUS = {
   ok: 200,
   badRequest: 400,

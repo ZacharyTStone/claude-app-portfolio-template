@@ -29,14 +29,13 @@ export type Picked = {
   /** An answer's id, "inappropriate", or null for no pick. */
   id: string | null;
   /** With an answer's id: the numbers of the lines the model says answer
-      the question, exactly as it gave them. Nothing has checked them yet
-      (quote.ts does). Named for the tool's parameter. */
+      the question, exactly as it gave them. Nothing has checked them yet.
+      Named for the tool's parameter. */
   sentences?: unknown;
   /** What it thought on the way, for the log. */
   thought?: string;
-  /** It ran out of room to write (MAX_PICK_TOKENS) before it had picked. */
+  /** It ran out of room to write before it had picked. */
   ranOutOfRoom?: true;
-  /** The tokens the call used. */
   tokens: Tokens;
 };
 
@@ -50,7 +49,6 @@ export type ToolCall = {
   thought?: string;
 };
 
-/** What the model picks for the question, of the answers in `choices`. */
 export async function pick(ai: Ai, model: string, question: string, choices: Choices): Promise<Picked> {
   const offeredIds = choices.answers.map((answer) => answer.id);
   if (!offeredIds.length) return { id: null, tokens: NO_TOKENS };
@@ -69,8 +67,7 @@ export async function pick(ai: Ai, model: string, question: string, choices: Cho
   return { ...readPick(modelReply, offeredIds), tokens };
 }
 
-// What the model's reply picks, of the ids it was offered. An id that
-// wasn't offered is no pick.
+// An id that wasn't offered is no pick.
 function readPick(modelReply: unknown, offeredIds: readonly string[]): Omit<Picked, "tokens"> {
   const toolCall = readToolCall(modelReply);
   // Only a tool call can say "inappropriate": a word in some text shouldn't
@@ -95,8 +92,6 @@ export function readToolCall(modelReply: unknown): ToolCall | undefined {
   return undefined;
 }
 
-// The thinking a tool call's arguments start with, on one line and cut to
-// MAX_THOUGHT_LENGTH; undefined if there's none.
 function thoughtIn(sentArguments: unknown): string | undefined {
   const thinking = get(sentArguments, "thinking");
   const onOneLine = isString(thinking) ? thinking.replace(/\s+/g, " ").trim() : "";
@@ -112,7 +107,7 @@ export function readTextPick(modelReply: unknown, ids: readonly string[]): strin
   return idsNamed.length === 1 ? (idsNamed[0] ?? null) : null;
 }
 
-// Whether the text has the id on its own, not inside a longer one: before
-// and after it comes the text's start or end, or a character no id is
-// written with. "Pick: about.1" names "about.1"; "about.12" doesn't.
+// The id on its own, not inside a longer one: "about.12" doesn't name
+// "about.1". Before and after it comes the text's start or end, or a
+// character no id is written with.
 const namesId = (text: string, id: string) => new RegExp(`(^|[^\\w.-])${escapeRegExp(id)}($|[^\\w.-])`).test(text);

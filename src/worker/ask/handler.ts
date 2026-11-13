@@ -44,9 +44,6 @@ async function outcomeOf(request: Request, env: Env, settings: Settings, guard: 
   }
 }
 
-// Has the model pick an answer, and a reply made from it; or, with no
-// answer to show, the question said to the owner for the message the page
-// offers instead.
 async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<Outcome> {
   const { question } = admitted.askRequest;
   const choices = await admitted.choicesBeingRead;

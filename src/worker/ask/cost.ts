@@ -1,7 +1,6 @@
-/* What a question costs: the tokens each model call read and wrote, as
-   Workers AI reports them, priced in Neurons (known-models.ts). AskGuard
-   adds up the day's, and stops at the budget (ASK_DAILY_NEURONS): the
-   allowance is kept by what was used, not by a guess at it. */
+/* A question costs what its model calls read and wrote, priced in Neurons:
+   the day's budget (ASK_DAILY_NEURONS) is kept by what was used, not by a
+   guess at it. */
 import { TOKENS_PER_PRICE, type Price } from "./known-models.ts";
 
 /** The fewest bytes of text a token is counted as, for a call that didn't
@@ -23,6 +22,5 @@ export const estimateTokens = (text: string): number =>
 /** The same for anything sent to a model or got back from one, as JSON. */
 export const estimateJsonTokens = (value: unknown): number => estimateTokens(JSON.stringify(value) ?? "");
 
-/** What the tokens cost at `price`, in Neurons. */
 export const neuronCost = ({ input, output }: Tokens, price: Price): number =>
   (input * price.input + output * price.output) / TOKENS_PER_PRICE;

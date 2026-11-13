@@ -24,15 +24,11 @@ const CheckedAskRequestSchema = v.object({
   // Every field of an AskRequest is read here, and nothing else is.
 } satisfies Record<keyof AskRequest, v.GenericSchema>);
 
-/** An AskRequest, checked: the question trimmed and cut to
-    MAX_QUESTION_LENGTH, and the page's language if it sent one. */
 export type CheckedAskRequest = v.InferOutput<typeof CheckedAskRequestSchema>;
 
-/** Why a request isn't one /ask reads: the status it's turned away with, a
-    word on why, and any header that goes with the status. */
+/** Why a request isn't one /ask reads, and the status it's turned away with. */
 export type Rejection = { status: number; error: string; headers?: Record<string, string> };
 
-/** Why the request is turned away, if it isn't a JSON POST. */
 export function rejectionUnlessJsonPost(request: Request): Rejection | undefined {
   if (request.method !== "POST") {
     return { status: HTTP_STATUS.methodNotAllowed, error: "POST only", headers: { Allow: "POST" } };
@@ -44,7 +40,7 @@ export function rejectionUnlessJsonPost(request: Request): Rejection | undefined
   return isJson ? undefined : { status: HTTP_STATUS.unsupportedMediaType, error: "JSON only" };
 }
 
-// The body as text, read no further than `maxBytes`: null past them.
+// Null for a body longer than `maxBytes`: no more of it is read.
 async function readBodyText(request: Request, maxBytes: number): Promise<string | null> {
   const reader = request.body?.getReader();
   if (!reader) return "";
@@ -64,8 +60,6 @@ async function readBodyText(request: Request, maxBytes: number): Promise<string 
 
 const TOO_LONG: Rejection = { status: HTTP_STATUS.payloadTooLarge, error: "too long" };
 
-/** The request's body as a checked AskRequest, or why it's turned away:
-    too long, not JSON, or with no question in it. */
 export async function readAskRequest(request: Request): Promise<CheckedAskRequest | Rejection> {
   if (Number(request.headers.get("Content-Length") ?? 0) > MAX_REQUEST_BYTES) return TOO_LONG;
   let body: unknown;

@@ -17,7 +17,6 @@ const LLAMA_GUARD_TIMEOUT_MS = 2500;
     and categories, in tokens. */
 export const LLAMA_GUARD_PROMPT_TOKENS = 250;
 
-/** Llama Guard's verdict on a question, and the tokens its call used. */
 export type Verdict = { isUnsafe: boolean; tokens: Tokens };
 
 /** `isUnsafe` if Llama Guard calls the question that within `timeoutMs`.

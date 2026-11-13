@@ -1,5 +1,3 @@
-/* Waiting for a model no longer than the visitor should have to. */
-
 /** What `work` resolves to, or undefined if it hasn't within `timeoutMs`.
     Work that fails in time rejects as it would on its own. Work still
     running when the time is up is left to run: a model call can't be taken

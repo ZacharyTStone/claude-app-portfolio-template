@@ -16,7 +16,6 @@ export function get(value: unknown, ...path: (string | number)[]): unknown {
   return current;
 }
 
-/** The value if it's an array, else an empty one. */
 export const arrayOrEmpty = (value: unknown): unknown[] => (Array.isArray(value) ? value : []);
 
 /** The number a setting or a query says, if it's one above 0 (and not

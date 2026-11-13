@@ -32,9 +32,8 @@ export function visitorAddress(request: Request): string {
   return ipv6.isIPv4MappedAddress() ? ipv6.toIPv4Address().toString() : network64(ipv6);
 }
 
-// The /64 an IPv6 address is in: its first four groups in lower-case hex
-// with no leading zeros, then "::/64". 2001:0DB8:1:2:aaaa:bbbb:cccc:dddd is
-// in "2001:db8:1:2::/64", and ::1 in "0:0:0:0::/64".
+// Its first four groups in lower-case hex with no leading zeros, then
+// "::/64": "2001:db8:1:2::/64", and "0:0:0:0::/64" for ::1.
 function network64(ipv6: ipaddr.IPv6): string {
   const networkGroups = ipv6.parts.slice(0, IPV6_NETWORK_GROUPS).map((group) => group.toString(16));
   return `${networkGroups.join(":")}::/64`;

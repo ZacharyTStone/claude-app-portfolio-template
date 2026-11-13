@@ -31,9 +31,7 @@ type SiteCount = v.InferOutput<typeof SiteCountSchema>;
 
 /** Under `count:` and a visitor's hash: that visitor's questions on one day. */
 const VisitorCountSchema = v.object({
-  /** The day (UTC) the count is for. */
   day: v.string(),
-  /** How many questions they asked that day. */
   asked: v.number(),
 });
 type VisitorCount = v.InferOutput<typeof VisitorCountSchema>;
@@ -43,21 +41,18 @@ type VisitorCount = v.InferOutput<typeof VisitorCountSchema>;
 const siteCountOn = (day: string, stored: unknown): SiteCount | undefined =>
   v.is(SiteCountSchema, stored) && stored.day === day ? stored : undefined;
 
-// The same for one visitor's count.
 const visitorCountOn = (day: string, stored: unknown): VisitorCount | undefined =>
   v.is(VisitorCountSchema, stored) && stored.day === day ? stored : undefined;
 
-// Under `block:` and a visitor's hash is when their block runs out (ms
-// since 1970): whether what's stored is a time still to come.
+// A block is stored as the time it runs out.
 const isStillBlocked = (blockedUntil: unknown, now: number) => typeof blockedUntil === "number" && blockedUntil > now;
 
 const countKey = (visitorHash: string) => `${ASK_GUARD_KEYS.count}${visitorHash}`;
 const blockKey = (visitorHash: string) => `${ASK_GUARD_KEYS.block}${visitorHash}`;
 
-// The day (UTC) a moment is in: "2026-01-31".
+// "2026-01-31", in UTC.
 const dayOf = (now: number) => new Date(now).toISOString().slice(0, 10);
 
-/** The Durable Object that keeps the day's counts and the blocks. */
 export class AskGuard implements DurableObject {
   private readonly storage: DurableObjectStorage;
 
@@ -85,8 +80,6 @@ export class AskGuard implements DurableObject {
     }
   }
 
-  // Counts one question against the site's day and the visitor's, unless
-  // the visitor is blocked or either allowance is used up.
   private async takeQuestion(visitorHash: string, limits: DayLimits, now: number): Promise<Taken> {
     if (await this.isBlocked(visitorHash, now)) return { state: "blocked" };
     const day = dayOf(now);
@@ -101,8 +94,7 @@ export class AskGuard implements DurableObject {
     return { state: "ok", questionsLeft: limits.visitorLimit - asked - 1 };
   }
 
-  // Whether the visitor's block still holds. One that has run out is
-  // deleted.
+  // A block that has run out is deleted.
   private async isBlocked(visitorHash: string, now: number): Promise<boolean> {
     const blockedUntil = await this.storage.get(blockKey(visitorHash));
     if (isStillBlocked(blockedUntil, now)) return true;
@@ -110,9 +102,8 @@ export class AskGuard implements DurableObject {
     return false;
   }
 
-  // The site's questions on `day` so far, and what they've cost. When
-  // what's stored is an earlier day's, that day is over: its counts are
-  // deleted, and this one starts from nothing.
+  // When what's stored is an earlier day's, that day is over: its counts
+  // are deleted, and this one starts from nothing.
   private async siteCountFor(day: string, now: number): Promise<Required<SiteCount>> {
     const stored = await this.storage.get(ASK_GUARD_KEYS.today);
     const count = siteCountOn(day, stored);
@@ -132,8 +123,7 @@ export class AskGuard implements DurableObject {
     } satisfies SiteCount);
   }
 
-  // Deletes every visitor's count (all from an earlier day), and the blocks
-  // that have run out.
+  // Every visitor's count is an earlier day's by now.
   private async deleteWhatHasRunOut(now: number): Promise<void> {
     const visitorCounts = [...(await this.storage.list({ prefix: ASK_GUARD_KEYS.count })).keys()];
     const expiredBlocks = [...(await this.storage.list({ prefix: ASK_GUARD_KEYS.block }))]

@@ -11,8 +11,6 @@ export const PICK_TOOL_NAME = "pick_answer";
     rude, or tries to make the model do something else. */
 export const INAPPROPRIATE = "inappropriate";
 
-// What the model is told: whose portfolio this is, to think before it picks,
-// and to look for what was asked in everything the answers say.
 function instructions({ name, role, languages }: Omit<Choices, "answers">): string {
   const first = firstName(name);
   return [
@@ -35,14 +33,12 @@ function instructions({ name, role, languages }: Omit<Choices, "answers">): stri
   ].join(" ");
 }
 
-// The site's languages in English, as a list: "English or Japanese".
+// "English or Japanese".
 function languageNames(codes: string[]): string {
   const names = codes.map(languageName);
   return names.length > 1 ? `${names.slice(0, -1).join(", ")} or ${names.at(-1)}` : (names[0] ?? "English");
 }
 
-// The instructions, then every answer on a line of its own, its lines
-// numbered for the model to pick from.
 const systemMessage = (choices: Choices) => {
   const answers = choices.answers
     .map(({ id, title, q, text }) => `${id} | ${title} | ${q} | ${withNumbers(text)}`)
@@ -50,9 +46,7 @@ const systemMessage = (choices: Choices) => {
   return `${instructions(choices)}\n\nThe answers (id | tab | question | answer):\n${answers}`;
 };
 
-// The one tool the model may call. Its thinking comes first, so it's written
-// before the pick it leads to; its id can only be one of the ids, "none" or
-// "inappropriate".
+// Its thinking comes first, so it's written before the pick it leads to.
 const pickTool = (offeredIds: string[]) => ({
   type: "function",
   function: {
