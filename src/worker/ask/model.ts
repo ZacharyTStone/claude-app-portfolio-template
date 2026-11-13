@@ -9,7 +9,7 @@ import { reasoningOptionsOf } from "./known-models.ts";
 /** A call counted by its size: what the model read (`prompt`) and what
     came back. One the clock cut off is paid for all the same, and counted
     as if it wrote all it may (`maxOutputTokens`). */
-export type CountedBySize = { prompt: unknown; maxOutputTokens: number };
+type CountedBySize = { prompt: unknown; maxOutputTokens: number };
 
 export type ModelCall = {
   /** All the model is sent: its messages, any tools, and its options. */
