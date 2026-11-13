@@ -9,7 +9,7 @@
 
    Types can't say everything. That a `tab` names a thread, an `icon` is one
    the stylesheet has, and every language has the same threads is checked
-   before a build (src/site/validate.ts), which stops with a message that
+   before a build (src/site/checks), which stops with a message that
    names the field. */
 
 import type { Language } from "./language.ts";

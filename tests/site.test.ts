@@ -9,7 +9,7 @@ import { test } from "node:test";
 import { escapeRegExp } from "es-toolkit";
 import config from "../site.config.ts";
 import { OUTPUT, ROOT } from "../src/site/constants.ts";
-import { isSafeHref } from "../src/site/validate.ts";
+import { isSafeHref } from "../src/site/checks/formats.ts";
 import { basePath } from "../src/site/url.ts";
 
 const [mainCode, ...otherCodes] = Object.keys(config.languages);

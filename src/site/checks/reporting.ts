@@ -6,7 +6,7 @@
 import type { Language } from "../../config/language.ts";
 import { LOGOS } from "../../components/logos.ts";
 import type { Site } from "../site.ts";
-import { isSafeHref } from "./shapes.ts";
+import { isSafeHref } from "./formats.ts";
 
 /** What the checks found in a config. */
 export type Findings = {

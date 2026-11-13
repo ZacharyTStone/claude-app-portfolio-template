@@ -7,7 +7,7 @@
 import type { Panel } from "../config/language.ts";
 
 /** Ids the page and the browser code use themselves. No thread can take
-    one (src/site/validate.ts), since a thread's id is its tab's. */
+    one (src/site/checks), since a thread's id is its tab's. */
 export const PAGE_IDS = {
   /** The home screen. A link to #top closes the open tab, since the home
       screen shows whenever no tab is the address's target: the drawer's

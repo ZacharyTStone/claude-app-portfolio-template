@@ -56,7 +56,7 @@ export function makeSite(config: SiteConfig): Site {
   if (main === undefined) throw new Error("site.config.ts has no languages");
   // For "https://you.github.io/portfolio/", the site's address is
   // "https://you.github.io/portfolio" and its path "/portfolio/".
-  // An address that isn't one is for validate.ts to report, not to crash on.
+  // An address that isn't one is for the config's checks to report, not to crash on.
   const siteAddress = trimEnd(config.url, "/");
   const sitePath = URL.canParse(config.url) ? basePath(config.url) : "/";
   const link = (href: string) => (PATH_FROM_SITE_ROOT.test(href) ? sitePath + href.slice(1) : href);

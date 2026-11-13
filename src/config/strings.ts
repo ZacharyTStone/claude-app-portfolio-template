@@ -99,7 +99,7 @@ export const SCRIPT_STRING_ATTRIBUTES = {
   // Under a reply /ask sent: where a personal answer is from.
   askFromPersonal: "data-ask-from-personal",
   // Wording for the parts only some sites have. A site needs one of these
-  // only when it has the part (src/site/validate.ts says which are missing),
+  // only when it has the part (src/site/checks says which are missing),
   // and its page carries the ones it has.
   // The viewer (the config's `viewer`): its two buttons, "Open in a new
   // tab" and "Close".

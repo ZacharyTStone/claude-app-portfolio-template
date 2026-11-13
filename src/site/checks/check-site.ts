@@ -5,14 +5,14 @@
 
    This file is the list of checks, in the order their problems are printed.
    Each check is a function with a comment that says what has to be true and
-   how a site gets it wrong, in one of the files in validate/:
+   how a site gets it wrong, in one of the files beside this one:
 
      whole-site.ts  what's set once for the site: its languages match, its
                     address, links, social card, Ask and the viewer
      language.ts    one language: its threads, sidebar, panel, question
                     card, wording, and the links in its text
      blocks.ts      one block of an answer: a picture, a link card, a figure
-     shapes.ts      what a value has to look like: a language code, a path
+     formats.ts     what a value has to look like: a language code, a path
                     on the site, a link that's safe to follow
      reporting.ts   what the checks find (Findings), and how a check
                     reports a problem
@@ -21,7 +21,7 @@
    it belongs to, with the message a person will read when the build stops,
    add it to the list here, and give it a test in tests/config.test.ts. */
 
-import type { Site } from "./site.ts";
+import type { Site } from "../site.ts";
 import {
   checkHomePrompts,
   checkLanguageRow,
@@ -40,8 +40,8 @@ import {
   checkThreads,
   checkTopics,
   checkUpgradeRow,
-} from "./validate/language.ts";
-import { languageChecks, type Findings, type LanguageChecks, type ProblemUnless } from "./validate/reporting.ts";
+} from "./language.ts";
+import { languageChecks, type Findings, type LanguageChecks, type ProblemUnless } from "./reporting.ts";
 import {
   checkAskRunsOnItsHost,
   checkContactLinks,
@@ -56,12 +56,7 @@ import {
   checkTimeZone,
   checkViewer,
   noteManyTopics,
-} from "./validate/whole-site.ts";
-
-// What other files have always imported from here.
-export { iconsIn } from "./stylesheet.ts";
-export type { Findings } from "./validate/reporting.ts";
-export { isSafeHref } from "./validate/shapes.ts";
+} from "./whole-site.ts";
 
 /** The checks of the site as a whole, in the order their problems are
     listed: all of them before any language's. */
@@ -105,7 +100,7 @@ const LANGUAGE_CHECKS: Array<(checks: LanguageChecks) => void> = [
 
 /** Checks a site's config. `stylesheetIcons` are the icons the styles have
     (iconsIn): the ones a row or a link card in the config can name. */
-export function validate(site: Site, stylesheetIcons: Set<string>): Findings {
+export function checkSite(site: Site, stylesheetIcons: Set<string>): Findings {
   const findings: Findings = { problems: [], notes: [] };
   const problemUnless: ProblemUnless = (isOk, problem) => {
     if (!isOk) findings.problems.push(problem);
