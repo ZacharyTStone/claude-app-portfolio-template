@@ -31,21 +31,24 @@ test("a reply written from the lines is the reply: the model has the lines, and 
     tries: 1,
     tokens: { input: 300, output: 12 },
   });
-  const [system, user, ...more] = sent[0]?.messages ?? [];
+  const [call] = sent;
+  assert.ok(call, "the model was called");
+  const [system, user, ...more] = call.messages;
+  assert.ok(system, "it has instructions");
   assert.deepEqual(more, []);
-  assert.equal(system?.role, "system");
+  assert.equal(system.role, "system");
   for (const told of [WRITING.lines, `"${WRITING.title}"`, WRITING.q, WRITING.name, WRITING.role, "English", NONE]) {
-    assert.ok(system?.content.includes(told), `it's told: ${told}`);
+    assert.ok(system.content.includes(told), `it's told: ${told}`);
   }
   // To answer as it was asked, in a sentence or two, from the lines alone.
   for (const told of ["conversationally", "one or two short sentences", '"Yes" or "No"', "add no fact"]) {
-    assert.ok(system?.content.includes(told), `it's told: ${told}`);
+    assert.ok(system.content.includes(told), `it's told: ${told}`);
   }
-  assert.ok(!system?.content.includes(WRITING.question), "the question is no part of its instructions");
+  assert.ok(!system.content.includes(WRITING.question), "the question is no part of its instructions");
   assert.deepEqual(user, { role: "user", content: WRITING.question });
-  assert.equal(sent[0]?.temperature, 0);
-  assert.equal(sent[0]?.max_completion_tokens, MAX_WRITE_TOKENS);
-  assert.deepEqual(sent[0]?.chat_template_kwargs, reasoningOptionsOf(DEFAULT_MODEL).chat_template_kwargs);
+  assert.equal(call.temperature, 0);
+  assert.equal(call.max_completion_tokens, MAX_WRITE_TOKENS);
+  assert.deepEqual(call.chat_template_kwargs, reasoningOptionsOf(DEFAULT_MODEL).chat_template_kwargs);
 });
 
 test("a Japanese page's reply is asked for in Japanese; a language the check can't read, not at all", async () => {

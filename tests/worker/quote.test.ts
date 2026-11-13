@@ -132,17 +132,19 @@ quoted("the sentence before it may end the paragraph above, a picture or a link 
   ],
 ]);
 
+/** Every one or two of an answer's numbered lines: [1, 1], [1, 2], [2, 2]… */
+function everyPairOfNumbers(text: string): [number, number][] {
+  const count = numbered(text).filter(({ n }) => n !== undefined).length;
+  return Array.from({ length: count }, (_, a) =>
+    Array.from({ length: count - a }, (_, more): [number, number] => [a + 1, a + 1 + more]),
+  ).flat();
+}
+
 test("every quote of every answer is the answer's own text", () => {
   for (const { text } of [...EN, ...JA]) {
-    const count = numbered(text).filter(({ n }) => n !== undefined).length;
-    for (let a = 1; a <= count; a++) {
-      for (let b = a; b <= count; b++) {
-        const reply = quote(text, [a, b])?.reply;
-        if (reply === undefined) continue;
-        for (const line of reply.split(" · ")) {
-          for (const piece of piecesOf(line)) assert.ok(text.includes(piece.text), piece.text);
-        }
-      }
+    for (const numbers of everyPairOfNumbers(text)) {
+      const quotedLines = quote(text, numbers)?.reply?.split(" · ") ?? [];
+      for (const piece of quotedLines.flatMap(piecesOf)) assert.ok(text.includes(piece.text), piece.text);
     }
   }
 });

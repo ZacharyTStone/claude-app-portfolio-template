@@ -47,8 +47,6 @@ test("isQuestionToOwner: what the page takes as the question said to the owner",
   }
 });
 
-// ---- The call --------------------------------------------------------------------------
-
 const ADDRESSING: Rewriting = {
   question: "Has Alex worked with Vue?",
   lang: "en",
@@ -184,8 +182,6 @@ test("past its time, there's no rewrite, and the call is counted as if it wrote 
     output: MAX_TO_OWNER_TOKENS,
   });
 });
-
-// ---- Through /ask ---------------------------------------------------------------------
 
 const LOG_QUESTIONS = { ASK_LOG_QUESTIONS: "true" };
 const QUESTION = ADDRESSING.question;
