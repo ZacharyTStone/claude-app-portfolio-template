@@ -386,10 +386,13 @@ export type StatusLine = {
 
 /** "Something else": the reply to a question the site has no answer for,
     with ways to ask you instead. In `email` and `message.text`,
-    {question} is what the visitor asked, as they typed it. That's about
-    you, not to you ("Does Alex…?"), and for a visitor who's been blocked
-    it's nothing at all, so give it a line of its own ("A question from
-    your portfolio:", then {question}) rather than a place in a sentence. */
+    {question} is what the visitor asked. On an English page Ask says it to
+    you where it can ("Do you…?" for "Does Alex…?"). Where it can't, on a
+    page in another language and with Ask off, it's the question as they
+    typed it, which is about you, not to you ("Does Alex…?"); and for a
+    visitor who's been blocked it's nothing at all. So give it a line of
+    its own ("A question from your portfolio:", then {question}) rather
+    than a place in a sentence. */
 export type Asked = {
   /** The tab's name: "Something else". */
   title: string;

@@ -2,11 +2,18 @@
    is src/shared/ask.ts's contract. */
 import assert from "node:assert/strict";
 import type { Page, Request } from "playwright";
-import { MAX_REPLY_LENGTH, personalAnswerId, threadAnswerId, type AskRequest } from "../../../src/shared/ask.ts";
+import {
+  MAX_QUESTION_LENGTH,
+  MAX_REPLY_LENGTH,
+  personalAnswerId,
+  threadAnswerId,
+  type AskRequest,
+} from "../../../src/shared/ask.ts";
 import {
   askIn,
   askInNewChat,
   askReturns,
+  EMAIL_LINK,
   eventually,
   firstTabChoice,
   lastText,
@@ -66,6 +73,26 @@ async function checkReplied(page: Page, scope: string, from: { text: string; hre
     squash(`${REPLY}${cited.join("")}${from.text}`),
     "and nothing more of the answer",
   );
+}
+
+/** The nth "Something else" reply in `scope` (from 0), to the question
+    `typed`: the bubble over it has the question as it was typed, and the
+    email it opens and the message to copy (on a site with one) have it as
+    `sent`: the same, or as /ask said it to the owner. */
+async function checkQuestionSent(page: Page, scope: string, typed: string, sent: string, nth = 0) {
+  // Sent just now, or shown again with a chat.
+  const reply = page.locator(`${scope} ${CLASS.thread} > ${CLASS.answer}`).filter({ has: page.locator(EMAIL_LINK) });
+  await reply.nth(nth).waitFor();
+  const asked = page.locator(`${scope} ${CLASS.thread} > ${CLASS.question}`).filter({ hasText: typed });
+  assert.equal(await asked.last().evaluate(lastText), typed, "the bubble has the question as it was typed");
+  const email = decodeURIComponent((await reply.nth(nth).locator(EMAIL_LINK).getAttribute("href")) ?? "");
+  assert.ok(email.includes(sent), `the email has the question as it's sent: ${email}`);
+  const draft = reply.nth(nth).locator(CLASS.draftText);
+  const message = (await draft.count()) ? squash(await draft.textContent()) : null;
+  if (message !== null) assert.ok(message.includes(sent), `the message to copy has it too: ${message}`);
+  if (sent === typed) return;
+  assert.ok(!email.includes(typed), "the email hasn't the question as typed as well");
+  if (message !== null) assert.ok(!message.includes(typed), "nor has the message");
 }
 
 export default (site: Site): Check[] => {
@@ -244,16 +271,56 @@ export default (site: Site): Check[] => {
         const typed = "Does he like natto? It costs $& here";
         await askReturns(page, askUrl, [{ id: null }]);
         await askIn(page, A.id, typed);
-        const reply = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`).first();
-        await reply.waitFor();
-        assert.equal(
-          await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.question}`).last().evaluate(lastText),
-          typed,
-        );
-        const email = decodeURIComponent((await reply.getAttribute("href")) ?? "");
-        assert.ok(email.includes(typed), email);
-        const draft = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.draftText}`);
-        if (await draft.count()) assert.ok(squash(await draft.last().textContent()).includes(typed));
+        await checkQuestionSent(page, `#${A.id}`, typed, typed);
+      },
+    },
+    {
+      name: "with the question as /ask said it to the owner, the email and the message carry that; the bubble keeps what was typed, and a chat keeps both",
+      url: "./",
+      skip: noAsk,
+      async test(page) {
+        // About the owner, by the name the site gives them; and to them.
+        const typed = `Does ${site.name} know testing?`;
+        const toOwner = "Do you know testing?";
+        await askReturns(page, askUrl, { id: null, toOwner });
+        await askInNewChat(page, typed);
+        await checkQuestionSent(page, OPEN_CHAT, typed, toOwner);
+        await revisit(page, site.url("./"));
+        await page.locator(`${ID.tabs} a[href^="#${ID_PREFIX.chat}"]`).first().click();
+        await checkQuestionSent(page, OPEN_CHAT, typed, toOwner);
+      },
+    },
+    {
+      name: "a question said to the owner that isn't a line of plain text isn't used: the question goes as it was typed",
+      url: `#${A.id}`,
+      skip: noAsk,
+      async test(page) {
+        const replies: Reply[] = [
+          { id: null, toOwner: "x".repeat(MAX_QUESTION_LENGTH + 1) },
+          { id: null, toOwner: "Do you know\ntesting?" },
+          { id: null, toOwner: "   " },
+          { id: null, toOwner: 42 } as unknown as Reply,
+        ];
+        await askReturns(page, askUrl, replies);
+        for (const [i] of replies.entries()) {
+          const typed = `Does ${site.name} know testing? (${i + 1})`;
+          await askIn(page, A.id, typed);
+          await checkQuestionSent(page, `#${A.id}`, typed, typed, i);
+        }
+      },
+    },
+    {
+      name: "a question said to the owner that comes with an answer isn't used: the answer is shown, as before",
+      url: `#${A.id}`,
+      skip: noAsk,
+      async test(page) {
+        const toOwner = "Do you know testing?";
+        await askReturns(page, askUrl, { id: threadAnswerId(B.id, 1), toOwner });
+        await askIn(page, A.id, `Does ${site.name} know testing?`);
+        await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.from}`).waitFor();
+        const emails = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`);
+        assert.equal(await emails.count(), 0, "no email to send it in");
+        assert.ok(!(await page.locator("body").textContent())?.includes(toOwner), "nor is it anywhere on the page");
       },
     },
     {
@@ -299,14 +366,21 @@ export default (site: Site): Check[] => {
       url: `#${A.id}`,
       skip: noAsk,
       async test(page) {
-        await askReturns(page, askUrl, { blocked: true });
-        await askIn(page, A.id, "Where are you based?");
-        await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`).waitFor();
+        // Nothing they typed is shown back, however it's said: /ask sends a
+        // blocked visitor no question said to the owner, and one sent all
+        // the same isn't used.
+        const blocked = { blocked: true, toOwner: "Where are you based?" } as Reply;
+        await askReturns(page, askUrl, blocked);
+        await askIn(page, A.id, "Where is he based?");
+        const reply = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`);
+        await reply.waitFor();
         assert.equal(
           await page.locator(`#${A.id} ${CLASS.thread} > ${CLASS.question}${CLASS.sent}`).last().evaluate(lastText),
-          "Where are you based?",
+          "Where is he based?",
         );
         assert.equal(await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.draft}`).count(), 0);
+        const email = decodeURIComponent((await reply.getAttribute("href")) ?? "");
+        assert.ok(!email.includes("based"), "the email has the question neither way");
       },
     },
     {

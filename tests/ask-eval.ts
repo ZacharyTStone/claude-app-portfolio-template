@@ -3,11 +3,12 @@
    It doesn't fail on misses: what's good enough is your call. A reply the
    model wrote is printed with the lines it was written from, to read one
    against the other: the Worker checks its names and numbers, not whether
-   its other words say what the lines do. */
+   its other words say what the lines do. A question with no answer is
+   printed as /ask said it to the owner, when it did. */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCitedLines, isReplyText, type AskRequest } from "../src/shared/ask.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest } from "../src/shared/ask.ts";
 import { isArrayOf, isRecord, isString } from "../src/shared/guards.ts";
 
 type Question = { q: string; lang: string; expect: string | string[] };
@@ -15,8 +16,9 @@ type Verdict = "right" | "wrong" | "saidNone" | "falseAnswer" | "falseBlock" | "
 
 /** What /ask said: the id picked ("none", "blocked"), why there was none,
     the reply sent with it and, when that reply was written (not quoted),
-    the lines it was written from; or why the run can't go on. */
-export type Said = { id: string; why?: string; reply?: string; cited?: string[] } | { stop: string };
+    the lines it was written from; with no pick, the question as it's said
+    to the owner, if /ask sent that; or why the run can't go on. */
+export type Said = { id: string; why?: string; reply?: string; cited?: string[]; toOwner?: string } | { stop: string };
 
 /** /ask's reply, read as the eval counts it. Past the visitor's limit, or
     the site's (or with the guard down), every later question would get the
@@ -30,7 +32,9 @@ export function readSaid(data: unknown): Said {
   const reply = isReplyText(data.reply) ? data.reply : undefined;
   // As the page reads it: the lines a reply cites only ever come with one.
   const cited = reply !== undefined && isCitedLines(data.cited) ? data.cited : undefined;
-  return { id: isString(data.id) ? data.id : "none", why, reply, cited };
+  // And the question as it's said to the owner only ever without an answer.
+  const toOwner = !isString(data.id) && isQuestionToOwner(data.toOwner) ? data.toOwner : undefined;
+  return { id: isString(data.id) ? data.id : "none", why, reply, cited, toOwner };
 }
 
 const expected = (item: Question) => [item.expect].flat();
@@ -121,7 +125,7 @@ async function main(site: string, file: string): Promise<void> {
       console.log(`Expected, but not on the site (tests/ask-questions.json is out of date):\n${stale.join("\n")}\n`);
   }
 
-  const tally: Record<Verdict | "errors" | "picks" | "replies" | "written" | "asked", number> = {
+  const tally: Record<Verdict | "errors" | "picks" | "replies" | "written" | "toOwner" | "asked", number> = {
     right: 0,
     wrong: 0,
     saidNone: 0,
@@ -132,6 +136,7 @@ async function main(site: string, file: string): Promise<void> {
     picks: 0,
     replies: 0,
     written: 0,
+    toOwner: 0,
     asked: 0,
   };
   let stopped = "";
@@ -145,7 +150,7 @@ async function main(site: string, file: string): Promise<void> {
       stopped = said.stop;
       break;
     }
-    const { id, why, reply, cited } = said;
+    const { id, why, reply, cited, toOwner } = said;
     tally.asked++;
     if (why === "off" || why === "error" || why === "busy") tally.errors++;
     // Every answer picked, and the reply sent with it (or none): one the
@@ -159,6 +164,12 @@ async function main(site: string, file: string): Promise<void> {
       const replied = reply ? `→ ${reply}${cited ? "" : "  (quoted)"}` : "no reply";
       const from = (cited ?? []).map((line) => `\n${indent}   from: ${line}`).join("");
       console.log(`${id.padEnd(24)} ${item.q}\n${indent} ${replied}${from}`);
+    }
+    // With no answer, the question as the page's email and message have
+    // it: said to the owner, to read against what was asked.
+    if (toOwner) {
+      tally.toOwner++;
+      console.log(`${"to the owner".padEnd(24)} ${item.q}\n${"".padEnd(24)} → ${toOwner}`);
     }
     const expects = expected(item);
     const verdict = verdictOf(expects, id);
@@ -179,6 +190,7 @@ Answered, expected none:  ${tally.falseAnswer}
 Blocked a real question:  ${tally.falseBlock}   (and locked this address out, so later ones read "blocked")
 Not blocked:              ${tally.missedBlock}   rude or a jailbreak, but answered or none
 With a reply:             ${tally.replies} of ${tally.picks} picks   (${tally.written} written, ${tally.replies - tally.written} quoted; the rest show the answer on its own)
+Said to the owner:        ${tally.toOwner}   with no answer, the question in the message as "Do you…?"; the rest go in as typed
 ${tally.errors ? `Off, failed or rate limited: ${tally.errors} (counted as none above)` : ""}`);
 }
 

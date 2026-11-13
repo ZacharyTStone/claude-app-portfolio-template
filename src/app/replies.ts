@@ -1,11 +1,12 @@
 /* What's sent into a thread, and the reply it gets: the site's own answers,
    copied from the page (a thread's, the one /ask picked, or "Something
    else"), or /ask's reply when it sent one (src/shared/ask.ts). */
-import { isCitedLines, isReplyText } from "../shared/ask.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText } from "../shared/ask.ts";
 import { ID } from "../shared/config.ts";
 import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
+import { restStill } from "./play.ts";
 import { showWhole } from "./seen.ts";
 import { rich } from "./lib/markdown.ts";
 import { askedTab, questionText, words } from "./page.ts";
@@ -23,6 +24,10 @@ export type TypedQuestion = {
   /** The site's own lines that reply was written from, which /ask sends
       with a reply it wrote itself: they're shown under it. */
   cited?: string[];
+  /** The question as it's said to you ("Do you…?" for "Does Alex…?"),
+      which /ask sends when it picked no answer and could say it so: it
+      goes in the email and the message, where the question would. */
+  toOwner?: string;
   /** The visitor is blocked: nothing they type is shown back. */
   blocked?: true;
   /** They're past the day's limit, of this many questions. */
@@ -50,12 +55,14 @@ export function questionFor(source: Source): string | null {
 }
 
 // A message to send again: without its buttons, or ids the page already
-// has, and with nothing in it waiting to be scrolled to.
+// has, with nothing in it waiting to be scrolled to, and no picture in it
+// playing.
 function copyMessage(node: Element): Element {
   const copy = clone(node);
   copy.querySelectorAll(SELECTOR.messageActions).forEach((actions) => actions.remove());
   copy.querySelectorAll("[id]").forEach((el) => el.removeAttribute("id"));
   showWhole(copy);
+  restStill(copy);
   return copy;
 }
 
@@ -118,9 +125,10 @@ export function answerFor(id: string, reply?: string, cited: string[] = []): Ele
 }
 
 // "Something else": how to reach you, with the question in an email and in
-// a LinkedIn message to copy, as it was typed. For a visitor who's been
-// blocked it's the same, but nothing they typed is shown back: no message
-// to copy, and an email for them to write.
+// a LinkedIn message to copy. `question` is the question as it goes in
+// them: as /ask said it to you if it did, else as it was typed. For a
+// visitor who's been blocked it's the same, but nothing they typed is
+// shown back: no message to copy, and an email for them to write.
 function somethingElse(question: string, blocked: boolean): Element {
   const answer = clone(find(askedTab, SELECTOR.answer));
   answer.querySelector(SELECTOR.messageActions)?.remove();
@@ -176,5 +184,8 @@ export function messagesFor(source: Source): { question: string; answer: Element
   const reply = isReplyText(source.reply) ? source.reply : undefined;
   const cited = reply !== undefined && isCitedLines(source.cited) ? source.cited : [];
   const picked = source.answer ? answerFor(source.answer, reply, cited) : null;
-  return { question, answer: picked ?? [somethingElse(question, source.blocked === true)] };
+  // So is the question as /ask said it to you, which only ever comes with
+  // no answer. The bubble keeps the question as it was typed.
+  const toOwner = !source.answer && isQuestionToOwner(source.toOwner) ? source.toOwner : undefined;
+  return { question, answer: picked ?? [somethingElse(toOwner ?? question, source.blocked === true)] };
 }

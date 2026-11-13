@@ -6,6 +6,9 @@
    loop keeps until it clears, and what it leaves out of a still. */
 
 import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { test } from "node:test";
 import config from "../site.config.ts";
 import {
@@ -20,6 +23,7 @@ import {
   moving,
   onlyWhenMoving,
   placed,
+  PLAYS_ATTRIBUTE,
   sizeToFit,
   svgOf,
   textWidth,
@@ -28,6 +32,7 @@ import {
 } from "../scripts/diagram.ts";
 import { diagramFiles, staleDiagramFiles } from "../scripts/diagrams.ts";
 import { ROOT } from "../src/site/constants.ts";
+import { PLAYS_ATTRIBUTE as PLAYS_ATTRIBUTE_THE_PAGE_READS, secondsPlayed } from "../src/site/pictures.ts";
 import { answerBlocksIn, picturesIn } from "../src/site/validate/blocks.ts";
 
 /** Every file the diagrams make: its path from the repo's root, and its text. */
@@ -71,6 +76,21 @@ test("A diagram the config shows comes with its still", () => {
         `${code}: the picture "${picture.src}" moves, so it names its still`,
       );
     }
+  }
+});
+
+test("A diagram that says how long it plays says a time inside its loop, and the build reads it from its file", () => {
+  for (const [path, text] of files) {
+    if (STILL.test(path)) continue;
+    const plays = secondsPlayed(asThePageNamesIt(path), ROOT);
+    if (plays === undefined) continue;
+    const loopSeconds = Number(/ dur="([0-9.]+)s"/.exec(text)?.[1]);
+    assert.ok(plays > 0 && plays <= loopSeconds, `${path} plays for ${plays} s of a loop of ${loopSeconds} s`);
+    assert.equal(
+      secondsPlayed(asThePageNamesIt(path).replace(/\.svg$/, "-still.svg"), ROOT),
+      undefined,
+      `${path}'s still isn't played`,
+    );
   }
 });
 
@@ -288,6 +308,29 @@ test("What pops, rises or glides into place rests there in the still picture", (
   );
   assert.equal(opacity.length, 3);
   for (const keyTimes of opacity) assert.match(keyTimes ?? "", /;0\.91;0\.955;1$/);
+});
+
+test("A picture that's played says for how long on its moving file, where the build reads it", () => {
+  assert.equal(PLAYS_ATTRIBUTE, PLAYS_ATTRIBUTE_THE_PAGE_READS, "the kit writes it where the build looks for it");
+  const played: Drawing = { width: 100, height: 100, plays: 8.25, shapes: [aBox()] };
+  assert.match(svgOf(played, "moving"), new RegExp(`^<svg [^>]* ${PLAYS_ATTRIBUTE}="8.25">`));
+  assert.doesNotMatch(svgOf(played, "still"), new RegExp(PLAYS_ATTRIBUTE), "the still isn't played");
+  assert.doesNotMatch(pictureOf([aBox()], "moving"), new RegExp(PLAYS_ATTRIBUTE), "nor is one that doesn't say");
+
+  // As the build reads it: from the site's public folder, by the picture's path.
+  const site = mkdtempSync(join(tmpdir(), "pictures-"));
+  try {
+    mkdirSync(join(site, "public", "assets"), { recursive: true });
+    writeFileSync(join(site, "public", "assets", "played.svg"), svgOf(played, "moving"));
+    writeFileSync(join(site, "public", "assets", "played-still.svg"), svgOf(played, "still"));
+    writeFileSync(join(site, "public", "assets", "photo.webp"), "");
+    assert.equal(secondsPlayed("/assets/played.svg", site), 8.25);
+    assert.equal(secondsPlayed("/assets/played-still.svg", site), undefined);
+    assert.equal(secondsPlayed("/assets/photo.webp", site), undefined, "only an SVG file says");
+    assert.equal(secondsPlayed("/assets/missing.svg", site), undefined, "a file that isn't there says nothing");
+  } finally {
+    rmSync(site, { recursive: true, force: true });
+  }
 });
 
 test("The still picture is the same shapes without their motion, and without what only moves", () => {

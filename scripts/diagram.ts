@@ -686,14 +686,28 @@ const RISE_SECONDS = 0.45;
 // ---- A finished picture --------------------------------------------------------
 
 /** A picture: its size in its own units (the `width` and `height` an
-    `image` in the config gives), and its shapes, back to front. */
-export type Drawing = { width: number; height: number; shapes: Shape[] };
+    `image` in the config gives), and its shapes, back to front.
+
+    With `plays`, it's a picture a visitor plays: the page shows it still,
+    with a button, and once that's pressed shows it moving for that many
+    seconds, then still again. So `plays` is the moment the moving picture
+    looks as the still one does: for a story's loop, when it starts to
+    clear (`loop.clears.from`). Without `plays` the page shows the picture
+    moving all the time, which suits one where little moves (a marker
+    that pulses). */
+export type Drawing = { width: number; height: number; plays?: number; shapes: Shape[] };
+
+/** Where a moving picture's file says how long it plays, on its <svg>:
+    the page reads it there (src/site/pictures.ts, which has the same
+    name, as this file imports nothing; tests/diagrams.test.ts holds the
+    two together). */
+export const PLAYS_ATTRIBUTE = "data-plays";
 
 /** The tags that are motion: the still picture leaves them out. */
 const MOTION_TAGS = new Set(["animate", "animateTransform", "animateMotion", "set"]);
 
 /** The picture as an SVG file's text: as it moves, or still. */
-export function svgOf({ width, height, shapes }: Drawing, how: "moving" | "still"): string {
+export function svgOf({ width, height, plays, shapes }: Drawing, how: "moving" | "still"): string {
   const write = (one: Shape | string): string => {
     if (typeof one === "string") return escaped(one);
     if (how === "still" && (one.onlyWhenMoving || MOTION_TAGS.has(one.tag))) return "";
@@ -706,7 +720,14 @@ export function svgOf({ width, height, shapes }: Drawing, how: "moving" | "still
   };
   const root = shape(
     "svg",
-    { xmlns: "http://www.w3.org/2000/svg", viewBox: `0 0 ${width} ${height}`, width, height, "font-family": FONT.sans },
+    {
+      xmlns: "http://www.w3.org/2000/svg",
+      viewBox: `0 0 ${width} ${height}`,
+      width,
+      height,
+      "font-family": FONT.sans,
+      [PLAYS_ATTRIBUTE]: how === "moving" ? plays : undefined,
+    },
     shape("rect", { width, height, fill: COLOR.ground }),
     ...shapes,
   );

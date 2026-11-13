@@ -21,6 +21,7 @@ import {
   IDS,
   INDEX,
   JA,
+  UNADDRESSED,
   UNWRITTEN,
   ask,
   askJson,
@@ -91,7 +92,7 @@ test("a model that ran out of room before it picked is no pick, and the log says
   logs.mock.resetCalls();
   const cut = { choices: [{ finish_reason: "length", message: { content: "The visitor wants to know" } }] };
   assert.deepEqual(await askJson(stubs({ run: () => cut }).env, "Where does Alex live?"), { id: null });
-  assert.deepEqual(lines(logs), ['{"ask":"none","cut":true}']);
+  assert.deepEqual(lines(logs), [JSON.stringify({ ask: NONE, ...UNADDRESSED, cut: true })]);
 });
 
 test("ASK_MODEL switches the model, with that model's settings", async () => {

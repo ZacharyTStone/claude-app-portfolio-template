@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { covers, namedIn } from "../../src/worker/ask/coverage.ts";
 import { NONE } from "../../src/worker/constants.ts";
-import { ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
+import { UNADDRESSED, ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
 
 const logs = captureLogs();
 
@@ -87,13 +87,39 @@ test("a name is the same with or without its dots and dashes, and a short form c
   for (const [question, text] of not) assert.ok(!covers(answer(text), question, OWNER), `${question} ${text}`);
 });
 
+test("a name with one slip of the keyboard inside it, or written as two words, is still the answer's", () => {
+  const answer = (text: string) => ({ title: "Skills", q: "what does alex work with?", text });
+  const covered: Array<[question: string, text: string]> = [
+    ["Does he know Svelete?", "Svelte / SvelteKit."],
+    ["Does he know Svlte?", "Svelte / SvelteKit."],
+    ["Does he know Sevlte?", "Svelte / SvelteKit."],
+    ["Has he used Svelte Kit?", "Svelte / SvelteKit."],
+    ["Has he used Svelete Kit?", "Svelte / SvelteKit."],
+    ["Does he write Typscript?", "TypeScript."],
+    ["Does he write Type Script?", "TypeScript."],
+    ["Does he know Pyhton?", "Python."],
+  ];
+  for (const [question, text] of covered) assert.ok(covers(answer(text), question, OWNER), `${question} ${text}`);
+  // A letter changed, a different first or last letter, or a short name:
+  // that's another thing's name, not a slip.
+  const not: Array<[question: string, text: string]> = [
+    ["Does he know NestJS?", "Next.js."],
+    ["Does he use Preact?", "React."],
+    ["Does he use Prism?", "Prisma."],
+    ["Has he used Vuex?", "Vue."],
+    ["Has he used Rest?", "Rust."],
+    ["Does he know Svelte Native?", "Svelte / SvelteKit."],
+  ];
+  for (const [question, text] of not) assert.ok(!covers(answer(text), question, OWNER), `${question} ${text}`);
+});
+
 test("a pick that doesn't name what was asked is no pick, and the log says which it was", async () => {
   logs.mock.resetCalls();
   const { env } = stubs({ run: () => toolCall("skills.1", [1]) });
   const response = await ask(env, { question: "Does Alex have experience with Vercel?", lang: "en" });
   assert.deepEqual(await response.json(), { id: null });
   const logged = lines(logs);
-  assert.ok(logged.includes(JSON.stringify({ ask: NONE, uncovered: "skills.1" })), logged.join("\n"));
+  assert.ok(logged.includes(JSON.stringify({ ask: NONE, uncovered: "skills.1", ...UNADDRESSED })), logged.join("\n"));
   assert.ok(!logged.some((line) => line.includes("Vercel")), "never the question");
 });
 

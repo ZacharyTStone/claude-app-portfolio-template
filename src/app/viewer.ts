@@ -9,7 +9,7 @@
    nothing keeps running there once they're done. */
 import { DATA } from "../shared/page-data.ts";
 import { CLASS, SELECTOR, SIZE } from "./constants.ts";
-import { closestFrom, make } from "./lib/dom.ts";
+import { closestFrom, isPlainClick, make } from "./lib/dom.ts";
 import { shell, words } from "./page.ts";
 
 /** What a framed page may do: run its own scripts as the site it's from,
@@ -111,11 +111,6 @@ export function closeViewer({ keepFocus = false }: { keepFocus?: boolean } = {})
   if (!keepFocus && openedFrom?.isConnected) openedFrom.focus();
   openedFrom = null;
 }
-
-/** Whether a click is a plain one: with a modifier key or another button,
-    the visitor is asking the browser for a new tab or window themselves. */
-const isPlainClick = (event: MouseEvent): boolean =>
-  event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey;
 
 /** From now on, a plain click on a link the page marks for the viewer opens
     it there. A page with no such link (a site without a `viewer`) gets no

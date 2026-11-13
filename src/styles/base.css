@@ -72,6 +72,7 @@ html:not(.js) [data-js-only] { display: none !important; }
 .i-left { --icon: url("/assets/icons/chevron-left.svg"); }
 .i-back { --icon: url("/assets/icons/arrow-left.svg"); }
 .i-up { --icon: url("/assets/icons/arrow-up.svg"); }
+.i-play { --icon: url("/assets/icons/play.svg"); }
 
 /* Plain buttons: a label with an icon, and icon-only. */
 .btn-ghost {

@@ -103,6 +103,12 @@ export const CLASS = {
   seenAfter1: "after-1",
   seenAfter2: "after-2",
   seenAfter3: "after-3",
+  /** A picture a visitor plays (play.ts): on its figure while it plays;
+      the picture as it moves, put over the still; and that picture once
+      it has loaded and shows. */
+  playing: "playing",
+  moving: "moving",
+  movingShown: "shown",
 } as const;
 
 const has = (attribute: string) => `[${attribute}]`;
@@ -200,6 +206,12 @@ export const SELECTOR = {
 
   // What comes in as it's scrolled to: a quote, a file card.
   comesIntoView: `.${PAGE_CLASSES.quote}, .${PAGE_CLASSES.fileCard}`,
+
+  // A picture a visitor plays: its figure, what holds the picture, and its
+  // Play button.
+  playedFigure: `.${PAGE_CLASSES.plays}`,
+  stage: `.${PAGE_CLASSES.stage}`,
+  playButton: `a${has(DATA.play)}`,
 } as const;
 
 /** In milliseconds. */
@@ -224,6 +236,9 @@ export const TIMING = {
   /** How long after a page starts to load it's still arriving: until then
       what's on screen may come in as what's scrolled to does (seen.ts). */
   pageArrives: 700,
+  /** How long a played picture takes to give way to its still once it
+      stops (the stylesheet fades it for as long). */
+  playFade: 300,
 } as const;
 
 /** In CSS pixels, unless it says otherwise. */

@@ -136,6 +136,8 @@ function sampleLanguage(label: string, locale: string): Language {
       status: "Read {file}",
       viewerOpen: "Open in a new tab",
       viewerClose: "Close",
+      play: "Play",
+      pause: "Pause",
     } as Strings,
   };
 }

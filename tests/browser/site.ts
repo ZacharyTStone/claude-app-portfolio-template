@@ -106,8 +106,23 @@ export type ComesIntoView = {
   answer: string;
 };
 
-/** A picture that moves, with the still of itself that a visitor who wants
-    less motion is shown instead. */
+/** A picture a visitor plays: it rests as its still, with a Play button
+    that links to the picture as it moves. */
+export type PlayedPicture = {
+  /** The tab it's in, and its place among that tab's played pictures
+      (from 0). */
+  tab: string;
+  index: number;
+  /** The answer it's in, as /ask names it ("about.1"). */
+  answer: string;
+  /** Its two files, as the page has them: the one its button links to,
+      and the still it shows. */
+  moving: string;
+  still: string;
+};
+
+/** A picture that moves all the time, with the still of itself that a
+    visitor who wants less motion is shown instead. */
 export type MovingPicture = {
   /** The tab it's in, and its place among that tab's moving pictures
       (from 0). */
@@ -205,8 +220,10 @@ export type Site = {
   /** The first link in a thread that opens in the viewer; null on a site
       without one. */
   viewer: ViewerLink | null;
-  /** The pictures that move. Empty on a site without one. */
+  /** The pictures that move all the time. Empty on a site without one. */
   movingPictures: MovingPicture[];
+  /** The pictures a visitor plays. Empty on a site without one. */
+  playedPictures: PlayedPicture[];
   /** Where the checks of what comes in as it's scrolled to look; null on a
       site with no quote or file card in an answer. */
   comesIntoView: ComesIntoView | null;
@@ -260,6 +277,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     statusLine: (await page.locator(`${CLASS.tab} ${CLASS.status} summary b`).count()) > 0,
     viewer: await readViewerLink(page),
     movingPictures: await readMovingPictures(page),
+    playedPictures: await readPlayedPictures(page),
     comesIntoView: await readComesIntoView(page),
   };
   await context.close();
@@ -410,6 +428,40 @@ async function readViewerLink(page: Page): Promise<ViewerLink | null> {
   };
 }
 
+/** A figure whose picture a visitor plays, and in it its Play button and
+    the picture as it moves, once that has loaded and shows (src/app/play.ts). */
+export const PLAYED_FIGURE = SELECTOR.playedFigure;
+export const PLAY_BUTTON = SELECTOR.playButton;
+export const PLAYING_PICTURE = `${CLASS.moving}${CLASS.movingShown}`;
+
+/** Every picture a visitor plays, in the page's order. */
+async function readPlayedPictures(page: Page): Promise<PlayedPicture[]> {
+  // In the page: each one's tab and place, with the number of the question
+  // whose answer it's in (from 1, as /ask counts a thread's answers).
+  const found = await page.locator(BUILT_TAB).evaluateAll(
+    (tabs: PageElement[], selector) =>
+      tabs.flatMap((tab) => {
+        const inTab: Array<{ tab: string; index: number; question: number; moving: string; still: string }> = [];
+        let question = 0;
+        for (const block of tab.querySelector(selector.thread)?.children ?? []) {
+          if (block.matches(selector.question)) question++;
+          for (const figure of block.querySelectorAll(selector.figure)) {
+            inTab.push({
+              tab: tab.id,
+              index: inTab.length,
+              question,
+              moving: figure.querySelector(selector.button)?.getAttribute("href") ?? "",
+              still: figure.querySelector("img")?.getAttribute("src") ?? "",
+            });
+          }
+        }
+        return inTab;
+      }),
+    { thread: CLASS.thread, question: CLASS.question, figure: PLAYED_FIGURE, button: PLAY_BUTTON },
+  );
+  return found.map(({ question, ...picture }) => ({ ...picture, answer: threadAnswerId(picture.tab, question) }));
+}
+
 /** A quote or a file card in an answer that is shown: not one inside a
     status line that hasn't been opened. */
 export const COMES_INTO_VIEW = `:is(${SELECTOR.comesIntoView}):not(details:not([open]) *)`;
@@ -438,11 +490,12 @@ async function readComesIntoView(page: Page): Promise<ComesIntoView | null> {
   return most && most.count > 0 ? { tab: most.tab, answer: threadAnswerId(most.tab, most.lastIn) } : null;
 }
 
-/** A picture that moves, as the page has it: the one thing a page puts in
-    a <picture> (Picture.astro), with the still in its <source>. */
+/** A picture that moves all the time, as the page has it: the one thing a
+    page puts in a <picture> (Picture.astro), with the still in its
+    <source>. */
 export const MOVING_PICTURE = "picture";
 
-/** Every picture that moves, in the page's order. */
+/** Every picture that moves all the time, in the page's order. */
 async function readMovingPictures(page: Page): Promise<MovingPicture[]> {
   return page.locator(BUILT_TAB).evaluateAll(
     (tabs: PageElement[], selector) =>

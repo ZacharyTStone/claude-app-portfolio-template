@@ -1,5 +1,5 @@
-/* Words the instructions to both models (pick.ts, write.ts) are written
-   with. */
+/* Words the model's instructions (pick.ts, write.ts, address.ts) are
+   written with. */
 
 /** The owner's first name, as the instructions call them after the first
     mention: "Alex" for "Alex Example". */

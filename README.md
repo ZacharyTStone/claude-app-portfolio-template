@@ -321,10 +321,15 @@ image: {
 ```
 
 The motion is the picture's own (SVG animation), so it moves in a plain
-`<img>`: the page runs no script for it, the security policy allows
-nothing new, and it moves with JavaScript off. Every diagram is written
-twice, moving and still, and a visitor who has asked their computer for
-less motion is shown the still one. Commit the files with the diagram:
+`<img>` and the security policy allows nothing new. Every diagram is
+written twice, moving and still. Motion beside text pulls the eye off the
+text, so a diagram that says how long it `plays` rests as its still,
+dimmed, with a Play button; pressed, it plays through once and rests
+again (with JavaScript off, the button is a link to the moving file). A
+picture where little moves can leave `plays` out: it then moves all the
+time, and a visitor who has asked their computer for less motion is shown
+the still. The button's words are `strings.play` and `strings.pause`.
+Commit the files with the diagram:
 `npm test` fails while they aren't what it draws. A picture is an
 illustration: Ask and `llms.txt` read its caption, so a fact belongs in
 the answer's text too.

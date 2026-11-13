@@ -83,6 +83,17 @@ export const MAX_WRITE_TRIES = 2;
     lines are quoted as they are. The page waits 12 s for /ask. */
 export const WRITE_TIMEOUT_MS = 5000;
 
+// ---- The question, said to the owner -----------------------------------------------
+
+/** The most the model may write when it says a question to the owner
+    (address.ts): the question over again, which is a line or two at its
+    longest. One cut off at it isn't used. */
+export const MAX_ADDRESS_TOKENS = 120;
+
+/** How long that may take, in milliseconds. The visitor waits for it, and
+    it's asked once: past it, the question goes as it was typed. */
+export const ADDRESS_TIMEOUT_MS = 3000;
+
 // ---- Llama Guard -----------------------------------------------------------------
 
 /** Llama Guard, which reads every question beside the picker. */

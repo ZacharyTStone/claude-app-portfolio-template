@@ -95,14 +95,44 @@ const SAME_THING_ENDINGS = ["s", "es", "js", "ql", "sql"];
 // "Node.js", "frontend" for "front-end".
 const withoutDotsAndDashes = (word: string) => word.replace(/[.-]/g, "");
 
+/** The shortest name a slip of the keyboard is forgiven in. A shorter one
+    is too near another thing's: "Vue" and "Vuex", "Nest" and "Next". */
+const MIN_MISTYPED_LENGTH = 6;
+
+// Whether `typed` is `name` with one slip inside it: a letter too many, a
+// letter missing, or two neighbours swapped ("svelete", "svlte" and
+// "sevlte" for "svelte"). Its first and last letters have to be right, and
+// a letter changed for another isn't forgiven, since those are how one
+// name differs from another: "Preact" and "React", "Prism" and "Prisma",
+// "NestJS" and "NextJS".
+function isMistyped(typed: string, name: string): boolean {
+  if (name.length < MIN_MISTYPED_LENGTH || typed === name) return false;
+  if (typed[0] !== name[0] || typed.at(-1) !== name.at(-1)) return false;
+  const [shorter, longer] = typed.length < name.length ? [typed, name] : [name, typed];
+  if (longer.length - shorter.length === 1) {
+    // One letter more: the same once it's taken out.
+    return [...longer].some((_, i) => longer.slice(0, i) + longer.slice(i + 1) === shorter);
+  }
+  if (typed.length !== name.length) return false;
+  // The same but for two neighbours, which are each other's.
+  const swapped = [...typed].findIndex((letter, i) => letter !== name[i]);
+  return (
+    typed[swapped] === name[swapped + 1] &&
+    typed[swapped + 1] === name[swapped] &&
+    typed.slice(swapped + 2) === name.slice(swapped + 2)
+  );
+}
+
 // Whether a word of the answer's names what the question's term does: the
 // same word, the same without its dots and dashes, the term's singular
-// ("worker" for "workers"), or the term with one of SAME_THING_ENDINGS.
+// ("worker" for "workers"), the term with one of SAME_THING_ENDINGS, or the
+// word mistyped.
 const namesSameThing = (term: string, answerWord: string): boolean =>
   answerWord === term ||
   withoutDotsAndDashes(answerWord) === withoutDotsAndDashes(term) ||
   term.replace(/s$/, "") === answerWord ||
-  SAME_THING_ENDINGS.some((ending) => answerWord === `${term}${ending}`);
+  SAME_THING_ENDINGS.some((ending) => answerWord === `${term}${ending}`) ||
+  isMistyped(term, answerWord);
 
 // Short forms a visitor may use for what an answer spells out: a short
 // list, to add to when the eval shows a miss.
@@ -123,16 +153,25 @@ const SPELLED_OUT: Record<string, string[]> = {
 };
 
 /** Whether `answer` (its text, question and tab) names everything the
-    question does. A question that names nothing is covered by any answer. */
+    question does. A question that names nothing is covered by any answer.
+    A name the question writes as two words is the answer's one: "Svelte
+    Kit" for "SvelteKit", "Type Script" for "TypeScript". */
 export function covers(answer: AnswerWords, question: string, owner: string): boolean {
   const namedTerms = namedIn(question, owner);
   if (!namedTerms.length) return true;
   const answerText = everythingSaid(answer);
   const answerWords = [...wordsIn(answerText)];
   const answerTextLowered = answerText.toLowerCase();
-  return namedTerms.every(
-    (term) =>
-      answerWords.some((answerWord) => namesSameThing(term, answerWord)) ||
-      (SPELLED_OUT[term] ?? []).some((spelledOut) => answerTextLowered.includes(spelledOut)),
-  );
+  const isNamed = (name: string) => answerWords.some((answerWord) => namesSameThing(name, answerWord));
+  return namedTerms.every((term, i) => {
+    // The term with the one named before it, and with the one after.
+    const before = namedTerms[i - 1];
+    const after = namedTerms[i + 1];
+    const asOneWord = [before === undefined ? "" : before + term, after === undefined ? "" : term + after];
+    return (
+      isNamed(term) ||
+      asOneWord.some((joined) => joined !== "" && isNamed(joined)) ||
+      (SPELLED_OUT[term] ?? []).some((spelledOut) => answerTextLowered.includes(spelledOut))
+    );
+  });
 }

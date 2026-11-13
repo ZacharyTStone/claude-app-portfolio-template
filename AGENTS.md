@@ -141,6 +141,12 @@ examples/         (template) Sample content to import into the config, such as a
   model's: what it's told is in `write.ts`, and what's checked is in
   `grounded.ts` and its tests. A change to either is a change to what
   Ask may say: make it there, with a test, and say so in the README.
+  With no answer to show, one more small call says the visitor's question
+  to the owner ("Do you…?" for "Does Alex…?") for the email and the
+  message the page offers, and it's used only if the Worker finds it the
+  same question, give or take who it's about (`address.ts` has what the
+  model is told and what's checked); otherwise the question goes in as it
+  was typed.
 - **The template scripts run on Node alone.** `scripts/template.ts`,
   `update-template.ts` and `sync-template.ts` import only `node:` modules
   and each other (and the config): they run in a fresh clone of the
@@ -195,6 +201,7 @@ function draw(words: Words) {
   return {
     width: 1600,
     height: 400,
+    plays: loop.clears.from, // a visitor plays it: for this long, then it's still again
     shapes: [
       box({ x: 120, y: 120, width: 400, height: 160 }),
       label(words.till, { x: 320, y: 214 }, { size: 46, weight: 600 }),
@@ -248,6 +255,16 @@ What the kit has, each documented where it's defined:
   - Starting over: `loop.fromTheStart` (what the loop changes),
     `loop.untilClear` (what something else brought in).
 
+- **A diagram waits to be played.** Motion beside text pulls the eye off
+  the text, so a picture that says how long it `plays` rests as its still,
+  dimmed, with a Play button; pressed, it moves for that long, and rests
+  again (`Picture.astro`, `src/app/play.ts`). Give `plays` the moment the
+  moving picture looks as the still does: a story's loop is
+  `loop.clears.from`. The build reads it from the picture's own file, so
+  the config says nothing about it. Without JavaScript the button is a
+  link to the moving file. A picture where little moves leaves `plays`
+  out and moves all the time: a marker that pulses on a map isn't worth a
+  press. A site with either needs `strings.play` and `strings.pause`.
 - **Move things, not words.** A dot along a line, a card up a list, a box
   that lights as something reaches it. Text that fades in a row at a time
   is a list: a `flow` or a paragraph says it better, and without motion.
@@ -261,9 +278,11 @@ What the kit has, each documented where it's defined:
   resets does it out of sight (a story's loop does this for what's put on
   it).
 - **Draw each shape the way it rests.** The `-still.svg` file is the same
-  shapes without their motion, and it's what a visitor who has asked for
-  less motion sees (the image's `still`; a test says if it's missing). It
-  should read as a finished diagram. What only passes through is
+  shapes without their motion (the image's `still`; a test says if it's
+  missing). It's what a played picture shows before and after it plays,
+  so most of the time, and what a visitor who has asked for less motion
+  sees of one that moves all the time. It should read as a finished
+  diagram. What only passes through is
   `onlyWhenMoving` (what's `loop.carried`, a `traveller`, a `ripple` and a
   `light` already are).
 - **Big and few words.** It's shown about 700 px wide on a desktop and 340

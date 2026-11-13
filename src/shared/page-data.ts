@@ -96,6 +96,10 @@ export const OPTIONAL_SCRIPT_STRINGS = [
   // tab" and "Close".
   "viewerOpen",
   "viewerClose",
+  // A picture a visitor plays (an `image` with a `still`, whose file says
+  // how long it plays): its button, "Play" and, while it plays, "Pause".
+  "play",
+  "pause",
 ] as const;
 
 /** The name of one of OPTIONAL_SCRIPT_STRINGS. */
@@ -104,6 +108,7 @@ export type OptionalScriptString = (typeof OPTIONAL_SCRIPT_STRINGS)[number];
 /** The optional script strings each part needs. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
+  movingPictures: ["play", "pause"],
 } as const satisfies Record<string, readonly OptionalScriptString[]>;
 
 /** Every script string a page can carry. */
@@ -339,6 +344,10 @@ export const DATA = {
   view: "data-view",
   /** On the same link: what the viewer calls what it shows. */
   viewTitle: "data-view-title",
+  /** On the Play button of a picture a visitor plays (a link to the
+      picture as it moves, which is where it goes without JavaScript): how
+      many seconds it plays, as the picture's own file says. */
+  play: "data-play",
 } as const;
 
 // ---- 5. Classes ----------------------------------------------------------------
@@ -393,6 +402,11 @@ export const PAGE_CLASSES = {
   prompts: "prompts",
   /** A figure in an answer: bars, a flow or a picture. */
   figure: "fig",
+  /** A figure whose picture a visitor plays; in it, what holds the picture
+      with its button over it; and the button. */
+  plays: "plays",
+  stage: "stage",
+  playButton: "play",
   /** Someone else's words in an answer, with who said them. */
   quote: "quote",
   /** A file card: a small config file's lines under its name. */

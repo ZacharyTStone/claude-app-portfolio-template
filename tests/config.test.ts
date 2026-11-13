@@ -326,6 +326,26 @@ test("Validation knows that Ask needs Cloudflare", () => {
   }
 });
 
+test("A site with a picture that moves needs the words for a played picture's button", () => {
+  const withAMovingPicture = (wording: Record<string, string>) =>
+    problemsAfter((sample, english) => {
+      english.threads[0]?.messages[0]?.a.push({
+        image: { src: "/favicon.svg", still: "/favicon.png", alt: "A picture that moves", width: 16, height: 16 },
+      });
+      for (const language of Object.values(sample.languages)) {
+        delete language.strings.play;
+        delete language.strings.pause;
+        Object.assign(language.strings, wording);
+      }
+    });
+  assert.deepEqual(withAMovingPicture({ play: "Play", pause: "Pause" }), []);
+  // Only the language that has the picture is asked for them.
+  assert.deepEqual(withAMovingPicture({}), [
+    "en: strings.play is missing (a picture with a still needs it)",
+    "en: strings.pause is missing (a picture with a still needs it)",
+  ]);
+});
+
 test("The viewer opens links the site has, at https addresses on another site, and needs its buttons' words", () => {
   const link = "https://docs.example.com/d/1/edit";
   const shown = "https://docs.example.com/d/1/preview";
@@ -474,10 +494,16 @@ test("Validation needs a picture to be a file on the site, with words for it, it
 
 test("Validation needs a moving picture's still to be another file on the site", () => {
   const moving = { src: "/assets/how.svg", alt: "How it works", width: 1600, height: 800 };
-  assert.deepEqual(problemsWithBlock({ image: { ...moving, still: "/assets/how-still.svg" } }), []);
+  // With the words a picture that moves needs for its button.
+  const problemsWithMoving = (still: string) =>
+    problemsAfter((_, english) => {
+      Object.assign(english.strings, { play: "Play", pause: "Pause" });
+      workAnswer(english).push({ image: { ...moving, still } });
+    });
+  assert.deepEqual(problemsWithMoving("/assets/how-still.svg"), []);
   for (const still of ["https://example.com/how-still.svg", moving.src, ""]) {
     assert.match(
-      problemsWithBlock({ image: { ...moving, still } }).join("\n"),
+      problemsWithMoving(still).join("\n"),
       /with the still ".*", which should be another file on this site/,
       still,
     );

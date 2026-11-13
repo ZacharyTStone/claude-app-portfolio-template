@@ -14,6 +14,7 @@ import { focusHome, initHome } from "./home.ts";
 import { closeMenu, initMenus, isMenuOpen } from "./menus.ts";
 import { root, side } from "./page.ts";
 import { initPanel, wirePanelToggle } from "./panel.ts";
+import { initPlay } from "./play.ts";
 import { addPersonalTabs } from "./personal.ts";
 import { wireTitle } from "./rename.ts";
 import { initSeen } from "./seen.ts";
@@ -126,6 +127,9 @@ initViewer();
 // page's own do; before the chats come back (restoreChats below), whose
 // copies of answers are shown whole.
 initSeen();
+// After the personal tabs are made, as above: a picture in one plays as the
+// page's own do.
+initPlay();
 
 // Every tab in the page, the personal ones included, and the home screen's
 // top bar.

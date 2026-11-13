@@ -436,8 +436,9 @@ export default {
       },
 
       // ---- "Something else": the reply to a question with no answer here ---
-      // {question} is what the visitor typed, about you rather than to you
-      // ("Does Alex…?"), so it gets a line of its own.
+      // {question} is what the visitor asked: said to you where Ask's Worker
+      // can ("Do you…?" for "Does Alex…?"), and as they typed it otherwise,
+      // so it gets a line of its own.
       asked: {
         title: "Something else",
         q: "i have a different question",
@@ -556,6 +557,9 @@ export default {
         // The viewer's two buttons, on a site with `viewer`.
         viewerOpen: "Open in a new tab",
         viewerClose: "Close",
+        // The button on a diagram, which rests still until it's played.
+        play: "Play",
+        pause: "Pause",
         // The rest show only with Ask on. Under a reply to a typed question:
         // where it's from.
         askFrom: "From the {tab} tab",

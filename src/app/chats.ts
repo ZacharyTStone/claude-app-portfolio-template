@@ -1,7 +1,7 @@
 /* Chats: "New tab" opens one, an empty thread with the question card open.
    Once something is sent in it, it's listed under "Chats" and saved (in
    this browser, per language) until it's deleted or the page is refreshed. */
-import { isArrayOf, isCount, isRecord, isString } from "../shared/guards.ts";
+import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../shared/guards.ts";
 import { CHATS_GROUP, DATA, groupId, ID_PREFIX, PAGE_CLASSES } from "../shared/page-data.ts";
 import { CLASS, SELECTOR, STORAGE } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
@@ -228,13 +228,16 @@ export function dropEmptyChat(): void {
 function isSource(value: unknown): value is Source {
   if (!isRecord(value)) return false;
   if (!("question" in value)) return isString(value.tab);
-  const { question, answer, cited, blocked, limited } = value;
+  const { question, answer, cited, toOwner, blocked, limited } = value;
   return (
     isString(question) &&
     (answer === undefined || answer === null || isString(answer)) &&
     // The lines a reply cites are shown as text, and checked again when
     // they're shown (replies.ts): here, only that they're lines at all.
     (cited === undefined || isArrayOf(cited, isString)) &&
+    // The same for the question as it's said to the owner: only that it's
+    // text.
+    isOptionalString(toOwner) &&
     (blocked === undefined || blocked === true) &&
     (limited === undefined || isCount(limited))
   );
