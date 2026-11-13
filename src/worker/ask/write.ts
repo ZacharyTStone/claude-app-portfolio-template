@@ -9,11 +9,27 @@
    shows the answer they're from. A reply that's sent goes with the lines it
    was written from (handler.ts), for the page to show under it. */
 import { isReplyText } from "../../contracts/ask.ts";
-import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, NONE, WRITE_TIMEOUT_MS } from "../constants.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { CHECKABLE_LANGUAGES, checkReply, type Sources } from "./grounded.ts";
 import { callForText, ranOutOfRoom, textIn, type Called, type Message, type Prompt } from "./model.ts";
-import { firstName, languageName } from "./wording.ts";
+import { NONE, firstName, languageName } from "./prompts/wording.ts";
+
+/** The most the model may write for a reply: a sentence or two, in Japanese
+    too (where a character is about a token), and room for a model that
+    reasons a little first. A reply cut off at it is asked for again,
+    shorter. */
+export const MAX_WRITE_TOKENS = 320;
+
+/** The longest reply it may write, in characters: a sentence or two, not a
+    paragraph. A longer one is asked for again, shorter. */
+export const MAX_WRITTEN_LENGTH = 240;
+
+/** How many times it's asked: once, and once more with what was wrong. */
+export const MAX_WRITE_TRIES = 2;
+
+/** How long the writing may take in all, in milliseconds: past it, the
+    lines are quoted as they are. The page waits 12 s for /ask. */
+const WRITE_TIMEOUT_MS = 5000;
 
 /** What a reply is written for and from: the lines that answer the
     question, with their tab and the site's own question (Sources), and: */
@@ -38,19 +54,20 @@ export type Writing = Sources & {
     - error: it couldn't be reached. */
 export type Unwritten = "none" | "empty" | "long" | "words" | "late" | "error";
 
-/** How the writing went. */
-export type Written = {
-  /** The reply, if one passed the check. */
-  reply?: string;
-  /** Why not, if none did. */
-  why?: Unwritten;
-  /** The names and numbers that failed the last check, when that's why. */
-  unsourced?: string[];
+/** What every attempt to write a reply has to say for itself. */
+type Attempts = {
   /** How many times the model was asked. */
   tries: number;
   /** The tokens its calls used, all together. */
   tokens: Tokens;
 };
+
+/** How the writing went: a reply that passed the check is `sent`; with
+    none, the writing is `dropped`, and `why` says why. `unsourced` has the
+    names and numbers that failed the last check, when that's why. */
+export type Written =
+  | ({ outcome: "sent"; reply: string; why?: undefined; unsourced?: undefined } & Attempts)
+  | ({ outcome: "dropped"; reply?: undefined; why: Unwritten; unsourced?: string[] } & Attempts);
 
 // ---- What the model is told ----------------------------------------------------------
 
@@ -146,27 +163,27 @@ export async function write(
   let tries = 0;
   while (tries < MAX_WRITE_TRIES) {
     const timeLeftMs = deadline - Date.now();
-    if (timeLeftMs <= 0) return { why: "late", tries, tokens };
+    if (timeLeftMs <= 0) return { outcome: "dropped", why: "late", tries, tokens };
     tries++;
     const prompt: Prompt = { messages, temperature: 0 };
     let called: Called;
     try {
       called = await callForText(ai, model, prompt, { maxTokens: MAX_WRITE_TOKENS, timeoutMs: timeLeftMs });
     } catch {
-      return { why: "error", tries, tokens };
+      return { outcome: "dropped", why: "error", tries, tokens };
     }
     const { modelReply, tokens: tokensThisTry } = called;
     tokens.input += tokensThisTry.input;
     tokens.output += tokensThisTry.output;
-    if (modelReply === undefined) return { why: "late", tries, tokens };
+    if (modelReply === undefined) return { outcome: "dropped", why: "late", tries, tokens };
     const text = writtenText(modelReply);
-    if (!text) return { why: "empty", tries, tokens };
-    if (ONLY_NONE.test(text)) return { why: "none", tries, tokens };
+    if (!text) return { outcome: "dropped", why: "empty", tries, tokens };
+    if (ONLY_NONE.test(text)) return { outcome: "dropped", why: "none", tries, tokens };
     const judged = judge(text, modelReply, writing);
-    if (judged.reply !== undefined) return { reply: judged.reply, tries, tokens };
+    if (judged.reply !== undefined) return { outcome: "sent", reply: judged.reply, tries, tokens };
     lastFailure = judged.failure;
     messages.push({ role: "assistant", content: text }, { role: "user", content: correction(judged.failure) });
   }
   // Only reached with MAX_WRITE_TRIES tries made, each of which failed.
-  return { why: "empty", ...lastFailure, tries, tokens };
+  return { outcome: "dropped", why: "empty", ...lastFailure, tries, tokens };
 }

@@ -5,11 +5,11 @@ import assert from "node:assert/strict";
 import { mock } from "node:test";
 import type { AskAnswer, AskIndex } from "../../src/contracts/ask.ts";
 import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
+import { MAX_TO_OWNER_TOKENS } from "../../src/worker/ask/to-owner.ts";
 import {
   ASK_GUARD_PATH,
   ASK_GUARD_REPLY,
   ASK_INDEX_PATH,
-  MAX_ADDRESS_TOKENS,
   PICK_TOOL_NAME,
   VISITOR_ADDRESS_HEADER,
 } from "../../src/worker/constants.ts";
@@ -81,7 +81,7 @@ export const costs = (logs: ReturnType<typeof captureLogs>): unknown[] => writte
 
 // What the tests read of what the model was sent: the picker with its
 // tool, the writer (write.ts) and the call that says a question to the
-// owner (address.ts) with none.
+// owner (to-owner.ts) with none.
 type ModelInput = {
   messages: { role: string; content: string }[];
   tools?: {
@@ -149,7 +149,7 @@ type Options = {
       unless a test is about what's written. */
   writes?: unknown[];
   /** What the model writes when it's asked to say the question to the
-      owner (address.ts). Nothing, unless a test is about that. */
+      owner (to-owner.ts). Nothing, unless a test is about that. */
   addresses?: unknown[];
   /** What AskGuard says to /take. */
   guardSays?: string;
@@ -175,7 +175,7 @@ export const using = <Reply extends object>(reply: Reply, prompt_tokens: number,
 export const wrote = (text: string, tokens?: [read: number, written: number]) =>
   tokens ? using({ response: text }, ...tokens) : { response: text };
 
-/** What a call for a line of text was sent (write.ts, address.ts). */
+/** What a call for a line of text was sent (write.ts, to-owner.ts). */
 export type Sent = { messages: { role: string; content: string }[]; [option: string]: unknown };
 
 /** A stand-in model for a call that writes a line of text, on its own (not
@@ -248,7 +248,7 @@ export function stubs({
         // the question said to the owner if it may write only as much as
         // that takes, else a reply.
         if (name !== LLAMA_GUARD_MODEL && !input.tools) {
-          const isAddress = input.max_completion_tokens === MAX_ADDRESS_TOKENS;
+          const isAddress = input.max_completion_tokens === MAX_TO_OWNER_TOKENS;
           const [textCalls, texts] = isAddress ? [addressCalls, addresses] : [writeCalls, writes];
           textCalls.push({ model: name, input });
           const said = texts[Math.min(textCalls.length, texts.length) - 1];

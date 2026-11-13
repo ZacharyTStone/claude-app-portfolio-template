@@ -23,6 +23,11 @@ export type Choices = {
   answers: AskAnswer[];
 };
 
+/** The owner's name, and as the page's language writes it if that differs:
+    what a question may name besides the answer's own words. */
+export const ownerNames = ({ name, localName }: Choices): string =>
+  localName === name ? name : `${name} ${localName}`;
+
 /** The answers in the page's language (the site's main one's if it has
     none). An ask.json that can't be read, or isn't an AskIndex, throws. */
 export async function readChoices(assets: Fetcher, request: Request, pageLang: string | undefined): Promise<Choices> {

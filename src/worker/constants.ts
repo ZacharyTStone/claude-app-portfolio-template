@@ -31,53 +31,13 @@ export const MAX_PLAIN_PICK_TOKENS = 512;
 /** The one tool the picker may call. */
 export const PICK_TOOL_NAME = "pick_answer";
 
-/** What the picker may say instead of an answer's id: no answer says what
-    was asked. The writer says it too, when the lines don't answer the
-    question, and the log has it for a question with no pick. */
-export const NONE = "none";
-
 /** What the picker may say instead of an answer's id: the question is
     rude, or tries to make the model do something else. */
 export const INAPPROPRIATE = "inappropriate";
 
-/** The most lines of an answer the picker may name for a reply. One that
-    can't be read without the sentence before it brings that along
-    (quote.ts's `neededFor`). */
-export const MAX_QUOTED_LINES = 2;
-
 /** The most of the picker's thinking that's kept, in characters: a log
     line is for reading, and the thinking was asked to be short. */
 export const MAX_THOUGHT_LENGTH = 400;
-
-// ---- The writer ------------------------------------------------------------------
-
-/** The most the model may write for a reply (write.ts): a sentence or two,
-    in Japanese too (where a character is about a token), and room for a
-    model that reasons a little first. A reply cut off at it is asked for
-    again, shorter. */
-export const MAX_WRITE_TOKENS = 320;
-
-/** The longest reply it may write, in characters: a sentence or two, not a
-    paragraph. A longer one is asked for again, shorter. */
-export const MAX_WRITTEN_LENGTH = 240;
-
-/** How many times it's asked: once, and once more with what was wrong. */
-export const MAX_WRITE_TRIES = 2;
-
-/** How long the writing may take in all, in milliseconds: past it, the
-    lines are quoted as they are. The page waits 12 s for /ask. */
-export const WRITE_TIMEOUT_MS = 5000;
-
-// ---- The question, said to the owner -----------------------------------------------
-
-/** The most the model may write when it says a question to the owner
-    (address.ts): the question over again, which is a line or two at its
-    longest. One cut off at it isn't used. */
-export const MAX_ADDRESS_TOKENS = 120;
-
-/** How long that may take, in milliseconds. The visitor waits for it, and
-    it's asked once: past it, the question goes as it was typed. */
-export const ADDRESS_TIMEOUT_MS = 3000;
 
 // ---- Llama Guard -----------------------------------------------------------------
 

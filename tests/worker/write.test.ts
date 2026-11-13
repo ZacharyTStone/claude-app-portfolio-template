@@ -6,9 +6,16 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
-import { write, writesIn, type Writing } from "../../src/worker/ask/write.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
+import {
+  MAX_WRITE_TOKENS,
+  MAX_WRITE_TRIES,
+  MAX_WRITTEN_LENGTH,
+  write,
+  writesIn,
+  type Writing,
+} from "../../src/worker/ask/write.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
-import { MAX_WRITE_TOKENS, MAX_WRITTEN_LENGTH, NONE, MAX_WRITE_TRIES } from "../../src/worker/constants.ts";
 import { INDEX, EN, askJson, captureLogs, lines, models, stubs, toolCall, using, writer, wrote } from "./fixtures.ts";
 
 const logs = captureLogs();
@@ -27,6 +34,7 @@ const WRITING: Writing = {
 test("a reply written from the lines is the reply: the model has the lines, and the question as the visitor's", async () => {
   const { ai, sent } = writer(wrote("Yes, Alex knows Svelte and SvelteKit.", [300, 12]));
   assert.deepEqual(await write(ai, DEFAULT_MODEL, WRITING), {
+    outcome: "sent",
     reply: "Yes, Alex knows Svelte and SvelteKit.",
     tries: 1,
     tokens: { input: 300, output: 12 },
@@ -67,6 +75,7 @@ test("a reply with a name or a number the lines don't have is asked for again, w
     wrote("Yes, Alex knows Svelte.", [340, 8]),
   );
   assert.deepEqual(await write(ai, DEFAULT_MODEL, WRITING), {
+    outcome: "sent",
     reply: "Yes, Alex knows Svelte.",
     tries: 2,
     tokens: { input: 640, output: 18 },

@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { covers, namedIn } from "../../src/worker/ask/coverage.ts";
-import { NONE } from "../../src/worker/constants.ts";
+import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import { UNADDRESSED, ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
 
 const logs = captureLogs();
