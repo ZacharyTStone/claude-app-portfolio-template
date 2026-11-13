@@ -14,7 +14,7 @@ import {
 } from "../config/question-card.ts";
 import { isArrayOf, isOptionalBoolean, isOptionalString, isRecord, isString, type Guard } from "../contracts/guards.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
-import { byId, parentOf } from "./lib/dom.ts";
+import { byId, find } from "./lib/dom.ts";
 
 /** The page's <html>: it carries the page's language, the script's wording
     and where /ask is. */
@@ -37,7 +37,7 @@ export const askUrl = root.getAttribute(DATA.ask) ?? "";
 /** The sidebar of tabs. */
 export const side = byId(PAGE_IDS.sidebar);
 /** The shell around the sidebar, the open tab and the panel. */
-export const shell = parentOf(side);
+export const shell = find(document, CLASS_SELECTOR.shell);
 /** What holds the home screen and every tab; a chat's tab is added to it. */
 export const main = byId(PAGE_IDS.main);
 /** The details panel on the right. */
@@ -52,21 +52,22 @@ export const siteName = side.querySelector(CLASS_SELECTOR.wordmark)?.textContent
 /** The window title the page came with, which is the home screen's. */
 export const pageTitle = document.title;
 
-// The home screen carries its own words, on the element around its greeting.
-const homeScreen = parentOf(homeGreeting);
+/** The home screen under its top bar, which carries the home screen's own
+    words. */
+const homeBody = find(document, CLASS_SELECTOR.homeBody);
 
 /** The greeting the page has for each part of the day (null for one it
     doesn't have). */
 function readGreetings(): Record<GreetingPart, string | null> {
   const parts = Object.keys(HOURS.greeting) as GreetingPart[];
-  const greetingByPart = parts.map((part) => [part, homeScreen.getAttribute(DATA.greet(part))]);
+  const greetingByPart = parts.map((part) => [part, homeBody.getAttribute(DATA.greet(part))]);
   return Object.fromEntries(greetingByPart) as Record<GreetingPart, string | null>;
 }
 
 /** A greeting for each part of the day. */
 export const greetings = readGreetings();
 /** Who this is, in one line. */
-export const tagline = homeScreen.getAttribute(DATA.tagline);
+export const tagline = homeBody.getAttribute(DATA.tagline);
 
 /** A question's words, without the "Question:" said only to screen readers. */
 export function questionText(question: Element): string {

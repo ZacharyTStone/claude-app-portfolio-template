@@ -17,6 +17,10 @@ const WRITTEN_BY_A_COMPONENT = {
   skip: "skip",
   /** Who this is and how to reach them, which only shows printed. */
   printHead: "print-head",
+  /** The shell around the sidebar, the open tab and the details panel.
+      The browser code sets the sidebar's width on it, and marks on it
+      what's hidden. */
+  shell: "app",
   /** Every tab: an <article> for each thread, and for each chat the
       browser code makes. */
   tab: "tab",
@@ -44,6 +48,10 @@ const WRITTEN_BY_A_COMPONENT = {
   /** A composer: the link under every tab that opens the question card,
       and the box around the home screen's input. */
   composer: "composer",
+  /** The home screen under its top bar: the greeting and what follows
+      it. It carries the greeting's wording for the browser code
+      (DATA.greet, DATA.tagline). */
+  homeBody: "hello-wrap",
   /** On the home screen: the line about you. The browser code draws a new
       chat's tagline and the goodbye's text the same way. */
   intro: "intro",
@@ -101,6 +109,8 @@ const WRITTEN_BY_A_COMPONENT = {
   /** In the account menu: the line under the clock's two times, which the
       browser code writes. */
   clockNote: "clock-note",
+  /** In the details panel: a section's list of rows. */
+  panelRows: "rows",
   /** What's on the right of a row in a menu or the panel ("Link"). */
   rowMeta: "meta",
   /** In "Something else": the words of the question it answers. */

@@ -90,7 +90,7 @@ export const sidebarRow = (page: Page, tab: string): Locator => page.locator(`${
 /** The shell around the sidebar, the open tab and the details panel: the
     script sets the sidebar's width on it, and makes it inert behind the
     goodbye. */
-export const shell = (page: Page): Locator => page.locator(ID.sidebar).locator("..");
+export const shell = (page: Page): Locator => page.locator(CLASS.shell);
 
 /** The window's title while a tab is open: the tab's name, then the site's. */
 export const windowTitle = (tabName: string, site: Site): string => `${tabName}${SEPARATOR}${site.name}`;

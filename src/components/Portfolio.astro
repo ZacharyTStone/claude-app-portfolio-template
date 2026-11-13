@@ -49,7 +49,7 @@ if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
   </a>
   <PrintHead page={page} />
 
-  <div class="app">
+  <div class={PAGE_CLASSES.shell}>
     <Sidebar page={page} />
     <main id={PAGE_IDS.main} class="main">
       <Home page={page} />

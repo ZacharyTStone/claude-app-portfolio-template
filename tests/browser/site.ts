@@ -380,7 +380,7 @@ async function readClock(page: Page): Promise<Clock | null> {
 /** The greeting for each part of the day, from the attributes around the
     home screen's greeting. */
 async function readGreetings(page: Page): Promise<Record<GreetingPart, string | null>> {
-  const aroundTheGreeting = page.locator(ID.greeting).locator("..");
+  const aroundTheGreeting = page.locator(CLASS.homeBody);
   const greetings = {} as Record<GreetingPart, string | null>;
   for (const part of Object.keys(HOURS.greeting) as GreetingPart[]) {
     greetings[part] = await aroundTheGreeting.getAttribute(DATA.greet(part));
