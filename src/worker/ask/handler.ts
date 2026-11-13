@@ -29,7 +29,8 @@ import { covers } from "./coverage.ts";
 import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { pick, type Picked } from "./pick.ts";
-import { citedPieces, joinPieces, quote, type Piece, type QuoteCheck, type Quoted } from "./quote.ts";
+import { citedPieces, joinPieces, type Piece } from "./lines.ts";
+import { quote, type QuoteCheck, type Quoted } from "./quote.ts";
 import { readAskRequest, refuseUnlessJsonPost, type CheckedAskRequest } from "./request.ts";
 import { write, writesIn, type Unwritten, type Written } from "./write.ts";
 

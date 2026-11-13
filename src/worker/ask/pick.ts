@@ -19,7 +19,7 @@ import type { Choices } from "./answers.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { hasReasoningOff, reasoningOptionsOf } from "./known-models.ts";
 import { callModel, ranOutOfRoom, rawTextIn, toolCallArguments } from "./model.ts";
-import { withNumbers } from "./quote.ts";
+import { withNumbers } from "./lines.ts";
 import { firstName, languageName } from "./wording.ts";
 
 /** What the model picked. */

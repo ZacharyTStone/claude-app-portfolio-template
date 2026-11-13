@@ -36,7 +36,7 @@
    written, and the lines are quoted as before. */
 
 import { namedIn } from "./coverage.ts";
-import { piecesOf } from "./quote.ts";
+import { piecesOf } from "./text/sentences.ts";
 
 /** The languages a reply can be written, and checked, in. */
 export const CHECKABLE_LANGUAGES: readonly string[] = ["en", "ja"];
