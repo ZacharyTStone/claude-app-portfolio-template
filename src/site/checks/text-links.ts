@@ -3,6 +3,7 @@
    (hrefsIn), so a link inside bold or inside another link's label is found
    too. */
 
+import type { Language } from "../../config/language.ts";
 import { hrefsIn } from "../../config/markdown.ts";
 import { SCRIPT_STRING_NAMES } from "../../config/strings.ts";
 import { browserFollows } from "../../contracts/links.ts";
@@ -30,13 +31,19 @@ const checkTextLinksAreSafe: LanguageCheck = ({ language, checkLinkIsSafe }) => 
   }
 };
 
+/** The ids the links in a language's text point at: "about" for
+    [more](#about). */
+export const tabsLinkedFromTheText = (language: Language): string[] =>
+  everyStringIn(language)
+    .flatMap(hrefsIn)
+    .filter((href) => href.startsWith("#"))
+    .map((href) => href.slice(1));
+
 /** A link to "#something" opens a tab: a thread, a personal answer's tab,
     or the home screen. */
 const checkTextLinksOpenTabs: LanguageCheck = ({ language, threadIds, problemUnless }) => {
   const personalTabIds = language.questions.personal.map((personalAnswer) => personalTabId(personalAnswer.id));
-  for (const href of everyStringIn(language).flatMap(hrefsIn)) {
-    if (!href.startsWith("#")) continue;
-    const tabId = href.slice(1);
+  for (const tabId of tabsLinkedFromTheText(language)) {
     problemUnless(
       threadIds.has(tabId) || tabId === PAGE_IDS.home || personalTabIds.includes(tabId),
       `a link in the text points at #${tabId}, which isn't a thread`,

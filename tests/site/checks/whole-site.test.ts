@@ -4,15 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { HOSTS, type SiteConfig } from "../../../src/config/site-config.ts";
 import { languageOf, sampleConfig } from "../sample.ts";
-import {
-  findingsIn,
-  inEveryLanguage,
-  inFrench,
-  problemsAfter,
-  problemsIn,
-  sampleAfter,
-  testEachProblem,
-} from "./problems.ts";
+import { inFrench, problemsAfter, problemsIn, testEachProblem } from "./problems.ts";
 
 /** How a problem says that French isn't made as English is: these words, then the first thing that differs. */
 const frenchDiffers = (firstDifference: string): string[] => [
@@ -202,15 +194,3 @@ for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
     ]);
   });
 }
-
-test("more topics than a card reads well with is advice, not a problem", () => {
-  const withFiveTopics = inEveryLanguage((language) => {
-    language.questions.topics = ["One", "Two", "Three", "Four", "Five"].map((label) => ({ label, tab: "about" }));
-  });
-  assert.deepEqual(findingsIn(sampleAfter(withFiveTopics)), {
-    problems: [],
-    notes: [
-      `the question card has 5 topics. 4 or fewer read better, on a phone above all: group the rest under one topic with "ask" and "choices"`,
-    ],
-  });
-});

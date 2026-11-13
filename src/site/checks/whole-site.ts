@@ -224,18 +224,3 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkAskRunsOnItsHost,
   checkViewer,
 ];
-
-/** The question card's first step reads best with this many topics or
-    fewer (plus "Something else"), on a phone above all. */
-const MAX_TOPICS = 4;
-
-/** Advice, not a problem. The main language's count is every language's
-    (checkLanguagesMatch). */
-export function noteManyTopics(site: Site, notes: string[]): void {
-  const topicCount = site.language(site.main).questions.topics.length;
-  if (topicCount > MAX_TOPICS) {
-    notes.push(
-      `the question card has ${topicCount} topics. ${MAX_TOPICS} or fewer read better, on a phone above all: group the rest under one topic with "ask" and "choices"`,
-    );
-  }
-}

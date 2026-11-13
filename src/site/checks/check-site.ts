@@ -10,9 +10,10 @@
 
 import type { Site } from "../site.ts";
 import { PARTS_CHECKS } from "./language.ts";
+import { ADVICE } from "./notes.ts";
 import { languageChecks, type Findings, type LanguageCheck, type ProblemUnless } from "./reporting.ts";
 import { TEXT_LINK_CHECKS } from "./text-links.ts";
-import { noteManyTopics, SITE_CHECKS } from "./whole-site.ts";
+import { SITE_CHECKS } from "./whole-site.ts";
 import { WORDING_CHECKS } from "./wording.ts";
 
 /** The checks of one language, in the order their problems are listed. */
@@ -26,10 +27,10 @@ export function checkSite(site: Site, stylesheetIcons: Set<string>): Findings {
     if (!isOk) findings.problems.push(problem);
   };
   for (const check of SITE_CHECKS) check(site, problemUnless);
-  noteManyTopics(site, findings.notes);
   for (const code of site.codes) {
     const checks = languageChecks(site, code, stylesheetIcons, problemUnless);
     for (const check of LANGUAGE_CHECKS) check(checks);
   }
+  findings.notes.push(...ADVICE.flatMap((advise) => advise(site)));
   return findings;
 }
