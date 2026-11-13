@@ -92,3 +92,9 @@
   .live { animation: live 2.6s ease-in-out infinite; }
   @keyframes live { 50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent); } }
 }
+
+@media (prefers-reduced-motion: no-preference) {
+  .pop, .follow-card { animation: pop-in 0.14s var(--ease); }
+  .pop.up, .follow-card { --from: 4px; }
+  @keyframes pop-in { from { opacity: 0; translate: 0 var(--from, -4px); } }
+}

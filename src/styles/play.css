@@ -1,0 +1,41 @@
+/* A picture a visitor plays (Picture.astro, src/app/play.ts): it rests as
+   its still, matte, with a Play button in its middle, so nothing moves
+   beside the text until it's asked to. Played, the picture as it moves
+   comes in over the still at full strength, and the button goes to a
+   corner as Pause. Without JavaScript the button is a link to the moving
+   picture, and the still isn't dimmed: it's all there is to see here. */
+
+.js .played-figure .stage { cursor: pointer; }
+.js .played-figure .stage > :first-child:not(.play-button) {
+  opacity: 0.28;
+  filter: saturate(0.4);
+  transition: opacity var(--play-fade) ease, filter var(--play-fade) ease;
+}
+.js .played-figure .stage:hover > :first-child:not(.play-button), .js .played-figure .stage:focus-within > :first-child:not(.play-button) { opacity: 0.42; }
+.stage .moving {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity var(--play-fade) ease;
+}
+.stage .moving.moving-shown { opacity: 1; }
+
+/* While it plays: small, in the corner, out of the picture's way until the
+   pointer is over the picture or the button has the keyboard. */
+.playing .play-button {
+  top: calc(100% - 27px);
+  left: calc(100% - 12px);
+  translate: -100% -50%;
+  height: 30px;
+  padding: 0 12px 0 9px;
+  opacity: 0.55;
+  --icon: url("/assets/icons/pause.svg");
+}
+.playing .stage:hover .play-button, .playing .play-button:focus-visible { opacity: 1; }
+/* In a narrow figure (a phone), Pause is its icon alone, so it covers
+   little of the picture as it plays. The word is out of sight, but still
+   the button's name (as .sr-only is). */
+@container (max-width: 519px) {
+  .playing .play-button { top: calc(100% - 24px); left: calc(100% - 8px); gap: 0; justify-content: center; width: 30px; padding: 0; }
+  .playing .play-button .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}

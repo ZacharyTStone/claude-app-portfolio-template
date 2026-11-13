@@ -1,4 +1,3 @@
-/* ---- Right panel ---------------------------------------------------- */
 .panel {
   position: relative;
   border-left: 1px solid var(--line);
@@ -36,40 +35,7 @@
   transition: rotate 0.2s var(--ease);
 }
 .panel h2.folded::after { rotate: 0deg; }
-/* The six-dot grip that drags a section (src/app), shown on hover. */
-.panel section { position: relative; }
-.grip {
-  position: absolute;
-  top: 12px;
-  right: -8px;
-  width: 24px;
-  height: 28px;
-  display: grid;
-  place-items: center;
-  padding: 0;
-  border: 0;
-  border-radius: 6px;
-  background: none;
-  color: var(--text-3);
-  cursor: grab;
-  touch-action: none;
-  opacity: 0;
-  transition: opacity 0.15s var(--ease);
-}
-.panel section:first-of-type .grip { top: 8.5px; right: 36px; }
-.panel section:hover .grip, .grip:focus-visible, .dragging .grip { opacity: 1; }
-.grip:hover { color: var(--text); background: var(--row-hover); }
-/* Lifted while dragged: the spread shadows paint a padded card around it
-   without moving anything, and the line above it goes. */
-.panel .dragging {
-  z-index: 1;
-  border-top-color: transparent;
-  border-radius: 4px;
-  background: var(--menu);
-  box-shadow: 0 0 0 8px var(--menu), 0 0 0 9px var(--rim), 0 10px 32px 8px rgb(0 0 0 / 0.45);
-}
-.dragging .grip { cursor: grabbing; }
-.panel:has(.dragging) { cursor: grabbing; user-select: none; }
+
 .steps { display: grid; gap: 4px; }
 .steps a { display: flex; gap: 10px; align-items: flex-start; padding: 4px 6px; margin: 0 -6px; border-radius: 8px; }
 .steps a:hover { background: var(--row-hover); }
@@ -100,13 +66,3 @@
 .panel-rows a:hover { background: var(--row-hover); }
 .panel-rows .icon::before { color: var(--text-2); }
 .panel-rows .row-meta { flex: none; margin-left: auto; padding-left: 8px; font-size: 13px; color: var(--text-2); white-space: nowrap; }
-.logo {
-  width: 16px; height: 16px; flex: none;
-  display: grid; place-items: center;
-  border-radius: 4px;
-  font: 700 8.5px/1 var(--sans);
-  letter-spacing: 0.02em;
-  color: #fff;
-  background: #333;
-}
-.logo.linkedin { background: #0a66c2; }

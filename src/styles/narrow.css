@@ -56,3 +56,15 @@
   .under .model { display: none; }
   .under .credit { font-size: 11px; line-height: 16px; }
 }
+
+/* Where there's no room beside the conversation, it covers the screen. */
+@media (max-width: 1199px) {
+  .shell.viewing { --panel-col: 0px; }
+  .viewer {
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    border-left: 0;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  }
+}

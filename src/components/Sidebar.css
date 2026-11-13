@@ -1,4 +1,3 @@
-/* ---- Sidebar (the tabs) --------------------------------------------- */
 .side {
   background: var(--sidebar);
   border-right: 1px solid var(--line);
@@ -86,66 +85,6 @@
   text-overflow: ellipsis;
 }
 .live { width: 6px; height: 6px; border-radius: 3px; background: var(--blue); margin-left: auto; flex: none; }
-
-/* Each row in the lists shows a "…" button on hover, which
-   opens the row's menu (src/app); it covers the row's dot while it shows. */
-.group-rows li { position: relative; }
-.row-more {
-  position: absolute;
-  top: 50%;
-  right: 6px;
-  width: 28px;
-  height: 28px;
-  translate: 0 -50%;
-  opacity: 0;
-}
-.row-more::before { width: 16px; height: 16px; }
-.group-rows li:hover .row-more, .row-more:focus-visible, .row-more[aria-expanded="true"] { opacity: 1; }
-.row-more:hover, .row-more[aria-expanded="true"] { background: var(--row-selected); color: var(--text); }
-.group-rows li:hover .live,
-.group-rows li:has(.row-more:is(:focus-visible, [aria-expanded="true"])) .live { visibility: hidden; }
-@media (hover: none) { .row-more { opacity: 1; } .group-rows .live { visibility: hidden; } }
-.row-pop { top: calc(100% - 6px); right: 4px; }
-/* The sidebar clips what sticks out of it, so the menu is only as wide as
-   its row, unless its words need more. */
-.pop.row-pop { min-width: min(240px, 100% - 8px); }
-.row-pop.above { top: auto; bottom: calc(100% - 6px); }
-
-/* The account row; the script makes it open a menu (below, with the
-   others). A line across the whole sidebar sits above it,
-   and the hover only wraps the name. */
-.account {
-  position: relative;
-  margin: auto -8px 0;
-  padding: 8px 8px 0;
-  border-top: 1px solid var(--line);
-}
-.account-row {
-  width: fit-content;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 10px;
-  border-radius: 8px;
-  font: 435 14px/21px var(--sans);
-}
-.account-row[role="button"] { cursor: pointer; }
-.account-row[role="button"]:hover, .account-row[aria-expanded="true"] { background: var(--row-hover); }
-.account-row[role="button"]::after {
-  content: "";
-  flex: none;
-  width: 12px;
-  height: 12px;
-  margin-left: -4px;
-  background: var(--text-2);
-  --icon: url("/assets/icons/chevron-down.svg");
-}
-.avatar {
-  width: 24px; height: 24px; border-radius: 50%;
-  display: grid; place-items: center;
-  background: var(--chip); color: var(--text-2); font: 500 11px/1 var(--sans);
-}
-.account-row .sub { color: var(--text-2); font-size: 13px; }
 
 /* The selected row: the open tab's, or "New tab" on the home screen and
    in a new chat (the script marks it with aria-current). */

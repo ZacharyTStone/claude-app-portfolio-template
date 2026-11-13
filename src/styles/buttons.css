@@ -1,0 +1,36 @@
+/* Plain buttons: a label with an icon, and icon-only. */
+.ghost-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 32px;
+  padding: 0 10px;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  font: 500 14px/21px var(--sans);
+  cursor: pointer;
+}
+.icon-button {
+  display: inline-grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  padding: 0;
+  border: 0;
+  border-radius: 8px;
+  background: none;
+  color: var(--text-2);
+  cursor: pointer;
+}
+.ghost-button:hover, .icon-button:hover { background: var(--row-hover); color: var(--text); }
+/* A filled button: the card's Send, and "Log back in". */
+.ask-send, .bye-back {
+  border: 0;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.12);
+  font: 500 15px/1 var(--sans);
+  cursor: pointer;
+}
+.ask-send:hover, .bye-back:hover { background: rgb(255 255 255 / 0.18); }
+.icon-button.done { --icon: url("/assets/icons/check.svg"); color: var(--green); }

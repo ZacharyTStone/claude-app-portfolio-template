@@ -1,0 +1,12 @@
+.topbar {
+  position: relative;
+  height: var(--topbar-h);
+  flex: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 12px 0 20px;
+}
+
+.topbar .actions { margin-left: auto; display: flex; align-items: center; gap: 2px; }
+.menu-button { display: none; }
