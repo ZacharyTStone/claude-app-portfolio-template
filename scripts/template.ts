@@ -57,6 +57,7 @@ export const SHARED = [
   ".htmlvalidate.json",
   "knip.jsonc",
   ".node-version",
+  ".npmrc",
   ".prettierignore",
   ".prettierrc.json",
   "package.json",
