@@ -37,11 +37,15 @@ export type Outcome =
   /** None does: nothing was picked, or what was picked doesn't name what
       was asked (`uncoveredId`). */
   | ({ kind: "unanswered"; uncoveredId?: string; saidToOwner?: SaidToOwner } & Asked & Allowance)
-  /** Something failed on the way to an answer. */
+  /** The pick wasn't done in time. A call the clock cut off is paid for
+      all the same, so what it cost is counted. */
+  | ({ kind: "timedOut" } & Asked)
+  /** Something failed on the way to an answer. A model call that failed
+      wasn't run, so it cost nothing. */
   | { kind: "failed"; error: unknown; question: string };
 
-/** What a question that was taken cost, in Neurons, for the day's count:
-    nothing when it failed. Undefined for one that was never taken. */
+/** What a question that was taken cost, in Neurons, for the day's count.
+    Undefined for one that was never taken. */
 export function neuronsSpentOn(outcome: Outcome): number | undefined {
   if (outcome.kind === "failed") return 0;
   return "neurons" in outcome ? outcome.neurons : undefined;
@@ -90,6 +94,7 @@ function askResponseTo(outcome: Exclude<Outcome, { kind: "rejected" }>): AskResp
       return answered(outcome);
     case "unanswered":
       return { id: null, toOwner: outcome.saidToOwner?.toOwner, left: leftToSay(outcome) };
+    case "timedOut":
     case "failed":
       return { id: null, why: "error" };
   }

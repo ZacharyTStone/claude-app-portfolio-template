@@ -15,7 +15,8 @@ type Summary = {
   neurons?: number;
   /** With "refused": the limit it was turned away at, or "down". */
   why?: string;
-  /** With "error": a Workers AI error's number, or the kind of error. */
+  /** With "error": a Workers AI error's number, the kind of error, or
+      "timeout" for a pick that wasn't done in time. */
   error?: string;
   /** The answer picked, which didn't name what was asked (coverage.ts). */
   uncovered?: string;
@@ -116,6 +117,8 @@ function summaryOf(outcome: Outcome): Summary | null {
       return answeredSummary(outcome);
     case "unanswered":
       return unansweredSummary(outcome);
+    case "timedOut":
+      return { ask: "error", error: "timeout", neurons: rounded(outcome.neurons) };
     case "failed":
       return { ask: "error", error: errorCode(outcome.error) };
   }
@@ -132,6 +135,12 @@ function answeredDetail({ question, picked, reply }: Extract<Outcome, { kind: "a
   };
 }
 
+const unansweredDetail = ({ question, picked, saidToOwner }: Extract<Outcome, { kind: "unanswered" }>): Detail => ({
+  question,
+  thought: picked.thought,
+  rewrote: saidToOwner?.rewrite,
+});
+
 function detailOf(outcome: Outcome): Detail {
   switch (outcome.kind) {
     case "rejected":
@@ -139,6 +148,7 @@ function detailOf(outcome: Outcome): Detail {
     case "busy":
       return {};
     case "refused":
+    case "timedOut":
     case "failed":
       return { question: outcome.question };
     case "flagged":
@@ -146,7 +156,7 @@ function detailOf(outcome: Outcome): Detail {
     case "answered":
       return answeredDetail(outcome);
     case "unanswered":
-      return { question: outcome.question, thought: outcome.picked.thought, rewrote: outcome.saidToOwner?.rewrite };
+      return unansweredDetail(outcome);
   }
 }
 

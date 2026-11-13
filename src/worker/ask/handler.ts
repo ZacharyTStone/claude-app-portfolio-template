@@ -50,6 +50,7 @@ async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<O
   const { picked, isInappropriate, costNeurons } = await pickWhileModerating(ai, settings, question, choices);
   const asked = { question, picked };
   if (isInappropriate) return { kind: "flagged", ...asked, visitorHash: admitted.visitorHash, neurons: costNeurons };
+  if (picked.ranOutOfTime) return { kind: "timedOut", ...asked, neurons: costNeurons };
 
   const allowance = { questionsLeft: admitted.questionsLeft, visitorLimit: settings.visitorLimit };
   const { answer: answerShown, uncoveredId } = answerToShow(picked.id, question, choices);

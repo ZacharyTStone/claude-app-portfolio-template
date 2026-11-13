@@ -1,10 +1,12 @@
 /* A question from end to end (src/worker/ask/handler.ts): the pick dropped
    when it doesn't name what was asked, an inappropriate question turned
-   away and its asker blocked, a failure answered as no pick, and what the
-   question's model calls cost charged to the day once the reply has gone. */
+   away and its asker blocked, a failure or a pick that takes too long
+   answered as no pick, and what the question's model calls cost charged to
+   the day once the reply has gone. */
 import assert from "node:assert/strict";
 import { createHash } from "node:crypto";
-import { test } from "node:test";
+import { test, type TestContext } from "node:test";
+import { setImmediate as nextTurn } from "node:timers/promises";
 import { estimateJsonTokens, estimateTokens, neuronCost } from "../../src/worker/ask/cost.ts";
 import {
   DEFAULT_MODEL,
@@ -14,6 +16,7 @@ import {
   type Price,
 } from "../../src/worker/ask/known-models.ts";
 import { LLAMA_GUARD_OPTIONS, LLAMA_GUARD_PROMPT_TOKENS } from "../../src/worker/ask/moderation.ts";
+import { MAX_PICK_TOKENS, MAX_PLAIN_PICK_TOKENS, PICK_TIMEOUT_MS } from "../../src/worker/ask/pick.ts";
 import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import { ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
@@ -105,6 +108,40 @@ test("the model failing (or over the day's allowance) is null, not an error", as
   const response = await stubs({ run }).ask({ question: "anything", lang: "en" });
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { id: null, why: "error" });
+});
+
+/** A Worker whose picker hasn't answered: asked "Postgres?", it has sent
+    its pick and is waiting on a clock the test moves. */
+async function waitingForAPick(t: TestContext, pick: Promise<unknown>) {
+  t.mock.timers.enable({ apis: ["setTimeout"] });
+  const world = stubs({ run: models(pick, SAFE) });
+  const replying = world.askJson("Postgres?");
+  while (!world.calls.length) await nextTurn();
+  return { ...world, replying };
+}
+
+test("a pick is waited for until just before its time is up", async (t) => {
+  let answer = (_pick: unknown) => {};
+  const { replying } = await waitingForAPick(t, new Promise((resolve) => (answer = resolve)));
+  t.mock.timers.tick(PICK_TIMEOUT_MS - 1);
+  answer(PICK);
+  assert.deepEqual(await replying, { id: "skills.1" });
+});
+
+test("a pick that isn't done in time is no answer, as a model that failed, and is paid for all the same", async (t) => {
+  const { replying, calls, writeCalls, rewriteCalls, guard, logged } = await waitingForAPick(t, new Promise(() => {}));
+  t.mock.timers.tick(PICK_TIMEOUT_MS);
+  assert.deepEqual(await replying, { id: null, why: "error" });
+  assert.deepEqual([writeCalls.length, rewriteCalls.length], [0, 0], "the model is asked nothing more");
+
+  // It's counted as having read what it was sent and written all it may.
+  const { messages, tools } = calls[0]?.input ?? {};
+  const mostItMayWrite = KNOWN_MODELS.get(DEFAULT_MODEL)?.reasoningIsOff ? MAX_PLAIN_PICK_TOKENS : MAX_PICK_TOKENS;
+  const pick = neuronCost({ input: estimateJsonTokens({ messages, tools }), output: mostItMayWrite }, PICKER);
+  const verdict = neuronCost({ input: 300, output: 2 }, GUARD);
+  near(spent(guard), pick + verdict);
+  assert.deepEqual(lines(logged), [JSON.stringify({ ask: "error", error: "timeout" })]);
+  assert.deepEqual(costs(logged), [Math.round((pick + verdict) * 10) / 10]);
 });
 
 test("a question's cost is what its two calls used, counted by AskGuard and logged, after the reply", async () => {

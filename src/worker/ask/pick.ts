@@ -20,6 +20,11 @@ export const MAX_PICK_TOKENS = 1024;
     thinking is a sentence or two, and the rest of it a few dozen tokens. */
 export const MAX_PLAIN_PICK_TOKENS = 512;
 
+/** How long the pick is waited for, in milliseconds. A reply is written
+    after it, with a time limit of its own (write.ts), and the page gives
+    up on /ask after 12 seconds: the two limits together are under that. */
+export const PICK_TIMEOUT_MS = 6000;
+
 /** The most of the picker's thinking that's kept, in characters: a log
     line is for reading, and the thinking was asked to be short. */
 export const MAX_THOUGHT_LENGTH = 400;
@@ -36,6 +41,8 @@ export type Picked = {
   thought?: string;
   /** It ran out of room to write before it had picked. */
   ranOutOfRoom?: true;
+  /** It hadn't picked when the time was up. */
+  ranOutOfTime?: true;
   tokens: Tokens;
 };
 
@@ -49,6 +56,7 @@ export type ToolCall = {
   thought?: string;
 };
 
+/** Rejects when Workers AI can't run the model. */
 export async function pick(ai: Ai, model: string, question: string, choices: Choices): Promise<Picked> {
   const offeredIds = choices.answers.map((answer) => answer.id);
   if (!offeredIds.length) return { id: null, tokens: NO_TOKENS };
@@ -62,8 +70,10 @@ export async function pick(ai: Ai, model: string, question: string, choices: Cho
       max_completion_tokens: maxTokens,
       ...reasoningOptionsOf(model),
     },
+    timeoutMs: PICK_TIMEOUT_MS,
     tokensIfUnreported: { prompt, maxOutputTokens: maxTokens },
   });
+  if (modelReply === undefined) return { id: null, ranOutOfTime: true, tokens };
   return { ...readPick(modelReply, offeredIds), tokens };
 }
 
