@@ -1,6 +1,6 @@
 /* The site's security headers, in one place. The build writes them as a
    _headers file where the host reads one, or as a <meta>
-   Content-Security-Policy where it doesn't (src/site/hosts.ts), and the
+   Content-Security-Policy where it doesn't (files/headers-file.ts), and the
    browser checks serve the pages with exactly these. */
 
 import type { Hsts } from "../config/site-config.ts";

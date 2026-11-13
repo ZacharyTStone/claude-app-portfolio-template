@@ -15,7 +15,7 @@ export const OUTPUT = "dist";
 export const SITEMAP_FILE = "sitemap.xml";
 
 /** The file a host reads the security headers from, beside the pages, if
-    it reads one at all (hosts.ts). */
+    it reads one at all (files/headers-file.ts). */
 export const HEADERS_FILE = "_headers";
 
 /** The icons every page has, paths on the site (each site's own files). */

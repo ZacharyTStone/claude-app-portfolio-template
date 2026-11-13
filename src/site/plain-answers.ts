@@ -1,28 +1,13 @@
-/* ask.json, what /ask picks from: every answer on the site as plain text,
-   a line for each of its blocks, with the id that names it
-   (src/contracts/ask.ts). llms.txt has the same answers in the same words
-   (llms.ts). */
+/* Every answer on the site as plain text, a line for each of its blocks,
+   with the id that names it (src/contracts/ask.ts). ask.json and llms.txt
+   have the same answers in the same words (files/ask-json.ts,
+   files/llms-txt.ts). */
 
-import type { AskAnswer, AskIndex } from "../contracts/ask.ts";
+import type { AskAnswer } from "../contracts/ask.ts";
 import { labelled, personalAnswerId, threadAnswerId } from "../contracts/ask.ts";
 import type { Bars, Block, FileCard, CardValue, Flow } from "../config/blocks.ts";
 import { plainText } from "../config/markdown.ts";
-import { JSON_INDENT } from "./constants.ts";
 import type { Site } from "./site.ts";
-
-/** /ask.json, as the text of the file: whose site it is, and every answer
-    in every language (AskIndex). It's written only for a site with Ask on;
-    for any other the owner's role is "". */
-export function askIndexJson(site: Site): string {
-  const index: AskIndex = {
-    name: site.config.name,
-    names: Object.fromEntries(site.codes.map((code) => [code, site.lang(code).person.name])),
-    role: site.config.ask?.role ?? "",
-    main: site.main,
-    answers: Object.fromEntries(site.codes.map((code) => [code, plainAnswers(site, code)])),
-  };
-  return `${JSON.stringify(index, null, JSON_INDENT)}\n`;
-}
 
 /** Every answer in one language, as plain text: each thread's, in order,
     then the personal ones. */
