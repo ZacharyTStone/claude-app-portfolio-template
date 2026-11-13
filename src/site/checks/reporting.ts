@@ -1,9 +1,8 @@
 /* What the config's checks find, how a check reports a problem, and what
    every check of one language is handed. */
 
-import type { Language } from "../../config/language.ts";
 import { LOGO_NAMES } from "../icons.ts";
-import type { Site } from "../site.ts";
+import type { Site, SiteLanguage } from "../site.ts";
 import { isSafeHref } from "./formats.ts";
 
 export type Findings = {
@@ -26,7 +25,8 @@ export const isFilledIn = (value: unknown): boolean => Boolean(value);
     leaves the language out. */
 export type LanguageChecks = {
   site: Site;
-  language: Language;
+  code: string;
+  language: SiteLanguage;
   /** What a sidebar row, a topic or a link to "#about" can point at. */
   threadIds: Set<string>;
   problemUnless: ProblemUnless;
@@ -58,6 +58,7 @@ export function languageChecks(
     `${whatHasIt} has the icon "${iconName}", but src/styles has no .i-${iconName}`;
   return {
     site,
+    code,
     language,
     threadIds,
     problemUnless: problemInThisLanguageUnless,

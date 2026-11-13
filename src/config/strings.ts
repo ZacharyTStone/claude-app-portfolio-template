@@ -4,7 +4,7 @@
    a data-* attribute on <html>, and src/app/page.ts reads them back as
    `words`, so one script serves every language. */
 
-/** The wording the page itself shows (the browser code's is SCRIPT_STRING_ATTRIBUTES). Every language's `strings` has each of them. */
+/** The wording the page itself shows (the browser code's is SCRIPT_STRING_ATTRIBUTES). A page in English has each already (english-strings.ts); any other language's `strings` states them. */
 export const PAGE_STRING_NAMES = [
   // The link a keyboard reaches first: "Skip to content".
   "skip",

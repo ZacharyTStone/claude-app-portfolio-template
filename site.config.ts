@@ -518,58 +518,13 @@ export default {
       },
 
       // ---- The interface's own words --------------------------------------
+      // The page's own labels and tooltips are in English already
+      // (src/config/english-strings.ts): state only the ones you change. A
+      // page in another language states them all (examples/ja.ts).
       strings: {
-        skip: "Skip to content",
-        tabs: "Tabs",
-        hideTabs: "Hide tabs",
-        closeTabs: "Close tabs",
-        showTabs: "Show tabs",
-        panelToggle: "Show or hide the details panel",
-        panelToggleTitle: "Details",
-        credit: "Design inspired by the Claude app. Not affiliated with Anthropic.",
-        share: "Share",
-        copyTab: "Copy link to this tab",
-        copyTitle: "Copy link",
-        question: "Question: ",
-        followUpPlaceholder: "Ask a follow-up…",
-        model: "Portfolio",
-        status: "Read {file}",
-        panel: "Details",
-        closePanel: "Close the details panel",
-        closePanelTitle: "Close",
-        copied: "Copied",
-        copyFailed: "Couldn’t copy",
-        menuCopy: "Copy link",
-        menuOptions: "Thread options",
-        menuRename: "Rename",
-        menuFollowUp: "Ask a follow-up",
-        menuJump: "Jump to",
-        menuMore: "More options",
-        menuDelete: "Delete",
-        thinking: "Thinking…",
-        // One of these (split at |) shows while a reply is on its way.
-        thinkingWords: "Thinking|Pondering|Mulling|Brewing|Tinkering|Puzzling|Wondering|Considering",
-        chats: "Chats",
-        chatDeleted: "Chat deleted",
-        newChat: "New chat",
-        moveSection: "Move {name}",
-        resize: "Resize the tabs",
-        // The viewer's two buttons, on a site with `viewer`.
-        viewerOpen: "Open in a new tab",
-        viewerClose: "Close",
-        // The button on a diagram, which rests still until it's played.
-        play: "Play",
-        pause: "Pause",
-        // The rest show only with Ask on. Under a reply to a typed question:
-        // where it's from.
-        askFrom: "From the {tab} tab",
-        askFromPersonal: "From “{tab}”",
-        // What replaces a question found inappropriate.
-        askRemoved: "Question removed",
-        // Past a visitor's {limit} questions for the day, and the note under
-        // replies when only {n} are left.
+        // With Ask on, the reply past a visitor's {limit} questions for the
+        // day. This one names you, and links to your "contact" thread.
         askLimited: `That’s the limit for today. Asking runs on a free service, so it’s capped at {limit} questions a day. Everything about ${me.first} is in the tabs, and [Contact](#contact) has how to reach them.`,
-        askLeft: "Heads up: asking runs on a free service, so it’s capped per day: {n} left today.",
       },
     },
   },

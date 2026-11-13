@@ -70,8 +70,11 @@ export type Language = {
     back: string;
   };
   /** The page's own wording: labels, tooltips and what the browser code
-      says. */
-  strings: Strings;
+      says. A page in English ("en", "en-GB") has all of it already
+      (english-strings.ts): state only the strings to change, or none. A
+      page in any other language states every one, and the build names one
+      that's missing. */
+  strings?: Partial<Strings>;
 };
 
 // ---- The home screen -----------------------------------------------------------

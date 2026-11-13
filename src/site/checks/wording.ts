@@ -2,8 +2,23 @@
    can't do without, and where the page fills something into them. */
 
 import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
-import { PART_STRINGS } from "../../config/strings.ts";
+import { isEnglish } from "../../config/english-strings.ts";
+import { PAGE_STRING_NAMES, PART_STRINGS, REQUIRED_SCRIPT_STRING_NAMES } from "../../config/strings.ts";
 import { isFilledIn, type LanguageCheck } from "./reporting.ts";
+
+/** English is the one language with wording of its own to fall back on
+    (src/config/english-strings.ts), so any other states every string a
+    page says. The page would say the English one otherwise. */
+const checkEveryStringIsStated: LanguageCheck = ({ site, code, problemUnless }) => {
+  if (isEnglish(code)) return;
+  const stated = site.config.languages[code]?.strings ?? {};
+  for (const name of [...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES]) {
+    problemUnless(
+      isFilledIn(stated[name]),
+      `strings.${name} is missing: only a page in English has wording to fall back on`,
+    );
+  }
+};
 
 /** Where the page puts the visitor's question into the email that
     "Something else" drafts. */
@@ -73,6 +88,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
 
 /** In the order their problems are listed. */
 export const WORDING_CHECKS: LanguageCheck[] = [
+  checkEveryStringIsStated,
   checkPlaceholders,
   checkLanguageRow,
   checkLinkedInWording,

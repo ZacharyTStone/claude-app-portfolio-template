@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import type { Language } from "../../src/config/language.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
+import type { Strings } from "../../src/config/strings.ts";
 import sample from "../sample/site.config.ts";
 
 /** The sample's config, with `overrides` in place of its own settings. An
@@ -17,6 +18,13 @@ export function languageOf(config: SiteConfig, code: string): Language {
   const language = config.languages[code];
   assert.ok(language, `the sample has the language "${code}"`);
   return language;
+}
+
+/** The strings a language states, to change in place: none, for one that
+    leaves them all to English's. */
+export function statedStrings(language: Language): Partial<Strings> {
+  language.strings ??= {};
+  return language.strings;
 }
 
 /** The sample's main language, English, alone: a site in one language. */
