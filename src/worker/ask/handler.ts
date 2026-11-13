@@ -22,7 +22,6 @@ import { readSettings, type Env, type Settings } from "../env.ts";
 import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
-import { addressToOwner, addressesOwnerIn, type Addressed, type Unaddressed } from "./address.ts";
 import { ownerNames, readChoices, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
@@ -32,6 +31,7 @@ import { pick, type Picked } from "./pick.ts";
 import type { QuoteCheck } from "./quote.ts";
 import { NO_REPLY, replyFrom } from "./reply.ts";
 import { readAskRequest, refuseUnlessJsonPost, type CheckedAskRequest } from "./request.ts";
+import { sayToOwner, type NotSaid } from "./to-owner.ts";
 import type { Unwritten } from "./write.ts";
 
 const respond = (data: AskResponse, status: number = HTTP_STATUS.ok) => json(data, status);
@@ -65,7 +65,7 @@ type LogLine = {
       and if not, why. Neither on a page in a language it isn't rewritten
       in. */
   toOwner?: "sent" | "dropped";
-  unaddressed?: Unaddressed;
+  unaddressed?: NotSaid;
   /** The model ran out of room to write before it had picked. */
   cut?: true;
   /** What the visitor typed. This and the five below are logged only with
@@ -211,7 +211,7 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       : NO_REPLY;
     // With no answer, the page offers a message to the owner with the
     // question in it: said to them, where it can be.
-    const addressed = answerShown ? undefined : await saidToOwner(env.AI, settings.model, question, choices);
+    const addressed = answerShown ? undefined : await sayToOwner(env.AI, settings.model, question, choices);
     const costNeurons =
       pickCostNeurons +
       neuronCost(reply.written?.tokens ?? NO_TOKENS, settings.price) +
@@ -319,14 +319,4 @@ function answerToShow(pickedId: string | null, question: string, choices: Choice
   if (!pickedAnswer) return {};
   const isCovered = covers(pickedAnswer, question, ownerNames(choices));
   return isCovered ? { answer: pickedAnswer } : { uncoveredId: pickedAnswer.id };
-}
-
-// The question as it's said to the owner, for the email and the message the
-// page offers when no answer is shown: rewritten by the model and checked
-// against what was typed (address.ts). Undefined on a page in a language
-// it isn't rewritten in: the question then goes as it was typed.
-function saidToOwner(ai: Ai, model: string, question: string, choices: Choices): Promise<Addressed> | undefined {
-  const { lang, localName } = choices;
-  if (!addressesOwnerIn(lang)) return undefined;
-  return addressToOwner(ai, model, { question, lang, name: localName, owner: ownerNames(choices) });
 }

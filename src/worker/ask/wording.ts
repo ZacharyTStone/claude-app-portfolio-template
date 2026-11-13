@@ -1,4 +1,4 @@
-/* Words the model's instructions (pick.ts, write.ts, address.ts) are
+/* Words the model's instructions (pick.ts, write.ts, to-owner.ts) are
    written with. */
 
 /** The owner's first name, as the instructions call them after the first

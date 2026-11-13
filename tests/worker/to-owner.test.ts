@@ -1,4 +1,4 @@
-/* The visitor's question, said to the owner (src/worker/ask/address.ts):
+/* The visitor's question, said to the owner (src/worker/ask/to-owner.ts):
    with no answer to show, the model rewrites it once, and the rewrite is
    sent for the page's email and message only if it's the same question,
    give or take who it's about. Anything else leaves the question as it was
@@ -6,7 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
-import { addressToOwner, addressesOwnerIn, checkAddressed, type Addressing } from "../../src/worker/ask/address.ts";
+import { rewriteToOwner, saysToOwnerIn, checkAddressed, type Rewriting } from "../../src/worker/ask/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import {
@@ -176,7 +176,7 @@ test("isQuestionToOwner: what the page takes as the question said to the owner",
 
 // ---- The call --------------------------------------------------------------------------
 
-const ADDRESSING: Addressing = {
+const ADDRESSING: Rewriting = {
   question: "Has Alex worked with Vue?",
   lang: "en",
   name: INDEX.name,
@@ -186,7 +186,7 @@ const TO_OWNER = "Have you worked with Vue?";
 
 test("the model is told whose site it is, to say the question to them and to change nothing else", async () => {
   const { ai, sent } = writer(wrote(TO_OWNER, [200, 8]));
-  assert.deepEqual(await addressToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
+  assert.deepEqual(await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
     toOwner: TO_OWNER,
     rewrite: TO_OWNER,
     tokens: { input: 200, output: 8 },
@@ -218,8 +218,8 @@ test("the model is told whose site it is, to say the question to them and to cha
 });
 
 test("a question is said to the owner on an English page only", () => {
-  assert.ok(addressesOwnerIn("en"));
-  for (const lang of ["ja", "fr", "", "toString"]) assert.ok(!addressesOwnerIn(lang), lang);
+  assert.ok(saysToOwnerIn("en"));
+  for (const lang of ["ja", "fr", "", "toString"]) assert.ok(!saysToOwnerIn(lang), lang);
 });
 
 test("it's asked once: a rewrite that fails its check isn't asked for again, and what it was is kept for the log", async () => {
@@ -230,7 +230,7 @@ test("it's asked once: a rewrite that fails its check isn't asked for again, and
     [ADDRESSING.question, "same"],
   ] as const) {
     const { ai, sent } = writer(wrote(said, [200, 8]));
-    assert.deepEqual(await addressToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
+    assert.deepEqual(await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING), {
       why,
       rewrite: said,
       tokens: { input: 200, output: 8 },
@@ -251,12 +251,12 @@ test("nothing written, a rewrite cut off, or the model failing is no rewrite", a
     [new Error("3040: capacity"), "error"],
   ] as const) {
     const { ai, sent } = writer(said);
-    const addressed = await addressToOwner(ai, DEFAULT_MODEL, ADDRESSING);
+    const addressed = await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING);
     assert.deepEqual([addressed.toOwner, addressed.why, sent.length], [undefined, why, 1], JSON.stringify(said));
   }
-  assert.equal((await addressToOwner(writer(whole).ai, DEFAULT_MODEL, ADDRESSING)).toOwner, TO_OWNER);
+  assert.equal((await rewriteToOwner(writer(whole).ai, DEFAULT_MODEL, ADDRESSING)).toOwner, TO_OWNER);
   // A call that failed wasn't run, so nothing is counted for it.
-  const failed = await addressToOwner(writer(new Error("3040: capacity")).ai, DEFAULT_MODEL, ADDRESSING);
+  const failed = await rewriteToOwner(writer(new Error("3040: capacity")).ai, DEFAULT_MODEL, ADDRESSING);
   assert.deepEqual(failed.tokens, { input: 0, output: 0 });
 });
 
@@ -267,14 +267,14 @@ test("the quotation marks, line breaks or reasoning a model puts round a rewrite
     "  Have you worked\nwith Vue?  ",
     `<think>About Alex.</think>\n${TO_OWNER}`,
   ]) {
-    assert.equal((await addressToOwner(writer(wrote(said)).ai, DEFAULT_MODEL, ADDRESSING)).toOwner, TO_OWNER, said);
+    assert.equal((await rewriteToOwner(writer(wrote(said)).ai, DEFAULT_MODEL, ADDRESSING)).toOwner, TO_OWNER, said);
   }
   const quoted = { ...ADDRESSING, question: '"Senior" in what sense, for Alex?' };
   const rewrite = '"Senior" in what sense, for you?';
-  assert.equal((await addressToOwner(writer(wrote(rewrite)).ai, DEFAULT_MODEL, quoted)).toOwner, rewrite);
+  assert.equal((await rewriteToOwner(writer(wrote(rewrite)).ai, DEFAULT_MODEL, quoted)).toOwner, rewrite);
   const marked = { ...ADDRESSING, question: 'Is Alex "full-stack"?' };
   assert.equal(
-    (await addressToOwner(writer(wrote('"Are you "full-stack"?"')).ai, DEFAULT_MODEL, marked)).toOwner,
+    (await rewriteToOwner(writer(wrote('"Are you "full-stack"?"')).ai, DEFAULT_MODEL, marked)).toOwner,
     'Are you "full-stack"?',
   );
 });
@@ -282,7 +282,7 @@ test("the quotation marks, line breaks or reasoning a model puts round a rewrite
 test("past its time, there's no rewrite, and the call is counted as if it wrote all it may", async () => {
   const never = new Promise<unknown>(() => {});
   const { ai, sent } = writer(never);
-  const addressed = await addressToOwner(ai, DEFAULT_MODEL, ADDRESSING, 20);
+  const addressed = await rewriteToOwner(ai, DEFAULT_MODEL, ADDRESSING, 20);
   assert.deepEqual([addressed.toOwner, addressed.why, addressed.rewrite], [undefined, "late", undefined]);
   const { messages, temperature } = sent[0] ?? { messages: [] };
   assert.deepEqual(addressed.tokens, {

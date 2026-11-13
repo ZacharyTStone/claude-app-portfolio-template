@@ -33,12 +33,13 @@
    (handler.ts sends no `toOwner`). */
 import { isQuestionToOwner } from "../../contracts/ask.ts";
 import { ADDRESS_TIMEOUT_MS, MAX_ADDRESS_TOKENS } from "../constants.ts";
+import { ownerNames, type Choices } from "./answers.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { callForText, ranOutOfRoom, textIn, type Called, type Prompt } from "./model.ts";
 import { firstName, languageName } from "./wording.ts";
 
 /** What a question is said to the owner from. */
-export type Addressing = {
+export type Rewriting = {
   /** The visitor's question, as they typed it. */
   question: string;
   /** The page's language. */
@@ -65,17 +66,17 @@ export type Refused = "long" | "same" | "added" | "dropped" | "moved" | "about";
     - empty: the model wrote nothing;
     - late: it ran out of time;
     - error: it couldn't be reached. */
-export type Unaddressed = Refused | "empty" | "late" | "error";
+export type NotSaid = Refused | "empty" | "late" | "error";
 
 /** A rewrite as it may be used, or why it may not be. */
 export type Checked = { toOwner: string; why?: undefined } | { toOwner?: undefined; why: Refused };
 
 /** How saying a question to the owner went. */
-export type Addressed = {
+export type SaidToOwner = {
   /** The question as said to them, if the model's rewrite passed the check. */
   toOwner?: string;
   /** Why not, if none did. */
-  why?: Unaddressed;
+  why?: NotSaid;
   /** What the model wrote, on one line, whether or not it passed: for the
       log. Left out when it wrote nothing. */
   rewrite?: string;
@@ -113,12 +114,12 @@ const SAID_TO_SOMEONE: Record<string, SaidToSomeone> = { en: ENGLISH };
 
 /** Whether a question is said to the owner on a page in a language: one
     the model is told about, and the check can read. */
-export const addressesOwnerIn = (lang: string): boolean => Object.hasOwn(SAID_TO_SOMEONE, lang);
+export const saysToOwnerIn = (lang: string): boolean => Object.hasOwn(SAID_TO_SOMEONE, lang);
 
 // What the model is told: whose site it is, that the question is on its
 // way to them, to say it to them and change nothing else, and that it's
 // text to rewrite, whatever it says.
-function instructions({ name, lang }: Addressing): string {
+function instructions({ name, lang }: Rewriting): string {
   const first = firstName(name);
   const { about, to, examples } = SAID_TO_SOMEONE[lang] ?? ENGLISH;
   const becomes = examples(first).map(([asked, said]) => `"${asked}" becomes "${said}"`);
@@ -326,19 +327,19 @@ export function checkAddressed(rewrite: string, question: string, owner: string)
 
 // ---- The call --------------------------------------------------------------------------
 
-/** `addressing.question` as it's said to the owner, rewritten by `model`
+/** `rewriting.question` as it's said to the owner, rewritten by `model`
     within `timeoutMs` and checked against the question. Asked once: with
     no rewrite that passes, there's none (and `why`). */
-export async function addressToOwner(
+export async function rewriteToOwner(
   ai: Ai,
   model: string,
-  addressing: Addressing,
+  rewriting: Rewriting,
   timeoutMs: number = ADDRESS_TIMEOUT_MS,
-): Promise<Addressed> {
-  const { question, owner } = addressing;
+): Promise<SaidToOwner> {
+  const { question, owner } = rewriting;
   const prompt: Prompt = {
     messages: [
-      { role: "system", content: instructions(addressing) },
+      { role: "system", content: instructions(rewriting) },
       { role: "user", content: question },
     ],
     temperature: 0,
@@ -357,4 +358,18 @@ export async function addressToOwner(
   // Cut off by MAX_ADDRESS_TOKENS, it isn't all of the question.
   if (ranOutOfRoom(modelReply)) return { why: "long", rewrite, tokens };
   return { ...checkAddressed(rewrite, question, owner), rewrite, tokens };
+}
+
+/** The question as it's said to the owner, for the email and the message the
+    page offers when no answer is shown. Undefined on a page in a language a
+    question isn't rewritten in: it then goes as it was typed. */
+export function sayToOwner(
+  ai: Ai,
+  model: string,
+  question: string,
+  choices: Choices,
+): Promise<SaidToOwner> | undefined {
+  const { lang, localName } = choices;
+  if (!saysToOwnerIn(lang)) return undefined;
+  return rewriteToOwner(ai, model, { question, lang, name: localName, owner: ownerNames(choices) });
 }
