@@ -16,10 +16,6 @@ export const isString: Guard<string> = (value): value is string => typeof value 
 export const isOptionalString: Guard<string | undefined> = (value): value is string | undefined =>
   value === undefined || isString(value);
 
-/** Absent, or true or false. */
-export const isOptionalBoolean: Guard<boolean | undefined> = (value): value is boolean | undefined =>
-  value === undefined || typeof value === "boolean";
-
 /** A whole number, 0 or more. */
 export const isCount: Guard<number> = (value): value is number =>
   typeof value === "number" && Number.isInteger(value) && value >= 0;

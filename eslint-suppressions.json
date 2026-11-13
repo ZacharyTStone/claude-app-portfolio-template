@@ -9,11 +9,6 @@
       "count": 2
     }
   },
-  "src/app/account.ts": {
-    "no-warning-comments": {
-      "count": 4
-    }
-  },
   "src/app/ask.ts": {
     "complexity": {
       "count": 1
@@ -43,26 +38,6 @@
   "src/app/main.ts": {
     "no-warning-comments": {
       "count": 1
-    }
-  },
-  "src/app/menus.ts": {
-    "no-warning-comments": {
-      "count": 2
-    }
-  },
-  "src/app/page.ts": {
-    "no-warning-comments": {
-      "count": 1
-    }
-  },
-  "src/app/panel.ts": {
-    "no-warning-comments": {
-      "count": 3
-    }
-  },
-  "src/app/rename.ts": {
-    "no-warning-comments": {
-      "count": 3
     }
   },
   "src/app/replies.ts": {
