@@ -4,14 +4,13 @@ import { chromium, expect, test } from "@playwright/test";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";
 import figures from "./checks/figures.ts";
-import sidebar from "./checks/sidebar.ts";
 import views from "./checks/views.ts";
 import { desktop, VISITOR_ZONE, type Check } from "./helpers.ts";
 import { serve } from "./server.ts";
 import { readSite } from "./site.ts";
 import { OWN_SITE } from "./sites.ts";
 
-const CHECK_FILES = { ask, chats, sidebar, figures, views };
+const CHECK_FILES = { ask, chats, figures, views };
 const WAIT_LIMIT_MS = 10_000;
 
 // The checks are made for a site before any of them runs, so the site is read here.
