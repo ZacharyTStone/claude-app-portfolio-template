@@ -1,22 +1,21 @@
 /* AskGuard: the day's (UTC) questions, the site's and each visitor's, the
    Neurons the site's have cost, and the visitors blocked. The site has one,
-   and it handles one request at a time, so the counts are exact. client.ts
-   says what it answers. */
+   and it handles one request at a time, so the counts are exact. */
 import { chunk } from "es-toolkit";
 import * as v from "valibot";
-import {
-  ASK_GUARD_KEYS,
-  ASK_GUARD_PATH,
-  ASK_GUARD_REPLY,
-  MAX_KEYS_PER_DELETE,
-  MS_PER_HOUR,
-  type BlockQuery,
-  type SpendQuery,
-  type TakeQuery,
-} from "../constants.ts";
-import { positiveNumber } from "../lib/shape.ts";
+import { ASK_GUARD_REPLY, readAsked, sayTaken, type Asked, type DayLimits, type Taken } from "./wire.ts";
 
-// ---- What it keeps (ASK_GUARD_KEYS has the keys) -----------------------------------
+/** What it keeps. These keys are the deployed site's state, so they stay:
+    - today: { day, used, neurons }, the site's questions on that day, and
+      the Neurons they cost (not there before the first is counted);
+    - count + who: { day, asked }, one visitor's;
+    - block + who: when their block runs out (ms since 1970). */
+export const ASK_GUARD_KEYS = { today: "today", count: "count:", block: "block:" } as const;
+
+/** storage.delete() takes at most this many keys at once. */
+export const MAX_KEYS_PER_DELETE = 128;
+
+const MS_PER_HOUR = 3_600_000;
 
 /** Under `today`: the site's questions on one day. */
 const SiteCountSchema = v.object({
@@ -58,24 +57,6 @@ const blockKey = (visitorHash: string) => `${ASK_GUARD_KEYS.block}${visitorHash}
 // The day (UTC) a moment is in: "2026-01-31".
 const dayOf = (now: number) => new Date(now).toISOString().slice(0, 10);
 
-// ---- What it's asked ---------------------------------------------------------------
-
-/** The day's allowances, as a /take request gives them. */
-type DayLimits = {
-  /** The most questions the whole site may be asked today. */
-  siteLimit: number;
-  /** The most one visitor may ask today. */
-  visitorLimit: number;
-  /** The most Neurons the day's questions may cost. */
-  neuronBudget: number;
-};
-
-type QueryName = keyof TakeQuery | keyof BlockQuery | keyof SpendQuery;
-
-const ok = () => new Response(ASK_GUARD_REPLY.ok);
-const badRequest = () => new Response("bad request", { status: 400 });
-const notFound = () => new Response("not found", { status: 404 });
-
 /** The Durable Object that keeps the day's counts and the blocks. */
 export class AskGuard implements DurableObject {
   private readonly storage: DurableObjectStorage;
@@ -85,54 +66,39 @@ export class AskGuard implements DurableObject {
   }
 
   async fetch(request: Request): Promise<Response> {
-    const url = new URL(request.url);
-    const query = (name: QueryName) => url.searchParams.get(name);
-    const now = Date.now();
-    if (url.pathname === ASK_GUARD_PATH.spend) {
-      const neurons = positiveNumber(query("neurons"));
-      if (neurons === null) return badRequest();
-      await this.spendNeurons(neurons, now);
-      return ok();
+    const asked = readAsked(new URL(request.url));
+    if (asked === "unknown") return new Response("not found", { status: 404 });
+    if (asked === "unreadable") return new Response("bad request", { status: 400 });
+    return new Response(await this.answerTo(asked, Date.now()));
+  }
+
+  private async answerTo(asked: Asked, now: number): Promise<string> {
+    switch (asked.ask) {
+      case "take":
+        return sayTaken(await this.takeQuestion(asked.visitorHash, asked.limits, now));
+      case "block":
+        await this.storage.put(blockKey(asked.visitorHash), now + asked.hours * MS_PER_HOUR);
+        return ASK_GUARD_REPLY.ok;
+      case "spend":
+        await this.spendNeurons(asked.neurons, now);
+        return ASK_GUARD_REPLY.ok;
     }
-    const visitorHash = query("who");
-    if (!visitorHash) return badRequest();
-    if (url.pathname === ASK_GUARD_PATH.block) {
-      const hours = positiveNumber(query("hours"));
-      if (hours === null) return badRequest();
-      await this.storage.put(blockKey(visitorHash), now + hours * MS_PER_HOUR);
-      return ok();
-    }
-    if (url.pathname === ASK_GUARD_PATH.take) {
-      const siteLimit = positiveNumber(query("limit"));
-      const visitorLimit = positiveNumber(query("each"));
-      // A request without a budget has none, as before there was one.
-      const neuronBudget = query("budget") === null ? Infinity : positiveNumber(query("budget"));
-      if (siteLimit === null || visitorLimit === null || neuronBudget === null) return badRequest();
-      return new Response(await this.takeQuestion(visitorHash, { siteLimit, visitorLimit, neuronBudget }, now));
-    }
-    return notFound();
   }
 
   // Counts one question against the site's day and the visitor's, unless
-  // the visitor is blocked or either allowance is used up. What it returns
-  // is the reply to /take: "ok" and how many the visitor has left, or
-  // which of those stopped it.
-  private async takeQuestion(
-    visitorHash: string,
-    { siteLimit, visitorLimit, neuronBudget }: DayLimits,
-    now: number,
-  ): Promise<string> {
-    if (await this.isBlocked(visitorHash, now)) return ASK_GUARD_REPLY.blocked;
+  // the visitor is blocked or either allowance is used up.
+  private async takeQuestion(visitorHash: string, limits: DayLimits, now: number): Promise<Taken> {
+    if (await this.isBlocked(visitorHash, now)) return { state: "blocked" };
     const day = dayOf(now);
     const { used, neurons } = await this.siteCountFor(day, now);
     // The budget is checked before a question and counted after it, so the
     // questions on their way when it's reached take the day a little past.
-    if (used >= siteLimit || neurons >= neuronBudget) return ASK_GUARD_REPLY.spent;
+    if (used >= limits.siteLimit || neurons >= limits.neuronBudget) return { state: "spent" };
     const asked = visitorCountOn(day, await this.storage.get(countKey(visitorHash)))?.asked ?? 0;
-    if (asked >= visitorLimit) return ASK_GUARD_REPLY.limited;
+    if (asked >= limits.visitorLimit) return { state: "limited" };
     await this.storage.put(ASK_GUARD_KEYS.today, { day, used: used + 1, neurons } satisfies SiteCount);
     await this.storage.put(countKey(visitorHash), { day, asked: asked + 1 } satisfies VisitorCount);
-    return `${ASK_GUARD_REPLY.ok} ${visitorLimit - asked - 1}`;
+    return { state: "ok", questionsLeft: limits.visitorLimit - asked - 1 };
   }
 
   // Whether the visitor's block still holds. One that has run out is

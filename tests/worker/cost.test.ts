@@ -12,13 +12,8 @@ import {
   UNLISTED_MODEL_PRICE,
   type Price,
 } from "../../src/worker/ask/known-models.ts";
-import {
-  LLAMA_GUARD_OPTIONS,
-  ASK_GUARD_PATH,
-  LLAMA_GUARD_PROMPT_TOKENS,
-  ASK_GUARD_REPLY,
-  INAPPROPRIATE,
-} from "../../src/worker/constants.ts";
+import { LLAMA_GUARD_OPTIONS, LLAMA_GUARD_PROMPT_TOKENS, INAPPROPRIATE } from "../../src/worker/constants.ts";
+import { ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import {
   UNWRITTEN,
   askJson,

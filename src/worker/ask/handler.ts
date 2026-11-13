@@ -19,7 +19,8 @@
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
 import { INAPPROPRIATE, LOGGED_NEURON_DECIMALS, WARN_AT_QUESTIONS_LEFT } from "../constants.ts";
 import type { Env } from "../env.ts";
-import { blockVisitor, spendNeurons, takeQuestion, type Gate } from "../guard/client.ts";
+import { guardFor, type Guard } from "../guard/client.ts";
+import type { Gate } from "../guard/wire.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
 import { readSettings, type Settings } from "../settings.ts";
 import { hashAddress, visitorAddress } from "../lib/visitor.ts";
@@ -126,6 +127,7 @@ type Admitted = {
   /** The site's answers, still being read when this is made. */
   choicesBeingRead: Promise<Choices>;
   settings: Settings;
+  guard: Guard;
 };
 
 // The question in the request, if it may go to the model; otherwise the
@@ -150,14 +152,15 @@ async function admit(request: Request, env: Env): Promise<Admitted | Response> {
   // after: one less wait.
   const choicesBeingRead = readChoices(env.ASSETS, request, askRequest.lang);
   choicesBeingRead.catch(() => {}); // a reply before it's awaited leaves it unhandled otherwise
-  const gate = await takeQuestion(env.ASK_GUARD, visitorHash, settings);
+  const guard = guardFor(env.ASK_GUARD, settings);
+  const gate = await guard.takeQuestion(visitorHash);
   if (gate.state === "ok") {
-    return { askRequest, visitorHash, questionsLeft: gate.questionsLeft, choicesBeingRead, settings };
+    return { askRequest, visitorHash, questionsLeft: gate.questionsLeft, choicesBeingRead, settings, guard };
   }
   // Turned away here, the reply is a 200 like any other, so the log is the
   // only place a visitor at a limit, or a guard that's down, can be seen.
   log({ ask: "refused", why: gate.state, question: settings.logQuestions ? askRequest.question : undefined });
-  return respond(refusalAt(gate));
+  return respond(refusalAt(gate, settings.visitorLimit));
 }
 
 // Whether the visitor is under the minute's limit ("ok") or over it
@@ -172,12 +175,12 @@ async function checkRateLimit(limiter: RateLimit | undefined, visitorHash: strin
 }
 
 // What a visitor AskGuard turned away is told.
-function refusalAt(gate: Exclude<Gate, { state: "ok" }>): AskResponse {
+function refusalAt(gate: Exclude<Gate, { state: "ok" }>, visitorLimit: number): AskResponse {
   switch (gate.state) {
     case "blocked":
       return { blocked: true };
     case "limited":
-      return { id: null, limited: true, limit: gate.visitorLimit };
+      return { id: null, limited: true, limit: visitorLimit };
     case "spent":
     case "down":
       return { id: null, why: "budget" };
@@ -200,7 +203,7 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       isInappropriate,
       costNeurons: pickCostNeurons,
     } = await pickWhileModerating(env.AI, settings, question, choices);
-    if (isInappropriate) return await turnAway(env, executionContext, admitted, picked, pickCostNeurons);
+    if (isInappropriate) return await turnAway(executionContext, admitted, picked, pickCostNeurons);
 
     const { answer: answerShown, uncoveredId } = answerToShow(picked.id, question, choices);
     const reply = answerShown
@@ -220,7 +223,7 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       neuronCost(addressed?.tokens ?? NO_TOKENS, settings.price);
     // What the calls cost goes on the day's count once the reply has gone:
     // the visitor doesn't wait for it.
-    executionContext.waitUntil(spendNeurons(env.ASK_GUARD, costNeurons, settings));
+    executionContext.waitUntil(admitted.guard.spendNeurons(costNeurons));
     const { written, quoted } = reply;
     const logsQuestion = loggedQuestion !== undefined;
     log({
@@ -289,14 +292,13 @@ async function pickWhileModerating(
 // Turns an inappropriate question away, and blocks its asker. The models
 // read it all the same, so what that cost is counted.
 async function turnAway(
-  env: Env,
   executionContext: AfterReply,
-  { askRequest, visitorHash, settings }: Admitted,
+  { askRequest, visitorHash, settings, guard }: Admitted,
   picked: Picked,
   costNeurons: number,
 ): Promise<Response> {
-  executionContext.waitUntil(spendNeurons(env.ASK_GUARD, costNeurons, settings));
-  await blockVisitor(env.ASK_GUARD, visitorHash, settings);
+  executionContext.waitUntil(guard.spendNeurons(costNeurons));
+  await guard.blockVisitor(visitorHash);
   log({
     ask: "blocked",
     neurons: roundedForLog(costNeurons),

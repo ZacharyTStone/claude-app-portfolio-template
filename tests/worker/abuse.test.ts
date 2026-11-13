@@ -6,13 +6,8 @@ import { createHash } from "node:crypto";
 import { test } from "node:test";
 import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
-import {
-  ASK_GUARD_PATH,
-  ASK_GUARD_REPLY,
-  INAPPROPRIATE,
-  LLAMA_GUARD_OPTIONS,
-  VISITOR_ADDRESS_HEADER,
-} from "../../src/worker/constants.ts";
+import { INAPPROPRIATE, LLAMA_GUARD_OPTIONS, VISITOR_ADDRESS_HEADER } from "../../src/worker/constants.ts";
+import { ASK_GUARD_PATH, ASK_GUARD_REPLY } from "../../src/worker/guard/wire.ts";
 import { visitorAddress } from "../../src/worker/lib/visitor.ts";
 import { SETTINGS } from "../../src/worker/settings.ts";
 import {

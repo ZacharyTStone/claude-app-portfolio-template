@@ -88,58 +88,6 @@ export const VISITOR_HASH_BYTES = 16;
     64 bits, which one home or phone is given all of. */
 export const IPV6_NETWORK_GROUPS = 4;
 
-// ---- AskGuard ----------------------------------------------------------------------
-
-/** The name the site's one AskGuard is found by. */
-export const ASK_GUARD_NAME = "ask";
-
-/** Where its requests go. Any host does: a Durable Object gets whatever
-    it's sent. */
-export const ASK_GUARD_ORIGIN = "https://guard";
-
-/** What it's asked: to take one question from the day's allowances, to
-    block a visitor, or to add what a question cost to the day's. */
-export const ASK_GUARD_PATH = { take: "/take", block: "/block", spend: "/spend" } as const;
-
-/** What /take says in its query. */
-export type TakeQuery = {
-  /** The most questions the whole site may be asked today. */
-  limit: string;
-  /** The most one visitor may ask today. */
-  each: string;
-  /** The most Neurons the day's questions may cost. */
-  budget: string;
-  /** The visitor, as the hash of their address. */
-  who: string;
-};
-
-/** What /block says in its query. */
-export type BlockQuery = {
-  /** How many hours the block lasts. */
-  hours: string;
-  /** The visitor, as the hash of their address. */
-  who: string;
-};
-
-/** What /spend says in its query. */
-export type SpendQuery = {
-  /** What a question's model calls cost. */
-  neurons: string;
-};
-
-/** What it answers: to /take, "ok <questions left>" or another of these
-    (client.ts's Gate says what each means); to /block and /spend, "ok". */
-export const ASK_GUARD_REPLY = { ok: "ok", limited: "limited", spent: "spent", blocked: "blocked" } as const;
-
-/** What it keeps. These keys are the deployed site's state, so they stay:
-    - today: { day, used, neurons }, the site's questions on that day, and
-      the Neurons they cost (not there before the first is counted);
-    - count + who: { day, asked }, one visitor's;
-    - block + who: when their block runs out (ms since 1970). */
-export const ASK_GUARD_KEYS = { today: "today", count: "count:", block: "block:" } as const;
-
-/** storage.delete() takes at most this many keys at once. */
-export const MAX_KEYS_PER_DELETE = 128;
-
-/** An hour, in milliseconds: a block's length is given in hours. */
-export const MS_PER_HOUR = 3_600_000;
+/** What AskGuard says of a question it was asked to take. Here for the
+    tests of what a reply is made from, which import it from this file. */
+export { ASK_GUARD_REPLY } from "./guard/wire.ts";
