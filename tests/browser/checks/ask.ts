@@ -16,6 +16,7 @@ import {
   EMAIL_LINK,
   eventually,
   firstTabChoice,
+  impossibleReply,
   lastText,
   OPEN_CHAT,
   pickFirstTab,
@@ -207,7 +208,7 @@ export default (site: Site): Check[] => {
         // Not lines at all; then lines with no reply to go under: the answer shows, as it always did.
         await askReturns(page, askUrl, [
           { id: threadAnswerId(B.id, 1), reply: REPLY, cited: "one string, not a list" as unknown as string[] },
-          { id: threadAnswerId(B.id, 1), cited: CITED },
+          impossibleReply({ id: threadAnswerId(B.id, 1), cited: CITED }),
         ]);
         await askIn(page, A.id, "First?");
         const from = { text: words.askFrom.replace("{tab}", B.title), href: `#${B.id}` };
@@ -233,7 +234,7 @@ export default (site: Site): Check[] => {
           { id: picked, reply: "Two\nlines." },
           { id: picked, reply: "   " },
           { id: picked, reply: 42 } as unknown as Reply,
-          { id: null, reply: REPLY },
+          impossibleReply({ id: null, reply: REPLY }),
         ];
         await askReturns(page, askUrl, replies);
         for (const [i, reply] of replies.entries()) {
@@ -316,7 +317,7 @@ export default (site: Site): Check[] => {
       skip: noAsk,
       async test(page) {
         const toOwner = "Do you know testing?";
-        await askReturns(page, askUrl, { id: threadAnswerId(B.id, 1), toOwner });
+        await askReturns(page, askUrl, impossibleReply({ id: threadAnswerId(B.id, 1), toOwner }));
         await askIn(page, A.id, `Does ${site.name} know testing?`);
         await page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${CLASS.from}`).waitFor();
         const emails = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`);
@@ -370,7 +371,7 @@ export default (site: Site): Check[] => {
         // Nothing they typed is shown back, however it's said: /ask sends a
         // blocked visitor no question said to the owner, and one sent all
         // the same isn't used.
-        const blocked = { blocked: true, toOwner: "Where are you based?" } as Reply;
+        const blocked = impossibleReply({ blocked: true, toOwner: "Where are you based?" });
         await askReturns(page, askUrl, blocked);
         await askIn(page, A.id, "Where is he based?");
         const reply = page.locator(`#${A.id} ${CLASS.thread} ${CLASS.sent} ${mail}`);

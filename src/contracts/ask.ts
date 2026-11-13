@@ -2,12 +2,15 @@
    (AskIndex), the page POSTs a visitor's question to /ask (AskRequest), and
    the Worker says which answer answers it (AskResponse).
 
-   /ask.json is declared as a schema, with its type read off it, so the
-   shape the build writes and the shape the Worker checks for are written
-   once. The browser never uses the schemas, so they add nothing to its
-   script. */
+   /ask.json and /ask's reply are declared as schemas, with their types
+   read off them, so each shape is written once: what the build writes is
+   what the Worker checks for, and what the Worker sends is what a test
+   can check a reply against. The browser never uses the schemas, so they
+   add nothing to its script. */
 
 import * as v from "valibot";
+import { ID_PATTERN } from "../config/language.ts";
+import { isCount } from "./guards.ts";
 import { personalTabId } from "./page-ids.ts";
 
 // ---- Labels ------------------------------------------------------------------------
@@ -104,6 +107,28 @@ export const threadAnswerId = (thread: string, n: number): string => `${thread}.
 /** The id of a personal answer: the one answer in its tab. */
 export const personalAnswerId = (personal: string): string => threadAnswerId(personalTabId(personal), 1);
 
+/** Where an answer is: its tab, and which of the tab's answers it is,
+    counted from 1. */
+export type AnswerPlace = { tabId: string; answerNumber: number };
+
+// Which of a tab's answers, as an id has it: a whole number from 1, written
+// as threadAnswerId writes it ("2", never "02", "2.0" or "1e1").
+const ANSWER_NUMBER = /^[1-9][0-9]*$/;
+
+/** The tab and the answer an answer's id names: parseAnswerId("work.2") is
+    { tabId: "work", answerNumber: 2 }, and "personal-food.1" is the first
+    answer in the tab "personal-food". Null for anything threadAnswerId
+    wouldn't have written: no dot, a tab id that isn't one (ID_PATTERN), or
+    a number that isn't a whole one from 1. */
+export function parseAnswerId(id: string): AnswerPlace | null {
+  const lastDot = id.lastIndexOf(".");
+  if (lastDot === -1) return null;
+  const tabId = id.slice(0, lastDot);
+  const answerNumber = id.slice(lastDot + 1);
+  if (!ID_PATTERN.test(tabId) || !ANSWER_NUMBER.test(answerNumber)) return null;
+  return Number.isSafeInteger(Number(answerNumber)) ? { tabId, answerNumber: Number(answerNumber) } : null;
+}
+
 // ---- POST /ask ---------------------------------------------------------------------
 
 /** What the page sends. */
@@ -113,68 +138,6 @@ export type AskRequest = {
   /** The page's language (<html lang>). */
   lang: string;
 };
-
-/** An answer was picked, or none was: the page shows a picked answer from
-    its own copy, word for word; with a reply, the reply instead (as text,
-    never HTML), then a link to the tab the answer is in. With none, it
-    shows how to reach the owner, with the question in an email and a
-    message to send them. */
-export type AskPick = {
-  /** The answer picked, or null for none (the "Something else" reply). */
-  id: string | null;
-  /** Only ever with an id: a sentence or two the model wrote from the
-      lines of that answer that say what was asked, with every name and
-      number in it checked against them (src/worker/ask/write.ts); or those
-      lines as they are (quote.ts). */
-  reply?: string;
-  /** Only ever with a reply the model wrote: the site's own lines the reply
-      was written from, for the page to show under it. Each is one line of
-      the answer exactly as /ask.json has it, so plain text, never HTML or
-      Markdown (a sentence, a list's item, a card's row, a figure), and
-      they're in the answer's order. Never a label, and never with a reply
-      that is those lines themselves (quoted, or written word for word the
-      same). `isCitedLines` says what the page takes; lines that wouldn't
-      pass it aren't sent. */
-  cited?: string[];
-  /** Only ever without an id: the visitor's question as it's said to the
-      owner ("Do you know testing?" for "Does Alex know testing?"), for the
-      email and the message the page offers in place of an answer. A model
-      wrote it, and the Worker checked that it's the same question, give
-      or take who it's about (src/worker/ask/address.ts). Without one, the
-      question goes in as it was typed. `isQuestionToOwner` says what the
-      page takes; one that wouldn't pass it isn't sent. */
-  toOwner?: string;
-  /** The questions the visitor has left today, when they're few. */
-  left?: number;
-};
-
-/** The visitor may not ask: the page goes without Ask for the rest of the
-    visit. */
-export type AskBlocked = {
-  blocked: true;
-  /** This question was inappropriate. Without it, the visitor was blocked
-      for one asked earlier. */
-  flagged?: true;
-};
-
-/** The visitor has asked all they may today. */
-export type AskLimited = {
-  id: null;
-  limited: true;
-  /** How many that is. */
-  limit: number;
-};
-
-/** No pick was made, and why, for the logs. */
-export type AskSkipped = { id: null; why: AskSkipReason };
-
-/** Why no pick was made: Ask is turned off, the visitor is asking too fast,
-    the site's day is used up (or its counter can't be reached), or
-    something failed. */
-export type AskSkipReason = "off" | "busy" | "budget" | "error";
-
-/** What /ask replies. */
-export type AskResponse = AskPick | AskBlocked | AskLimited | AskSkipped;
 
 // Control and format characters: line breaks, zero-width and bidi marks.
 const CONTROL = /[\p{Cc}\p{Cf}\u2028\u2029]/u;
@@ -210,3 +173,122 @@ export const isCitedLines = (value: unknown): value is string[] =>
   value.length <= MAX_CITED_LINES &&
   value.every((line: unknown) => isShowableText(line, MAX_CITED_LENGTH) && !isLabel(line)) &&
   value.join("").length <= MAX_CITED_LENGTH;
+
+// ---- What /ask replies -------------------------------------------------------------
+
+/** A whole number, 0 or more. */
+const Count = v.custom<number>(isCount);
+
+/** An answer was picked: the page shows it from its own copy, word for
+    word, then a link to the tab it's in. */
+const AskPickedSchema = v.strictObject({
+  /** The answer picked: "work.2". */
+  id: v.string(),
+  /** The questions the visitor has left today, when they're few. */
+  left: v.optional(Count),
+});
+
+/** An answer was picked, and a reply made from it: the page shows the
+    reply instead (as text, never HTML), then a link to the answer's tab. */
+const AskRepliedSchema = v.strictObject({
+  /** The answer picked: "work.2". */
+  id: v.string(),
+  /** A sentence or two the model wrote from the lines of that answer that
+      say what was asked, with every name and number in it checked against
+      them (src/worker/ask/write.ts); or those lines as they are
+      (quote.ts). `isReplyText` says what the page takes. */
+  reply: v.custom<string>(isReplyText),
+  /** With a reply the model wrote: the site's own lines the reply was
+      written from, for the page to show under it. Each is one line of the
+      answer exactly as /ask.json has it, so plain text, never HTML or
+      Markdown (a sentence, a list's item, a card's row, a figure), and
+      they're in the answer's order. Never a label, and never with a reply
+      that is those lines themselves (quoted, or written word for word the
+      same). `isCitedLines` says what the page takes; lines that wouldn't
+      pass it aren't sent. */
+  cited: v.optional(v.custom<string[]>(isCitedLines)),
+  /** The questions the visitor has left today, when they're few. */
+  left: v.optional(Count),
+});
+
+/** No answer says what was asked: the page shows how to reach the owner
+    (the "Something else" reply), with the question in an email and a
+    message to send them. */
+const AskUnansweredSchema = v.strictObject({
+  id: v.null(),
+  /** The visitor's question as it's said to the owner ("Do you know
+      testing?" for "Does Alex know testing?"), for that email and message.
+      A model wrote it, and the Worker checked that it's the same question,
+      give or take who it's about (src/worker/ask/address.ts). Without one,
+      the question goes in as it was typed. `isQuestionToOwner` says what
+      the page takes; one that wouldn't pass it isn't sent. */
+  toOwner: v.optional(v.custom<string>(isQuestionToOwner)),
+  /** The questions the visitor has left today, when they're few. */
+  left: v.optional(Count),
+});
+
+/** The visitor may not ask: the page goes without Ask for the rest of the
+    visit. */
+const AskBlockedSchema = v.strictObject({
+  blocked: v.literal(true),
+  /** This question was inappropriate. Without it, the visitor was blocked
+      for one asked earlier. */
+  flagged: v.optional(v.literal(true)),
+});
+
+/** The visitor has asked all they may today. */
+const AskLimitedSchema = v.strictObject({
+  id: v.null(),
+  limited: v.literal(true),
+  /** How many that is. */
+  limit: Count,
+});
+
+/** No pick was made. */
+const AskSkippedSchema = v.strictObject({
+  id: v.null(),
+  /** Why, for the logs: Ask is turned off, the visitor is asking too fast,
+      the site's day is used up (or its counter can't be reached), or
+      something failed. */
+  why: v.picklist(["off", "busy", "budget", "error"]),
+});
+
+/** Each kind of reply /ask sends. */
+const REPLY_KINDS = [
+  AskPickedSchema,
+  AskRepliedSchema,
+  AskUnansweredSchema,
+  AskBlockedSchema,
+  AskLimitedSchema,
+  AskSkippedSchema,
+] as const;
+
+/** Every field some kind of reply has. */
+type ReplyField<Reply = v.InferOutput<(typeof REPLY_KINDS)[number]>> = Reply extends unknown ? keyof Reply : never;
+
+/** One kind of reply, as its schema reads it: its own fields, and never
+    another kind's. So no reply is of two kinds (a reply with no answer, a
+    question to the owner beside an answer), and one field says which kind
+    a reply is: `response.blocked`, `response.limited`, `response.id`,
+    `response.reply`. */
+type ReplyKind<Schema extends v.GenericSchema> = v.InferOutput<Schema> & {
+  [Other in Exclude<ReplyField, keyof v.InferOutput<Schema>>]?: never;
+};
+
+export type AskPicked = ReplyKind<typeof AskPickedSchema>;
+export type AskReplied = ReplyKind<typeof AskRepliedSchema>;
+export type AskUnanswered = ReplyKind<typeof AskUnansweredSchema>;
+export type AskBlocked = ReplyKind<typeof AskBlockedSchema>;
+export type AskLimited = ReplyKind<typeof AskLimitedSchema>;
+export type AskSkipped = ReplyKind<typeof AskSkippedSchema>;
+
+/** Why no pick was made. */
+export type AskSkipReason = AskSkipped["why"];
+
+/** What /ask replies: exactly one of these. */
+export type AskResponse = AskPicked | AskReplied | AskUnanswered | AskBlocked | AskLimited | AskSkipped;
+
+/** What /ask replies, as the schema a test checks a reply against: one of
+    REPLY_KINDS, with no field that isn't its kind's. A kind it reads and
+    AskResponse leaves out doesn't compile. */
+export const AskResponseSchema = v.union(REPLY_KINDS) satisfies v.GenericSchema<unknown, AskResponse>;

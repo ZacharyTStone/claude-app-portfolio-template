@@ -285,6 +285,10 @@ export const minutesAroundNow = (): Date[] => [-MINUTE_MS, 0, MINUTE_MS].map((ms
 /** What the stand-in /ask says: a reply, or "fail" for no answer at all. */
 export type Reply = AskResponse | "fail";
 
+/** A reply /ask never sends, which an AskResponse can't be written as: for
+    a check of what the page does with one all the same. */
+export const impossibleReply = (reply: Record<string, unknown>): Reply => reply as unknown as Reply;
+
 /** /ask finding no answer on the site: the page then shows its "Something
     else" reply, as it does to every question when Ask is off. */
 export const NO_ANSWER: Reply = { id: null };

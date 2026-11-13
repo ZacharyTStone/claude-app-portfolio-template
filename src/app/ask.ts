@@ -44,13 +44,10 @@ function parseResponse(data: unknown): AskResponse {
   const toOwner = id === null && isQuestionToOwner(data.toOwner) ? data.toOwner : undefined;
   // With few questions left today it also says how many.
   const left = isCount(data.left) ? data.left : undefined;
-  return {
-    id,
-    ...(reply !== undefined ? { reply } : {}),
-    ...(cited !== undefined ? { cited } : {}),
-    ...(toOwner !== undefined ? { toOwner } : {}),
-    ...(left !== undefined ? { left } : {}),
-  };
+  const withLeft = left !== undefined ? { left } : {};
+  if (id === null) return { id, ...(toOwner !== undefined ? { toOwner } : {}), ...withLeft };
+  if (reply === undefined) return { id, ...withLeft };
+  return { id, reply, ...(cited !== undefined ? { cited } : {}), ...withLeft };
 }
 
 /** What /ask says about a question; null when it can't be asked. */

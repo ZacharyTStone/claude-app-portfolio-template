@@ -235,13 +235,10 @@ async function answer(env: Env, executionContext: AfterReply, admitted: Admitted
       said: logsQuestion ? reply.text : undefined,
       rewrote: logsQuestion ? addressed?.rewrite : undefined,
     });
-    return respond({
-      id: answerShown?.id ?? null,
-      reply: reply.text,
-      cited: reply.cited,
-      toOwner: addressed?.toOwner,
-      left: questionsLeft <= warnAtQuestionsLeft(settings.visitorLimit) ? questionsLeft : undefined,
-    });
+    const left = questionsLeft <= warnAtQuestionsLeft(settings.visitorLimit) ? questionsLeft : undefined;
+    if (!answerShown) return respond({ id: null, toOwner: addressed?.toOwner, left });
+    if (reply.text === undefined) return respond({ id: answerShown.id, left });
+    return respond({ id: answerShown.id, reply: reply.text, cited: reply.cited, left });
   } catch (error) {
     log({ ask: "error", error: errorCode(error), question: loggedQuestion });
     return respond({ id: null, why: "error" });
