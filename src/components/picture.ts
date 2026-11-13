@@ -1,11 +1,6 @@
-/* What the build reads from a picture's own file. A picture a visitor plays
-   says how long it plays on its <svg> (the diagram kit writes it there:
-   `plays`, in scripts/diagram.ts). Picture.astro asks here, and shows a
-   picture that says so still, with a Play button; one that doesn't moves
-   all the time. So whether a picture is played is the picture's to say,
-   not the config's. */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
+import type { Picture } from "../config/blocks.ts";
 import { PLAYS_ATTRIBUTE } from "../contracts/picture-files.ts";
 
 /** The folder whose files the site serves as they are, from where the
@@ -25,4 +20,15 @@ export function secondsPlayed(src: string, root: string = process.cwd()): number
   if (!existsSync(file)) return undefined;
   const seconds = Number(SVG_THAT_PLAYS.exec(readFileSync(file, "utf8"))?.[1]);
   return Number.isFinite(seconds) && seconds > 0 ? seconds : undefined;
+}
+
+/** How a picture is shown. One with a `still` moves: if its file says how long it plays, it rests as the still
+    with a Play button; if not, it moves all the time, and the still is for a visitor who wants less motion. */
+type PictureMode =
+  { kind: "plain" } | { kind: "moving"; still: string } | { kind: "played"; still: string; seconds: number };
+
+export function pictureMode({ src, still }: Pick<Picture, "src" | "still">, root?: string): PictureMode {
+  if (!still) return { kind: "plain" };
+  const seconds = secondsPlayed(src, root);
+  return seconds ? { kind: "played", still, seconds } : { kind: "moving", still };
 }

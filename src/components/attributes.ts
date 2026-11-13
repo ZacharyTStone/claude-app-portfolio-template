@@ -1,18 +1,16 @@
-/* Attributes a component spreads onto an element: the data-* attributes
-   whose names are in src/contracts/page-attributes.ts (DATA), which markup can't
-   write as plain attributes. One with a value is spread as it is:
-   <button {...{ [DATA.prompt]: prompt.answer }}>. */
+import { newTabAttributes } from "../contracts/links.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { site } from "../site/current.ts";
 
-/** A bare data-* attribute, by its name in src/contracts/page-attributes.ts:
-    <button {...flag(DATA.copyLink)}> is <button data-copy-link>. */
+/** A data-* attribute with no value: <button {...flag(DATA.copyLink)}> is <button data-copy-link>. */
 export const flag = (name: string): Record<string, string> => ({ [name]: "" });
 
-/** For a link the site's viewer opens (the config's `viewer` has its
-    `href`): the address the viewer shows in its frame, and `title`, what the
-    viewer calls it. Nothing for any other link, which opens as links do. */
-export function viewerLink(href: string, title: string): Record<string, string> {
-  const frameAddress = site.config.viewer?.[href];
-  return frameAddress ? { [DATA.viewerAddress]: frameAddress, [DATA.viewerTitle]: title } : {};
+/** What a link to `href` carries: its address on the site, a new tab for another site, and for a link the
+    config's `viewer` lists, the address the viewer frames and what the viewer calls it. */
+export function linkAttributes(href: string, viewerTitle: string): Record<string, string> {
+  const framedAddress = site.config.viewer?.[href];
+  const opensInViewer: Record<string, string> = framedAddress
+    ? { [DATA.viewerAddress]: framedAddress, [DATA.viewerTitle]: viewerTitle }
+    : {};
+  return { href: site.link(href), ...newTabAttributes(href), ...opensInViewer };
 }

@@ -4,10 +4,8 @@
    viewer. Any other attribute goes on the link.
    Styles: src/styles/cards.css. */
 import type { LinkCard } from "../config/blocks.ts";
-import { site } from "../site/current.ts";
-import { newTabAttributes } from "../contracts/links.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { viewerLink } from "./attributes.ts";
+import { linkAttributes } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
 
@@ -21,13 +19,7 @@ const { link, ...dataAttributes } = Astro.props;
 const { name, kind, href, icon } = link;
 ---
 
-<a
-  class={`link-card i-out ${PAGE_CLASSES.iconAfter}`}
-  href={site.link(href)}
-  {...newTabAttributes(href)}
-  {...viewerLink(href, name)}
-  {...dataAttributes}
->
+<a class={`link-card i-out ${PAGE_CLASSES.iconAfter}`} {...linkAttributes(href, name)} {...dataAttributes}>
   <span class:list={["tile", iconClass(icon)]} aria-hidden="true">
     <Logo icon={icon} />
   </span>

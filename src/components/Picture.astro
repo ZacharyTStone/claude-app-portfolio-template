@@ -18,9 +18,8 @@ import type { Picture } from "../config/blocks.ts";
 import { DATA, REDUCED_MOTION } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
-import { secondsPlayed } from "./picture.ts";
-import { newTabAttributes } from "../contracts/links.ts";
-import { viewerLink } from "./attributes.ts";
+import { linkAttributes } from "./attributes.ts";
+import { pictureMode } from "./picture.ts";
 
 interface Props {
   /** The picture, as an answer's `image` block, or one of its `images`,
@@ -30,39 +29,40 @@ interface Props {
   strings: Strings;
 }
 const { picture, strings } = Astro.props;
-const { src, still, alt, width, height, caption, href, round } = picture;
-const playsForSeconds = still ? secondsPlayed(src) : undefined;
-// The same <img> whether or not a link is around it: the still, of a
-// picture that's played.
-const shown = still && playsForSeconds ? still : src;
-const imageAttributes = { src: site.link(shown), alt, width, height, loading: "lazy", decoding: "async" } as const;
-// A link, or nothing, around the picture.
-const Frame = href ? "a" : Fragment;
-const frameAttributes = href
-  ? { href: site.link(href), ...newTabAttributes(href), ...viewerLink(href, caption ?? alt) }
-  : {};
-// What holds a picture that's played, with its button over it.
-const Stage = playsForSeconds ? "div" : Fragment;
-const stageAttributes = playsForSeconds ? { class: PAGE_CLASSES.stage } : {};
+const { src, alt, width, height, caption, href, round } = picture;
+const mode = pictureMode(picture);
+const isPlayed = mode.kind === "played";
+const image = {
+  src: site.link(isPlayed ? mode.still : src),
+  alt,
+  width,
+  height,
+  loading: "lazy",
+  decoding: "async",
+} as const;
+const Link = href ? "a" : Fragment;
+const link = href ? linkAttributes(href, caption ?? alt) : {};
+const Stage = isPlayed ? "div" : Fragment;
+const stage = isPlayed ? { class: PAGE_CLASSES.stage } : {};
 ---
 
-<figure class:list={[PAGE_CLASSES.figure, "shot", { round, [PAGE_CLASSES.playedFigure]: playsForSeconds }]}>
-  <Stage {...stageAttributes}>
-    <Frame {...frameAttributes}>
-      {still && !playsForSeconds ? (
+<figure class:list={[PAGE_CLASSES.figure, "shot", { round, [PAGE_CLASSES.playedFigure]: isPlayed }]}>
+  <Stage {...stage}>
+    <Link {...link}>
+      {mode.kind === "moving" ? (
         <picture>
-          <source media={REDUCED_MOTION} srcset={site.link(still)} />
-          <img {...imageAttributes} />
+          <source media={REDUCED_MOTION} srcset={site.link(mode.still)} />
+          <img {...image} />
         </picture>
       ) : (
-        <img {...imageAttributes} />
+        <img {...image} />
       )}
-    </Frame>
-    {playsForSeconds && (
+    </Link>
+    {mode.kind === "played" && (
       <a
         class={`${PAGE_CLASSES.playButton} icon i-play`}
         href={site.link(src)}
-        {...{ [DATA.play]: String(playsForSeconds) }}
+        {...{ [DATA.play]: String(mode.seconds) }}
       >
         <span class={PAGE_CLASSES.label}>{strings.play}</span>
       </a>

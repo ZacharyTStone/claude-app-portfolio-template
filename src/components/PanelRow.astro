@@ -4,10 +4,8 @@
    row with no href is the same row in a <span>.
    Styles: src/styles/panel.css. */
 import type { PanelRow } from "../config/language.ts";
-import { site } from "../site/current.ts";
-import { newTabAttributes } from "../contracts/links.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { viewerLink } from "./attributes.ts";
+import { linkAttributes } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
 
@@ -16,12 +14,11 @@ interface Props {
   row: PanelRow;
 }
 const { label, meta, icon, href } = Astro.props.row;
-// A link's element and its attributes, or a plain element with none.
 const RowElement = href ? "a" : "span";
-const linkAttributes = href ? { href: site.link(href), ...newTabAttributes(href), ...viewerLink(href, label) } : {};
+const link = href ? linkAttributes(href, label) : {};
 ---
 
-<RowElement class={iconClass(icon)} {...linkAttributes}>
+<RowElement class={iconClass(icon)} {...link}>
   <Logo icon={icon} hidden />
   {label}
   <span class={PAGE_CLASSES.rowMeta}>{meta}</span>
