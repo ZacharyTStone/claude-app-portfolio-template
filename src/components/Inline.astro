@@ -1,36 +1,29 @@
 ---
-/* A line of the config's Markdown (src/config/markdown.ts), as elements.
-   Its words are text, which Astro escapes, so no HTML gets through. Bold,
-   italic and a link hold pieces of their own, which this draws by using
-   itself. */
+/* A line of the config's Markdown, as elements. Astro escapes its words, so no HTML gets through. */
 import { newTabAttributes } from "../contracts/links.ts";
 import { spans, type Span } from "../config/markdown.ts";
 import { site } from "../site/current.ts";
 
-/** A line as it's written (`text`), or one already read into its pieces
-    (`spans`), which is what this hands itself for what's inside bold,
-    italic or a link. */
+/** A line as it's written, or the pieces inside bold, italic or a link, which this draws by using itself. */
 type Props = { text: string } | { spans: Span[] };
 
 const pieces = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spans;
 ---
 
-{pieces.map((piece) =>
-  typeof piece === "string" ? (
-    piece
-  ) : piece.type === "code" ? (
-    <code>{piece.text}</code>
-  ) : piece.type === "strong" ? (
-    <strong>
+{pieces.map((piece) => {
+  if (typeof piece === "string") return piece;
+  if (piece.type === "code") return <code>{piece.text}</code>;
+  if (piece.type === "link") {
+    return (
+      <a href={site.link(piece.href)} {...newTabAttributes(piece.href)}>
+        <Astro.self spans={piece.spans} />
+      </a>
+    );
+  }
+  const Emphasis = piece.type;
+  return (
+    <Emphasis>
       <Astro.self spans={piece.spans} />
-    </strong>
-  ) : piece.type === "em" ? (
-    <em>
-      <Astro.self spans={piece.spans} />
-    </em>
-  ) : (
-    <a href={site.link(piece.href)} {...newTabAttributes(piece.href)}>
-      <Astro.self spans={piece.spans} />
-    </a>
-  ),
-)}
+    </Emphasis>
+  );
+})}

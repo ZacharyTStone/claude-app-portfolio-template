@@ -6,6 +6,7 @@
    wording as it is before the question is in, for the script to fill.
    Styles: src/styles/cards.css (the message to copy). */
 import type { LinkCard as LinkCardBlock } from "../config/blocks.ts";
+import { emailLink, withQuestion } from "../contracts/links.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
@@ -26,16 +27,10 @@ const { page } = Astro.props;
 const { strings, asked } = page.language;
 const { email, linkedin } = site.config.links;
 
-// A function as the replacement, so a "$" in the question is just a "$".
-const withSampleQuestion = (template: string) => template.replaceAll("{question}", () => asked.q);
-
-// The link that opens an email with the question in it.
-const mailSubject = encodeURIComponent(asked.subject);
-const mailBody = encodeURIComponent(withSampleQuestion(asked.email));
 const mailLink: LinkCardBlock = {
   name: asked.mail,
   kind: email,
-  href: `mailto:${email}?subject=${mailSubject}&body=${mailBody}`,
+  href: emailLink(`mailto:${email}`, asked.subject, withQuestion(asked.email, asked.q)),
   icon: "contact",
 };
 // On that link, for the script: the email as it is before the question is
@@ -84,7 +79,7 @@ const linkedinOffer =
               title={linkedinOffer.message.copy}
             />
           </p>
-          <p class={PAGE_CLASSES.draftText}>{withSampleQuestion(linkedinOffer.message.text)}</p>
+          <p class={PAGE_CLASSES.draftText}>{withQuestion(linkedinOffer.message.text, asked.q)}</p>
         </div>
       </>
     )}
