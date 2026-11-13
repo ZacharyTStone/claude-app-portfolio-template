@@ -2,7 +2,6 @@
    menus, the question card and the sidebar's rows do: past the last stop is
    the first again, and before the first is the last. */
 
-/** Whether one of these elements has the focus. */
 export const isFocusOn = (stops: readonly HTMLElement[]): boolean =>
   stops.some((stop) => stop === document.activeElement);
 

@@ -5,7 +5,6 @@
 /** Attributes to set. One that's null or undefined is left off. */
 export type Attributes = Record<string, string | null | undefined>;
 
-/** A new element, with these attributes and children. */
 export function make<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   attributes: Attributes = {},
@@ -73,7 +72,6 @@ export function find(parent: ParentNode, selector: string): HTMLElement {
   return element;
 }
 
-/** Every element in `parent` that matches. */
 export function findAll(parent: ParentNode, selector: string): HTMLElement[] {
   return [...parent.querySelectorAll(selector)].filter((element) => element instanceof HTMLElement);
 }

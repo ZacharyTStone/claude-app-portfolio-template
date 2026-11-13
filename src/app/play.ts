@@ -71,13 +71,13 @@ export function restStill(copy: Element): void {
     figure.classList.remove(PAGE_CLASSES.playing);
     for (const moving of findAll(figure, CLASS_SELECTOR.moving)) moving.remove();
     const button = figure.querySelector(PART_SELECTOR.playButton);
-    if (button) name(button, words.play);
+    if (button) setButtonWord(button, words.play);
   }
 }
 
-/** Gives a Play button its word. The word is in an element of its own, so
-    the stylesheet can show the icon alone where there's little room. */
-function name(button: Element, word: string): void {
+/** The word is in an element of its own, so the stylesheet can show the
+    icon alone where there's little room. */
+function setButtonWord(button: Element, word: string): void {
   find(button, CLASS_SELECTOR.label).textContent = word;
 }
 
@@ -93,7 +93,6 @@ function playedFigureAt(target: EventTarget | null): HTMLElement | null {
   return figure instanceof HTMLElement ? figure : null;
 }
 
-/** Plays a figure's picture, or stops it if it's the one playing. */
 function toggle(figure: HTMLElement): void {
   const wasPlaying = playing?.figure === figure;
   stop();
@@ -125,13 +124,12 @@ function play(figure: HTMLElement): void {
   moving.addEventListener("error", () => playing === nowPlaying && stop(), { once: true });
   button.before(moving);
   figure.classList.add(PAGE_CLASSES.playing);
-  name(button, words.pause);
+  setButtonWord(button, words.pause);
   outOfSight?.observe(figure);
   playing = nowPlaying;
 }
 
-/** Stops the picture that's playing: the still shows again, as the moving
-    one fades from over it. */
+/** The still shows again, as the moving picture fades from over it. */
 function stop(): void {
   if (!playing) return;
   const { figure, button, moving, playsUntil } = playing;
@@ -139,7 +137,7 @@ function stop(): void {
   clearTimeout(playsUntil);
   outOfSight?.unobserve(figure);
   figure.classList.remove(PAGE_CLASSES.playing);
-  name(button, words.play);
+  setButtonWord(button, words.play);
   moving.classList.remove(PAGE_CLASSES.movingShown);
   setTimeout(() => moving.remove(), TIMING.playFade);
 }
