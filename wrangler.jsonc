@@ -106,6 +106,10 @@
     "not_found_handling": "404-page"
   },
   "observability": {
-    "enabled": true
+    "enabled": true,
+    // Without the line Cloudflare writes for each request: it has the
+    // request's headers, and the visitor's address is one of them. What
+    // /ask logs itself is kept, and never has the address.
+    "logs": { "invocation_logs": false }
   }
 }

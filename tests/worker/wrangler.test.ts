@@ -29,6 +29,7 @@ type Wrangler = {
   durable_objects?: { bindings?: { name?: string; class_name?: string }[] };
   migrations?: { new_sqlite_classes?: string[]; new_classes?: string[] }[];
   vars?: Record<string, string>;
+  observability?: { enabled?: boolean; logs?: { invocation_logs?: boolean } };
 };
 
 function parse(text: string): Wrangler {
@@ -108,6 +109,14 @@ test("a file with Ask still commented out turns it on with every other setting a
   if (!on) return;
   if (!on.wasOff) return t.skip("this site has Ask on, with settings of its own");
   assert.deepEqual(readSettings(on.wrangler.vars ?? {}), { ...readSettings({}), enabled: true });
+});
+
+test("the Worker's log is kept, without the line for each request that has the visitor's address", () => {
+  const { observability } = parse(readFileSync(join(ROOT, "wrangler.jsonc"), "utf8"));
+  assert.deepEqual(
+    { logged: observability?.enabled, eachRequest: observability?.logs?.invocation_logs },
+    { logged: true, eachRequest: false },
+  );
 });
 
 test("Ask's questions go where wrangler.jsonc runs the Worker first", () => {
