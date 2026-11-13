@@ -1,13 +1,14 @@
-/* The lines of a picked answer the model named, quoted as they are: the
+/* The lines of a picked answer the picker named, quoted as they are: the
    owner's own words. */
 import { MAX_REPLY_LENGTH } from "../../contracts/ask.ts";
-import { gaveNoNumbers, joinPieces, numbered, ownLines, piecesNumbered, type Piece, type Unnamed } from "./lines.ts";
+import { joinLines, linesNamed, namesNoLines, numbered, ownLines, type Line, type Unnamed } from "./lines.ts";
 
-/** Why a quote asked for wasn't sent: the numbers aren't a list of at most
-    MAX_QUOTED_LINES, one names no numbered line, the lines (and the ones they
-    can't be read without) are the whole answer, which the page shows as it
-    is, with no reply, or together they're too long; or one is a card's row,
-    a list's item or a figure where only a sentence will do (`rows`). */
+/** Why a quote asked for wasn't sent: the lines can't be told (Unnamed);
+    - whole: they (and the ones they can't be read without) are all the
+      answer says, which the page shows as it is, with no reply;
+    - length: together they're longer than a reply may be;
+    - rows: one is a card's row, a list's item or a figure where only a
+      sentence will do. */
 export type QuoteCheck = Unnamed | "whole" | "length" | "rows";
 
 /** The reply, or why it was dropped; null when the model asked for none. */
@@ -18,28 +19,35 @@ export type Quoted =
 
 const dropped = (check: QuoteCheck): Quoted => ({ outcome: "dropped", check });
 
-// The pieces' words run together, to tell whether two lists of pieces say
-// the same whatever is between them.
-const textWithoutSpaces = (pieces: Piece[]) =>
-  pieces
-    .map((piece) => piece.text)
+// Whatever is between them: a picture or a link beside the lines doesn't
+// make them any less the whole answer.
+const wordsRunTogether = (lines: Line[]): string =>
+  lines
+    .map((line) => line.text)
     .join("")
     .replace(/\s+/g, "");
 
-/** The reply quoting the pieces `numbers` names, each with the sentences it
-    can't be read without, in the answer's order. With `sentencesOnly`, only
-    sentences are quoted: a card's row ("frontend: React, Svelte") is what a
-    reply is written from, and no reply itself, so where one was to be
-    written and wasn't, the page shows the answer instead. */
-export function quote(text: string, numbers: unknown, { sentencesOnly = false } = {}): Quoted {
-  if (gaveNoNumbers(numbers)) return null;
-  const pieces = numbered(text);
-  const chosen = piecesNumbered(pieces, numbers);
-  if (typeof chosen === "string") return dropped(chosen);
-  if (sentencesOnly && chosen.some(({ sentence }) => !sentence)) return dropped("rows");
-  // All the answer says: the page shows the answer itself, as it's written.
-  if (textWithoutSpaces(chosen) === textWithoutSpaces(ownLines(pieces))) return dropped("whole");
-  const reply = joinPieces(chosen);
-  if (reply.length > MAX_REPLY_LENGTH) return dropped("length");
-  return { outcome: "sent", reply };
+function quoteOf(named: Line[], all: Line[]): Quoted {
+  if (wordsRunTogether(named) === wordsRunTogether(ownLines(all))) return dropped("whole");
+  const reply = joinLines(named);
+  return reply.length > MAX_REPLY_LENGTH ? dropped("length") : { outcome: "sent", reply };
+}
+
+/** The reply quoting the lines `numbers` names, each with the sentences it
+    can't be read without, in the answer's order. */
+export function quote(text: string, numbers: unknown): Quoted {
+  if (namesNoLines(numbers)) return null;
+  const all = numbered(text);
+  const named = linesNamed(all, numbers);
+  return typeof named === "string" ? dropped(named) : quoteOf(named, all);
+}
+
+/** The same, where only sentences will do: a card's row ("frontend: React,
+    Svelte") is what a reply is written from, and no reply itself. */
+export function quoteSentences(text: string, numbers: unknown): Quoted {
+  if (namesNoLines(numbers)) return null;
+  const all = numbered(text);
+  const named = linesNamed(all, numbers);
+  if (typeof named === "string") return dropped(named);
+  return named.every(({ sentence }) => sentence) ? quoteOf(named, all) : dropped("rows");
 }

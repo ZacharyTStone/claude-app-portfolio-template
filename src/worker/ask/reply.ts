@@ -4,8 +4,8 @@
    (quote.ts). */
 import { isCitedLines, type AskAnswer } from "../../contracts/ask.ts";
 import { ownerNames, type Choices } from "./answers.ts";
-import { citedPieces, joinPieces, type Piece } from "./lines.ts";
-import { quote, type Quoted } from "./quote.ts";
+import { joinLines, linesToWriteFrom, type Line } from "./lines.ts";
+import { quote, quoteSentences, type Quoted } from "./quote.ts";
 import { write, writesIn, type Writing, type Written } from "./write.ts";
 
 /** How making a reply went, for the log. */
@@ -45,19 +45,19 @@ export type Asked = {
     where they're sentences. */
 export async function replyFrom(ai: Ai, model: string, asked: Asked, choices: Choices): Promise<Reply> {
   const { answer, lineNumbers } = asked;
-  const linesToWriteFrom = writesIn(choices.lang) ? citedPieces(answer.text, lineNumbers) : null;
-  if (linesToWriteFrom === null) {
+  const lines = writesIn(choices.lang) ? linesToWriteFrom(answer.text, lineNumbers) : null;
+  if (lines === null) {
     // No reply is written (the picker named no lines, or the page is in a
     // language the check can't read): any line named is quoted, as it
     // always was.
     return quotedOr({}, quote(answer.text, lineNumbers));
   }
-  const written = await write(ai, model, writingFrom(asked, linesToWriteFrom, choices));
+  const written = await write(ai, model, writingFrom(asked, lines, choices));
   // A card's row or a figure is what a reply is written from, and no reply
   // itself: with none written, the page shows the answer instead.
-  const quoted = quote(answer.text, lineNumbers, { sentencesOnly: true });
+  const quoted = quoteSentences(answer.text, lineNumbers);
   if (written.outcome === "dropped") return quotedOr({ written }, quoted);
-  return { written, quoted, text: written.reply, cited: citedUnder(written.reply, linesToWriteFrom) };
+  return { written, quoted, text: written.reply, cited: citedUnder(written.reply, lines) };
 }
 
 // With no reply written: the lines quoted, if they could be; else no reply.
@@ -65,17 +65,17 @@ const quotedOr = (made: Pick<Made, "written">, quoted: Quoted): Reply =>
   quoted?.outcome === "sent" ? { ...made, quoted, text: quoted.reply } : { ...made, quoted };
 
 // What a reply to the question is written for and from: lines of the answer.
-function writingFrom({ question, answer }: Asked, linesToWriteFrom: Piece[], choices: Choices): Writing {
+function writingFrom({ question, answer }: Asked, lines: Line[], choices: Choices): Writing {
   const { name, role, lang } = choices;
   const { title, q } = answer;
-  return { question, lang, lines: joinPieces(linesToWriteFrom), title, q, name, role, owner: ownerNames(choices) };
+  return { question, lang, lines: joinLines(lines), title, q, name, role, owner: ownerNames(choices) };
 }
 
 // The lines to show under a written reply: each one's text. None when the
 // reply only repeats them (they'd be shown twice), or when they're more
 // than the page takes: a line is never cut.
-function citedUnder(reply: string, linesWrittenFrom: Piece[]): string[] | undefined {
-  if (hasSameWords(reply, joinPieces(linesWrittenFrom))) return undefined;
+function citedUnder(reply: string, linesWrittenFrom: Line[]): string[] | undefined {
+  if (hasSameWords(reply, joinLines(linesWrittenFrom))) return undefined;
   const lines = linesWrittenFrom.map((line) => line.text);
   return isCitedLines(lines) ? lines : undefined;
 }

@@ -5,7 +5,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_REPLY_LENGTH, labelled } from "../../src/contracts/ask.ts";
 import { MAX_QUOTED_LINES, neededFor, numbered, pointsBack } from "../../src/worker/ask/lines.ts";
-import { quote, type QuoteCheck } from "../../src/worker/ask/quote.ts";
+import { quote, quoteSentences, type QuoteCheck } from "../../src/worker/ask/quote.ts";
 import { piecesOf } from "../../src/worker/ask/text/sentences.ts";
 import { EN, JA } from "./fixtures.ts";
 import { eachRow } from "./rows.ts";
@@ -95,9 +95,9 @@ test("a quote longer than a reply may be is dropped, though each of its lines fi
 
 test("where only sentences will do, a card's row, a list's item or a figure isn't quoted", () => {
   const text = "role: Engineer\nAlex joined in 2024. Alex has two degrees:\nBS in Music, 2016\nAlex is in New York.";
-  assert.deepEqual(quote(text, [1], { sentencesOnly: true }), { outcome: "dropped", check: "rows" });
-  assert.deepEqual(quote(text, [2, 3], { sentencesOnly: true }), { outcome: "dropped", check: "rows" });
-  assert.deepEqual(quote(text, [2, 4], { sentencesOnly: true }), {
+  assert.deepEqual(quoteSentences(text, [1]), { outcome: "dropped", check: "rows" });
+  assert.deepEqual(quoteSentences(text, [2, 3]), { outcome: "dropped", check: "rows" });
+  assert.deepEqual(quoteSentences(text, [2, 4]), {
     outcome: "sent",
     reply: "Alex joined in 2024. Alex is in New York.",
   });
