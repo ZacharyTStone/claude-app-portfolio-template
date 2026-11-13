@@ -124,7 +124,7 @@ export const withNumbers = (text: string): string =>
 
 /** What goes between two lines that aren't sentences, side by side: a
     list's item or a card's row would run into the next. */
-export const BETWEEN_LINES = " · ";
+const BETWEEN_LINES = " · ";
 
 function gapAfter({ text, sentence }: Line): string {
   if (!sentence) return BETWEEN_LINES;
