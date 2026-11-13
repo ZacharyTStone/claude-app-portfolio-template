@@ -45,7 +45,8 @@
   font-size: 13px;
 }
 
-.account .pop {
+/* The menu alone, not a submenu inside it. */
+.account > .pop {
   bottom: calc(100% - 4px);
   left: 0;
   max-width: 100%;

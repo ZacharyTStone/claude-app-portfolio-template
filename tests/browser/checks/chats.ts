@@ -248,6 +248,27 @@ export default (site: Site): Check[] => {
       },
     },
     {
+      name: "the account menu's submenu is as tall as its rows",
+      url: `#${A.id}`,
+      skip: !site.languages.length ? "the site is in one language" : null,
+      async test(page) {
+        await serveHomeWithOneMoreLanguage(page, site.url("./"));
+        await revisit(page, site.url(`#${A.id}`));
+        const menu = page.locator(ID.accountMenu);
+        await page.locator(CLASS.accountRow).click();
+        await openSubmenuByKeyboard(page, menu);
+        const languages = menu.locator(CLASS.submenu);
+        const rows = await languages.locator('[role="menuitem"]').all();
+        const rowHeights = await Promise.all(rows.map(async (row) => (await row.boundingBox())?.height ?? 0));
+        const rowsHeight = rowHeights.reduce((sum, height) => sum + height, 0);
+        const submenuHeight = (await languages.boundingBox())?.height ?? 0;
+        assert.ok(
+          submenuHeight >= rowsHeight,
+          `the submenu (${submenuHeight}px tall) holds its ${rows.length} rows (${rowsHeight}px): the menu's own place isn't the submenu's`,
+        );
+      },
+    },
+    {
       name: "a refresh keeps the tab that's open",
       url: `#${A.id}`,
       async test(page) {
