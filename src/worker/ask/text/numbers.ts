@@ -56,6 +56,14 @@ export function numberIn(word: string): string | undefined {
 const NUMBER_WITH_UNIT = /^(\p{Nd}[\p{Nd}.]*)\p{Ll}+$/u;
 
 /** The number of one with its unit written on to it: "385" for "385ms".
-    `number` is as it's compared (`numberIn`), so it has no commas. Undefined
-    for a number without a unit. */
+    `number` is as it's compared (`numberIn`), so it has no commas and its
+    unit is in lower case. Undefined for a number without a unit. */
 export const numberBeforeUnit = (number: string): string | undefined => NUMBER_WITH_UNIT.exec(number)?.[1];
+
+// "385 ms", "5 K": a number, a space, and letters after it.
+const NUMBER_THEN_UNIT = /(?<![\p{L}\p{N}.,])(\p{Nd}(?:[.,]?\p{Nd})*) (\p{Script=Latin}+)(?![\p{L}\p{N}])/gu;
+
+/** Each number a text writes with its unit after a space, as it's compared
+    with the unit written on to it: "385ms" for "385 ms". */
+export const numbersWithUnitApartIn = (text: string): string[] =>
+  [...text.matchAll(NUMBER_THEN_UNIT)].flatMap(([, number = "", unit = ""]) => numberIn(number + unit) ?? []);

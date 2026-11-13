@@ -416,14 +416,20 @@ shown("one is as often a pronoun as a number, so it's left alone, and so are fir
   ["It was his first, and he did it once or twice, half the time.", SKILLS],
 ]);
 
-shown("a number with its unit written on to it is the sources' number", [
+const PAID = from("Alex has been at Acme since 2024, and cut the load time by 40%. He has 5 repos and 5 K stars.");
+
+shown("a number with its unit is the sources' number with that unit, written on or apart, in either case", [
   ["It loads in 385ms, down from 1.04s.", LOAD, { question: "How fast?" }],
-  ["It loads in 385msec, down from 1.04sec.", LOAD],
-  // Known gap: the unit may be any letters, so a "k" or an "M" passes as one.
-  ["It loads in 385MS, or 385k.", LOAD],
+  ["It loads in 385MS, down from 1.04 s.", LOAD],
+  ["He has 5k stars, and 5 repos.", PAID],
+  ["It loads in 385, down from 1.04.", from("Time to load: Before 1.04s, After 385ms")],
 ]);
 
-notShown("but not with anything else written on to it", [
+notShown("but not with another unit, nor with one the sources' number doesn't have", [
+  ["It loads in 385msec, down from 1.04sec.", ["385msec", "1.04sec"], LOAD],
+  ["It loads in 385k.", ["385k"], LOAD],
+  ["Yes, he is paid $40m a year and manages 2024k people.", ["40m", "2024k"], PAID],
+  ["He has 5K repos and 5m stars.", ["5K", "5m"], from("He has 5 repos and 5 stars.")],
   ["It loads in 385ƻ.", ["385ƻ"], LOAD],
   ["It loads in ms385.", ["ms385"], LOAD],
   ["It loads in 3850ms.", ["3850ms"], LOAD],
