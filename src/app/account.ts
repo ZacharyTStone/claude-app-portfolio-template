@@ -1,54 +1,19 @@
 /* The account row's menu, with a few surprises: the time where you are
    beside the visitor's, a language row that keeps the open tab, and a
    "Log out" that really does. */
+import { mapValues } from "es-toolkit";
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
-import { HOURS, partOfDay } from "../contracts/day-parts.ts";
+import { HOURS } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
-import { SEPARATOR } from "./constants.ts";
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
+import { clockNote, timeIn, type ClockWording } from "./clock.ts";
 import { asMenu, menuItems, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";
 import { detailsPanel, root, side } from "./page.ts";
 
 // ---- The clock ---------------------------------------------------------------------
-
-const MS_PER_MINUTE = 60_000;
-const MINUTES_PER_HOUR = 60;
-/** Every time zone is a whole number of quarter hours from UTC. */
-const QUARTER_HOUR_MINUTES = 15;
-
-/** The time of day somewhere. */
-type TimeInZone = {
-  /** The hour there, 0 to 23. */
-  hour: number;
-  /** How far ahead of UTC it is there, in minutes (negative for behind). */
-  minutesAheadOfUtc: number;
-};
-
-/** The hour in a time zone, and how far ahead of UTC the zone is now. */
-function timeIn(timeZone: string, now: Date): TimeInZone {
-  const parts = new Intl.DateTimeFormat("en-US", {
-    timeZone,
-    hourCycle: "h23",
-    year: "numeric",
-    month: "numeric",
-    day: "numeric",
-    hour: "numeric",
-    minute: "numeric",
-  }).formatToParts(now);
-  const numberOf = (type: Intl.DateTimeFormatPartTypes) => Number(parts.find((part) => part.type === type)?.value);
-  // Midnight is hour 0, even from a browser that writes it as 24.
-  const hour = numberOf("hour") % 24;
-  // The zone's date and time, read as if they were UTC's: how far that is
-  // from the real time is how far the zone is from UTC. To the nearest
-  // quarter hour, as the zone's time was read to the minute, without its
-  // seconds.
-  const zoneTimeAsUtc = Date.UTC(numberOf("year"), numberOf("month") - 1, numberOf("day"), hour, numberOf("minute"));
-  const minutesAhead = (zoneTimeAsUtc - now.getTime()) / MS_PER_MINUTE;
-  return { hour, minutesAheadOfUtc: Math.round(minutesAhead / QUARTER_HOUR_MINUTES) * QUARTER_HOUR_MINUTES };
-}
 
 /** Writes the time now into each of the clock's times: yours, in your
     time zone, and the visitor's own (LOCAL_ZONE), in the page's language. */
@@ -61,27 +26,25 @@ function showTimes(clock: HTMLElement, now: Date): void {
   }
 }
 
-/** How far apart you and the visitor are, in the words the clock carries:
-    "Same time", or "{n}h ahead" or "{n}h behind" with the hours put in.
-    Nothing when the clock doesn't carry the words. */
-function hoursApartNote(clock: HTMLElement, hoursYouAreAhead: number): string | null | undefined {
-  if (hoursYouAreAhead === 0) return clock.getAttribute(DATA.clockSame);
-  const wording = clock.getAttribute(hoursYouAreAhead > 0 ? DATA.clockAhead : DATA.clockBehind);
-  return wording?.replace("{n}", String(Math.abs(hoursYouAreAhead)));
+function wordingOf(clock: HTMLElement): ClockWording {
+  const wording = (attribute: string) => clock.getAttribute(attribute) ?? "";
+  return {
+    same: wording(DATA.clockSame),
+    ahead: wording(DATA.clockAhead),
+    behind: wording(DATA.clockBehind),
+    moods: mapValues(HOURS.mood, (_startHour, mood) => wording(DATA.mood(mood))),
+  };
 }
 
 /** The time where you are beside the visitor's, how far apart you are, and
     a guess at what you're up to at that hour. */
 function tellTime(clock: HTMLElement): void {
   const now = new Date();
-  const yourTimeZone = query(clock, PART_SELECTOR.ownerZone)?.getAttribute(DATA.zone) ?? "UTC";
-  const yourTime = timeIn(yourTimeZone, now);
-  const visitorMinutesBehindUtc = now.getTimezoneOffset();
-  const hoursYouAreAhead = (yourTime.minutesAheadOfUtc + visitorMinutesBehindUtc) / MINUTES_PER_HOUR;
-  const apartNote = hoursApartNote(clock, hoursYouAreAhead);
-  const moodNote = clock.getAttribute(DATA.mood(partOfDay(yourTime.hour, HOURS.mood)));
+  const ownerZone = query(clock, PART_SELECTOR.ownerZone)?.getAttribute(DATA.zone) ?? "UTC";
+  const visitorMinutesAheadOfUtc = -now.getTimezoneOffset();
   showTimes(clock, now);
-  find(clock, CLASS_SELECTOR.clockNote).textContent = `${apartNote}${SEPARATOR}${moodNote}`;
+  const note = clockNote(wordingOf(clock), timeIn(ownerZone, now), visitorMinutesAheadOfUtc);
+  find(clock, CLASS_SELECTOR.clockNote).textContent = note;
 }
 
 // ---- The language row --------------------------------------------------------------
