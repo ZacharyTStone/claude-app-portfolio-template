@@ -6,7 +6,8 @@ import { type PersonalAnswer } from "../config/question-card.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { find } from "./lib/dom.ts";
 import { renderBlock } from "./lib/markdown.ts";
-import { askedTab, questionCard } from "./page.ts";
+import { askedTab } from "./page.ts";
+import { questionCard } from "./question-card/data.ts";
 import { copyTab } from "./tabs.ts";
 
 /** Whether a tab's id is a personal answer's. */

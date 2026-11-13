@@ -5,7 +5,6 @@ import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } fro
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import type { QuestionCard } from "../config/question-card.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { byId, find } from "./lib/dom.ts";
 
@@ -54,7 +53,3 @@ function readGreetings(): Record<GreetingPart, string | null> {
 export const greetings = readGreetings();
 /** Who this is, in one line. */
 export const tagline = homeBody.getAttribute(DATA.tagline);
-
-/** The question card as the build wrote it into the page: its topics, and
-    the personal answers. */
-export const questionCard = JSON.parse(byId(PAGE_IDS.questionCardData).textContent) as QuestionCard;

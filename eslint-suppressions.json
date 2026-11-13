@@ -9,14 +9,6 @@
       "count": 2
     }
   },
-  "src/app/question-card/card.ts": {
-    "complexity": {
-      "count": 2
-    },
-    "no-warning-comments": {
-      "count": 5
-    }
-  },
   "src/components/Inline.astro": {
     "no-nested-ternary": {
       "count": 3
