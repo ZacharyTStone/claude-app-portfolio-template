@@ -17,5 +17,8 @@ node_modules
 dist
 .astro
 
+# Playwright: what a failed browser check leaves to look at
+test-results
+
 # Python: what it caches when a script is imported
 __pycache__

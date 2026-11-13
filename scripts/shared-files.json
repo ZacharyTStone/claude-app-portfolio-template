@@ -2,6 +2,7 @@
   "shared": [
     "src",
     "astro.config.ts",
+    "playwright.config.ts",
     "scripts/fonts.ts",
     "scripts/fonts",
     "scripts/diagram.ts",

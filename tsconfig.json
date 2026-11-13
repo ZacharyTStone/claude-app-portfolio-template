@@ -10,6 +10,7 @@
   "include": [
     "site.config.ts",
     "astro.config.ts",
+    "playwright.config.ts",
     "examples",
     "src/pages",
     "src/layouts",

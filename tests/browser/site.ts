@@ -6,7 +6,7 @@
    its personal answers, the script's wording, whether Ask is on, and the
    parts only some sites have. The checks look for these, never for one
    site's content, so they run on any site.config.ts. */
-import type { Browser, Page } from "playwright";
+import type { Browser, Page } from "@playwright/test";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
 import { CLOCK_MOODS, type ClockMood } from "../../src/config/language.ts";
 import { type Prompt } from "../../src/config/home.ts";
@@ -174,6 +174,13 @@ export type Site = {
       here twice. Never empty (readSite throws on a page without one). */
   threads: Thread[];
   /** The thread most checks work in: the sidebar's first. */
+  firstThread: Thread;
+  /** A thread to go to from the first, and for an answer from another tab:
+      the sidebar's next that isn't the first. On a site with one thread
+      it's the first again, and a check that needs two asks for
+      `otherThread`. */
+  secondThread: Thread;
+  /** The thread most checks work in: the sidebar's first. */
   A: Thread;
   /** The sidebar's second thread, for an answer from another tab. It's A
       again on a site with one thread, so a check that needs two compares
@@ -255,6 +262,8 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     prompts: await readPrompts(page),
     figureTabs: await readAttributeOfEach(page, `${BUILT_TAB}:has(${CLASS.figure})`, "id"),
     threads,
+    firstThread: A,
+    secondThread: threads.find((thread) => thread.id !== A.id) ?? A,
     A,
     B: threads[1] ?? A,
     C: threads.find((thread) => thread.id !== A.id),
