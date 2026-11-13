@@ -20,9 +20,8 @@ interface Props {
   htmlAttributes?: Record<string, string>;
 }
 const { lang, dir = "ltr", preload, htmlAttributes = {} } = Astro.props;
-// Where the host sends no headers, the page carries the policy itself,
-// ahead of everything it covers, and the referrer policy. Null where the
-// host sends them.
+// Every page carries the policy itself, ahead of everything it covers, and
+// the referrer policy: a host that sends them as headers enforces both.
 const policyForMetaTag = pagePolicy(site);
 ---
 
@@ -31,12 +30,8 @@ const policyForMetaTag = pagePolicy(site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    {policyForMetaTag && (
-      <>
-        <meta http-equiv="Content-Security-Policy" content={policyForMetaTag} />
-        <meta name="referrer" content={REFERRER_POLICY} />
-      </>
-    )}
+    <meta http-equiv="Content-Security-Policy" content={policyForMetaTag} />
+    <meta name="referrer" content={REFERRER_POLICY} />
     <slot name="head" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content={site.config.themeColor} />

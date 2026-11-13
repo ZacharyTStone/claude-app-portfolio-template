@@ -1,6 +1,6 @@
 /* The site's security headers, in one place. The build writes them as a
-   _headers file where the host reads one, or as a <meta>
-   Content-Security-Policy where it doesn't (files/headers-file.ts), and the
+   _headers file where the host reads one, and the policy and referrer
+   policy into every page as <meta> tags (files/headers-file.ts); the
    browser checks serve the pages with exactly these. */
 
 import type { Hsts } from "../config/site-config.ts";
@@ -27,9 +27,8 @@ export function frameOrigins(viewer: Record<string, string> = {}): string[] {
     required, so no script can turn a string into markup. A site with a
     viewer may also show pages from the sites its viewer names, in a frame.
 
-    With `meta`, it's the policy for a page to carry in a <meta> tag, where
-    the host sends no headers: the same, less frame-ancestors, which
-    browsers only take from a header. */
+    With `meta`, it's the policy for a page to carry in a <meta> tag: the
+    same, less frame-ancestors, which browsers only take from a header. */
 export function contentSecurityPolicy({ ask, frames = [], meta = false }: PolicyOptions & { meta?: boolean }): string {
   const directives = [
     "default-src 'none'",
@@ -51,7 +50,7 @@ export function contentSecurityPolicy({ ask, frames = [], meta = false }: Policy
   return directives.join("; ");
 }
 
-/** Sent as a header, or where a host can't, in a <meta> tag. */
+/** Sent as a header where a host can, and in a <meta> tag on every page. */
 export const REFERRER_POLICY = "strict-origin-when-cross-origin";
 
 /** How long a browser that has visited keeps to HTTPS for the site: two

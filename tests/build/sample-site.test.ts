@@ -10,12 +10,12 @@ import { ASK_INDEX_FILE, ASK_PATH } from "../../src/contracts/ask.ts";
 import { DATA, REDUCED_MOTION } from "../../src/contracts/page-attributes.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { HEADERS_FILE, headersFile, pagePolicy } from "../../src/site/files/headers-file.ts";
-import { frameOrigins } from "../../src/site/security-headers.ts";
+import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { folderForConfigs, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import sampleConfig from "../sample/site.config.ts";
-import { builtSite, testBuiltSite } from "./built-site.ts";
+import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
 const folder = folderForConfigs();
 
@@ -94,20 +94,26 @@ function headTagsOf(html: string): string[] {
 
 test("the sample builds for a host that reads no _headers file, and the build writes none", () => {
   assert.equal(builtForAStaticHost.status, 0, builtForAStaticHost.stderr || builtForAStaticHost.stdout);
-  assert.ok(policy);
   assert.ok(!staticSample.hasFile(HEADERS_FILE));
 });
 
-for (const { file } of staticSample.pages) {
-  test(`on such a host ${file} carries the policy right after its charset and viewport, before anything the policy covers`, () => {
-    const headTags = headTagsOf(staticSample.read(file));
-    assert.match(headTags[0] ?? "", /^<meta charset=/);
-    assert.match(headTags[1] ?? "", /^<meta name="viewport"/);
-    assert.equal(headTags[2], `<meta http-equiv="Content-Security-Policy" content="${policy}">`);
-    assert.ok(headTags.findIndex((tag) => tag.startsWith("<link")) > 2, "a <link> comes before the policy");
-  });
+/** Each page of `built` carries `expectedPolicy` and the referrer policy right after its charset and viewport. */
+function testPagesCarryThePolicy(built: BuiltSite, expectedPolicy: string): void {
+  for (const { file } of built.pages) {
+    test(`${built.name}: ${file} carries the policy and referrer policy right after its charset and viewport, before anything the policy covers`, () => {
+      const headTags = headTagsOf(built.read(file));
+      assert.match(headTags[0] ?? "", /^<meta charset=/);
+      assert.match(headTags[1] ?? "", /^<meta name="viewport"/);
+      assert.equal(headTags[2], `<meta http-equiv="Content-Security-Policy" content="${expectedPolicy}">`);
+      assert.equal(headTags[3], `<meta name="referrer" content="${REFERRER_POLICY}">`);
+      assert.ok(headTags.findIndex((tag) => tag.startsWith("<link")) > 3, "a <link> comes before the policy");
+    });
+  }
 }
 
+testPagesCarryThePolicy(sample, pagePolicy(sampleSite));
+testPagesCarryThePolicy(staticSample, policy);
+
 test("the policy a page carries lets frames come from the viewer's site and no other", () => {
-  assert.match(policy ?? "", new RegExp(`(^|; )frame-src ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
+  assert.match(policy, new RegExp(`(^|; )frame-src ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
 });

@@ -1,6 +1,7 @@
 /* How each host gets the security headers (../security-headers.ts): as a
-   _headers file beside the pages where the host reads one, and otherwise
-   as much as a page can carry, in <meta> tags. */
+   _headers file beside the pages where the host reads one, and on every
+   host as much as a page can carry, in <meta> tags, so a site deployed
+   to another host than its config names still has its policy. */
 
 import type { Host } from "../../config/site-config.ts";
 import { contentSecurityPolicy, frameOrigins, securityHeaders, type PolicyOptions } from "../security-headers.ts";
@@ -31,9 +32,5 @@ export function headersFile(site: Site): string | null {
   return `${EVERY_PATH}\n${headerLines.join("")}`;
 }
 
-/** The policy for a page to carry itself, or null where the host sends it
-    as a header. */
-export function pagePolicy(site: Site): string | null {
-  if (readsHeadersFile(site.host)) return null;
-  return contentSecurityPolicy({ ...policyOptions(site), meta: true });
-}
+/** The policy every page carries itself, whatever its host sends. */
+export const pagePolicy = (site: Site): string => contentSecurityPolicy({ ...policyOptions(site), meta: true });
