@@ -6,13 +6,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
-import {
-  MAX_TO_OWNER_TOKENS,
-  checkAddressed,
-  rewriteToOwner,
-  saysToOwnerIn,
-  type Rewriting,
-} from "../../src/worker/ask/to-owner.ts";
+import { checkSameQuestion } from "../../src/worker/ask/checks/same-question.ts";
+import { MAX_TO_OWNER_TOKENS, rewriteToOwner, saysToOwnerIn, type Rewriting } from "../../src/worker/ask/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
@@ -39,7 +34,7 @@ const OWNER = INDEX.name;
 // Whether `rewrite` may go in the message in place of `question`: the
 // rewrite if so, else why not.
 const checked = (question: string, rewrite: string) => {
-  const { toOwner, why } = checkAddressed(rewrite, question, OWNER);
+  const { toOwner, why } = checkSameQuestion(rewrite, question, OWNER);
   return toOwner ?? why;
 };
 
