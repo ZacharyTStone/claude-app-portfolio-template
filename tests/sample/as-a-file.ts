@@ -6,7 +6,8 @@ import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after } from "node:test";
 
-const SAMPLE = fileURLToPath(new URL("site.config.ts", import.meta.url));
+/** The sample's own config, as a path. */
+export const SAMPLE_CONFIG = fileURLToPath(new URL("site.config.ts", import.meta.url));
 
 /** A folder for a test file's configs, removed once its tests are done. */
 export function folderForConfigs(): string {
@@ -20,7 +21,7 @@ export function folderForConfigs(): string {
     or nothing. */
 export function writeSampleConfig(file: string, change = ""): void {
   const lines = [
-    `import sample from ${JSON.stringify(SAMPLE)};`,
+    `import sample from ${JSON.stringify(SAMPLE_CONFIG)};`,
     "const config = structuredClone(sample);",
     change,
     "export default config;",

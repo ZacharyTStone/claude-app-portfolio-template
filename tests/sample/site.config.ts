@@ -1,11 +1,15 @@
-/* A made-up site for tests/sample-site.test.ts to build: a GitHub project site
-   (served under /portfolio/, on a host that reads no _headers file), in
-   two languages, with one of each kind of figure, a picture with a still,
-   and a link that opens in the viewer. */
+/* A made-up site with what the template's own one-language site can't
+   show, for the tests to check and to build (build.ts): it's served under
+   a path, in two languages, with Ask on, a link that opens in the viewer,
+   one of each kind of figure, and a picture that moves all the time.
+
+   tests/sample/ask-answers.ts has its English answers word for word, for
+   the Worker's tests: a change to an answer here is a change there. */
+import { mapValues } from "es-toolkit";
+import { ENGLISH_STRINGS } from "../../src/config/english-strings.ts";
 import type { Language } from "../../src/config/language.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import type { Strings } from "../../src/config/strings.ts";
-import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES } from "../../src/config/strings.ts";
 import { FAVICONS } from "../../src/site/icons.ts";
 
 /** The one picture the sample uses, for its social card too: a file every
@@ -14,19 +18,21 @@ const icon = FAVICONS.appleTouch;
 /** That file's width and height, in pixels. */
 const ICON_SIZE = 180;
 const iconPicture = { src: icon, alt: "Sam's icon", width: ICON_SIZE, height: ICON_SIZE };
-/** Another file every site has, standing in for a moving picture's still. */
-const stillIcon = FAVICONS.png;
+/** The sample's own picture, which moves, and the same picture still. No
+    site's public/ has them: build.ts puts them in the sample's build. */
+const movingIcon = { src: "/assets/sample-icon-moving.svg", still: "/assets/sample-icon-still.svg" };
 
 /** A document on another site: the address the sample's link card has, and
     the address that shows the document in the viewer's frame. */
 const notes = { href: "https://docs.example.com/d/notes/edit", inFrame: "https://docs.example.com/d/notes/preview" };
 
-/** One language of the sample. Its wording is the same in each: only the
-    label and the locale tell them apart. */
-function sampleLanguage(label: string, locale: string): Language {
-  // Every string says its own key, but for the ones set below.
-  const everyKey = [...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES];
-  const strings = Object.fromEntries(everyKey.map((key) => [key, key]));
+/** Every string of the interface as a language other than English has to
+    state it, told apart from English's own: "Share (fr)". */
+const stringsMarked = (label: string): Strings => mapValues(ENGLISH_STRINGS, (wording) => `${wording} (${label})`);
+
+/** One language of the sample. Its content is the same in each: only the
+    label, the locale and the interface's strings tell them apart. */
+function sampleLanguage(label: string, locale: string, strings?: Strings): Language {
   return {
     label,
     name: label,
@@ -77,7 +83,7 @@ function sampleLanguage(label: string, locale: string): Language {
               { flow: { title: "The pipeline", steps: [{ name: "Draft", note: "by hand" }, { name: "Publish" }] } },
               { link: { name: "Sam's notes", kind: "Document", href: notes.href, icon: "file" } },
               { image: { ...iconPicture, caption: "Sam's icon.", href: icon } },
-              { image: { ...iconPicture, still: stillIcon, caption: "Sam's icon, as if it moved." } },
+              { image: { ...iconPicture, ...movingIcon, caption: "Sam's icon, as if it moved." } },
               { images: [iconPicture, { ...iconPicture, round: true }] },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
@@ -127,25 +133,19 @@ function sampleLanguage(label: string, locale: string): Language {
       topics: [
         { label: "About", tab: "about" },
         { label: "Work", tab: "work" },
+        { label: "Something personal", ask: "Such as?", personal: true },
       ],
       personal: [{ id: "fun", q: "for fun?", a: ["Reading."] }],
       ui: { else: "Else", elseLabel: "Else", send: "Send", back: "Back", step: "{n} of {total}", followUp: "More" },
     },
     notFound: { title: "Not found.", text: "Nothing here.", back: "Back" },
-    strings: {
-      ...strings,
-      status: "Read {file}",
-      viewerOpen: "Open in a new tab",
-      viewerClose: "Close",
-      play: "Play",
-      pause: "Pause",
-    } as Strings,
+    strings,
   };
 }
 
 const config: SiteConfig = {
   url: "https://example.com/portfolio/",
-  host: "github-pages",
+  host: "cloudflare",
   name: "Sam Sample",
   timezone: "UTC",
   links: {
@@ -155,10 +155,12 @@ const config: SiteConfig = {
   },
   social: { image: icon, width: ICON_SIZE, height: ICON_SIZE },
   themeColor: "#191919",
+  ask: { role: "an engineer" },
   // Sam's notes open in the viewer, at the address that shows them in a frame.
   viewer: { [notes.href]: notes.inFrame },
   llms: { summary: "A sample.", about: "Sam is a sample." },
-  languages: { en: sampleLanguage("EN", "en_US"), fr: sampleLanguage("FR", "fr_FR") },
+  // English leaves the interface's strings to English's own.
+  languages: { en: sampleLanguage("EN", "en_US"), fr: sampleLanguage("FR", "fr_FR", stringsMarked("fr")) },
 };
 
 export default config;

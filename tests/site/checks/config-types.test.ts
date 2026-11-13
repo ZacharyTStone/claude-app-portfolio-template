@@ -2,22 +2,26 @@
 import assert from "node:assert/strict";
 import { writeFileSync } from "node:fs";
 import { join } from "node:path";
-import { fileURLToPath } from "node:url";
 import { test } from "node:test";
 import { typeCheck } from "../../../src/site/checks/config-types.ts";
 import { ROOT } from "../../../src/site/repo.ts";
-import { A_MISSPELT_SETTING, NO_SUCH_SETTING, folderForConfigs, writeSampleConfig } from "../../sample/as-a-file.ts";
+import {
+  A_MISSPELT_SETTING,
+  NO_SUCH_SETTING,
+  SAMPLE_CONFIG,
+  folderForConfigs,
+  writeSampleConfig,
+} from "../../sample/as-a-file.ts";
 
 const folder = folderForConfigs();
-const SAMPLE = fileURLToPath(new URL("../../sample/site.config.ts", import.meta.url));
 
 test("the sample's config type-checks", () => {
-  assert.deepEqual(typeCheck(SAMPLE, ROOT).problems, []);
+  assert.deepEqual(typeCheck(SAMPLE_CONFIG, ROOT).problems, []);
 });
 
 test("a config is made of its own file and the files of the repo it imports, the types among them", () => {
-  const { sources } = typeCheck(SAMPLE, ROOT);
-  const expected = [SAMPLE, join(ROOT, "src/site/icons.ts"), join(ROOT, "src/config/strings.ts")];
+  const { sources } = typeCheck(SAMPLE_CONFIG, ROOT);
+  const expected = [SAMPLE_CONFIG, join(ROOT, "src/site/icons.ts"), join(ROOT, "src/config/strings.ts")];
   assert.deepEqual(
     expected.filter((file) => !sources.includes(file)),
     [],
@@ -26,7 +30,7 @@ test("a config is made of its own file and the files of the repo it imports, the
 
 test("nothing from node_modules is one of a config's own files", () => {
   assert.deepEqual(
-    typeCheck(SAMPLE, ROOT).sources.filter((file) => file.includes("node_modules")),
+    typeCheck(SAMPLE_CONFIG, ROOT).sources.filter((file) => file.includes("node_modules")),
     [],
   );
 });

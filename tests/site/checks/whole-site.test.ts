@@ -32,7 +32,7 @@ testEachProblem([
   {
     wrong: "one language has a topic fewer",
     change: inFrench((french) => french.questions.topics.pop()),
-    problems: frenchDiffers(`the 2nd topic is missing in fr and "work" in en`),
+    problems: frenchDiffers(`the 3rd topic is missing in fr and the personal answers in en`),
   },
   {
     wrong: "one language has a personal answer more",
@@ -54,11 +54,11 @@ testEachProblem([
       });
       languageOf(sample, "fr").questions.topics.push({ label: "More", ask: "Which?", personal: true });
     },
-    problems: frenchDiffers(`the 3rd topic is the personal answers in fr and a choice of "about", "work" in en`),
+    problems: frenchDiffers(`the 4th topic is the personal answers in fr and a choice of "about", "work" in en`),
   },
   {
     wrong: "a language's code is a path",
-    change: (sample, english) => (sample.languages["../elsewhere"] = structuredClone(english)),
+    change: (sample) => (sample.languages["../elsewhere"] = structuredClone(languageOf(sample, "fr"))),
     problems: [
       `"../elsewhere" should be a language code like "en" or "pt-BR" (it's also the name of its page's folder)`,
     ],
