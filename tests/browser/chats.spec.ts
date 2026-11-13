@@ -225,43 +225,36 @@ test.describe("on a phone, in a new chat", () => {
   }
 });
 
-test.describe("two windows, each with a chat and a thread renamed of its own", () => {
+test("two windows don't undo each other's chats or names", async ({ page, site, ask, otherThread }) => {
   const NEW_NAME = "Renamed in a window";
-  const QUESTIONS = ["From the first window", "From the second window"];
+  await page.goto("./");
+  const other = await page.context().newPage();
+  await other.goto("./");
+  await ask.returns(NO_ANSWER);
+  await other.route(site.askUrl, (route) => route.fulfill({ json: NO_ANSWER }));
+  // Each asks in a chat of its own, and renames a thread of its own.
+  const windows = [
+    { window: page, question: "From the first window", thread: site.firstThread },
+    { window: other, question: "From the second window", thread: otherThread },
+  ];
+  for (const { window, question } of windows) await askInNewChatAndGetAReply(window, question);
+  for (const { window, thread } of windows) {
+    await sidebarRow(window, thread.id).click();
+    await renameTab(window, thread.id, NEW_NAME);
+  }
+  await other.close();
+  await revisit(page, "./");
 
-  test.beforeEach(async ({ page, site, ask, otherThread }) => {
-    await page.goto("./");
-    const other = await page.context().newPage();
-    await other.goto("./");
-    await ask.returns(NO_ANSWER);
-    await other.route(site.askUrl, (route) => route.fulfill({ json: NO_ANSWER }));
-    const windows = [
-      { window: page, question: QUESTIONS[0] ?? "", thread: site.firstThread },
-      { window: other, question: QUESTIONS[1] ?? "", thread: otherThread },
-    ];
-    for (const { window, question } of windows) await askInNewChatAndGetAReply(window, question);
-    for (const { window, thread } of windows) {
-      await sidebarRow(window, thread.id).click();
-      await renameTab(window, thread.id, NEW_NAME);
-    }
-    await other.close();
-    await revisit(page, "./");
-  });
-
-  test("don't undo each other's chats: both are listed on the next visit", async ({ page }) => {
-    const chatNames = await page.locator(`${CHAT_ROWS} ${CLASS.rowName}`).allTextContents();
-    expect(chatNames.sort()).toEqual([...QUESTIONS].sort());
-  });
-
-  test("don't undo each other's names: each thread has the name its window gave it", async ({
-    page,
-    site,
-    otherThread,
-  }) => {
-    for (const thread of [site.firstThread, otherThread]) {
-      await expect(page.locator(`#${thread.id} ${CLASS.titleText}`)).toHaveText(NEW_NAME);
-    }
-  });
+  // Both are looked at whichever fails: setting the two windows up is most of the test.
+  const chatNames = await page.locator(`${CHAT_ROWS} ${CLASS.rowName}`).allTextContents();
+  expect
+    .soft(chatNames.sort(), "both windows' chats are listed")
+    .toEqual(windows.map(({ question }) => question).sort());
+  for (const { thread } of windows) {
+    await expect
+      .soft(page.locator(`#${thread.id} ${CLASS.titleText}`), `#${thread.id} has the name its window gave it`)
+      .toHaveText(NEW_NAME);
+  }
 });
 
 test("a refresh keeps the tab that's open, and the window named after it", async ({ page, site }) => {

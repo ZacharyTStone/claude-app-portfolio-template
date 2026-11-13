@@ -9,16 +9,8 @@ import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import { OPEN_CHAT } from "./parts.ts";
-import {
-  COMES_INTO_VIEW,
-  MOVING_PICTURE,
-  PLAY_BUTTON,
-  PLAYED_FIGURE,
-  PLAYING_PICTURE,
-  type MovingPicture,
-  type PlayedPicture,
-} from "./site.ts";
+import { COMES_INTO_VIEW, MOVING_PICTURE, OPEN_CHAT, PLAY_BUTTON, PLAYED_FIGURE, PLAYING_PICTURE } from "./parts.ts";
+import type { MovingPicture, PlayedPicture } from "./site.ts";
 import { askInNewChat } from "./visitor.ts";
 
 /** How long to watch a picture for something in it to move. Every diagram

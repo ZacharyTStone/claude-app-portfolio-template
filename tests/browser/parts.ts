@@ -7,6 +7,7 @@ import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
   ID_SELECTOR as ID,
+  PART_SELECTOR as PART,
 } from "../../src/contracts/page-selectors.ts";
 import type { Site } from "./site.ts";
 
@@ -66,3 +67,18 @@ export function sentInto(page: Page, tabId: string) {
 /** A visitor's chat, in the sidebar: its first, the newest. */
 export const firstChatRow = (page: Page): Locator =>
   page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first();
+
+/** A figure whose picture a visitor plays, and in it its Play button and
+    the picture as it moves, once that has loaded and shows. */
+export const PLAYED_FIGURE = CLASS.playedFigure;
+export const PLAY_BUTTON = PART.playButton;
+export const PLAYING_PICTURE = `${CLASS.moving}${CLASS.movingShown}`;
+
+/** A picture that moves all the time, as the page has it: the one thing a
+    page puts in a <picture> (Picture.astro), with the still in its
+    <source>. */
+export const MOVING_PICTURE = "picture";
+
+/** A quote or a file card in an answer that is shown: not one inside a
+    status line that hasn't been opened. */
+export const COMES_INTO_VIEW = `:is(${PART.comesIntoView}):not(details:not([open]) *)`;

@@ -10,7 +10,5 @@
     "src/app/lib/markdown.ts": ["exports"],
     "src/app/lib/motion.ts": ["exports"],
     "src/worker/ask/to-owner.ts": ["types"],
-    "tests/browser/helpers.ts": ["exports", "types"],
-    "tests/browser/site.ts": ["types"],
   },
 }
