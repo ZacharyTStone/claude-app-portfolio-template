@@ -88,22 +88,45 @@ export async function withContext(handle: (context: ExecutionContext) => Promise
   return response;
 }
 
-/** The Worker's bindings, stood in for; what the picker, the writer, the
-    call that says a question to the owner and Llama Guard were sent; the
-    keys the rate limiter was asked about; and what the Worker logged. `ask`
-    sends it what the page would. */
-export function stubs(options: Options = {}) {
-  const { run = () => toolCall("about.1"), writes = WRITES_NOTHING, rewrites = WRITES_NOTHING } = options;
-  const { guard = guardStub(options.guardSays), limit = async () => ({ success: true }), index = INDEX } = options;
-  const { without = [], logged = [] } = options;
+/** A stand-in Workers AI, and what each of the four kinds of call was
+    sent: the picker's, the writer's, the one that says a question to the
+    owner, and Llama Guard's. */
+function aiStandIn({ run = () => toolCall("about.1"), writes = WRITES_NOTHING, rewrites = WRITES_NOTHING }: Options) {
   const calls: Call[] = [];
   const writeCalls: Call[] = [];
   const rewriteCalls: Call[] = [];
   const guardCalls: Call[] = [];
+  const text = (model: string, input: ModelInput) => {
+    // A call to the picker's model with no tool is for a line of text: the
+    // question said to the owner if it may write only as much as that
+    // takes, else a reply.
+    const isRewrite = input.max_completion_tokens === MAX_TO_OWNER_TOKENS;
+    const [textCalls, texts] = isRewrite ? [rewriteCalls, rewrites] : [writeCalls, writes];
+    textCalls.push({ model, input });
+    return nextOf(texts, textCalls.length);
+  };
+  const ai = {
+    run: async (model: string, input: ModelInput) => {
+      if (model !== LLAMA_GUARD_MODEL && !input.tools) return text(model, input);
+      (model === LLAMA_GUARD_MODEL ? guardCalls : calls).push({ model, input });
+      return run(model, input);
+    },
+  };
+  return { ai, calls, writeCalls, rewriteCalls, guardCalls };
+}
+
+/** The Worker's bindings, stood in for; what each model call was sent;
+    the keys the rate limiter was asked about; and what the Worker logged.
+    `ask` sends it what the page would. */
+export function stubs(options: Options = {}) {
+  const { guard = guardStub(options.guardSays), limit = async () => ({ success: true }), index = INDEX } = options;
+  const { without = [], logged = [] } = options;
+  const { ai, ...modelCalls } = aiStandIn(options);
   const limitKeys: string[] = [];
   const bindings: Record<string, unknown> = {
     ASK_ENABLED: "true",
     ...options.vars,
+    AI: ai,
     ASK_GUARD: guard,
     ASSETS: {
       fetch: async (request: Request) => {
@@ -117,22 +140,6 @@ export function stubs(options: Options = {}) {
         return limit(asked);
       },
     },
-    AI: {
-      run: async (model: string, input: ModelInput) => {
-        if (model === LLAMA_GUARD_MODEL) guardCalls.push({ model, input });
-        else if (input.tools) calls.push({ model, input });
-        else {
-          // A call to the picker's model with no tool is for a line of
-          // text: the question said to the owner if it may write only as
-          // much as that takes, else a reply.
-          const isRewrite = input.max_completion_tokens === MAX_TO_OWNER_TOKENS;
-          const [textCalls, texts] = isRewrite ? [rewriteCalls, rewrites] : [writeCalls, writes];
-          textCalls.push({ model, input });
-          return nextOf(texts, textCalls.length);
-        }
-        return run(model, input);
-      },
-    },
   };
   for (const name of without) delete bindings[name];
   // Only what the Worker uses is stood in for, so this is cast to the real
@@ -143,7 +150,7 @@ export function stubs(options: Options = {}) {
   const ask = (body: unknown, how?: Send) => send(askRequest(body, how));
   /** What /ask replies to `question`, as JSON. */
   const askJson = async (question: string, lang = "en"): Promise<unknown> => (await ask({ question, lang })).json();
-  return { env, calls, writeCalls, rewriteCalls, guardCalls, guard, limitKeys, logged, send, ask, askJson };
+  return { env, ...modelCalls, guard, limitKeys, logged, send, ask, askJson };
 }
 
 /** The lines logged, as JSON, without what each question cost (`costs` has
