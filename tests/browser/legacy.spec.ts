@@ -6,14 +6,13 @@ import chats from "./checks/chats.ts";
 import figures from "./checks/figures.ts";
 import home from "./checks/home.ts";
 import sidebar from "./checks/sidebar.ts";
-import viewer from "./checks/viewer.ts";
 import views from "./checks/views.ts";
 import { desktop, VISITOR_ZONE, type Check } from "./helpers.ts";
 import { serve } from "./server.ts";
 import { readSite } from "./site.ts";
 import { OWN_SITE } from "./sites.ts";
 
-const CHECK_FILES = { home, ask, chats, sidebar, figures, viewer, views };
+const CHECK_FILES = { home, ask, chats, sidebar, figures, views };
 const WAIT_LIMIT_MS = 10_000;
 
 // The checks are made for a site before any of them runs, so the site is read here.
