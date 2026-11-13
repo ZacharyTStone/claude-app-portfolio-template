@@ -54,6 +54,8 @@ notCut("nor after an abbreviation, however it's capitalised, when it starts the 
   "He likes tools (e.g. Make) a lot.",
   "He likes tools （e.g. Make） a lot.",
   "E.g. Make is one.",
+  "Some tools (e.g.) Are fine.",
+  "Some tools （e.g.） Are fine.",
 ]);
 
 cutInto("a word that only ends like an abbreviation, or isn't one, ends its sentence", [

@@ -175,6 +175,7 @@ refused("added", "nor one whose verb takes a form that isn't its own with you", 
   ["Does Alex teach?", "Have you teach?"],
   ["Hasn't he used Vue?", "Aren't you used Vue?"],
   ["Is his app live?", "Is hi app live?"],
+  ["Does Alex know Rust?", "Doe you know Rust?"],
   ["He'll relocate?", "You will relocate?"],
 ]);
 

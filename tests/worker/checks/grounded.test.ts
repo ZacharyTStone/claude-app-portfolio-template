@@ -189,6 +189,8 @@ shown("each part of a compound may be the sources': joined by a dash, a slash or
   ["React-Svelte sites are his thing.", SKILLS],
   ["He pairs React/Svelte.", SKILLS],
   ["He pairs React&Svelte.", SKILLS],
+  ["He set up CI/CDs.", from("He set up CI/CD.")],
+  ["He does R&Ds.", from("He does R&D.")],
 ]);
 
 notShown("Japanese has no capitals: any word in Latin letters is a name", [
@@ -235,7 +237,9 @@ const GRAMMAR_WORDS =
 
 shown(
   "grammar with a capital in the middle of a sentence names nothing",
-  GRAMMAR_WORDS.split(" ").map((word) => [`No: ${capitalised(word)} is the word.`, SKILLS] as const),
+  GRAMMAR_WORDS.split(" ").map(
+    (word) => [`No: ${capitalised(word)} is the word.`, from("Builds.", "Work", "work?")] as const,
+  ),
 );
 
 shown("nor does a word that ends in n't", [
@@ -392,6 +396,7 @@ shown("one is as often a pronoun as a number, so it's left alone, and so are fir
 
 shown("a number with its unit written on to it is the sources' number", [
   ["It loads in 385ms, down from 1.04s.", LOAD, { question: "How fast?" }],
+  ["It loads in 385msec, down from 1.04sec.", LOAD],
   // Known gap: the unit may be any letters, so a "k" or an "M" passes as one.
   ["It loads in 385MS, or 385k.", LOAD],
 ]);
@@ -438,7 +443,7 @@ notShown("then it has to be the sources', like any address", [
 
 /** An email, a handle and a link with every character one may have. */
 const EVERY_CHARACTER = from(
-  "Write to Na_me.x%y+z-9@Ex-Am_ple.9z, find him as @_handle, @Handle, @handle and @9lives, or see GiT+ssh.x-9://ex.com/~Alex_1?q=a&b=c#top!$*%20@x.",
+  "Write to Na_me.x%y+z-9@Ex-Am_ple.9z, find him as @_handle, @Handle, @handle and @9lives, or see GiT+ssh.x-9://ex.com/~Alex_1?q=a&b=c#top!$*%20@x and https://ex.org/a+b-c.",
   "Contact",
   "how do I reach alex?",
 );
@@ -447,9 +452,12 @@ shown("every character of an address is part of it", [
   ["Write to Na_me.x%y+z-9@Ex-Am_ple.9z.", EVERY_CHARACTER],
   ["See GiT+ssh.x-9://ex.com/~Alex_1?q=a&b=c#top!$*%20@x.", EVERY_CHARACTER],
   ["Find him as @_handle, @Handle, @handle or @9lives.", EVERY_CHARACTER],
+  ["See https://ex.org/a+b-c.", EVERY_CHARACTER],
 ]);
 
 notShown("so one that differs before or after any of them isn't the sources'", [
+  ["See https://ex.org/a+x-c.", ["https://ex.org/a+x-c"], EVERY_CHARACTER],
+  ["See https://ex.org/a+b-x.", ["https://ex.org/a+b-x"], EVERY_CHARACTER],
   ...["Ma_me", "na_me", "Na_ne", "Na_me.v", "Na_me.x%v", "Na_me.x%y+v", "Na_me.x%y+z-8", "Na_me.x%y+z-"].map(
     (name) => [`Write to ${name}@Ex-Am_ple.9z.`, [`${name}@Ex-Am_ple.9z`], EVERY_CHARACTER] as const,
   ),
