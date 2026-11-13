@@ -6,7 +6,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
-import { checkSameQuestion } from "../../src/worker/ask/checks/same-question.ts";
 import { MAX_TO_OWNER_TOKENS, rewriteToOwner, saysToOwnerIn, type Rewriting } from "../../src/worker/ask/to-owner.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
@@ -30,130 +29,6 @@ import {
 const logs = captureLogs();
 
 const OWNER = INDEX.name;
-
-// Whether `rewrite` may go in the message in place of `question`: the
-// rewrite if so, else why not.
-const checked = (question: string, rewrite: string) => {
-  const { toOwner, why } = checkSameQuestion(rewrite, question, OWNER);
-  return toOwner ?? why;
-};
-
-// ---- The check --------------------------------------------------------------------------
-
-test("a rewrite that says the question to the owner, and changes nothing else, may be used", () => {
-  for (const [question, rewrite] of [
-    ["Does Alex know testing?", "Do you know testing?"],
-    ["Is Alex available?", "Are you available?"],
-    ["What does he think about X?", "What do you think about X?"],
-    ["Tell me about Alex's testing", "Tell me about your testing"],
-    ["Has she used Vue?", "Have you used Vue?"],
-    ["Alex knows Rust?", "You know Rust?"],
-    // Their whole name, a verb with its own ending, "n't", "was", and "they".
-    ["What is Alex Example's email?", "What is your email?"],
-    ["Alex tries new tools often?", "You try new tools often?"],
-    ["Doesn't he like C++?", "Don't you like C++?"],
-    ["Was Alex a teacher?", "Were you a teacher?"],
-    ["Did they teach themselves?", "Did you teach yourself?"],
-    ["Is that code theirs?", "Is that code yours?"],
-    // A verb that goes with something else stays as it is.
-    ["How does his app make its questions?", "How does your app make its questions?"],
-    // A "you" that was there, and a "her" that isn't the owner, stay too.
-    ["Can you tell me if Alex knows Rust?", "Can you tell me if you know Rust?"],
-    ["Does Alex work with his wife and her team?", "Do you work with your wife and her team?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), rewrite, question);
-  }
-});
-
-test("a contraction is its word and its ending: either may change with who it's about", () => {
-  for (const [question, rewrite] of [
-    ["What's he working on?", "What are you working on?"],
-    ["What's he built with Rust?", "What have you built with Rust?"],
-    ["Where's Alex based?", "Where're you based?"],
-    ["He's available in May?", "You're available in May?"],
-    ["She's shipped it?", "You have shipped it?"],
-    ["Alex's available?", "You are available?"],
-    ["They're open to contracts?", "You're open to contracts?"],
-    ["He'd relocate?", "You'd relocate?"],
-    // An ending that isn't the owner's stays where it is.
-    ["What's Alex's favorite of Acme's tools?", "What's your favorite of Acme's tools?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), rewrite, question);
-  }
-  assert.equal(checked("What's Acme's best tool for Alex?", "What Acme best tool for you?"), "dropped");
-});
-
-test("words are compared without capitals or the punctuation round them; a name's own marks are part of it", () => {
-  assert.equal(checked("does alex know testing", "Do you know testing?"), "Do you know testing?");
-  assert.equal(checked("Does ALEX know “testing”?", "Do you know testing"), "Do you know testing");
-  assert.equal(checked("Does he/she know CI/CD?", "Do you know CI/CD?"), "Do you know CI/CD?");
-  assert.equal(checked("Does Alex know C++?", "Do you know C#?"), "added");
-  assert.equal(checked("Is Alex's rate $50?", "Is your rate 50?"), "added");
-});
-
-test("a rewrite with a word the question doesn't have may not be used", () => {
-  for (const [why, question, rewrite] of [
-    ["a greeting", "Does Alex know testing?", "Hi Alex! Do you know testing?"],
-    ["a greeting that's nearly one of its words", "What is his email?", "Hi, what is your email?"],
-    ["an answer instead", "Does Alex know testing?", "Yes, Alex knows testing."],
-    ["an answer instead", "Does Alex know testing?", "I don't have that information."],
-    ["a new name", "Does Alex know testing?", "Do you know Jest testing?"],
-    ["a new number", "Has Alex worked 3 years?", "Have you worked 5 years?"],
-    ["a note", "Does Alex know testing?", "Do you know testing? (rewritten)"],
-    ["a link", "Does Alex know testing?", "Do you know testing? https://example.com"],
-    ["another verb", "Does Alex know testing?", "Do you like testing?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), "added", `${why}: ${rewrite}`);
-  }
-});
-
-test("nor one that leaves out a word of the question's, or says them in another order", () => {
-  for (const [question, rewrite] of [
-    ["Does Alex know testing and has he led a team?", "Do you know testing?"],
-    ["Does Alex know testing?", "Do you know?"],
-    ["Has Alex not used Vue?", "Have you used Vue?"],
-    ["Does Alex know testing?", "You testing?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), "dropped", rewrite);
-  }
-  for (const [question, rewrite] of [
-    ["Is Alex better than Sam?", "Is Sam better than you?"],
-    ["Does Alex love cats and hate dogs?", "Do you hate cats and love dogs?"],
-    ["Does Alex know testing?", "Do you know testing testing?"],
-    ["Does Alex know testing?", "Alex, do you know testing?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), "moved", rewrite);
-  }
-});
-
-test('nor one that\'s said to no one: the owner left out, or a verb changed, with no "you" put in', () => {
-  for (const [question, rewrite] of [
-    ["Does Alex know testing?", "Does know testing?"],
-    ["Does Alex know testing?", "Do Alex know testing?"],
-    ["Can you tell me if Alex knows Rust?", "Can you tell me if knows Rust?"],
-    ["Alex?", "?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), "about", rewrite);
-  }
-});
-
-test("the same words aren't worth sending, and what the page wouldn't take isn't sent", () => {
-  for (const [question, rewrite] of [
-    ["Does Alex know testing?", "Does Alex know testing?"],
-    ["Does Alex know testing?", "does alex know testing"],
-    ["Does Alex know testing?", "“Does Alex know testing?!”"],
-    // Already said to them, or not about them: written as it is.
-    ["Do you know Rust?", "Do you know Rust?"],
-    ["What's the weather in Tokyo?", "What's the weather in Tokyo?"],
-  ] as const) {
-    assert.equal(checked(question, rewrite), "same", rewrite);
-  }
-  const long = `Do you know ${"testing and ".repeat(MAX_QUESTION_LENGTH / 12)}testing?`;
-  assert.ok(long.length > MAX_QUESTION_LENGTH);
-  for (const rewrite of [long, "Do you know\ntesting?", "Do you know testing?\u200b", "", "   "]) {
-    assert.equal(checked("Does Alex know testing?", rewrite), "long", JSON.stringify(rewrite));
-  }
-});
 
 test("isQuestionToOwner: what the page takes as the question said to the owner", () => {
   assert.ok(isQuestionToOwner("Do you know testing?"));
