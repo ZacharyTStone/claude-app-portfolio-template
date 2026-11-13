@@ -3,7 +3,8 @@
    then files and links as rows (`outputs` and `context`). It's drawn from
    the language's `panel` in the config, where each section is optional:
    one that's left out isn't drawn. Styles: src/styles/panel.css. */
-import { DATA, PAGE_IDS } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import PanelRow from "./PanelRow.astro";

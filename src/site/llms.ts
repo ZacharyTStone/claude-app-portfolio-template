@@ -2,8 +2,8 @@
    behalf (a recruiter pasting the address into an assistant): who this is,
    how to reach them, and every answer, in the words /ask reads (answers.ts). */
 
-import type { AskAnswer } from "../shared/ask.ts";
-import type { SiteConfig } from "../shared/config.ts";
+import type { AskAnswer } from "../contracts/ask.ts";
+import type { SiteConfig } from "../config/site-config.ts";
 import { plainAnswers } from "./answers.ts";
 import { panelRows } from "./panel.ts";
 import type { Site } from "./site.ts";

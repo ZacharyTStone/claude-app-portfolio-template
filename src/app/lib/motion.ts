@@ -1,5 +1,5 @@
 /* Motion, unless the visitor's system asks for less. */
-import { REDUCED_MOTION } from "../../shared/page-data.ts";
+import { REDUCED_MOTION } from "../../contracts/page-attributes.ts";
 
 const reducedMotionQuery = matchMedia(REDUCED_MOTION);
 

@@ -1,11 +1,12 @@
-/* The checks of one block of an answer (src/shared/content.ts's Block): a
+/* The checks of one block of an answer (src/config/blocks.ts's Block): a
    picture, a link card, bars, a flow, a heading or a quote. A paragraph or
    a list is text, and its links are checked with all the others
    (language.ts). */
 
-import type { Language } from "../../shared/config.ts";
-import { FIGURE_LIMITS } from "../../shared/content.ts";
-import type { Bars, Block, Flow, Heading, LinkCard, Markdown, Picture, Quote } from "../../shared/content.ts";
+import type { Language } from "../../config/language.ts";
+import { FIGURE_LIMITS } from "../../config/blocks.ts";
+import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
+import type { Markdown } from "../../config/markdown.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isPathOnSite, isPixelCount } from "./shapes.ts";
 

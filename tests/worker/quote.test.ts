@@ -2,7 +2,7 @@
    (src/worker/ask/quote.ts), or none, the pick kept. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAX_REPLY_LENGTH, isLabel, labelled } from "../../src/shared/ask.ts";
+import { MAX_REPLY_LENGTH, isLabel, labelled } from "../../src/contracts/ask.ts";
 import {
   BETWEEN_LINES,
   neededFor,

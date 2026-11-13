@@ -1,7 +1,7 @@
 /* The details panel on the right: shown and hidden (it shows again on every
    visit), and sections that fold and can be dragged into another order by
    their grips (remembered per browser). */
-import { isArrayOf, isString } from "../shared/guards.ts";
+import { isArrayOf, isString } from "../contracts/guards.ts";
 import { CLASS, SELECTOR, STORAGE, TIMING } from "./constants.ts";
 import { findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";

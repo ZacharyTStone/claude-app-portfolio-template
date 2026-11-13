@@ -1,7 +1,7 @@
 /* Folding the sidebar's groups and the panel's sections. The heading's
    words go in a button, so a click anywhere on the heading, its triangle
    included, folds what's under it. Remembered per browser. */
-import { isArrayOf, isString } from "../shared/guards.ts";
+import { isArrayOf, isString } from "../contracts/guards.ts";
 import { CLASS, STORAGE } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";

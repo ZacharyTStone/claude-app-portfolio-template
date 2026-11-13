@@ -8,8 +8,8 @@
    quoted as they are, if they're sentences (quote.ts); if not, the page
    shows the answer they're from. A reply that's sent goes with the lines it
    was written from (handler.ts), for the page to show under it. */
-import { isReplyText } from "../../shared/ask.ts";
-import { isString } from "../../shared/guards.ts";
+import { isReplyText } from "../../contracts/ask.ts";
+import { isString } from "../../contracts/guards.ts";
 import {
   MAX_WRITE_TOKENS,
   MAX_WRITE_TRIES,

@@ -3,8 +3,8 @@
    the unit, each with its value at its tip as text. The page allows no
    inline styles, so a bar's length is an SVG attribute.
    Styles: src/styles/figures.css. */
-import type { Bars } from "../shared/content.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import type { Bars } from "../config/blocks.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { barLength } from "../site/bars.ts";
 
 interface Props {

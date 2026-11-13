@@ -4,18 +4,12 @@
    (reporting.ts); ../validate.ts runs them in order, once for each
    language. */
 
-import { personalAnswerId, threadAnswerId } from "../../shared/ask.ts";
-import { ID } from "../../shared/config.ts";
-import { browserFollows, hrefsIn } from "../../shared/markdown.ts";
-import {
-  ALL_SCRIPT_STRINGS,
-  CHATS_GROUP,
-  ID_PREFIXES,
-  PAGE_IDS,
-  PART_STRINGS,
-  personalTab,
-  titleId,
-} from "../../shared/page-data.ts";
+import { personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
+import { ID } from "../../config/language.ts";
+import { browserFollows } from "../../contracts/links.ts";
+import { hrefsIn } from "../../config/markdown.ts";
+import { ALL_SCRIPT_STRINGS, PART_STRINGS } from "../../config/strings.ts";
+import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, personalTab, titleId } from "../../contracts/page-ids.ts";
 import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
 import { answerBlocksIn, checkBlock, picturesIn } from "./blocks.ts";

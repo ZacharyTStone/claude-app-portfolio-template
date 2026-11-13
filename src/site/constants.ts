@@ -1,7 +1,7 @@
 /* The names the site's files and tests share, and its limits. */
 
 import { fileURLToPath } from "node:url";
-import type { Host } from "../shared/config.ts";
+import type { Host } from "../config/site-config.ts";
 
 /** The repo. */
 export const ROOT = fileURLToPath(new URL("../../", import.meta.url));

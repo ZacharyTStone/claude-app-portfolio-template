@@ -1,6 +1,6 @@
 /* The home screen's greeting, in the visitor's own time of day ("Up late?"
    after 11pm). The page has the words for each part of the day. */
-import { HOURS, partOfDay } from "../shared/page-data.ts";
+import { HOURS, partOfDay } from "../contracts/day-parts.ts";
 import { greetings, homeGreeting } from "./page.ts";
 
 /** Greets the visitor by their time of day. A part of the day the page has

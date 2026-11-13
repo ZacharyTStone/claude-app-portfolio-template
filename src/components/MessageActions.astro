@@ -2,8 +2,9 @@
 /* The buttons under a thread's last answer: for now one, which copies a
    link to the tab. They need JavaScript, so they're hidden without it.
    Styles: src/styles/cards.css. */
-import type { Strings } from "../shared/config.ts";
-import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
+import type { Strings } from "../config/strings.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { flag } from "./attributes.ts";
 
 interface Props {

@@ -1,11 +1,11 @@
 /* Attributes a component spreads onto an element: the data-* attributes
-   whose names are in src/shared/page-data.ts (DATA), which markup can't
+   whose names are in src/contracts/page-attributes.ts (DATA), which markup can't
    write as plain attributes. One with a value is spread as it is:
    <button {...{ [DATA.prompt]: prompt.answer }}>. */
-import { DATA } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { site } from "../site/current.ts";
 
-/** A bare data-* attribute, by its name in src/shared/page-data.ts:
+/** A bare data-* attribute, by its name in src/contracts/page-attributes.ts:
     <button {...flag(DATA.copyLink)}> is <button data-copy-link>. */
 export const flag = (name: string): Record<string, string> => ({ [name]: "" });
 

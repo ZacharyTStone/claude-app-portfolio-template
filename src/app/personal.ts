@@ -1,7 +1,8 @@
 /* The personal answers: the only ones that aren't in a thread (they're in
    the question card's data). Each gets a tab of its own, made from a copy
    of the "Something else" tab. */
-import { ID_PREFIX, personalTab, type PersonalAnswer } from "../shared/page-data.ts";
+import { ID_PREFIX, personalTab } from "../contracts/page-ids.ts";
+import { type PersonalAnswer } from "../config/question-card.ts";
 import { SELECTOR } from "./constants.ts";
 import { clone, find } from "./lib/dom.ts";
 import { renderBlock } from "./lib/markdown.ts";

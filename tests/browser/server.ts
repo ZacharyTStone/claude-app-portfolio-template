@@ -1,7 +1,7 @@
 /* The built site, served as its host serves it: dist/ under the site's
    base path (the path in site.config.ts's `url`: "/" for most sites,
    "/portfolio/" for a GitHub project site), every response with exactly
-   the security headers in src/shared/headers.ts (so the CSP and Trusted
+   the security headers in src/site/security-headers.ts (so the CSP and Trusted
    Types apply), a folder's index.html for the folder, and 404.html for
    anything that isn't there. No network, no packages. */
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -10,9 +10,9 @@ import type { AddressInfo } from "node:net";
 import { extname, join, resolve, sep } from "node:path";
 import siteConfig from "../../site.config.ts";
 import { OUTPUT, ROOT } from "../../src/site/constants.ts";
-import type { SiteConfig } from "../../src/shared/config.ts";
-import { frameOrigins, securityHeaders } from "../../src/shared/headers.ts";
-import { DATA } from "../../src/shared/page-data.ts";
+import type { SiteConfig } from "../../src/config/site-config.ts";
+import { frameOrigins, securityHeaders } from "../../src/site/security-headers.ts";
+import { DATA } from "../../src/contracts/page-attributes.ts";
 
 // As SiteConfig, so a field this site leaves out (hsts) reads as undefined.
 const config: SiteConfig = siteConfig;

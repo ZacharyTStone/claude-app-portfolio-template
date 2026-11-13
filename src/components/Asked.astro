@@ -5,8 +5,10 @@
    (the config's asked.q), and the email and the message carry their
    wording as it is before the question is in, for the script to fill.
    Styles: src/styles/cards.css (the message to copy). */
-import type { LinkCard } from "../shared/content.ts";
-import { DATA, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import type { LinkCard } from "../config/blocks.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import { shortUrl } from "../site/url.ts";
 import { flag } from "./attributes.ts";

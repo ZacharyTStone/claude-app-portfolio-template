@@ -1,7 +1,7 @@
 /* A file card's lines, laid out like a small config file: the values start
    in one column, and so do the comments (src/components/Card.astro). */
 
-import type { Card, CardValue } from "../shared/content.ts";
+import type { Card, CardValue } from "../config/blocks.ts";
 
 /** One line of a card as it's drawn in the <pre>, left to right. */
 export type CardRow = {

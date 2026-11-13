@@ -9,28 +9,21 @@
 import { mapValues } from "es-toolkit";
 import type { Browser, Page } from "playwright";
 import { CLASS as SCRIPT_CLASS, SELECTOR } from "../../src/app/constants.ts";
-import { threadAnswerId } from "../../src/shared/ask.ts";
-import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/shared/config.ts";
-import {
-  ALL_SCRIPT_STRINGS,
-  DATA,
-  HOURS,
-  PAGE_CLASSES,
-  PAGE_IDS,
-  dataAttribute,
-  type GreetingPart,
-  type PersonalAnswer,
-  type QuestionCard,
-  type ScriptStrings,
-  type Topic,
-} from "../../src/shared/page-data.ts";
+import { threadAnswerId } from "../../src/contracts/ask.ts";
+import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/config/language.ts";
+import { ALL_SCRIPT_STRINGS, dataAttribute, type ScriptStrings } from "../../src/config/strings.ts";
+import { DATA } from "../../src/contracts/page-attributes.ts";
+import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
+import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
+import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
+import { type PersonalAnswer, type QuestionCard, type Topic } from "../../src/config/question-card.ts";
 // Its types only. helpers.ts builds its selectors from the ones here, so a
 // function imported back from it would have each file waiting for the other.
 import type { PageElement } from "./helpers.ts";
 
 // ---- The page's names, as selectors ------------------------------------------------------
 // The names themselves (ids, data-* attributes, classes, the clock's local
-// zone, the menus' letters, the hours of the day) are in src/shared/page-data.ts.
+// zone, the menus' letters, the hours of the day) are in src/contracts.
 
 /** PAGE_IDS as selectors: ID.hello is "#hello". */
 export const ID = mapValues(PAGE_IDS, (id) => `#${id}`);
@@ -408,7 +401,7 @@ async function readPrompts(page: Page): Promise<Prompt[]> {
 }
 
 /** The question card: the JSON the build wrote into the page for the
-    script. It's the build's own (src/shared/page-data.ts's QuestionCard),
+    script. It's the build's own (src/config/question-card.ts's QuestionCard),
     so it's read as that, not checked. */
 async function readQuestionCard(page: Page): Promise<QuestionCard> {
   return JSON.parse((await page.locator(ID.questions).textContent()) ?? "") as QuestionCard;

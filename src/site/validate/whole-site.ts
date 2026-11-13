@@ -4,7 +4,7 @@
    ../validate.ts runs them in order. */
 
 import { isEqual } from "es-toolkit";
-import type { Language } from "../../shared/config.ts";
+import type { Language } from "../../config/language.ts";
 import { ASK_HOST, MAX_TOPICS } from "../constants.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";

@@ -3,6 +3,8 @@
    Content-Security-Policy where it doesn't (src/site/hosts.ts), and the
    browser checks serve the pages with exactly these. */
 
+import type { Hsts } from "../config/site-config.ts";
+
 /** What a site's policy depends on. */
 export type PolicyOptions = {
   /** Ask is on: the page may send questions to /ask. */
@@ -51,16 +53,6 @@ export function contentSecurityPolicy({ ask, frames = [], meta = false }: Policy
 
 /** Sent as a header, or where a host can't, in a <meta> tag. */
 export const REFERRER_POLICY = "strict-origin-when-cross-origin";
-
-/** Strict-Transport-Security's two extras, from site.config.ts. Both are
-    hard to undo, so they're off unless a site asks for them. */
-export type Hsts = {
-  /** Every subdomain too: only if every one of them is HTTPS for good. */
-  includeSubDomains?: boolean;
-  /** Ask browsers to build the site in as HTTPS-only (hstspreload.org).
-      Needs includeSubDomains. */
-  preload?: boolean;
-};
 
 /** How long a browser that has visited keeps to HTTPS for the site: two
     years, in seconds (the length hstspreload.org recommends). */

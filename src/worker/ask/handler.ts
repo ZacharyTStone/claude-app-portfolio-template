@@ -16,7 +16,7 @@
       line goes to the log.
 
    Every reply is an AskResponse, or a 4xx. */
-import { isCitedLines, type AskAnswer, type AskResponse } from "../../shared/ask.ts";
+import { isCitedLines, type AskAnswer, type AskResponse } from "../../contracts/ask.ts";
 import {
   INAPPROPRIATE,
   LLAMA_GUARD_MODEL,

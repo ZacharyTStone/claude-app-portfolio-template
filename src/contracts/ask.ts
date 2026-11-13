@@ -8,7 +8,7 @@
    script. */
 
 import * as v from "valibot";
-import { personalTab } from "./page-data.ts";
+import { personalTab } from "./page-ids.ts";
 
 // ---- Labels ------------------------------------------------------------------------
 

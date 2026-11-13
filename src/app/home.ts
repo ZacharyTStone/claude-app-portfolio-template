@@ -1,7 +1,7 @@
 /* The home screen's box: a question typed in it goes to a new chat as one
    typed into the question card does; a question to start with comes with
    the answer the page names for it, so nothing is asked of /ask. */
-import { DATA } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { SELECTOR } from "./constants.ts";
 import { newChat } from "./chats.ts";
 import { findAll, onEnter, query } from "./lib/dom.ts";

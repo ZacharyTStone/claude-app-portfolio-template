@@ -2,7 +2,7 @@
    question in it (an AskRequest). Anything else is turned away with a 4xx
    and a word on why, before anything is spent on it. */
 import * as v from "valibot";
-import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES, type AskRequest } from "../../shared/ask.ts";
+import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES, type AskRequest } from "../../contracts/ask.ts";
 import { HTTP_STATUS, json } from "../lib/http.ts";
 
 /** An AskRequest as the Worker reads it. The body is whatever was sent, so

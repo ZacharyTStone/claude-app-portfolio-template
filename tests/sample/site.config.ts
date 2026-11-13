@@ -2,9 +2,10 @@
    (served under /portfolio/, on a host that reads no _headers file), in
    two languages, with one of each kind of figure, a picture with a still,
    and a link that opens in the viewer. */
-import type { Language, SiteConfig, Strings } from "../../src/shared/config.ts";
-import { PAGE_STRINGS } from "../../src/shared/config.ts";
-import { SCRIPT_STRINGS } from "../../src/shared/page-data.ts";
+import type { Language } from "../../src/config/language.ts";
+import type { SiteConfig } from "../../src/config/site-config.ts";
+import type { Strings } from "../../src/config/strings.ts";
+import { PAGE_STRINGS, SCRIPT_STRINGS } from "../../src/config/strings.ts";
 import { ICONS } from "../../src/site/constants.ts";
 
 /** The one picture the sample uses, for its social card too: a file every

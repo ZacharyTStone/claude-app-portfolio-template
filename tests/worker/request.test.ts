@@ -3,7 +3,7 @@
    cached; anything else is turned away before the model is asked. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES } from "../../src/shared/ask.ts";
+import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES } from "../../src/contracts/ask.ts";
 import { ask, askJson, firstCall, send, stubs } from "./fixtures.ts";
 
 test("turned off, it doesn't call the model", async () => {

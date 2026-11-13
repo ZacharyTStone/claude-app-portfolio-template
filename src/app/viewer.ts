@@ -7,7 +7,7 @@
    The frame is made when the viewer opens and thrown away when it closes,
    so nothing loads from another site until the visitor asks for it, and
    nothing keeps running there once they're done. */
-import { DATA } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { CLASS, SELECTOR, SIZE } from "./constants.ts";
 import { closestFrom, isPlainClick, make } from "./lib/dom.ts";
 import { shell, words } from "./page.ts";

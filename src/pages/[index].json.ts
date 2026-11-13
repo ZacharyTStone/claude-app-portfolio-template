@@ -1,7 +1,7 @@
 /* /ask.json, what /ask picks from: every answer on the site as plain
    text. Written only when Ask is on. */
 import { basename } from "node:path";
-import { ASK_INDEX_FILE } from "../shared/ask.ts";
+import { ASK_INDEX_FILE } from "../contracts/ask.ts";
 import { askIndexJson } from "../site/answers.ts";
 import { site } from "../site/current.ts";
 

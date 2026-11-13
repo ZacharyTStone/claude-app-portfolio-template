@@ -8,8 +8,8 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest } from "../src/shared/ask.ts";
-import { isArrayOf, isRecord, isString } from "../src/shared/guards.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest } from "../src/contracts/ask.ts";
+import { isArrayOf, isRecord, isString } from "../src/contracts/guards.ts";
 
 type Question = { q: string; lang: string; expect: string | string[] };
 type Verdict = "right" | "wrong" | "saidNone" | "falseAnswer" | "falseBlock" | "missedBlock";

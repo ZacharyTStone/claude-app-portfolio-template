@@ -4,7 +4,7 @@
    anything else is no pick. Its thinking goes to the log, never to a visitor. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { AskIndex } from "../../src/shared/ask.ts";
+import type { AskIndex } from "../../src/contracts/ask.ts";
 import { readTextPick, readToolCall } from "../../src/worker/ask/pick.ts";
 import {
   DEFAULT_MODEL,

@@ -1,8 +1,10 @@
 /* Chats: "New tab" opens one, an empty thread with the question card open.
    Once something is sent in it, it's listed under "Chats" and saved (in
    this browser, per language) until it's deleted or the page is refreshed. */
-import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../shared/guards.ts";
-import { CHATS_GROUP, DATA, groupId, ID_PREFIX, PAGE_CLASSES } from "../shared/page-data.ts";
+import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../contracts/guards.ts";
+import { CHATS_GROUP, groupId, ID_PREFIX } from "../contracts/page-ids.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS, SELECTOR, STORAGE } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";

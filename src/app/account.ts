@@ -1,8 +1,11 @@
 /* The account row's menu, with a few surprises: the time where you are
    beside the visitor's, a language row that keeps the open tab, and a
    "Log out" that really does. */
-import { DATA, HOURS, LOCAL_ZONE, PAGE_CLASSES, PAGE_IDS, partOfDay, SEPARATOR } from "../shared/page-data.ts";
-import { CLASS, SELECTOR } from "./constants.ts";
+import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
+import { HOURS, partOfDay } from "../contracts/day-parts.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { SEPARATOR, CLASS, SELECTOR } from "./constants.ts";
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
 import { asMenu, menuItems, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";

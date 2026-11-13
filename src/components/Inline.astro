@@ -1,9 +1,10 @@
 ---
-/* A line of the config's Markdown (src/shared/markdown.ts), as elements.
+/* A line of the config's Markdown (src/config/markdown.ts), as elements.
    Its words are text, which Astro escapes, so no HTML gets through. Bold,
    italic and a link hold pieces of their own, which this draws by using
    itself. */
-import { external, spans, type Span } from "../shared/markdown.ts";
+import { external } from "../contracts/links.ts";
+import { spans, type Span } from "../config/markdown.ts";
 import { site } from "../site/current.ts";
 
 /** A line as it's written (`text`), or one already read into its pieces

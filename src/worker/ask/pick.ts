@@ -4,7 +4,7 @@
    "none" or "inappropriate", and the numbers of the lines that answer it.
    The reply is written from those lines in a call of its own (write.ts). */
 import { escapeRegExp } from "es-toolkit";
-import { isString } from "../../shared/guards.ts";
+import { isString } from "../../contracts/guards.ts";
 import {
   INAPPROPRIATE,
   MAX_PICK_TOKENS,

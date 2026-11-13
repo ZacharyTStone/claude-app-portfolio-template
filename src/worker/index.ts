@@ -6,7 +6,7 @@
    AskGuard is exported because wrangler.jsonc binds the Durable Object by
    its class name. */
 import { handleAsk } from "./ask/handler.ts";
-import { ASK_PATH } from "../shared/ask.ts";
+import { ASK_PATH } from "../contracts/ask.ts";
 import type { Env } from "./env.ts";
 
 export { AskGuard } from "./guard/ask-guard.ts";

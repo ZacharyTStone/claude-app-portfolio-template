@@ -3,7 +3,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
-import type { SiteConfig } from "../shared/config.ts";
+import type { SiteConfig } from "../config/site-config.ts";
 import { HEADERS_FILE } from "../site/constants.ts";
 import { headersFile } from "../site/hosts.ts";
 import { makeSite } from "../site/site.ts";

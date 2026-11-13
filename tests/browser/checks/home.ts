@@ -2,7 +2,8 @@
    under it), and a thread's own tab: its name and its link. */
 import assert from "node:assert/strict";
 import type { Locator, Page, Request } from "playwright";
-import { DATA, HOURS, MENU_KEYS, partOfDay } from "../../../src/shared/page-data.ts";
+import { DATA, MENU_KEYS } from "../../../src/contracts/page-attributes.ts";
+import { HOURS, partOfDay } from "../../../src/contracts/day-parts.ts";
 import {
   askReturns,
   CHAT_ROWS,

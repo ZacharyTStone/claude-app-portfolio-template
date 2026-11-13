@@ -1,7 +1,9 @@
 /* The names and numbers only the script (and the browser checks) count on.
-   The names the pages write for it are in src/shared/page-data.ts, and what
+   The names the pages write for it are in src/contracts, and what
    the site says comes from the page (page.ts). */
-import { DATA, LOCAL_ZONE, PAGE_CLASSES, PAGE_IDS, panelId } from "../shared/page-data.ts";
+import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
 
 export const STORAGE = {
   /** localStorage: the chats, per language (this, then the page's lang). */
@@ -75,7 +77,7 @@ export const CLASS = {
   show: "show",
   /** The line under a reply: the tab it's from, or the questions left. */
   from: "from",
-  /** Under a typed question, the reply /ask sent (src/shared/ask.ts), and
+  /** Under a typed question, the reply /ask sent (src/contracts/ask.ts), and
       under that the site's own lines it was written from. */
   reply: "reply",
   cited: "cited",
@@ -110,6 +112,10 @@ export const CLASS = {
   moving: "moving",
   movingShown: "shown",
 } as const;
+
+/** What joins a tab's name and the site's in the window title, and the
+    clock's two notes. */
+export const SEPARATOR = " · ";
 
 const has = (attribute: string) => `[${attribute}]`;
 const thread = `.${PAGE_CLASSES.thread}`;

@@ -1,6 +1,8 @@
 /* A thread's menus: one under the chevron beside its title,
    and a shorter one behind a "…" on its sidebar row. */
-import { MENU_KEYS, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { MENU_KEYS } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";

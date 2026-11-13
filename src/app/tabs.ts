@@ -1,8 +1,9 @@
 /* The open tab: the one the address names (#about), shown by :target as it
    is without JavaScript. This keeps the rest in step with it: the sidebar's
    current row, the window title and where focus is. */
-import { DATA, SEPARATOR, titleId } from "../shared/page-data.ts";
-import { SELECTOR } from "./constants.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { SEPARATOR, SELECTOR } from "./constants.ts";
+import { titleId } from "../contracts/page-ids.ts";
 import { clone, find } from "./lib/dom.ts";
 import { unfold } from "./folding.ts";
 import { homeGreeting, pageTitle, side, siteName } from "./page.ts";

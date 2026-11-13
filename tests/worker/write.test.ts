@@ -6,7 +6,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { write, writesIn, type Writing } from "../../src/worker/ask/write.ts";
-import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/shared/ask.ts";
+import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
 import {
   DEFAULT_MODEL,
   MAX_WRITE_TOKENS,

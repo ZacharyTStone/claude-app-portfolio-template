@@ -1,21 +1,18 @@
 /* The page this runs on: the elements the script works with, and what it
    says. Each page carries its own wording and question card, so one script
    serves every language. */
+import { ALL_SCRIPT_STRINGS, dataAttribute, type ScriptStrings } from "../config/strings.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import {
-  ALL_SCRIPT_STRINGS,
-  DATA,
-  HOURS,
-  PAGE_IDS,
-  dataAttribute,
   type Choice,
-  type GreetingPart,
   type PersonalAnswer,
   type QuestionCard,
   type QuestionCardWords,
-  type ScriptStrings,
   type Topic,
-} from "../shared/page-data.ts";
-import { isArrayOf, isOptionalBoolean, isOptionalString, isRecord, isString, type Guard } from "../shared/guards.ts";
+} from "../config/question-card.ts";
+import { isArrayOf, isOptionalBoolean, isOptionalString, isRecord, isString, type Guard } from "../contracts/guards.ts";
 import { SELECTOR } from "./constants.ts";
 import { byId, parentOf } from "./lib/dom.ts";
 
@@ -90,7 +87,7 @@ export function questionText(question: Element): string {
 
 /** A check for each field of an object. A field of `Shape` left out of the
     list doesn't compile, so a field added to the page's data
-    (src/shared/page-data.ts) has to be checked here too. */
+    (src/config/question-card.ts) has to be checked here too. */
 type FieldChecks<Shape> = { [Field in keyof Shape]-?: Guard<Shape[Field]> };
 
 /** A check for an object by its fields: each has to pass its own check. */

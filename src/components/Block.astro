@@ -1,15 +1,15 @@
 ---
 /* One part of an answer: a paragraph, a list, a file card, a link, a
-   figure, a picture, a quote or a heading (src/shared/content.ts's Block).
+   figure, a picture, a quote or a heading (src/config/blocks.ts's Block).
    A paragraph is a string and a list an array; anything else is an object
    named for its kind ({ card: … }, { quote: … }), drawn by the component
    for that kind.
 
    Styles: src/styles/thread.css (paragraphs and lists) and figures.css
    (pictures side by side, a quote, a heading). */
-import type { Strings } from "../shared/config.ts";
-import type { Block, BlockParts } from "../shared/content.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import type { Strings } from "../config/strings.ts";
+import type { Block, BlockParts } from "../config/blocks.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import Artifact from "./Artifact.astro";
 import Bars from "./Bars.astro";
 import Card from "./Card.astro";

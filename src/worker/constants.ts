@@ -1,6 +1,6 @@
 /* The Worker's fixed names and numbers: its paths, models, prices, limits,
    and what AskGuard stores. The settings (ASK_*) are in env.ts, and the
-   contract with the page in src/shared/ask.ts.
+   contract with the page in src/contracts/ask.ts.
 
    Two things here are called a guard. Llama Guard (LLAMA_GUARD_*) is the
    model that reads each question for abuse; AskGuard (ASK_GUARD_*) is the
@@ -10,7 +10,7 @@
    ask/quote.ts, and so this file, with Node's types alone. (That's why the
    Durable Object locations are in env.ts.) */
 
-import { ASK_INDEX_FILE } from "../shared/ask.ts";
+import { ASK_INDEX_FILE } from "../contracts/ask.ts";
 
 /** The answers it picks from, as the build writes them (/ask.json). */
 export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;

@@ -2,7 +2,7 @@
    reply comes in one of several shapes, and each part of it is taken only
    if it's there. (A value with one known shape, like a request's body or
    /ask.json, is checked whole against a valibot schema instead.) */
-import { isRecord } from "../../shared/guards.ts";
+import { isRecord } from "../../contracts/guards.ts";
 
 /** The value at `path` (`get(reply, "choices", 0)` is `reply.choices[0]`),
     or undefined where a step isn't there. Only a value's own properties

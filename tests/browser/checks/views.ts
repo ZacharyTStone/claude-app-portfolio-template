@@ -2,7 +2,8 @@
    JavaScript and printed. */
 import assert from "node:assert/strict";
 import type { Page } from "playwright";
-import { DATA, SEPARATOR } from "../../../src/shared/page-data.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
+import { SEPARATOR } from "../../../src/app/constants.ts";
 import {
   computedStyle,
   desktop,

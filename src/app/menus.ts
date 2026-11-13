@@ -1,7 +1,7 @@
 /* Menus, one open at a time (the question card is one too): arrow keys and
    a row's letter pick a row, Escape or a click elsewhere closes it, and a
    row with › opens a submenu beside it. */
-import { DATA } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { closestFrom, findAll, make } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";

@@ -3,15 +3,10 @@
    line or two are the functions under the list, in the order they're used. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import {
-  DATA,
-  HOURS,
-  LOCAL_ZONE,
-  MENU_KEYS,
-  PAGE_CLASSES,
-  partOfDay,
-  SEPARATOR,
-} from "../../../src/shared/page-data.ts";
+import { DATA, LOCAL_ZONE, MENU_KEYS } from "../../../src/contracts/page-attributes.ts";
+import { HOURS, partOfDay } from "../../../src/contracts/day-parts.ts";
+import { PAGE_CLASSES } from "../../../src/contracts/page-classes.ts";
+import { SEPARATOR } from "../../../src/app/constants.ts";
 import {
   askInNewChat,
   askReturns,

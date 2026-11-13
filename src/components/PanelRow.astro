@@ -3,10 +3,10 @@
    it has an href (one the config's `viewer` lists opens in the viewer). A
    row with no href is the same row in a <span>.
    Styles: src/styles/panel.css. */
-import type { PanelRow } from "../shared/config.ts";
+import type { PanelRow } from "../config/language.ts";
 import { site } from "../site/current.ts";
-import { external } from "../shared/markdown.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import { external } from "../contracts/links.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { viewerLink } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";

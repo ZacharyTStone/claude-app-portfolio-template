@@ -2,8 +2,9 @@
    host, the languages in order, and where everything is. */
 
 import { trimEnd } from "es-toolkit";
-import type { Host, Language, SiteConfig } from "../shared/config.ts";
-import { basePath } from "../shared/url.ts";
+import type { Host, SiteConfig } from "../config/site-config.ts";
+import type { Language } from "../config/language.ts";
+import { basePath } from "./url.ts";
 import { DEFAULT_HOST } from "./constants.ts";
 
 /** A site as the build sees it: its config, and the answers to "which

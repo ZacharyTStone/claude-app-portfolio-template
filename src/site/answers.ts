@@ -1,12 +1,12 @@
 /* ask.json, what /ask picks from: every answer on the site as plain text,
    a line for each of its blocks, with the id that names it
-   (src/shared/ask.ts). llms.txt has the same answers in the same words
+   (src/contracts/ask.ts). llms.txt has the same answers in the same words
    (llms.ts). */
 
-import type { AskAnswer, AskIndex } from "../shared/ask.ts";
-import { labelled, personalAnswerId, threadAnswerId } from "../shared/ask.ts";
-import type { Bars, Block, Card, CardValue, Flow } from "../shared/content.ts";
-import { plainText } from "../shared/markdown.ts";
+import type { AskAnswer, AskIndex } from "../contracts/ask.ts";
+import { labelled, personalAnswerId, threadAnswerId } from "../contracts/ask.ts";
+import type { Bars, Block, Card, CardValue, Flow } from "../config/blocks.ts";
+import { plainText } from "../config/markdown.ts";
 import { JSON_INDENT } from "./constants.ts";
 import type { Site } from "./site.ts";
 

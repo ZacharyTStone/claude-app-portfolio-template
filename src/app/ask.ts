@@ -1,8 +1,8 @@
-/* Ask: a question typed in goes to /ask (the Worker; src/shared/ask.ts has
+/* Ask: a question typed in goes to /ask (the Worker; src/contracts/ask.ts has
    what it says), checked here, not trusted. Once it says the visitor is
    blocked or out of questions, this browser tab stops asking. */
-import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest, type AskResponse } from "../shared/ask.ts";
-import { isCount, isRecord, isString } from "../shared/guards.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest, type AskResponse } from "../contracts/ask.ts";
+import { isCount, isRecord, isString } from "../contracts/guards.ts";
 import { STORAGE, TIMING } from "./constants.ts";
 import { session } from "./lib/storage.ts";
 import { askUrl, root } from "./page.ts";

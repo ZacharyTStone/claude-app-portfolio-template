@@ -1,9 +1,10 @@
 /* What's sent into a thread, and the reply it gets: the site's own answers,
    copied from the page (a thread's, the one /ask picked, or "Something
-   else"), or /ask's reply when it sent one (src/shared/ask.ts). */
-import { isCitedLines, isQuestionToOwner, isReplyText } from "../shared/ask.ts";
-import { ID } from "../shared/config.ts";
-import { DATA, PAGE_CLASSES } from "../shared/page-data.ts";
+   else"), or /ask's reply when it sent one (src/contracts/ask.ts). */
+import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.ts";
+import { ID } from "../config/language.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { restStill } from "./play.ts";

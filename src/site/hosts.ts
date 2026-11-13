@@ -1,9 +1,9 @@
-/* How each host gets the security headers (src/shared/headers.ts): as a
+/* How each host gets the security headers (src/site/security-headers.ts): as a
    _headers file beside the pages where the host reads one, and otherwise
    as much as a page can carry, in <meta> tags. */
 
-import type { Host } from "../shared/config.ts";
-import { contentSecurityPolicy, frameOrigins, securityHeaders, type PolicyOptions } from "../shared/headers.ts";
+import type { Host } from "../config/site-config.ts";
+import { contentSecurityPolicy, frameOrigins, securityHeaders, type PolicyOptions } from "./security-headers.ts";
 import type { Site } from "./site.ts";
 
 /** Hosts that read a _headers file from the folder they publish. */

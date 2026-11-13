@@ -3,8 +3,10 @@
    that shows the tabs on a phone, then the slot (a tab's title), then the
    actions, the panel toggle first (a tab's share button goes after it, in
    the "actions" slot). Styles: src/styles/thread.css. */
-import type { Strings } from "../shared/config.ts";
-import { DATA, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import type { Strings } from "../config/strings.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { flag } from "./attributes.ts";
 
 interface Props {

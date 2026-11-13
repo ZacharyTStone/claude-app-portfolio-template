@@ -1,5 +1,5 @@
 /* The question card, and Ask (stood in for here): what a reply is made of
-   is src/shared/ask.ts's contract. */
+   is src/contracts/ask.ts's contract. */
 import assert from "node:assert/strict";
 import type { Page, Request } from "playwright";
 import {
@@ -8,7 +8,7 @@ import {
   personalAnswerId,
   threadAnswerId,
   type AskRequest,
-} from "../../../src/shared/ask.ts";
+} from "../../../src/contracts/ask.ts";
 import {
   askIn,
   askInNewChat,
@@ -26,7 +26,8 @@ import {
   type Check,
   type Reply,
 } from "../helpers.ts";
-import { DATA, ID_PREFIX, personalTab } from "../../../src/shared/page-data.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
+import { ID_PREFIX, personalTab } from "../../../src/contracts/page-ids.ts";
 import { CLASS, ID, type Site } from "../site.ts";
 
 // A reply as /ask might send it. What looks like a tag in it must stay text.

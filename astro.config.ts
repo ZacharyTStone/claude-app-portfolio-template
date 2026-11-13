@@ -1,11 +1,11 @@
 /* Astro builds the site from site.config.ts (or the file SITE_CONFIG names)
    into dist/: static HTML with no script but the site's own and nothing
-   inline, so the Content-Security-Policy in src/shared/headers.ts holds. */
+   inline, so the Content-Security-Policy in src/site/security-headers.ts holds. */
 import { defineConfig } from "astro/config";
 import { checkConfig } from "./src/integrations/check-config.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
 import { loadSiteConfig } from "./src/integrations/site-config.ts";
-import { basePath } from "./src/shared/url.ts";
+import { basePath } from "./src/site/url.ts";
 
 const { fileName, filePath, config } = await loadSiteConfig();
 

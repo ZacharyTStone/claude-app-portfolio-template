@@ -4,7 +4,7 @@
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
-import type { SiteConfig } from "../shared/config.ts";
+import type { SiteConfig } from "../config/site-config.ts";
 import { makeSite } from "../site/site.ts";
 import { iconsIn, readStylesheet, STYLES_FOLDER } from "../site/stylesheet.ts";
 import { validate } from "../site/validate.ts";

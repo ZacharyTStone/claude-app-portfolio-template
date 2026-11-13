@@ -3,10 +3,10 @@
 
    `npm run dev` shows the site as you edit, and the build stops with a
    clear message if something here points at a thread that doesn't exist.
-   Every field is documented in src/shared/config.ts (SiteConfig), so your
+   Every field is documented in src/config/site-config.ts (SiteConfig), so your
    editor completes and checks this file as you type; the blocks an answer
    can hold (cards, bars, flows, pictures, quotes…) are in
-   src/shared/content.ts.
+   src/config/blocks.ts.
 
    - A thread's `id` is its address (#about). The sidebar, the panel, the
      question card and links in answers name threads by id.
@@ -22,7 +22,7 @@
      in a frame, instead of a new tab: a resume in Google Docs, say. The
      sample has none; there's one to uncomment under `ask`.
    - To add a language, see examples/ja.ts. */
-import type { SiteConfig } from "./src/shared/config.ts";
+import type { SiteConfig } from "./src/config/site-config.ts";
 
 /* Facts that appear in many places, written once. Sentences are written
    out in full below, so read them through after changing a fact. */

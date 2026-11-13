@@ -12,7 +12,7 @@
    A chat's copy of an answer has a button of its own, which works the
    same: the presses are heard on the document, and the copy starts at
    rest (restStill). */
-import { DATA } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { CLASS, SELECTOR, TIMING } from "./constants.ts";
 import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
 import { words } from "./page.ts";

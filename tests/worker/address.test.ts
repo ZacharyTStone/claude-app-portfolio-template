@@ -5,7 +5,7 @@
    typed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/shared/ask.ts";
+import { MAX_QUESTION_LENGTH, isQuestionToOwner } from "../../src/contracts/ask.ts";
 import { addressToOwner, addressesOwnerIn, checkAddressed, type Addressing } from "../../src/worker/ask/address.ts";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import {

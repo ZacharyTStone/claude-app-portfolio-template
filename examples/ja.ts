@@ -11,7 +11,7 @@
    works the same way: copy this file and translate it. It needs the same
    thread ids, as many answers in each, and the same personal answers and
    home prompts, in the same order; the build says if it doesn't. */
-import type { Language } from "../src/shared/config.ts";
+import type { Language } from "../src/config/language.ts";
 import type { Me } from "../site.config.ts";
 
 /** The facts as Japanese writes them. The rest come from `me`. */

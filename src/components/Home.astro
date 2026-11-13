@@ -5,8 +5,11 @@
    drawn from the language's `home` in the config, and the question card's
    own question and "send" (so the box and the card say the same).
    Styles: src/styles/greeting.css (the greeting) and home.css. */
-import { MAX_QUESTION_LENGTH } from "../shared/ask.ts";
-import { DATA, HOURS, PAGE_CLASSES, PAGE_IDS, type GreetingPart } from "../shared/page-data.ts";
+import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import Inline from "./Inline.astro";
 import Topbar from "./Topbar.astro";

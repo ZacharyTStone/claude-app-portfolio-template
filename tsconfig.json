@@ -17,6 +17,8 @@
     "src/site",
     "src/integrations",
     "src/shared",
+    "src/config",
+    "src/contracts",
     "scripts",
     "diagrams",
     "tests"

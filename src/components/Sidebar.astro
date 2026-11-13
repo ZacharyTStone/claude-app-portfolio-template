@@ -3,7 +3,9 @@
    the top, the groups of tabs, and the account row at the bottom
    (Account.astro). It's drawn from the language's `sidebar` in the config.
    Styles: src/styles/sidebar.css, and narrow.css where it's a drawer. */
-import { DATA, groupId, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { groupId, PAGE_IDS } from "../contracts/page-ids.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import type { Page } from "../site/site.ts";
 import Account from "./Account.astro";
 import { flag } from "./attributes.ts";

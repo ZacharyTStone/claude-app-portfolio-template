@@ -1,7 +1,7 @@
 /* Renaming a tab: its title (or Rename in its menus) becomes a box to type
    a new name in, shown on its sidebar row too and remembered per browser
    and language. A chat keeps its own name (chats.ts). */
-import { isRecord, isString } from "../shared/guards.ts";
+import { isRecord, isString } from "../contracts/guards.ts";
 import { CLASS, SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { find, isComposing, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";

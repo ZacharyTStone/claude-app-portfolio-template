@@ -5,8 +5,10 @@
    (Asked.astro), which the script copies for each chat and personal
    answer. Styles: src/styles/thread.css, and composer.css for the
    composer. */
-import type { Pill } from "../shared/config.ts";
-import { DATA, PAGE_CLASSES, PAGE_IDS, titleId } from "../shared/page-data.ts";
+import type { Pill } from "../config/language.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS, titleId } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Topbar from "./Topbar.astro";

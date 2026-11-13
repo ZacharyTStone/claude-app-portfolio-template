@@ -2,7 +2,7 @@
    app it's laid out like. No module changes the page as it loads (they only
    find elements and read what's saved); it all starts here, at "The start"
    below, in an order whose reasons are written beside each step. */
-import { PAGE_IDS } from "../shared/page-data.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
 import { find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccount } from "./account.ts";

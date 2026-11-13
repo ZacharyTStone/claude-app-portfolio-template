@@ -16,7 +16,7 @@
    (`npx playwright install chromium`); nothing else. */
 import { chromium } from "playwright";
 import config from "../../site.config.ts";
-import { basePath } from "../../src/shared/url.ts";
+import { basePath } from "../../src/site/url.ts";
 import { ROOT } from "../../src/site/constants.ts";
 import ask from "./checks/ask.ts";
 import chats from "./checks/chats.ts";

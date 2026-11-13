@@ -31,7 +31,7 @@
    It's asked once. A rewrite that fails the check, comes too late or not
    at all, or changes nothing leaves the question as it was typed
    (handler.ts sends no `toOwner`). */
-import { isQuestionToOwner } from "../../shared/ask.ts";
+import { isQuestionToOwner } from "../../contracts/ask.ts";
 import { ADDRESS_TIMEOUT_MS, MAX_ADDRESS_TOKENS } from "../constants.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { ranOutOfRoom } from "./pick.ts";

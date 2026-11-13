@@ -4,7 +4,7 @@
    that doesn't is not shown (handler.ts): it would read as a "no" the site
    never said. */
 
-import type { AskAnswer } from "../../shared/ask.ts";
+import type { AskAnswer } from "../../contracts/ask.ts";
 
 // Words that start a question, or are capitalised in one, without naming
 // anything the answer has to have.

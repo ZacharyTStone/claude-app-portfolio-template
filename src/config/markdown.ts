@@ -1,11 +1,14 @@
-/* The config's little Markdown (content.ts's Markdown), read one way by
+/* The config's little Markdown, read one way by
    everything that reads it: the pages (Inline.astro), the browser
    (src/app/lib/markdown.ts), ask.json and llms.txt, and the config's checks.
    It is read into pieces (Span), never into HTML: each side makes its own
    elements or text from the pieces, so no markup in the config's text can
    reach a page. */
 
-import type { Markdown } from "./content.ts";
+/** Text with a little Markdown: **bold**, *italic*, `code`
+    and [links](#thread, https://…, mailto:… or /a/file/on/the/site). Never
+    HTML. */
+export type Markdown = string;
 
 /** A piece of a line: words, `code`, or **bold**, *italic* or a
     [link](href), which can hold the other pieces. */
@@ -67,15 +70,3 @@ const hrefsOf = (pieces: Span[]): string[] =>
     if (typeof piece === "string" || piece.type === "code") return [];
     return piece.type === "link" ? [piece.href, ...hrefsOf(piece.spans)] : hrefsOf(piece.spans);
   });
-
-/** A link to another site (an http: or https: address) opens in a new
-    tab, and tells that site nothing about this one. These are the
-    attributes for it, to spread onto the link; none for any other link. */
-export const external = (href: string): { target?: string; rel?: string } =>
-  /^https?:/i.test(href) ? { target: "_blank", rel: "noopener noreferrer" } : {};
-
-/** Whether the browser follows a link in the text it shows (a personal
-    answer, the script's words): a #tab, a web or a mailto address. It
-    doesn't know the site's path, so it can't link to a file on the site;
-    any other link is shown as its words. */
-export const browserFollows = (href: string): boolean => /^(#|https?:|mailto:)/i.test(href);

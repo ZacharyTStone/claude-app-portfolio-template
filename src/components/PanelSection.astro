@@ -3,8 +3,8 @@
    the slot. The heading's id is what the script remembers the section's
    place and fold by, so it's made from the section's name in the config
    (panelId). Styles: src/styles/panel.css. */
-import type { Panel } from "../shared/config.ts";
-import { panelId } from "../shared/page-data.ts";
+import type { Panel } from "../config/language.ts";
+import { panelId } from "../contracts/page-ids.ts";
 
 interface Props {
   /** Which of the config's panel sections this is: "progress", "outputs"

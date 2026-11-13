@@ -3,7 +3,7 @@
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
 import { SIZE, TIMING } from "../../../src/app/constants.ts";
-import { DATA } from "../../../src/shared/page-data.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
 import { attributeOfEach, desktop, revisit, shell, type Check } from "../helpers.ts";
 import { CLASS, ID, PANEL_SECTIONS, type Site } from "../site.ts";
 

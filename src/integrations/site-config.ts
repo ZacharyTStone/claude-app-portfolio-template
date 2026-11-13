@@ -3,7 +3,7 @@
    tests do to build a sample site (tests/sample-site.test.ts). */
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
-import type { SiteConfig } from "../shared/config.ts";
+import type { SiteConfig } from "../config/site-config.ts";
 import { ROOT } from "../site/constants.ts";
 
 /** The environment variable that names another config to build. */

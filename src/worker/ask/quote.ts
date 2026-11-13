@@ -9,8 +9,8 @@
    A sentence that opens by pointing back at the one before it ("It shipped
    with no downtime.") doesn't: it's quoted with that sentence, or not at
    all (`neededFor`). */
-import { isLabel, isReplyText, MAX_REPLY_LENGTH } from "../../shared/ask.ts";
-import { isArrayOf, isCount } from "../../shared/guards.ts";
+import { isLabel, isReplyText, MAX_REPLY_LENGTH } from "../../contracts/ask.ts";
+import { isArrayOf, isCount } from "../../contracts/guards.ts";
 import { MAX_QUOTED_LINES } from "../constants.ts";
 
 /** Why a quote asked for wasn't sent: the numbers aren't a list of at most

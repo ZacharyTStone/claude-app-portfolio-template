@@ -3,7 +3,7 @@
    in for here: the checks never use the network. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import { DATA } from "../../../src/shared/page-data.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
 import { desktop, eventually, hasFocus, iPhone, type Check, type PageElement } from "../helpers.ts";
 import { CLASS, ID, type Site, type ViewerLink } from "../site.ts";
 

@@ -1,7 +1,7 @@
 /* The sidebar: on a phone, a drawer; on wider screens it can be hidden and
    resized. Arrow keys move between its rows. */
 import { clamp } from "es-toolkit";
-import { PAGE_IDS } from "../shared/page-data.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { CLASS, SELECTOR, SIZE, STORAGE } from "./constants.ts";
 import { byId, find, findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";

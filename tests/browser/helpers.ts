@@ -4,9 +4,11 @@
    stood in for, and what a visitor does in more than one file of checks. */
 import { setTimeout as sleep } from "node:timers/promises";
 import { devices, type BrowserContextOptions, type Locator, type Page, type Request } from "playwright";
-import type { AskResponse } from "../../src/shared/ask.ts";
-import { plainText } from "../../src/shared/markdown.ts";
-import { CHATS_GROUP, DATA, groupId, SEPARATOR } from "../../src/shared/page-data.ts";
+import type { AskResponse } from "../../src/contracts/ask.ts";
+import { plainText } from "../../src/config/markdown.ts";
+import { CHATS_GROUP, groupId } from "../../src/contracts/page-ids.ts";
+import { DATA } from "../../src/contracts/page-attributes.ts";
+import { SEPARATOR } from "../../src/app/constants.ts";
 import { CLASS, ID, tabIdOf, type Site } from "./site.ts";
 
 // ---- A check -----------------------------------------------------------------------------

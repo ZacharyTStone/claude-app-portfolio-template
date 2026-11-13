@@ -3,11 +3,14 @@
    the details panel). Every tab is in the page, so it all works without
    JavaScript; the script adds the rest. It hands the script what it needs
    in three places: its wording as data-* attributes on <html>, the
-   question card as JSON, and the names in src/shared/page-data.ts.
+   question card as JSON, and the names in src/contracts.
    Styles: src/styles/layout.css (the columns). */
 import Document from "../layouts/Document.astro";
-import { ASK_PATH } from "../shared/ask.ts";
-import { ALL_SCRIPT_STRINGS, DATA, dataAttribute, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { ASK_PATH } from "../contracts/ask.ts";
+import { ALL_SCRIPT_STRINGS, dataAttribute } from "../config/strings.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { site } from "../site/current.ts";
 import { scriptJson } from "../site/script-json.ts";
 import { makePage } from "../site/site.ts";

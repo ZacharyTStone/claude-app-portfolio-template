@@ -3,7 +3,7 @@
    tests need no network or account. */
 import assert from "node:assert/strict";
 import { mock } from "node:test";
-import type { AskAnswer, AskIndex } from "../../src/shared/ask.ts";
+import type { AskAnswer, AskIndex } from "../../src/contracts/ask.ts";
 import {
   ASK_GUARD_PATH,
   ASK_GUARD_REPLY,

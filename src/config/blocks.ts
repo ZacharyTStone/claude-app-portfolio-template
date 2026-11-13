@@ -14,10 +14,7 @@
          { link: { name: "Resume", kind: "PDF", href: "/assets/resume.pdf", icon: "file" } },
        ] */
 
-/** Text with a little Markdown (markdown.ts): **bold**, *italic*, `code`
-    and [links](#thread, https://…, mailto:… or /a/file/on/the/site). Never
-    HTML. */
-export type Markdown = string;
+import type { Markdown } from "./markdown.ts";
 
 // ---- File cards ----------------------------------------------------------------
 

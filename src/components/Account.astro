@@ -6,9 +6,11 @@
    opens it, tells the time and shows the goodbye, all from the wording the
    clock and "Log out" carry as data-* attributes.
    Styles: src/styles/sidebar.css (the row) and menus.css (the menu). */
-import { CLOCK_MOODS } from "../shared/config.ts";
-import { DATA, LOCAL_ZONE, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
-import { external } from "../shared/markdown.ts";
+import { CLOCK_MOODS } from "../config/language.ts";
+import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { external } from "../contracts/links.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Logo from "./Logo.astro";

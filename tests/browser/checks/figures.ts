@@ -6,7 +6,7 @@
    comes in once it's scrolled to. */
 import assert from "node:assert/strict";
 import type { Locator, Page } from "playwright";
-import { DATA } from "../../../src/shared/page-data.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
 import {
   askInNewChat,
   askReturns,

@@ -3,7 +3,7 @@
    questions most of them ask (is this a thread, is this an icon, is this
    link safe to follow). */
 
-import type { Language } from "../../shared/config.ts";
+import type { Language } from "../../config/language.ts";
 import { LOGOS } from "../../components/logos.ts";
 import type { Site } from "../site.ts";
 import { isSafeHref } from "./shapes.ts";

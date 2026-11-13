@@ -1,8 +1,9 @@
 /* The question card, over the composer of the tab you're in: topics that
    open a tab (or first ask which), and a box for a question of your own.
    In a chat a choice is sent as a message; elsewhere it opens its tab. */
-import { MAX_QUESTION_LENGTH } from "../shared/ask.ts";
-import { PAGE_IDS, personalTab, type Topic } from "../shared/page-data.ts";
+import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
+import { PAGE_IDS, personalTab } from "../contracts/page-ids.ts";
+import { type Topic } from "../config/question-card.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
 import { asButton, find, findAll, make, onEnter, parentOf } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";

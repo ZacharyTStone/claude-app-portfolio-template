@@ -1,8 +1,8 @@
 /* Sending into a thread: the visitor's message, the "thinking" line, then
    the reply, a message at a time. In the portfolio's own threads that lasts
    until another tab is opened; in a chat it's kept (chats.ts). */
-import type { AskResponse } from "../shared/ask.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import type { AskResponse } from "../contracts/ask.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { find, make } from "./lib/dom.ts";
 import { pause, scrollToTop } from "./lib/motion.ts";

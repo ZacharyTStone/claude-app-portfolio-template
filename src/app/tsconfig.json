@@ -5,5 +5,5 @@
     "lib": ["es2023", "dom", "dom.iterable"],
     "types": []
   },
-  "include": [".", "../shared"]
+  "include": [".", "../config", "../contracts"]
 }
