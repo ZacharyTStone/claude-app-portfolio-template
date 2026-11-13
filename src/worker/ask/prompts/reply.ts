@@ -4,16 +4,11 @@ import type { CheckedLanguage, Sources } from "../checks/grounded.ts";
 import type { Message } from "../model.ts";
 import { NONE, firstName, languageName } from "./wording.ts";
 
-/** What a reply is written for and from: the lines that answer the
-    question, with their tab and the site's own question (Sources), and: */
 export type Writing = Sources & {
-  /** The visitor's question, as they typed it. */
   question: string;
-  /** The language to write in: the page's. */
   lang: CheckedLanguage;
-  /** Whose site it is. */
   name: string;
-  /** Who they are, in a few words ("a software engineer"). */
+  /** "a software engineer" */
   role: string;
 };
 
@@ -43,18 +38,16 @@ function instructions({ name, role, title, q, lines, lang }: Writing): string {
   ].join(" ");
 }
 
-/** What the writer is sent first: its instructions, then the question as
-    the visitor's, so nothing in the question is among them. */
+/** The question goes as the visitor's message, so nothing in it is among
+    the instructions. */
 export const askForReply = (writing: Writing): Message[] => [
   { role: "system", content: instructions(writing) },
   { role: "user", content: writing.question },
 ];
 
-/** Why what the model wrote may not be the reply:
-    - long: it's longer than a sentence or two, isn't one line of text the
-      page can show, or was cut off;
-    - words: it has names, numbers or addresses its sources don't
-      (`unsourced`). */
+/** Why what the model wrote may not be the reply: it's longer than a
+    sentence or two, isn't one line the page can show, or was cut off
+    (`long`); or it has what its sources don't (`words`). */
 export type Failure = { why: "long" } | { why: "words"; unsourced: string[] };
 
 function correction(failure: Failure): string {
@@ -62,8 +55,6 @@ function correction(failure: Failure): string {
   return `The lines don't have: ${failure.unsourced.join(", ")}. Write it again with only the names and numbers the lines have.`;
 }
 
-/** What is added to the conversation to ask again: what the model wrote,
-    and what was wrong with it. */
 export const askAgainAfter = (written: string, failure: Failure): Message[] => [
   { role: "assistant", content: written },
   { role: "user", content: correction(failure) },

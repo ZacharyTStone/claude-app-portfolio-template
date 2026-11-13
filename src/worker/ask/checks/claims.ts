@@ -13,14 +13,10 @@ import {
 } from "../text/words.ts";
 
 /** One thing a reply says that has to be its sources', as the reply wrote
-    it (`text`):
-    - address: an email, a handle or a link, whole;
-    - number: in digits ("2,350", the 2 of "N2") or written out ("ten");
-    - site: a word in lower case with a dot inside it ("example.com");
-    - name: a word that names something, or several joined by a dot
-      (`names` has each: "Node" of "Node.js").
-    All but an address are a part of `word`, the word of the reply they're
-    in ("US" of "US-based"). */
+    it (`text`): an email, a handle or a link, whole; a number in digits or
+    written out; a site ("example.com"); or a name, or several joined by a
+    dot (`names`: "Node" of "Node.js"). All but an address are a part of
+    `word`, the word of the reply they're in ("US" of "US-based"). */
 export type Claim =
   | { kind: "address"; text: string }
   | { kind: "number"; text: string; word: string }

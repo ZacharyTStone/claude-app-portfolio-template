@@ -23,18 +23,10 @@ export type CheckedLanguage = keyof typeof READS;
 
 export const isCheckedLanguage = (lang: string): lang is CheckedLanguage => Object.hasOwn(READS, lang);
 
-/** What a reply's names, numbers and addresses may come from. What the
-    visitor typed is never one of them. */
-export type Sources = {
-  /** The lines it's written from. */
-  lines: string;
-  /** The name of the tab they're in. */
-  title: string;
-  /** The site's own question they answer. */
-  q: string;
-  /** The owner's names, in every way the page writes them. */
-  owner: string;
-};
+/** What a reply's names, numbers and addresses may come from: the lines
+    it's written from, their tab's name, the site's own question over them,
+    and the owner's names. What the visitor typed is never one of them. */
+export type Sources = { lines: string; title: string; q: string; owner: string };
 
 /** The reply as it may be shown; or, when it may not be, what it claims
     that its sources don't have, as it wrote it: for the log, and for asking

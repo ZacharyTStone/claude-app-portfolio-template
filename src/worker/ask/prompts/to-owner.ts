@@ -4,14 +4,11 @@
 import type { Message } from "../model.ts";
 import { firstName, languageName } from "./wording.ts";
 
-/** How a language says a question about someone, and to them, as the model
-    is told it. */
+/** How a language says a question about someone and to them, as the model
+    is told it: the words that stand for them each way, and examples. */
 type SaidToSomeone = {
-  /** The words that stand for them in a question about them. */
   about: string;
-  /** The words that stand for them in a question to them. */
   to: string;
-  /** Questions said both ways, given their first name. */
   examples: (first: string) => [about: string, to: string][];
 };
 
@@ -36,13 +33,10 @@ export type RewrittenLanguage = keyof typeof SAID_TO_SOMEONE;
 
 export const isRewrittenLanguage = (lang: string): lang is RewrittenLanguage => Object.hasOwn(SAID_TO_SOMEONE, lang);
 
-/** What a question is said to the owner from. */
 export type Rewriting = {
-  /** The visitor's question, as they typed it. */
   question: string;
-  /** The page's language. */
   lang: RewrittenLanguage;
-  /** Whose site it is, as the page's language writes their name. */
+  /** As the page's language writes it. */
   name: string;
   /** Their names, in every way the page writes them: a question may use
       any of them, and a rewrite leaves them out. */
@@ -66,8 +60,6 @@ function instructions({ name, lang }: Rewriting): string {
   ].join(" ");
 }
 
-/** What the model is sent: its instructions, then the question as the
-    visitor's, so nothing in the question is among them. */
 export const askForRewrite = (rewriting: Rewriting): Message[] => [
   { role: "system", content: instructions(rewriting) },
   { role: "user", content: rewriting.question },
