@@ -1,6 +1,7 @@
 /* What a visitor does in more than one file of checks. */
-import type { Page } from "@playwright/test";
-import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
+import type { Locator, Page } from "@playwright/test";
+import { CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
+import { tabIdOf } from "./site.ts";
 
 /** A new visit to `url`: a fresh page load, but not a refresh, which ends
     the visit's chats. */
@@ -17,4 +18,23 @@ export async function renameTab(page: Page, tabId: string, name: string): Promis
   if (name) await page.keyboard.type(name);
   else await page.keyboard.press("Backspace");
   await page.keyboard.press("Enter");
+}
+
+/** The question card's first choice that opens a tab, after opening the
+    first topic when that asks which first. */
+export async function firstTabChoice(page: Page): Promise<Locator> {
+  const firstChoice = page.locator(`${ID.questionCard} ${CLASS.options} li > *`).first();
+  // A choice that links to a tab opens it. One that doesn't is a topic: it
+  // lists its own choices in the card, so the first is looked at again.
+  while (!(await firstChoice.getAttribute("href"))) await firstChoice.click();
+  return firstChoice;
+}
+
+/** Picks the question card's first choice that opens a tab, and says which
+    tab that is. */
+export async function pickFirstTab(page: Page): Promise<string> {
+  const choice = await firstTabChoice(page);
+  const tabId = tabIdOf(await choice.getAttribute("href"));
+  await choice.click();
+  return tabId;
 }
