@@ -9,4 +9,4 @@
 - [ ] If I changed Japanese text: ran `npm run build`, `npm run fonts`, and committed the fonts
 - [ ] Nothing inline and no HTML from strings (the CSP and Trusted Types depend on it)
 - [ ] Still works with JavaScript off, and on a phone
-- [ ] No real personal data in the sample, and none in the shared code (`SHARED` in `scripts/template.ts`)
+- [ ] No real personal data in the sample, and none in the shared code (the `shared` list in `scripts/shared-files.json`)

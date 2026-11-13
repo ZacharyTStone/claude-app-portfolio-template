@@ -21,8 +21,8 @@ config field or a browser check.
 
 ## The shared code
 
-The template is the one source of the files in `SHARED`
-(`scripts/template.ts`). Every site made from it takes them, byte for
+The template is the one source of the files in the `shared` list of
+`scripts/shared-files.json`. Every site made from it takes them, byte for
 byte, with `npm run update-template`, and nothing comes back the other
 way. So a change to one of them here reaches each site at its next update,
 and replaces what that site had there:
@@ -47,18 +47,18 @@ npm run dev                       # the site at localhost:4321
 npm run verify                    # everything CI runs, in order
 ```
 
-`npm run verify` stops at the first step that fails and names the command
-to rerun. Then, for what you touched:
+`npm run verify` stops at the first step that fails. Then, for what you
+touched:
 
 - Anything a visitor sees: look at it at phone width too, and with
   JavaScript off.
 - Anything a second language affects: add `examples/ja.ts` as the
-  [README](../README.md#guides) says. Cutting its fonts needs Python with
-  `pip install fonttools brotli`.
+  [README](../README.md#guides) says, and cut its fonts as
+  [Languages and fonts](../docs/languages.md#japanese-fonts) says.
 - What a host gets: set `host` to it, and run `npm run build` and
   `npm test`.
 - Ask: turn it on as [Ask](../docs/ask.md#turning-it-on) says, and try it
-  with `npx wrangler dev`.
+  with `npm run wrangler -- dev`.
 - What a guide describes: change the guide. `npm test` fails while a guide
   names a file or an npm script that isn't there.
 

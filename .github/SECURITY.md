@@ -8,8 +8,8 @@ it. With Ask off there is no server code at all. The optional Ask Worker
 answers and a sentence or two a model wrote from its lines, with those
 lines to quote under it, within the limits in `wrangler.jsonc`. The
 Worker checks the reply's names, numbers and addresses against the lines
-(`src/worker/ask/grounded.ts`); its ordinary words are the model's, and
-are not checked. [Security](../docs/security.md) has each protection.
+(`src/worker/ask/checks/grounded.ts`); its ordinary words are the
+model's, and are not checked. [Security](../docs/security.md) has each protection.
 
 If you find a way around any of that (markup injection through the
 config, a CSP bypass, a frame from a site `viewer` doesn't name, a header
@@ -21,11 +21,12 @@ limits), please report it.
 
 Every site made from this template takes its code from this repository's
 main branch, with `npm run update-template`. An update replaces the site's
-shared files (`SHARED` in `scripts/template.ts`), `package.json` and the
-CI workflow among them, and runs this repository's `scripts/template.ts`
-to read that list. Nothing goes the other way: no site pushes to the
-template. So every site that updates trusts this repository's main branch,
-and these are in scope too:
+shared files (the `shared` list in `scripts/shared-files.json`),
+`package.json` and the CI workflow among them. It reads that list as data
+and runs none of this repository's code, but an update trusts the template
+commit it prints: its code runs on `npm ci` and in your Actions. Updates
+go one way, from the template to each site. So every site that updates
+trusts this repository's main branch, and these are in scope too:
 
 - a way to get a change onto main without review;
 - a way to make an update write or delete a file outside the shared list,

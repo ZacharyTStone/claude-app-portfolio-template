@@ -17,8 +17,7 @@ the lines it answered from.
 ## Quick start
 
 1. Click **Use this template** on GitHub, and clone your copy.
-2. Install and run it. It needs Node, at the version in `.node-version` or
-   later:
+2. Install and run it. It needs Node 24 (the version in `.node-version`):
 
    ```sh
    npm ci
@@ -38,8 +37,8 @@ the lines it answered from.
    npm run build
    ```
 
-   It stops, and names the row, if something points at a tab that isn't
-   there.
+   It names a field that is misspelt, and stops, naming the row, if
+   something points at a tab that isn't there.
 
 Then go through [Make it yours](#make-it-yours), and
 [put it online](docs/deploy.md).
@@ -83,7 +82,11 @@ A copy starts as the sample person, Alex Example. Replace or remove:
 
 ## Guides
 
-The guides are in `docs/`, and update with the code they describe.
+The guides are in `docs/`, and update with the code they describe. An
+update (`npm run update-template`) replaces the code your site shares
+with the template, the guides and `AGENTS.md` among it, and never touches
+your config, README, pictures, diagrams or `src/styles/site.css`:
+[Updating](docs/updating.md) has the list.
 
 | To… | Read |
 | --- | --- |
@@ -114,8 +117,9 @@ Two of the sample's files are written to be copied:
 | `npm run dev` | The site at localhost:4321, rebuilt as you edit |
 | `npm run build` | Checks `site.config.ts`, then builds the site into `dist/` |
 | `npm run preview` | Serves `dist/` as built |
+| `npm run deploy` | Deploys to Cloudflare ([Deploying](docs/deploy.md)) |
 | `npm run format` | Formats the code with Prettier |
-| `npm run verify` | Everything CI checks: formatting, types, the build, the HTML, the unit tests, the fonts and the pages in a browser |
+| `npm run verify` | Everything CI checks: formatting, ESLint, unused code, types, the build and the unit tests, the HTML, the fonts and the pages in a browser |
 | `npm run update-template` | Takes the template's latest shared code |
 
 CI runs `npm run verify` on every pull request and every push to `main`.
@@ -127,8 +131,8 @@ npx playwright install chromium
 npm run verify
 ```
 
-It stops at the first failing step and names the command to rerun.
-Formatting is a step: `npm run format` fixes it.
+It stops at the first failing step. Formatting is a step:
+`npm run format` fixes it.
 
 ## Why Astro
 
