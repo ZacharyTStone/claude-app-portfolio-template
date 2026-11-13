@@ -7,12 +7,24 @@
 
      ja: japanese(me),
 
-   then follow "Languages and fonts" in README.md. A language of your own
-   works the same way: copy this file and translate it. It needs the same
-   thread ids, as many answers in each, and the same personal answers and
-   home prompts, in the same order; the build says if it doesn't. */
+   then follow docs/languages.md. A language of your own works the same
+   way: copy this file and translate it. It needs the same thread ids, as
+   many answers in each, and the same personal answers and home prompts,
+   in the same order; the build says if it doesn't. */
 import type { Language } from "../src/config/language.ts";
-import type { Me } from "../site.config.ts";
+
+/** The facts this page takes from site.config.ts's `me`. They are spelt
+    out here, not imported, so that a config whose `me` has changed shape
+    still type-checks until it asks for this page. */
+type SampleFacts = {
+  first: string;
+  email: string;
+  github: string;
+  linkedin: string;
+  resume: string;
+  jobs: { acme: { company: string }; globex: { company: string } };
+  project: { name: string; site: string; href: string };
+};
 
 /** The facts as Japanese writes them. The rest come from `me`. */
 const ja = {
@@ -24,7 +36,7 @@ const ja = {
   years: { acme: "2024年〜現在", globex: "2021年〜2024年" },
 };
 
-export default function japanese(me: Me): Language {
+export default function japanese(me: SampleFacts): Language {
   const { acme, globex } = me.jobs;
   return {
     label: "日本語",
