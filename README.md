@@ -3,7 +3,7 @@
 A portfolio laid out like the Claude app: a sidebar of tabs, each a short
 conversation about you.
 
-![The sample site's home screen: a sidebar of tabs, a greeting, a box to type a question in, and a details panel](docs/screenshots/home.png)
+![The sample site's home screen: a sidebar of tabs, a greeting, a box to type a question in, and a details panel](.github/screenshots/home.png)
 
 Everything the site says is in one file, `site.config.ts`. Astro builds it
 into static HTML and CSS that work with JavaScript off, plus one small
@@ -41,11 +41,11 @@ own answers, and quotes the lines it answered from.
 Nothing built is committed. Your host runs `npm run build` and serves
 `dist/`.
 
-More: [a thread with a figure](docs/screenshots/figure.png),
-[the question card](docs/screenshots/question-card.png),
-["Something else"](docs/screenshots/something-else.png),
-[on a phone](docs/screenshots/phone.png),
-[in Japanese](docs/screenshots/japanese.png).
+More: [a thread with a figure](.github/screenshots/figure.png),
+[the question card](.github/screenshots/question-card.png),
+["Something else"](.github/screenshots/something-else.png),
+[on a phone](.github/screenshots/phone.png),
+[in Japanese](.github/screenshots/japanese.png).
 
 ## Make it yours
 
