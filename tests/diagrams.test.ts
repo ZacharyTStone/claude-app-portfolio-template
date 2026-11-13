@@ -23,7 +23,6 @@ import {
   moving,
   onlyWhenMoving,
   placed,
-  PLAYS_ATTRIBUTE,
   sizeToFit,
   svgOf,
   textWidth,
@@ -32,7 +31,8 @@ import {
 } from "../scripts/diagram.ts";
 import { diagramFiles, staleDiagramFiles } from "../scripts/diagrams.ts";
 import { ROOT } from "../src/site/repo.ts";
-import { PLAYS_ATTRIBUTE as PLAYS_ATTRIBUTE_THE_PAGE_READS, secondsPlayed } from "../src/site/pictures.ts";
+import { PLAYS_ATTRIBUTE } from "../src/contracts/picture-files.ts";
+import { secondsPlayed } from "../src/site/pictures.ts";
 import { answerBlocksIn, picturesIn } from "../src/config/blocks.ts";
 
 /** Every file the diagrams make: its path from the repo's root, and its text. */
@@ -319,7 +319,6 @@ test("What pops, rises or glides into place rests there in the still picture", (
 });
 
 test("A picture that's played says for how long on its moving file, where the build reads it", () => {
-  assert.equal(PLAYS_ATTRIBUTE, PLAYS_ATTRIBUTE_THE_PAGE_READS, "the kit writes it where the build looks for it");
   const played: Drawing = { width: 100, height: 100, plays: 8.25, shapes: [aBox()] };
   assert.match(svgOf(played, "moving"), new RegExp(`^<svg [^>]* ${PLAYS_ATTRIBUTE}="8.25">`));
   assert.doesNotMatch(svgOf(played, "still"), new RegExp(PLAYS_ATTRIBUTE), "the still isn't played");

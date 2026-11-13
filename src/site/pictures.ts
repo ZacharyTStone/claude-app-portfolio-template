@@ -6,12 +6,7 @@
    not the config's. */
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-
-/** Where a moving picture's file says how long it plays, in seconds, on
-    its <svg>. The diagram kit writes it under the same name (its own
-    PLAYS_ATTRIBUTE: that file imports nothing, and
-    tests/diagrams.test.ts holds the two together). */
-export const PLAYS_ATTRIBUTE = "data-plays";
+import { PLAYS_ATTRIBUTE } from "../contracts/picture-files.ts";
 
 /** The folder whose files the site serves as they are, from where the
     build runs. */
