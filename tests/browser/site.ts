@@ -8,7 +8,8 @@
    site's content, so they run on any site.config.ts. */
 import type { Browser, Page } from "playwright";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
-import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/config/language.ts";
+import { CLOCK_MOODS, type ClockMood } from "../../src/config/language.ts";
+import { type Prompt } from "../../src/config/home.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } from "../../src/config/strings.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
