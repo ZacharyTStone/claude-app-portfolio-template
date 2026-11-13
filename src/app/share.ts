@@ -2,7 +2,8 @@
    elsewhere it, and the copy icon under each answer, copy the tab's link.
    A "Something else" reply's LinkedIn message has its own copy button. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, TIMING } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { closestFrom } from "./lib/dom.ts";
 import { words } from "./page.ts";
@@ -56,7 +57,7 @@ function resultInTooltip(button: HTMLElement): ShowCopyResult {
     label) and tries the share sheet first; a copy icon has none, and only
     copies. */
 export function wireCopy(button: HTMLElement, tab: HTMLElement): void {
-  const label = button.querySelector(SELECTOR.label);
+  const label = button.querySelector(CLASS_SELECTOR.label);
   const showCopyResult = label ? resultInLabel(label) : resultInTooltip(button);
   button.addEventListener("click", async () => {
     const url = tabLink(tab);
@@ -70,8 +71,8 @@ export function wireCopy(button: HTMLElement, tab: HTMLElement): void {
     listened for on the document, as each reply brings a button of its own. */
 export function initCopyDraft(): void {
   document.addEventListener("click", async (event) => {
-    const copyButton = closestFrom(event.target, SELECTOR.copyDraft);
-    const draft = copyButton?.closest(SELECTOR.draft)?.querySelector(SELECTOR.draftText);
+    const copyButton = closestFrom(event.target, ATTRIBUTE_SELECTOR.copyDraft);
+    const draft = copyButton?.closest(CLASS_SELECTOR.draft)?.querySelector(CLASS_SELECTOR.draftText);
     if (draft) sayCopied(await copyText(draft.textContent));
   });
 }

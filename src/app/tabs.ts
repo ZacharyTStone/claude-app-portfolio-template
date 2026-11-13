@@ -2,6 +2,7 @@
    is without JavaScript. This keeps the rest in step with it: the sidebar's
    current row, the window title and where focus is. */
 import { DATA } from "../contracts/page-attributes.ts";
+import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SEPARATOR, SELECTOR } from "./constants.ts";
 import { titleId } from "../contracts/page-ids.ts";
 import { clone, find } from "./lib/dom.ts";
@@ -11,7 +12,7 @@ import { homeGreeting, pageTitle, side, siteName } from "./page.ts";
 /** The tab the address names, if it names one. */
 export function currentTab(): HTMLElement | null {
   const named = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
-  return named?.matches(SELECTOR.tab) ? named : null;
+  return named?.matches(CLASS_SELECTOR.tab) ? named : null;
 }
 
 /** Whether a tab is a chat (chats.ts), not one of the portfolio's threads. */
@@ -26,7 +27,7 @@ export function copyTab(pattern: HTMLElement, id: string): HTMLElement {
   const tab = clone(pattern);
   tab.id = id;
   tab.setAttribute("aria-labelledby", titleId(id));
-  find(tab, SELECTOR.title).id = titleId(id);
+  find(tab, CLASS_SELECTOR.title).id = titleId(id);
   return tab;
 }
 
@@ -68,7 +69,7 @@ export function sync(moveFocus: boolean): void {
   const groupList = ownRow?.closest("ul");
   if (groupList?.hidden) unfold(groupList);
 
-  const heading = tab ? find(tab, SELECTOR.title) : homeGreeting;
+  const heading = tab ? find(tab, CLASS_SELECTOR.title) : homeGreeting;
   setTitle(tab ? heading.textContent : null);
   if (moveFocus) {
     // A heading takes focus only once it's told it can, and not by Tab.

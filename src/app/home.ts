@@ -2,6 +2,7 @@
    typed into the question card does; a question to start with comes with
    the answer the page names for it, so nothing is asked of /ask. */
 import { DATA } from "../contracts/page-attributes.ts";
+import { ATTRIBUTE_SELECTOR } from "../contracts/page-selectors.ts";
 import { SELECTOR } from "./constants.ts";
 import { newChat } from "./chats.ts";
 import { findAll, onEnter, query } from "./lib/dom.ts";
@@ -45,7 +46,7 @@ export function initHome(): void {
   if (!homeInput) return;
   onEnter(homeInput, sendTypedQuestion);
   query(document, SELECTOR.homeSend)?.addEventListener("click", sendTypedQuestion);
-  for (const starter of findAll(document, SELECTOR.prompt)) {
+  for (const starter of findAll(document, ATTRIBUTE_SELECTOR.prompt)) {
     const question = starter.textContent.trim();
     const answer = starter.getAttribute(DATA.prompt);
     if (question && answer) starter.addEventListener("click", () => askInNewChat({ question, answer }));

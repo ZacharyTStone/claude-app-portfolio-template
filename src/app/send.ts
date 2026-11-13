@@ -3,7 +3,8 @@
    until another tab is opened; in a chat it's kept (chats.ts). */
 import type { AskResponse } from "../contracts/ask.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { SIZE, TIMING } from "./constants.ts";
 import { find, make } from "./lib/dom.ts";
 import { pause, scrollToTop } from "./lib/motion.ts";
 import { ask } from "./ask.ts";
@@ -133,12 +134,12 @@ function add(turn: Turn, node: Element): void {
 
 // The question and the "thinking" line, in the thread.
 function begin(tab: HTMLElement, question: string): Turn {
-  const thread = find(tab, SELECTOR.thread);
-  thread.querySelector(`:scope > ${SELECTOR.chatHello}`)?.remove();
+  const thread = find(tab, CLASS_SELECTOR.thread);
+  thread.querySelector(`:scope > ${CLASS_SELECTOR.chatHello}`)?.remove();
   const turn: Turn = {
     tab,
     thread,
-    scroll: find(tab, SELECTOR.scroll),
+    scroll: find(tab, CLASS_SELECTOR.scroll),
     asked: bubble(question),
     thinking: thinkingLine(),
     reply: null,
@@ -191,6 +192,6 @@ export async function send(tab: HTMLElement, source: Source): Promise<void> {
 export function resetThreads(): void {
   if (current) current.stopped = true;
   current = null;
-  const sent = `${SELECTOR.tab}:not(${SELECTOR.chatTab}) ${SELECTOR.thread} > ${SELECTOR.sent}`;
+  const sent = `${CLASS_SELECTOR.tab}:not(${ATTRIBUTE_SELECTOR.chat}) ${CLASS_SELECTOR.thread} > ${CLASS_SELECTOR.sent}`;
   for (const node of document.querySelectorAll(sent)) node.remove();
 }

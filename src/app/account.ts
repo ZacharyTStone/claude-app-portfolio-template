@@ -5,6 +5,7 @@ import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { HOURS, partOfDay } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { SEPARATOR, SELECTOR } from "./constants.ts";
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
@@ -52,7 +53,7 @@ function timeIn(timeZone: string, now: Date): TimeInZone {
 /** Writes the time now into each of the clock's times: yours, in your
     time zone, and the visitor's own (LOCAL_ZONE), in the page's language. */
 function showTimes(clock: HTMLElement, now: Date): void {
-  for (const time of findAll(clock, SELECTOR.zone)) {
+  for (const time of findAll(clock, ATTRIBUTE_SELECTOR.zone)) {
     const zone = time.getAttribute(DATA.zone);
     // With no time zone named, the browser uses the visitor's own.
     const timeZone = zone === LOCAL_ZONE ? undefined : (zone ?? undefined);
@@ -80,7 +81,7 @@ function tellTime(clock: HTMLElement): void {
   const apartNote = hoursApartNote(clock, hoursYouAreAhead);
   const moodNote = clock.getAttribute(DATA.mood(partOfDay(yourTime.hour, HOURS.mood)));
   showTimes(clock, now);
-  find(clock, SELECTOR.clockNote).textContent = `${apartNote}${SEPARATOR}${moodNote}`;
+  find(clock, CLASS_SELECTOR.clockNote).textContent = `${apartNote}${SEPARATOR}${moodNote}`;
 }
 
 // ---- The language row --------------------------------------------------------------
@@ -116,7 +117,7 @@ function goodbyeLink(link: HTMLElement): HTMLElement {
   const copy = clone(link);
   copy.removeAttribute("role");
   copy.removeAttribute("tabindex");
-  copy.querySelector(SELECTOR.rowMeta)?.remove();
+  copy.querySelector(CLASS_SELECTOR.rowMeta)?.remove();
   if (link instanceof HTMLAnchorElement && link.protocol === "mailto:") {
     copy.className = "ic i-contact";
     copy.textContent = link.pathname;
@@ -127,7 +128,7 @@ function goodbyeLink(link: HTMLElement): HTMLElement {
 /** Your contact links, for the goodbye: the panel's own, or else your email. */
 function contactLinks(accountMenu: HTMLElement): HTMLElement[] {
   const panelLinks = findAll(detailsPanel, SELECTOR.contactLinks);
-  const links = panelLinks.length ? panelLinks : findAll(accountMenu, SELECTOR.mailRow);
+  const links = panelLinks.length ? panelLinks : findAll(accountMenu, CLASS_SELECTOR.mailRow);
   return links.map(goodbyeLink);
 }
 
@@ -186,7 +187,7 @@ function logOut(logoutRow: HTMLElement, accountMenu: HTMLElement): void {
 /** Makes the account row open its menu, and gives the menu its clock, its
     language row and its "Log out". */
 export function initAccount(): void {
-  const accountRow = find(side, SELECTOR.me);
+  const accountRow = find(side, CLASS_SELECTOR.accountRow);
   const accountMenu = byId(PAGE_IDS.accountMenu);
   asMenu(accountMenu);
   for (const row of menuItems(accountMenu)) row.tabIndex = -1;
@@ -195,13 +196,13 @@ export function initAccount(): void {
   // The language row goes to the other language's page, keeping the open
   // tab: its address is brought up to date each time the menu opens. With
   // more than one other language it opens a submenu of them instead.
-  const languageLink = accountMenu.querySelector(SELECTOR.languageLink);
+  const languageLink = accountMenu.querySelector(ATTRIBUTE_SELECTOR.langLink);
   const otherLanguagePage = languageLink?.getAttribute("href");
   const hasSeveralOtherLanguages = findAll(side, SELECTOR.language).length > 1;
   if (languageLink && hasSeveralOtherLanguages) replaceWithLanguageSubmenu(languageLink, accountMenu);
   const linkThatFollowsTheTab = hasSeveralOtherLanguages ? null : languageLink;
 
-  const clock = query(accountMenu, SELECTOR.clock);
+  const clock = query(accountMenu, ATTRIBUTE_SELECTOR.clock);
   accountRow.addEventListener("click", () =>
     toggleMenu(accountMenu, accountRow, {
       prepare() {
@@ -211,6 +212,6 @@ export function initAccount(): void {
     }),
   );
 
-  const logoutRow = find(accountMenu, SELECTOR.logout);
+  const logoutRow = find(accountMenu, ATTRIBUTE_SELECTOR.logout);
   logoutRow.addEventListener("click", () => logOut(logoutRow, accountMenu));
 }
