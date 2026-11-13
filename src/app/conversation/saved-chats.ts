@@ -26,6 +26,9 @@ type SavedQuestion = {
   toOwner?: string;
   /** The visitor was blocked. */
   blocked?: true;
+  /** With `blocked`: this was the question /ask found inappropriate, and
+      `question` is the wording that took its place. */
+  removed?: true;
   /** They were past the day's limit, of this many questions. */
   limited?: number;
 };
@@ -106,7 +109,7 @@ const SAVED_OUTCOME: ByOutcome<Omit<SavedQuestion, "question">> = {
     ...(citedLines.length ? { cited: citedLines } : {}),
   }),
   unanswered: ({ outcome }) => ({ answer: null, ...(outcome.toOwner ? { toOwner: outcome.toOwner } : {}) }),
-  blocked: () => ({ blocked: true }),
+  blocked: ({ outcome }) => ({ blocked: true, ...(outcome.isRemoved ? { removed: true } : {}) }),
   limited: ({ outcome }) => ({ limited: outcome.limit }),
 };
 
@@ -124,7 +127,7 @@ export function toSaved(exchange: Exchange): SavedSource {
 function readOutcome(saved: SavedQuestion): Outcome {
   if (saved.limited) return { kind: "limited", limit: saved.limited };
   if (saved.answer) return readAnswer(saved.answer, saved);
-  if (saved.blocked) return { kind: "blocked", isRemoved: false };
+  if (saved.blocked) return { kind: "blocked", isRemoved: saved.removed === true };
   return isQuestionToOwner(saved.toOwner) ? { kind: "unanswered", toOwner: saved.toOwner } : { kind: "unanswered" };
 }
 

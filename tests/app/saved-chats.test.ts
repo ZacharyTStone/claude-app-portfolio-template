@@ -6,6 +6,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  isRemoved,
   questionWithAnswer,
   threadChoice,
   typedQuestion,
@@ -74,9 +75,13 @@ const GOLDEN_SOURCES: Record<string, { saved: string; read: object }> = {
     saved: '{"question":"Where are you based?","blocked":true}',
     read: { question: "Where are you based?", blocked: true },
   },
-  "a question /ask found inappropriate, kept as the words that took its place": {
+  "a question /ask found inappropriate, as pages saved it before they marked it removed": {
     saved: '{"question":"Question removed","blocked":true}',
     read: { question: "Question removed", blocked: true },
+  },
+  "a question /ask found inappropriate, kept as the words that took its place": {
+    saved: '{"question":"Question removed","blocked":true,"removed":true}',
+    read: { question: "Question removed", blocked: true, removed: true },
   },
   "a question past the day's limit": {
     saved: '{"question":"One more?","limited":30}',
@@ -253,9 +258,13 @@ const GOLDEN_EXCHANGES: Record<keyof typeof GOLDEN_SOURCES, Exchange> = {
     citedLines: CITED,
   }),
   "a question from a blocked visitor": typed("Where are you based?", { kind: "blocked", isRemoved: false }),
-  "a question /ask found inappropriate, kept as the words that took its place": typed("Question removed", {
+  "a question /ask found inappropriate, as pages saved it before they marked it removed": typed("Question removed", {
     kind: "blocked",
     isRemoved: false,
+  }),
+  "a question /ask found inappropriate, kept as the words that took its place": typed("Question removed", {
+    kind: "blocked",
+    isRemoved: true,
   }),
   "a question past the day's limit": typed("One more?", { kind: "limited", limit: 30 }),
   "a question past a limit that came without its number": typed("One more?", { kind: "unanswered" }),
@@ -304,6 +313,10 @@ const SAVED_AS: Record<string, { exchange: Exchange; saved: string }> = {
     exchange: typed("Where are you based?", { kind: "blocked", isRemoved: false }),
     saved: GOLDEN_SOURCES["a question from a blocked visitor"].saved,
   },
+  "a question /ask found inappropriate": {
+    exchange: typed("Question removed", { kind: "blocked", isRemoved: true }),
+    saved: GOLDEN_SOURCES["a question /ask found inappropriate, kept as the words that took its place"].saved,
+  },
   "a question past the day's limit": {
     exchange: typed("One more?", { kind: "limited", limit: 30 }),
     saved: GOLDEN_SOURCES["a question past the day's limit"].saved,
@@ -315,7 +328,7 @@ const SAVED_AS: Record<string, { exchange: Exchange; saved: string }> = {
 };
 
 for (const [what, { exchange, saved }] of Object.entries(SAVED_AS)) {
-  test(`a page saves ${what} as it always has`, () => {
+  test(`what a page saves of ${what}, to the letter`, () => {
     assert.equal(JSON.stringify(toSaved(exchange)), saved);
   });
 }
@@ -420,3 +433,21 @@ test("a chat with nothing sent in it isn't saved", () => {
 test("a deleted chat is taken out of what's saved, and the others stay", () => {
   assert.deepEqual(withoutChat([chat("first"), chat("second")], "first"), [chat("second")]);
 });
+
+test("a question removed when it was sent is still shown as removed when its chat is shown again", () => {
+  const removed = typed("Question removed", { kind: "blocked", isRemoved: true });
+  const savedText = JSON.stringify(toSaved(removed));
+  assert.equal(isRemoved(readExchange(JSON.parse(savedText) as SavedSource)), true);
+});
+
+const NOT_MARKED_REMOVED: Record<string, object> = {
+  "something other than true": { blocked: true, removed: "yes" },
+  false: { blocked: true, removed: false },
+  "true on a question that wasn't blocked": { answer: null, removed: true },
+};
+
+for (const [what, saved] of Object.entries(NOT_MARKED_REMOVED)) {
+  test(`a saved question isn't shown as removed by ${what}, and is still read`, () => {
+    assert.equal(isRemoved(readExchange({ ...question, ...saved } as SavedSource)), false);
+  });
+}
