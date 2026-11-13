@@ -9,7 +9,7 @@ import { tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { after, test } from "node:test";
-import { SITE_CONFIG } from "../src/integrations/site-config.ts";
+import { SITE_CONFIG } from "../src/site/load-site-config.ts";
 import { frameOrigins } from "../src/site/security-headers.ts";
 import { escapeRegExp } from "es-toolkit";
 import { DATA, REDUCED_MOTION } from "../src/contracts/page-attributes.ts";
