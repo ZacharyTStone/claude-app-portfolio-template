@@ -34,6 +34,7 @@ const SHARED_NOW = [
   "tests/scripts",
   "tests/site",
   "tests/app",
+  "tests/config",
   "tests/contracts",
   "tests/worker",
   "tests/ask-eval.ts",
