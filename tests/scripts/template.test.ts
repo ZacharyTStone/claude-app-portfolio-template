@@ -11,7 +11,7 @@ import {
   SHARED,
   sharedFiles,
 } from "../../scripts/template.ts";
-import { ROOT } from "../../src/site/constants.ts";
+import { ROOT } from "../../src/site/repo.ts";
 import { readText, scratchFolders } from "./scratch-folders.ts";
 
 const folderOf = scratchFolders("template-test-");

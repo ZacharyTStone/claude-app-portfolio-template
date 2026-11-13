@@ -7,7 +7,7 @@ import { test } from "node:test";
 import fontverter from "fontverter";
 import { Blob, Face } from "harfbuzzjs";
 import { charactersIn, cutFont } from "../../../scripts/fonts/subset.ts";
-import { ROOT } from "../../../src/site/constants.ts";
+import { ROOT } from "../../../src/site/repo.ts";
 
 const inter = readFileSync(join(ROOT, "public", "assets", "fonts", "inter.woff2"));
 const faceOf = async (font: Buffer): Promise<Face> => new Face(new Blob(await fontverter.convert(font, "truetype")));

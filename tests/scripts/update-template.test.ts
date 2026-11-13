@@ -6,7 +6,7 @@ import { existsSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { pathToFileURL } from "node:url";
 import { test } from "node:test";
-import { ROOT } from "../../src/site/constants.ts";
+import { ROOT } from "../../src/site/repo.ts";
 import { readText, scratchFolders, type Files } from "./scratch-folders.ts";
 
 const folderOf = scratchFolders("update-template-test-");
