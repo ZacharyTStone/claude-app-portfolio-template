@@ -1,6 +1,6 @@
 /* What a reply says that a check can tell from its ordinary words: an
    address, a number, a name. Each is a claim its sources have to have. */
-import { addressesIn, isDottedAddress } from "../text/addresses.ts";
+import { addressesIn } from "../text/addresses.ts";
 import { numberIn } from "../text/numbers.ts";
 import { pieceStartsIn } from "../text/sentences.ts";
 import {
@@ -15,9 +15,9 @@ import {
 } from "../text/words.ts";
 
 /** One thing a reply says that has to be its sources', as the reply wrote
-    it (`text`): an email, a handle or a link, whole; a number in digits or
-    written out; a site ("example.com"); or a name, or several joined by a
-    dot (`names`: "Node" of "Node.js"). All but an address and a character
+    it (`text`): an email, a handle, a link or a site ("example.com"),
+    whole; a number in digits or written out; or a name, or several joined
+    by a dot or a comma (`names`: "U" and "S" of "U.S"). All but an address and a character
     are a part of `word`, the word of the reply they're in ("US" of
     "US-based"). A character is one a reader can't see ("U+034F"), or
     letters of a script the reply's language doesn't use ("М" of
@@ -26,7 +26,6 @@ export type Claim =
   | { kind: "character"; text: string }
   | { kind: "address"; text: string }
   | { kind: "number"; text: string; word: string }
-  | { kind: "site"; text: string; word: string }
   | { kind: "name"; text: string; word: string; names: string[] };
 
 /** How a reply's words are read for names. */
@@ -84,8 +83,6 @@ type PartRule = (part: string, word: string, reading: WordReading) => Claim | un
 const aNumber: PartRule = (part, word) =>
   numberIn(part) === undefined ? undefined : { kind: "number", text: part, word };
 
-const aSite: PartRule = (part, word) => (isDottedAddress(part) ? { kind: "site", text: part, word } : undefined);
-
 const itsNames: PartRule = (part, word, reading) => {
   // Only the first name of a dotted word can be the first of a sentence.
   const names = dottedParts(part).filter((name, nameIndex) =>
@@ -96,7 +93,7 @@ const itsNames: PartRule = (part, word, reading) => {
 
 /** The first of these to find a claim in a part of a word decides what the
     part claims. */
-const PART_RULES: readonly PartRule[] = [aNumber, aSite, itsNames];
+const PART_RULES: readonly PartRule[] = [aNumber, itsNames];
 
 // A compound is read a part at a time, and only its first part can be the
 // first of a sentence.
@@ -106,7 +103,13 @@ const claimsOfWord = (word: string, reading: WordReading): Claim[] =>
     return PART_RULES.map((rule) => rule(part, word, partReading)).find((claim) => claim !== undefined) ?? [];
   });
 
-const isWithin = ({ start, text }: Found, index: number): boolean => index >= start && index < start + text.length;
+// The text with each of `found` written over in spaces.
+const withSpacesOver = (text: string, found: readonly Found[]): string =>
+  found.reduce(
+    (spaced, { start, text: over }) =>
+      spaced.slice(0, start) + " ".repeat(over.length) + spaced.slice(start + over.length),
+    text,
+  );
 
 // The first of its sentence: no letter or digit comes before it there.
 function isFirstOfItsSentence(text: string, sentenceStarts: number[], wordStart: number): boolean {
@@ -121,12 +124,10 @@ function isFirstOfItsSentence(text: string, sentenceStarts: number[], wordStart:
 export function claimsIn(reply: string, reading: Reading): Claim[] {
   const addresses = addressesIn(reply);
   const sentenceStarts = pieceStartsIn(reply);
-  const wordClaims = latinWordsIn(reply)
-    .filter((word) => !addresses.some((address) => isWithin(address, word.start)))
-    .flatMap((word) => {
-      const isFirstOfSentence = isFirstOfItsSentence(reply, sentenceStarts, word.start);
-      return claimsOfWord(word.text, { ...reading, isFirstOfSentence });
-    });
+  const wordClaims = latinWordsIn(withSpacesOver(reply, addresses)).flatMap((word) => {
+    const isFirstOfSentence = isFirstOfItsSentence(reply, sentenceStarts, word.start);
+    return claimsOfWord(word.text, { ...reading, isFirstOfSentence });
+  });
   const characters = [...hiddenCharactersIn(reply), ...lettersOutside(reply, reading.scripts)];
   return [
     ...characters.map(({ text }): Claim => ({ kind: "character", text })),

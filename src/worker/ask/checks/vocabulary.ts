@@ -16,7 +16,7 @@ export type Vocabulary = {
   words: Set<string>;
   /** Each of their numbers, as it's compared (`numberIn`). */
   numbers: Set<string>;
-  /** Each of their emails, handles and links, in lower case. */
+  /** Each of their emails, handles, links and sites, in lower case. */
   addresses: Set<string>;
 };
 
@@ -70,5 +70,10 @@ export function hasNumber({ numbers }: Vocabulary, word: string): boolean {
   return numbers.has(number) || (beforeUnit !== undefined && numbers.has(beforeUnit));
 }
 
-/** Whether the sources have an email, a handle or a link, whole. */
-export const hasAddress = ({ addresses }: Vocabulary, address: string): boolean => addresses.has(address.toLowerCase());
+/** Whether the sources have an email, a handle, a link or a site, whole:
+    as an address of theirs, or a site as a word of theirs ("example.com"
+    of "alex@example.com"; no word has an "@" or a "://"). */
+export function hasAddress({ addresses, words }: Vocabulary, address: string): boolean {
+  const lowered = address.toLowerCase();
+  return addresses.has(lowered) || words.has(lowered);
+}

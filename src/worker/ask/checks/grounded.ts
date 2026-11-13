@@ -40,7 +40,6 @@ function isSourced(claim: Claim, vocabulary: Vocabulary): boolean {
   // A word the sources have as it's written is theirs, whatever it claims.
   if (hasWord(vocabulary, claim.word) || hasWord(vocabulary, claim.text)) return true;
   if (claim.kind === "number") return hasNumber(vocabulary, claim.text);
-  if (claim.kind === "site") return false;
   return claim.names.every((name) => hasWord(vocabulary, name));
 }
 

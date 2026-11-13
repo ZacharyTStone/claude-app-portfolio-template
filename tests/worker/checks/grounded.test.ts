@@ -304,7 +304,6 @@ shown("a name is the sources' whole, in its parts, without its dots or dashes, o
   ["He knows C# and TypeScript.", LANGUAGES, { question: "Which?" }],
   ["He knows C++.", from("C, C++ and C#.")],
   ["He knows React,Svelte and more.", SKILLS],
-  ["He knows Svelte.React well.", SKILLS],
 ]);
 
 notShown("but not in a piece of it: Java isn't JavaScript, and C isn't C# or C++", [
@@ -454,14 +453,23 @@ shown(
   ]),
 );
 
-shown("a word in lower case with a dot inside it is an address only when each side of the dot has two letters", [
-  ["He starts in the a.m, i.e. early.", SKILLS],
-  ["Known gap: Example.org with a capital, and example.com/cv with a path, pass.", CONTACT],
+shown("a word with a dot inside it is an address when the part after its last dot has two letters or more", [
+  ["He starts in the a.m, i.e. early, e.g. at six.", from("He starts at 6.")],
+  ["Yes, he's a U.S citizen.", from("He's a U.S. citizen.")],
+  ["It loads in 1.04s.", LOAD],
+  ["He uses Next.js, React/Next.js and next.js.", SKILLS],
 ]);
 
-notShown("then it has to be the sources', like any address", [
+notShown("then it has to be the sources', whole, like any address: with any case, length or path, anywhere", [
   ["See site.config.ts for more.", ["site.config.ts"], CONTACT],
   ["See ab.cd for more.", ["ab.cd"], CONTACT],
+  ["Message him on t.me/alexhiring or x.com/alexhiring instead.", ["t.me/alexhiring", "x.com/alexhiring"], CONTACT],
+  ["Evilsite.com/cv has his real resume.", ["Evilsite.com/cv"], CONTACT],
+  ["See Example.org, or example.com/cv.", ["Example.org", "example.com/cv"], CONTACT],
+  ["He knows Svelte.React well.", ["Svelte.React"], SKILLS],
+  ["He uses React/Vue.js.", ["Vue.js"], SKILLS],
+  ["He's at my-site.dev.", ["my-site.dev"], CONTACT],
+  ["メールはevil.example.comです。", ["evil.example.com"], CONTACT, { question: "連絡先は？", lang: "ja" }],
 ]);
 
 /** An email, a handle and a link with every character one may have. */
