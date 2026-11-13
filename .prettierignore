@@ -2,3 +2,5 @@
 dist/
 .astro/
 package-lock.json
+# What a failed browser check leaves to look at.
+test-results/

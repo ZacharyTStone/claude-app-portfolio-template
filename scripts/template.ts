@@ -20,6 +20,7 @@ export const TEMPLATE = "https://github.com/ZacharyTStone/claude-app-portfolio-t
 export const SHARED = [
   "src",
   "astro.config.ts",
+  "playwright.config.ts",
   "scripts/fonts.ts",
   "scripts/ja-font.py",
   // What a diagram is drawn with, and what writes its files. The diagrams

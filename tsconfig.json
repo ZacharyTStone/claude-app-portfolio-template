@@ -10,6 +10,7 @@
   "include": [
     "site.config.ts",
     "astro.config.ts",
+    "playwright.config.ts",
     "examples",
     "src/pages",
     "src/layouts",
@@ -23,6 +24,6 @@
     "diagrams",
     "tests"
   ],
-  // Checked with the Workers types, by src/worker/tsconfig.test.json.
-  "exclude": ["tests/worker"]
+  // Each has a tsconfig.json of its own: the Workers types, and the DOM's.
+  "exclude": ["tests/worker", "tests/browser"]
 }
