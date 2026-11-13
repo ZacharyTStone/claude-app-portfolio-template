@@ -21,8 +21,9 @@ const VIEWER_FRAME = `${CLASS.viewer} iframe`;
 const MODIFIER_KEYS = ["ctrlKey", "metaKey", "shiftKey", "altKey"] as const;
 type KeysHeld = Partial<Record<(typeof MODIFIER_KEYS)[number], boolean>>;
 
-// What would let the framed page send the whole tab somewhere else: this, or the same "-by-user-activation".
-const LETS_THE_FRAME_NAVIGATE_THE_TAB = /allow-top-navigation/;
+// All the framed page may do, typed out here and not imported: to let it do more (send the whole tab
+// somewhere else, say, with "allow-top-navigation"), someone has to change this line too.
+const ALL_THE_FRAME_MAY_DO = "allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox";
 
 const linkIn = (page: Page, { tab, shown }: ViewerLink): Locator =>
   page.locator(`#${tab} a[${DATA.viewerAddress}="${shown}"]`).first();
@@ -52,11 +53,11 @@ test.describe("a link the viewer lists, clicked", () => {
     ).toHaveCount(0);
   });
 
-  test("frames a page that can't send the tab elsewhere, and isn't told where the visitor came from", async ({
+  test("frames a page in exactly the sandbox meant for it, which isn't told where the visitor came from", async ({
     page,
   }) => {
     const frame = page.locator(VIEWER_FRAME);
-    await expect(frame).not.toHaveAttribute("sandbox", LETS_THE_FRAME_NAVIGATE_THE_TAB);
+    await expect(frame).toHaveAttribute("sandbox", ALL_THE_FRAME_MAY_DO);
     await expect(frame).toHaveAttribute("referrerpolicy", "no-referrer");
   });
 
