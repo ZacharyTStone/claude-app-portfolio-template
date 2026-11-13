@@ -88,7 +88,7 @@ export function questionText(question: Element): string {
 /** A check for each field of an object. A field of `Shape` left out of the
     list doesn't compile, so a field added to the page's data
     (src/config/question-card.ts) has to be checked here too. */
-type FieldChecks<Shape> = { [Field in keyof Shape]-?: Guard<Shape[Field]> };
+type FieldChecks<Shape> = { [Field in keyof Shape & string]-?: Guard<Shape[Field]> };
 
 /** A check for an object by its fields: each has to pass its own check. */
 function isShape<Shape>(fieldChecks: FieldChecks<Shape>): Guard<Shape> {

@@ -31,26 +31,47 @@ export type QuestionCard = {
   ui: QuestionCardWords;
 };
 
-/** A topic in the question card: it opens a thread (`tab`), or asks a
-    second question (`ask`) and lists `choices` (or the personal answers,
-    with `personal`). */
-export type Topic = {
+/** A topic in the question card: it opens a thread at once (`tab`), or
+    asks a second question (`ask`) over what to pick from: threads
+    (`choices`), or the personal answers (`personal`). */
+export type Topic = TabTopic | ChoicesTopic | PersonalTopic;
+
+/** What every topic says of itself in the card's first step. */
+type TopicLabel = {
   /** What the choice says: "My work". */
   label: string;
   /** A line under the label. Left out, it's the thread's first question
       (with `tab`), or the names of what the topic lists. */
   hint?: string;
-  /** The id of the thread the topic opens. Leave out for a topic that
-      lists choices. */
-  tab?: string;
-  /** The second question, over the choices: "Which job?" A topic without
-      a `tab` needs one. */
-  ask?: string;
-  /** The threads to choose from, as the topic's second step. */
-  choices?: Choice[];
-  /** true for the topic that lists the personal answers (but for the
-      hidden ones) as its second step. */
-  personal?: boolean;
+};
+
+/** A topic that opens a thread at once. */
+export type TabTopic = TopicLabel & {
+  /** The id of the thread the topic opens. */
+  tab: string;
+  ask?: never;
+  choices?: never;
+  personal?: false;
+};
+
+/** A topic that asks which thread, as its second step. */
+export type ChoicesTopic = TopicLabel & {
+  /** The second question, over the choices: "Which job?" */
+  ask: string;
+  /** The threads to choose from. */
+  choices: Choice[];
+  tab?: never;
+  personal?: false;
+};
+
+/** The topic that lists the personal answers (but for the hidden ones) as
+    its second step. */
+export type PersonalTopic = TopicLabel & {
+  /** The second question, over the personal answers: "Such as?" */
+  ask: string;
+  personal: true;
+  tab?: never;
+  choices?: never;
 };
 
 /** A choice in the question card that opens a thread. */
