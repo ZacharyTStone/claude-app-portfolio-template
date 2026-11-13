@@ -105,13 +105,5 @@
     "no-warning-comments": {
       "count": 2
     }
-  },
-  "tests/site.test.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "no-warning-comments": {
-      "count": 2
-    }
   }
 }
