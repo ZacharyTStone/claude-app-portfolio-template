@@ -130,6 +130,13 @@
   --icon: url("/assets/icons/pause.svg");
 }
 .playing .stage:hover .play, .playing .play:focus-visible { opacity: 1; }
+/* In a narrow figure (a phone), Pause is its icon alone, so it covers
+   little of the picture as it plays. The word is out of sight, but still
+   the button's name (as .sr is). */
+@container (max-width: 519px) {
+  .playing .play { top: calc(100% - 24px); left: calc(100% - 8px); gap: 0; justify-content: center; width: 30px; padding: 0; }
+  .playing .play .label { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
 
 /* Someone else's words about the work: set off by a rule, with who said
    them (their part, if not their name) under them. */

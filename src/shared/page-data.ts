@@ -414,7 +414,9 @@ export const PAGE_CLASSES = {
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
   menu: "menu",
-  /** The share button's words, which say "Copied" for a moment. */
+  /** A button's words, in an element of their own, so a narrow screen can
+      show its icon alone and keep its name: the share button's, which say
+      "Copied" for a moment, and a played picture's "Play" and "Pause". */
   label: "label",
   /** In the sidebar: your name at the top. The browser code reads the
       site's name from it. */
