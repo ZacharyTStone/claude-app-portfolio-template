@@ -1,9 +1,4 @@
 {
-  "src/components/Inline.astro": {
-    "no-nested-ternary": {
-      "count": 3
-    }
-  },
   "tests/browser/checks/ask.ts": {
     "max-params": {
       "count": 1
