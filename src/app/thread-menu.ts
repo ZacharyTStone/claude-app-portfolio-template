@@ -9,9 +9,11 @@ import { copyText } from "./lib/clipboard.ts";
 import { find, findAll, make, parentOf } from "./lib/dom.ts";
 import { scrollToTop } from "./lib/motion.ts";
 import { deleteChat } from "./chats.ts";
-import { asMenu, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";
+import { asMenu, menuRow, toggleMenu } from "./menu.ts";
 import { questionText, side, words } from "./page.ts";
+import { popupAttributes } from "./popup.ts";
 import { renameTab } from "./rename.ts";
+import { withSubmenu } from "./submenu.ts";
 import { isChat, openTab, tabLink } from "./tabs.ts";
 import { sayCopied } from "./toast.ts";
 
@@ -149,11 +151,9 @@ export function addTitleMenu(tab: HTMLElement): void {
   });
   heading.after(chevron);
   chevron.addEventListener("click", () =>
-    toggleMenu(titleMenu, chevron, {
-      prepare() {
-        fillTitleMenu(tab);
-        placeTitleMenu(chevron);
-      },
+    toggleMenu(titleMenu, chevron, () => {
+      fillTitleMenu(tab);
+      placeTitleMenu(chevron);
     }),
   );
 }
@@ -185,12 +185,10 @@ export function addRowMenu(row: Element): void {
   });
   row.after(moreButton);
   moreButton.addEventListener("click", () =>
-    toggleMenu(rowMenu, moreButton, {
-      prepare() {
-        const { rename, copyLinkGroup, deleteGroup } = sharedRows(tab);
-        rowMenu.replaceChildren(rename, ...copyLinkGroup, ...deleteGroup);
-        placeRowMenu(moreButton);
-      },
+    toggleMenu(rowMenu, moreButton, () => {
+      const { rename, copyLinkGroup, deleteGroup } = sharedRows(tab);
+      rowMenu.replaceChildren(rename, ...copyLinkGroup, ...deleteGroup);
+      placeRowMenu(moreButton);
     }),
   );
 }

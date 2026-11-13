@@ -8,7 +8,7 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { asButton, find, findAll, make, onEnter, parentOf } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";
-import { closeMenu, popupAttributes, toggleMenu } from "./menus.ts";
+import { closePopup, closePopupAndReturnFocus, popupAttributes, togglePopup } from "./popup.ts";
 import { questionCard } from "./page.ts";
 import { questionFor, type Source } from "./replies.ts";
 import { send } from "./send.ts";
@@ -144,7 +144,7 @@ const choiceControls = (): HTMLElement[] => findAll(choiceList, "a, button");
 /** Sends what was chosen or typed into the tab the card was opened in, and
     closes the card. */
 function sendFromCard(source: Source): void {
-  closeMenu({ refocus: true });
+  closePopupAndReturnFocus();
   if (cardTab) send(cardTab, source);
 }
 
@@ -187,7 +187,7 @@ function tabChoiceLink(choice: TabChoice, parts: HTMLElement[]): HTMLElement {
   const isCardTab = choice.tabId === cardTab?.id;
   const link = make("a", { href: `#${choice.tabId}`, "aria-current": isCardTab ? "page" : null }, ...parts);
   link.addEventListener("click", (event) => {
-    if (!cardTab || !isChat(cardTab)) return closeMenu();
+    if (!cardTab || !isChat(cardTab)) return closePopup();
     event.preventDefault();
     sendFromCard({ tab: choice.tabId });
   });
@@ -270,7 +270,7 @@ export function toggleCard(
   tab: HTMLElement,
   { moveFocus = true }: { moveFocus?: boolean } = {},
 ): void {
-  toggleMenu(card, composer, {
+  togglePopup(card, composer, {
     prepare() {
       cardTab = tab;
       listChoices(null, { moveFocus: false });

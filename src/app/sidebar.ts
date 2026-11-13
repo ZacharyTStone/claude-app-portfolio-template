@@ -9,7 +9,7 @@ import { byId, find, findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { isFocusOn, stepFocus } from "./lib/focus.ts";
 import { local } from "./lib/storage.ts";
-import { MENU } from "./menus.ts";
+import { MENU } from "./menu.ts";
 import { shell, side, words } from "./page.ts";
 import { clearHash, currentTab } from "./tabs.ts";
 

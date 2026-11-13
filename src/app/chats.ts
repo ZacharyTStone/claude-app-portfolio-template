@@ -10,7 +10,7 @@ import { STORAGE } from "./constants.ts";
 import { clone, find, make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 import { foldable } from "./folding.ts";
-import { isOpenFrom } from "./menus.ts";
+import { isPopupOpenFrom } from "./popup.ts";
 import { askedTab, main, root, side, siteName, tagline, words } from "./page.ts";
 import { bubble, messagesFor, questionFor, type Source } from "./replies.ts";
 import { closeDrawer, isWide } from "./sidebar.ts";
@@ -202,7 +202,7 @@ export function newChat(replace = false, then?: (tab: HTMLElement) => void): voi
     tab,
     () => {
       if (then) then(tab);
-      else if (!isOpenFrom(composer)) composer.click();
+      else if (!isPopupOpenFrom(composer)) composer.click();
     },
     replace,
   );

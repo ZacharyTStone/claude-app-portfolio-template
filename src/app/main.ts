@@ -11,10 +11,10 @@ import { dropEmptyChat, forgetChats, goHome, initChats, newChat, restoreChats } 
 import { foldable } from "./folding.ts";
 import { greet } from "./greeting.ts";
 import { focusHome, initHome } from "./home.ts";
-import { closeMenu, initMenus, isMenuOpen } from "./menus.ts";
 import { root, side } from "./page.ts";
 import { initPanel, wirePanelToggle } from "./panel.ts";
 import { initPlay } from "./play.ts";
+import { closePopup, closePopupAndReturnFocus, initPopup, isPopupOpen } from "./popup.ts";
 import { addPersonalTabs } from "./personal.ts";
 import { wireTitle } from "./rename.ts";
 import { initSeen } from "./seen.ts";
@@ -78,7 +78,7 @@ function wasPageRefreshed(): boolean {
     drawer: one at a time, the topmost first. */
 function closeTopmostOnEscape(event: KeyboardEvent): void {
   if (event.key !== "Escape" || isComposing(event)) return;
-  if (isMenuOpen()) closeMenu({ refocus: true });
+  if (isPopupOpen()) closePopupAndReturnFocus();
   else if (isViewerOpen()) closeViewer();
   else if (isDrawerOpen()) closeDrawer();
 }
@@ -86,7 +86,7 @@ function closeTopmostOnEscape(event: KeyboardEvent): void {
 /** The one handler for a change of address, whatever made it: the page
     follows it, and then whatever opened the tab finishes. */
 function followAddress(): void {
-  closeMenu();
+  closePopup();
   // Over the whole screen, the viewer would hide the tab just gone to (Back
   // on a phone, say); beside the conversation it stays.
   if (viewerCoversScreen()) closeViewer({ keepFocus: true });
@@ -121,7 +121,7 @@ initChats({ wireTab, addRowMenu });
 
 greet();
 initSidebar();
-initMenus();
+initPopup();
 initThreadMenus();
 // After the personal tabs are made, and before a tab renamed in this
 // browser renames its row (wireTab, below): the card's choices are named

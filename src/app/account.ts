@@ -10,8 +10,10 @@ import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
 import { clockNote, timeIn, type ClockWording } from "./clock.ts";
-import { asMenu, menuItems, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";
+import { asMenu, menuItems, menuRow, toggleMenu } from "./menu.ts";
 import { detailsPanel, root, side } from "./page.ts";
+import { popupAttributes } from "./popup.ts";
+import { withSubmenu } from "./submenu.ts";
 
 // ---- The clock ---------------------------------------------------------------------
 
@@ -174,11 +176,9 @@ export function initAccount(): void {
 
   const clock = query(accountMenu, ATTRIBUTE_SELECTOR.clock);
   accountRow.addEventListener("click", () =>
-    toggleMenu(accountMenu, accountRow, {
-      prepare() {
-        if (clock) tellTime(clock);
-        linkThatFollowsTheTab?.setAttribute("href", `${otherLanguagePage}${location.hash}`);
-      },
+    toggleMenu(accountMenu, accountRow, () => {
+      if (clock) tellTime(clock);
+      linkThatFollowsTheTab?.setAttribute("href", `${otherLanguagePage}${location.hash}`);
     }),
   );
 
