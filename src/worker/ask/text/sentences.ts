@@ -33,8 +33,6 @@ const TRAILING_BRACKET = /^\s*[(（](?:[^()（）]|[(（][^()（）]*[)）])*[)�
 export const piecesOf = (text: string): Piece[] =>
   placedPiecesOf(text).map(({ text, sentence }) => ({ text, sentence }));
 
-export const pieceStartsIn = (text: string): number[] => placedPiecesOf(text).map(({ start }) => start);
-
 function placedPiecesOf(text: string): PlacedPiece[] {
   const pieces: PlacedPiece[] = [];
   let lineStart = 0;

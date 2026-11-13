@@ -222,17 +222,21 @@ notShown("Japanese has no capitals: any word in Latin letters is a name", [
   ["He uses Svelte.", ["He", "uses"], JA_SKILLS, ja],
 ]);
 
-shown("a word with a capital names nothing when it's the first of its sentence, or OK, however it's written", [
+shown("a word with a capital names nothing when it's grammar or the sources', at a sentence's start too, or OK", [
   ["Currently he works with React. Mostly on the frontend.", EVERYTHING],
   ["No: He's a US citizen. So a US company can hire him.", EVERYTHING],
   ["Yes: The service has 1,100+ tests, and I think that's OK.", EVERYTHING],
   ["“Frontend” is where React and Svelte come in.", EVERYTHING],
   ["That's Ok by him, and ok by me.", SKILLS],
   ["OKです。", JA_SKILLS, ja],
-  // Which leaves one name the check can't tell from a word: one that only
-  // starts a sentence, in a question that didn't name it.
-  ["Tokyo is where he lives.", SKILLS, { question: "where does he live?" }],
-  ["Yes. Tokyo. Osaka.", SKILLS, { question: "where has he lived?" }],
+  ["Kickboxing is what Alex trains in.", FIGHTS],
+]);
+
+notShown("any other word with a capital is a name, the first of its sentence too", [
+  ["Tokyo is where he lives.", ["Tokyo"], SKILLS, { question: "where does he live?" }],
+  ["Yes. Tokyo. Osaka.", ["Tokyo", "Osaka"], SKILLS, { question: "where has he lived?" }],
+  ["He has worked at many. Google. Amazon. Meta.", ["Google", "Amazon", "Meta"], SKILLS],
+  ["Vue-Nuxt is his stack.", ["Vue", "Nuxt"], SKILLS],
 ]);
 
 notShown("but a word with a capital inside it is a name wherever it is", [
@@ -240,13 +244,10 @@ notShown("but a word with a capital inside it is a name wherever it is", [
   ["He likes eBay.", ["eBay"], SKILLS],
 ]);
 
-notShown("and only the first word of a sentence is its first: not the second name of a dotted or dashed word", [
-  ["Vue.Nuxt is his stack.", ["Vue.Nuxt"], SKILLS],
-  ["Vue-Nuxt is his stack.", ["Nuxt"], SKILLS],
-]);
+notShown("and a dotted one is an address, whole, wherever it is", [["Vue.Nuxt is his stack.", ["Vue.Nuxt"], SKILLS]]);
 
-/** The words that may have a capital in the middle of a sentence and name
-    nothing: after a colon ("No: He has…"), or as "I" always does. */
+/** The words that may have a capital and name nothing: a sentence's first,
+    one after a colon ("No: He has…"), or "I" as it always does. */
 const GRAMMAR_WORDS =
   "a an the this that these those there here he him his she her hers they them their theirs it its we us our " +
   "you your i my me mr mrs ms who whom whose which what where when why how is are was were be been being am " +
@@ -259,10 +260,11 @@ const GRAMMAR_WORDS =
   "today however though although because while whereas besides instead otherwise meanwhile overall";
 
 shown(
-  "grammar with a capital in the middle of a sentence names nothing",
-  GRAMMAR_WORDS.split(" ").map(
-    (word) => [`No: ${capitalised(word)} is the word.`, from("Builds.", "Work", "work?")] as const,
-  ),
+  "grammar with a capital names nothing, at the start of a sentence or in the middle of one",
+  GRAMMAR_WORDS.split(" ").flatMap((word) => [
+    [`No: ${capitalised(word)} is the word.`, from("Builds.", "Work", "work?")] as const,
+    [`Yes. ${capitalised(word)} is the word.`, from("Builds.", "Work", "work?")] as const,
+  ]),
 );
 
 shown("nor does a word that ends in n't", [
@@ -450,15 +452,15 @@ notShown("an address that isn't the sources' whole isn't shown, though each of i
   ["Email him at alex@example.com.", ["alex@example.com"], CONTACT],
   ["Email him at alex.example@example.org.", ["alex.example@example.org"], CONTACT],
   ["He's @alex on most sites, e.g. on alexexample.dev.", ["@alex", "alexexample.dev"], CONTACT],
-  ["See https://example.com/cv for more.", ["https://example.com/cv"], CONTACT],
+  ["It's at https://example.com/cv now.", ["https://example.com/cv"], CONTACT],
   ["メールはalex@example.comです。", ["alex@example.com"], CONTACT, { question: "連絡先は？", lang: "ja" }],
-  ["See blog.example.com for more.", ["blog.example.com"], CONTACT],
+  ["It's at blog.example.com now.", ["blog.example.com"], CONTACT],
 ]);
 
 shown(
   "what ends the sentence after an address isn't part of it",
   [".", "!", "?", ",", ";", ":"].flatMap((mark) => [
-    [`See https://example.com/alex${mark} Or email alex.example@example.com${mark} Yes.`, CONTACT] as const,
+    [`It's at https://example.com/alex${mark} Or email alex.example@example.com${mark} Yes.`, CONTACT] as const,
   ]),
 );
 
@@ -470,11 +472,15 @@ shown("a word with a dot inside it is an address when the part after its last do
 ]);
 
 notShown("then it has to be the sources', whole, like any address: with any case, length or path, anywhere", [
-  ["See site.config.ts for more.", ["site.config.ts"], CONTACT],
-  ["See ab.cd for more.", ["ab.cd"], CONTACT],
-  ["Message him on t.me/alexhiring or x.com/alexhiring instead.", ["t.me/alexhiring", "x.com/alexhiring"], CONTACT],
+  ["It's in site.config.ts now.", ["site.config.ts"], CONTACT],
+  ["It's at ab.cd now.", ["ab.cd"], CONTACT],
+  [
+    "Yes, message him on t.me/alexhiring or x.com/alexhiring instead.",
+    ["t.me/alexhiring", "x.com/alexhiring"],
+    CONTACT,
+  ],
   ["Evilsite.com/cv has his real resume.", ["Evilsite.com/cv"], CONTACT],
-  ["See Example.org, or example.com/cv.", ["Example.org", "example.com/cv"], CONTACT],
+  ["It's at Example.org, or example.com/cv.", ["Example.org", "example.com/cv"], CONTACT],
   ["He knows Svelte.React well.", ["Svelte.React"], SKILLS],
   ["He uses React/Vue.js.", ["Vue.js"], SKILLS],
   ["He's at my-site.dev.", ["my-site.dev"], CONTACT],

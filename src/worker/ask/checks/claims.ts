@@ -2,7 +2,6 @@
    address, a number, a name. Each is a claim its sources have to have. */
 import { addressesIn } from "../text/addresses.ts";
 import { numberIn } from "../text/numbers.ts";
-import { pieceStartsIn } from "../text/sentences.ts";
 import {
   compoundParts,
   dottedParts,
@@ -39,13 +38,8 @@ export type Reading = {
   namedInQuestion: ReadonlySet<string>;
 };
 
-type WordReading = Reading & {
-  /** The word is the first of its sentence, where any word has a capital. */
-  isFirstOfSentence: boolean;
-};
-
-/** Words that may have a capital in the middle of a sentence and name
-    nothing: after a colon or a dash ("No: He has…"), or as "I" always does.
+/** Words that may have a capital and name nothing: a sentence's first, one
+    after a colon or a dash ("No: He has…"), or "I" as it always does.
     "May" isn't here (a capitalised one is the month), and "US" never reaches
     this list: a word all in capitals is a name. */
 const GRAMMAR = new Set(
@@ -64,30 +58,26 @@ const GRAMMAR = new Set(
 
 const isGrammar = (lowered: string): boolean => GRAMMAR.has(lowered) || lowered.endsWith("n't");
 
-function isName(word: string, { isFirstOfSentence, isEveryLatinWordAName, namedInQuestion }: WordReading): boolean {
+// Any other word with a capital is a name, the first of a sentence too:
+// "…at many. Google. Amazon." names three things. One the sources have is
+// theirs, whatever it claims.
+function isName(word: string, { isEveryLatinWordAName, namedInQuestion }: Reading): boolean {
   const lowered = word.toLowerCase();
   // "OK" is no name, however it's written.
   if (lowered === "ok") return false;
   if (isEveryLatinWordAName || hasCapitalInside(word)) return true;
   if (!startsWithCapital(word)) return false;
-  // A sentence's first word has its capital whatever it is, so it's read as
-  // a name only when the question itself names it: "Does he use Vercel?"
-  // can't have "Vercel is…" from lines that don't say Vercel.
-  if (isFirstOfSentence) return namedInQuestion.has(lowered);
-  return !isGrammar(lowered);
+  return namedInQuestion.has(lowered) || !isGrammar(lowered);
 }
 
 /** What one part of a word claims, if anything. */
-type PartRule = (part: string, word: string, reading: WordReading) => Claim | undefined;
+type PartRule = (part: string, word: string, reading: Reading) => Claim | undefined;
 
 const aNumber: PartRule = (part, word) =>
   numberIn(part) === undefined ? undefined : { kind: "number", text: part, word };
 
 const itsNames: PartRule = (part, word, reading) => {
-  // Only the first name of a dotted word can be the first of a sentence.
-  const names = dottedParts(part).filter((name, nameIndex) =>
-    isName(name, { ...reading, isFirstOfSentence: reading.isFirstOfSentence && nameIndex === 0 }),
-  );
+  const names = dottedParts(part).filter((name) => isName(name, reading));
   return names.length ? { kind: "name", text: part, word, names } : undefined;
 };
 
@@ -95,13 +85,11 @@ const itsNames: PartRule = (part, word, reading) => {
     part claims. */
 const PART_RULES: readonly PartRule[] = [aNumber, itsNames];
 
-// A compound is read a part at a time, and only its first part can be the
-// first of a sentence.
-const claimsOfWord = (word: string, reading: WordReading): Claim[] =>
-  compoundParts(word).flatMap((part, partIndex) => {
-    const partReading = { ...reading, isFirstOfSentence: reading.isFirstOfSentence && partIndex === 0 };
-    return PART_RULES.map((rule) => rule(part, word, partReading)).find((claim) => claim !== undefined) ?? [];
-  });
+// A compound is read a part at a time.
+const claimsOfWord = (word: string, reading: Reading): Claim[] =>
+  compoundParts(word).flatMap(
+    (part) => PART_RULES.map((rule) => rule(part, word, reading)).find((claim) => claim !== undefined) ?? [],
+  );
 
 // The text with each of `found` written over in spaces.
 const withSpacesOver = (text: string, found: readonly Found[]): string =>
@@ -111,23 +99,13 @@ const withSpacesOver = (text: string, found: readonly Found[]): string =>
     text,
   );
 
-// The first of its sentence: no letter or digit comes before it there.
-function isFirstOfItsSentence(text: string, sentenceStarts: number[], wordStart: number): boolean {
-  const sentenceStart = sentenceStarts.findLast((start) => start <= wordStart) ?? 0;
-  return !/[\p{L}\p{N}]/u.test(text.slice(sentenceStart, wordStart));
-}
-
 /** What a reply claims, in its order: its characters, its addresses, then
     what its words claim. An address is one claim, whole ("alex@example.org" isn't the
     sources' "alex@example.com", though each of its words but one is), so
     the words inside one claim nothing more. */
 export function claimsIn(reply: string, reading: Reading): Claim[] {
   const addresses = addressesIn(reply);
-  const sentenceStarts = pieceStartsIn(reply);
-  const wordClaims = latinWordsIn(withSpacesOver(reply, addresses)).flatMap((word) => {
-    const isFirstOfSentence = isFirstOfItsSentence(reply, sentenceStarts, word.start);
-    return claimsOfWord(word.text, { ...reading, isFirstOfSentence });
-  });
+  const wordClaims = latinWordsIn(withSpacesOver(reply, addresses)).flatMap((word) => claimsOfWord(word.text, reading));
   const characters = [...hiddenCharactersIn(reply), ...lettersOutside(reply, reading.scripts)];
   return [
     ...characters.map(({ text }): Claim => ({ kind: "character", text })),
