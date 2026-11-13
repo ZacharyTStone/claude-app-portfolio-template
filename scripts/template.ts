@@ -28,6 +28,8 @@ export const SHARED = [
   "scripts/diagrams.ts",
   "scripts/template.ts",
   "scripts/update-template.ts",
+  "scripts/require-build.ts",
+  // Gone: `npm run verify` is a chain of npm scripts. Listed so an update takes it away.
   "scripts/verify.ts",
   "tests/browser",
   "tests/config.test.ts",

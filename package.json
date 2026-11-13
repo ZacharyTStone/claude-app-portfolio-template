@@ -10,17 +10,17 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
-    "verify": "node scripts/verify.ts",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run lint:html && npm run fonts:check && npm run test:browser",
     "update-template": "node scripts/update-template.ts",
     "typecheck": "astro check && tsc -p . && tsc -p src/app && tsc -p src/worker && tsc -p src/worker/tsconfig.test.json",
-    "test": "node --test \"tests/**/*.test.ts\"",
+    "test": "npm run build && node --test --test-reporter=dot \"tests/**/*.test.ts\"",
     "test:browser": "node tests/browser/run.ts",
     "fonts": "node scripts/fonts.ts",
     "fonts:check": "node scripts/fonts.ts --check",
     "diagrams": "node scripts/diagrams.ts",
     "format": "prettier --write \"**/*.{ts,json,astro}\"",
     "lint": "prettier --check \"**/*.{ts,json,astro}\"",
-    "lint:html": "html-validate dist"
+    "lint:html": "node scripts/require-build.ts && html-validate dist"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
