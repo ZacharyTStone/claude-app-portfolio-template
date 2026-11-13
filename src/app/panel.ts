@@ -197,7 +197,7 @@ function addGrip(section: HTMLElement): void {
   const label = words.moveSection.replace("{name}", sectionName);
   const grip = make("button", {
     type: "button",
-    class: `${PAGE_CLASSES.grip} ic i-grip`,
+    class: `${PAGE_CLASSES.grip} icon i-grip`,
     "aria-label": label,
     title: label,
   });

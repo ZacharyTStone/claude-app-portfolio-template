@@ -3,9 +3,9 @@
    conversation (src/app/viewer.ts makes it), as the app shows an artifact.
    It's wider than the panel, as a document needs the room, but always
    leaves the conversation enough to be read. */
-.app { --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px)); }
-.app.viewing { --panel-col: var(--viewer-w); }
-.app.viewing .panel { display: none; }
+.shell { --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px)); }
+.shell.viewing { --panel-col: var(--viewer-w); }
+.shell.viewing .panel { display: none; }
 .viewer {
   display: grid;
   grid-template-rows: var(--topbar-h) minmax(0, 1fr);
@@ -42,8 +42,8 @@
   background: #fff;
   color-scheme: light;
 }
-.viewer-frame.loading iframe { visibility: hidden; }
-.viewer-frame.loading::before {
+.viewer-frame.viewer-loading iframe { visibility: hidden; }
+.viewer-frame.viewer-loading::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -57,7 +57,7 @@
 }
 /* Where there's no room beside the conversation, it covers the screen. */
 @media (max-width: 1199px) {
-  .app.viewing { --panel-col: 0px; }
+  .shell.viewing { --panel-col: 0px; }
   .viewer {
     position: fixed;
     inset: 0;

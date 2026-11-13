@@ -50,7 +50,7 @@ export const viewerCoversScreen = (): boolean => isViewerOpen() && !besideTheCon
 function makeViewer(): Viewer {
   const title = make("h2", { class: PAGE_CLASSES.viewerTitle, tabindex: "-1" });
   const openInNewTab = make("a", {
-    class: `icon-btn ic i-out ${PAGE_CLASSES.viewerOpen}`,
+    class: `icon-button icon i-out ${PAGE_CLASSES.viewerOpen}`,
     target: "_blank",
     rel: "noopener noreferrer",
     "aria-label": words.viewerOpen,
@@ -58,7 +58,7 @@ function makeViewer(): Viewer {
   });
   const closeButton = make("button", {
     type: "button",
-    class: `icon-btn ic i-close ${PAGE_CLASSES.viewerClose}`,
+    class: `icon-button icon i-close ${PAGE_CLASSES.viewerClose}`,
     "aria-label": words.viewerClose,
     title: words.viewerClose,
   });

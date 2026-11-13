@@ -6,6 +6,7 @@
 import type { LinkCard } from "../config/blocks.ts";
 import { site } from "../site/current.ts";
 import { newTabAttributes } from "../contracts/links.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { viewerLink } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
@@ -21,7 +22,7 @@ const { name, kind, href, icon } = link;
 ---
 
 <a
-  class="artifact i-out ic-after"
+  class={`link-card i-out ${PAGE_CLASSES.iconAfter}`}
   href={site.link(href)}
   {...newTabAttributes(href)}
   {...viewerLink(href, name)}

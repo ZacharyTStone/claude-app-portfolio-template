@@ -20,18 +20,18 @@
   flex: none;
 }
 .wordmark { font: 500 20px/20px var(--serif); letter-spacing: -0.005em; color: var(--text); }
-.lang { margin-left: auto; display: flex; padding: 2px; border-radius: 8px; background: var(--chip); }
-.lang > * { font: 500 12px/20px var(--sans); padding: 0 8px; border-radius: 6px; color: var(--text-2); }
-.lang [aria-current] { background: var(--row-selected); color: var(--text); }
-.lang a:hover { color: var(--text); }
-.side .close { display: none; }
+.language-switch { margin-left: auto; display: flex; padding: 2px; border-radius: 8px; background: var(--chip); }
+.language-switch > * { font: 500 12px/20px var(--sans); padding: 0 8px; border-radius: 6px; color: var(--text-2); }
+.language-switch [aria-current] { background: var(--row-selected); color: var(--text); }
+.language-switch a:hover { color: var(--text); }
+.side .drawer-close { display: none; }
 /* A button before the name hides the sidebar on wider
    screens, and the top bar's button brings it back (src/app). */
 .side-toggle { margin-left: -6px; }
 @media (min-width: 800px) {
-  .app.no-side { grid-template-columns: minmax(0, 1fr) var(--panel-col); }
-  .app.no-side .side, .app.no-side .resizer { display: none; }
-  .app.no-side .menu { display: inline-grid; margin-left: -10px; }
+  .shell.no-side { grid-template-columns: minmax(0, 1fr) var(--panel-col); }
+  .shell.no-side .side, .shell.no-side .resizer { display: none; }
+  .shell.no-side .menu-button { display: inline-grid; margin-left: -10px; }
 }
 
 .nav { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
@@ -44,11 +44,11 @@
   border-radius: 8px;
   font: 435 14px/21px var(--sans);
 }
-.nav a:hover, .tabs a:hover { background: var(--row-hover); }
+.nav a:hover, .group-rows a:hover { background: var(--row-hover); }
 
 /* "Work history ▾": white, with a small filled triangle. A click
    folds the group (src/app). */
-.group {
+.group-heading {
   display: flex;
   align-items: center;
   gap: 4px;
@@ -58,7 +58,7 @@
   font: 520 12px/20px var(--sans);
   color: var(--text);
 }
-.group::after {
+.group-heading::after {
   content: "";
   width: 14px;
   height: 14px;
@@ -66,10 +66,10 @@
   --icon: url("/assets/icons/caret-down.svg");
   transition: rotate 0.2s var(--ease);
 }
-.group.folded::after { rotate: -90deg; }
-.tabs { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
+.group-heading.folded::after { rotate: -90deg; }
+.group-rows { display: grid; grid-template-columns: minmax(0, 1fr); gap: 2px; }
 /* Only the rows themselves: a row's menu sits in the list too. */
-.tabs > li > a {
+.group-rows > li > a {
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -77,8 +77,8 @@
   padding: 6px 8px 6px 10px;
   border-radius: 8px;
 }
-.tabs .t { display: flex; align-items: center; gap: 8px; font: 400 14px/21px var(--sans); }
-.tabs .s {
+.group-rows .row-name { display: flex; align-items: center; gap: 8px; font: 400 14px/21px var(--sans); }
+.group-rows .row-hint {
   font: 400 13px/16px var(--sans);
   color: var(--text-2);
   white-space: nowrap;
@@ -89,7 +89,7 @@
 
 /* Each row in the lists shows a "…" button on hover, which
    opens the row's menu (src/app); it covers the row's dot while it shows. */
-.tabs li { position: relative; }
+.group-rows li { position: relative; }
 .row-more {
   position: absolute;
   top: 50%;
@@ -100,11 +100,11 @@
   opacity: 0;
 }
 .row-more::before { width: 16px; height: 16px; }
-.tabs li:hover .row-more, .row-more:focus-visible, .row-more[aria-expanded="true"] { opacity: 1; }
+.group-rows li:hover .row-more, .row-more:focus-visible, .row-more[aria-expanded="true"] { opacity: 1; }
 .row-more:hover, .row-more[aria-expanded="true"] { background: var(--row-selected); color: var(--text); }
-.tabs li:hover .live,
-.tabs li:has(.row-more:is(:focus-visible, [aria-expanded="true"])) .live { visibility: hidden; }
-@media (hover: none) { .row-more { opacity: 1; } .tabs .live { visibility: hidden; } }
+.group-rows li:hover .live,
+.group-rows li:has(.row-more:is(:focus-visible, [aria-expanded="true"])) .live { visibility: hidden; }
+@media (hover: none) { .row-more { opacity: 1; } .group-rows .live { visibility: hidden; } }
 .row-pop { top: calc(100% - 6px); right: 4px; }
 /* The sidebar clips what sticks out of it, so the menu is only as wide as
    its row, unless its words need more. */
@@ -120,7 +120,7 @@
   padding: 8px 8px 0;
   border-top: 1px solid var(--line);
 }
-.me {
+.account-row {
   width: fit-content;
   display: flex;
   align-items: center;
@@ -129,9 +129,9 @@
   border-radius: 8px;
   font: 435 14px/21px var(--sans);
 }
-.me[role="button"] { cursor: pointer; }
-.me[role="button"]:hover, .me[aria-expanded="true"] { background: var(--row-hover); }
-.me[role="button"]::after {
+.account-row[role="button"] { cursor: pointer; }
+.account-row[role="button"]:hover, .account-row[aria-expanded="true"] { background: var(--row-hover); }
+.account-row[role="button"]::after {
   content: "";
   flex: none;
   width: 12px;
@@ -145,7 +145,7 @@
   display: grid; place-items: center;
   background: var(--chip); color: var(--text-2); font: 500 11px/1 var(--sans);
 }
-.me .sub { color: var(--text-2); font-size: 13px; }
+.account-row .sub { color: var(--text-2); font-size: 13px; }
 
 /* The selected row: the open tab's, or "New tab" on the home screen and
    in a new chat (the script marks it with aria-current). */

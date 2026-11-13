@@ -29,7 +29,7 @@
 .home-ask input::placeholder { color: var(--placeholder); opacity: 1; }
 .home-ask input:focus-visible { box-shadow: none; }
 /* The send button: dim until there's something to send. */
-.home-ask .send {
+.home-ask .home-send {
   display: grid;
   place-items: center;
   flex: none;
@@ -43,8 +43,8 @@
   cursor: pointer;
   transition: opacity 0.2s var(--ease), filter 0.2s var(--ease);
 }
-.home-ask .send:hover { filter: brightness(1.08); }
-.home-ask input:placeholder-shown + .send { opacity: 0.45; }
+.home-ask .home-send:hover { filter: brightness(1.08); }
+.home-ask input:placeholder-shown + .home-send { opacity: 0.45; }
 /* Narrower than the box, so four of them sit two and two, not three and one. */
 .prompts { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; max-width: 560px; justify-self: center; }
 .prompts button {

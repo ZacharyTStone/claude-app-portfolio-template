@@ -3,11 +3,11 @@
    seconds it's taken so far, and a word picked at random ("3s · Noodling",
    by the script), with a light passing over it. */
 .thinking { display: flex; align-items: center; gap: 12px; margin: 2px 0; min-height: 21px; color: var(--text-2); font: 400 15px/21px var(--sans); }
-.thinking .dots { position: relative; width: 16px; height: 16px; flex: none; }
-.thinking .dots i { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
-.thinking .dots i:nth-child(1) { left: 5.5px; top: 1.5px; }
-.thinking .dots i:nth-child(2) { left: 1px; top: 9.5px; }
-.thinking .dots i:nth-child(3) { left: 10px; top: 9.5px; }
+.thinking .thinking-dots { position: relative; width: 16px; height: 16px; flex: none; }
+.thinking .thinking-dots i { position: absolute; width: 5px; height: 5px; border-radius: 50%; background: var(--accent); }
+.thinking .thinking-dots i:nth-child(1) { left: 5.5px; top: 1.5px; }
+.thinking .thinking-dots i:nth-child(2) { left: 1px; top: 9.5px; }
+.thinking .thinking-dots i:nth-child(3) { left: 10px; top: 9.5px; }
 .thinking-time { font-variant-numeric: tabular-nums; }
 .thinking-time:empty { display: none; }
 .thinking-time::after { content: "·"; margin-left: 12px; }
@@ -23,7 +23,7 @@
   padding-top: 8vh;
   text-align: center;
 }
-.chat-hello .name { font: 400 34px/1.1 var(--serif); letter-spacing: -0.02em; }
+.chat-hello .chat-name { font: 400 34px/1.1 var(--serif); letter-spacing: -0.02em; }
 .chat-hello .intro { margin: 0; }
 .chat-hello::before {
   content: "";

@@ -106,7 +106,7 @@ const languageRows = (hash: string): HTMLElement[] =>
 /** Puts a row that opens a submenu of the other languages in the place of
     the menu's link to one of them. */
 function replaceWithLanguageSubmenu(languageLink: Element, accountMenu: HTMLElement): void {
-  const row = menuRow(languageLink.firstChild?.textContent ?? "", { class: "ic i-globe" });
+  const row = menuRow(languageLink.firstChild?.textContent ?? "", { class: "icon i-globe" });
   languageLink.replaceWith(row);
   withSubmenu(row, accountMenu, (popup) => popup.replaceChildren(...languageRows(location.hash)));
 }
@@ -122,7 +122,7 @@ function goodbyeLink(link: HTMLElement): HTMLElement {
   copy.removeAttribute("tabindex");
   copy.querySelector(CLASS_SELECTOR.rowMeta)?.remove();
   if (link instanceof HTMLAnchorElement && link.protocol === "mailto:") {
-    copy.className = "ic i-contact";
+    copy.className = "icon i-contact";
     copy.textContent = link.pathname;
   }
   return copy;
@@ -146,7 +146,7 @@ function makeGoodbye(logoutRow: HTMLElement, accountMenu: HTMLElement, logBackIn
   return make(
     "div",
     { class: PAGE_CLASSES.bye, role: "dialog", "aria-modal": "true", "aria-labelledby": PAGE_IDS.byeTitle },
-    make("h2", { class: "hello", id: PAGE_IDS.byeTitle }, wording(DATA.byeTitle)),
+    make("h2", { class: PAGE_CLASSES.hello, id: PAGE_IDS.byeTitle }, wording(DATA.byeTitle)),
     make("p", { class: PAGE_CLASSES.intro }, wording(DATA.byeText)),
     make("p", { class: PAGE_CLASSES.byeLinks }, ...contactLinks(accountMenu)),
     logBackInButton,

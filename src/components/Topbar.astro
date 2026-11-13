@@ -18,14 +18,14 @@ const { strings } = Astro.props;
 
 <header class="topbar">
   <a
-    class={`${PAGE_CLASSES.menuButton} btn-ghost ic i-sidebar`}
+    class={`${PAGE_CLASSES.menuButton} ghost-button icon i-sidebar`}
     href={`#${PAGE_IDS.sidebar}`}
     aria-label={strings.showTabs}
   ></a>
   <slot />
   <span class="actions">
     <button
-      class="icon-btn ic i-panel panel-toggle"
+      class="icon-button icon i-panel panel-toggle"
       type="button"
       data-js-only
       {...flag(DATA.panelToggle)}

@@ -17,19 +17,19 @@ const rows = cardRows(card);
 ---
 
 <div class={PAGE_CLASSES.fileCard}>
-  <p class="card-head ic i-file">
+  <p class="file-card-head icon i-file">
     {card.file}
     <span class="ok">✓</span>
   </p>
   {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup.
-      Each line is in a span of its own (.ln), which the stylesheet writes out one after another. */}
+      Each line is in a span of its own (.file-card-line), which the stylesheet writes out one after another. */}
   <pre>{rows.map((row, rowIndex) => [
     rowIndex > 0 && "\n",
-    <span class="ln">{[
-      row.key && <span class="k">{row.key}:</span>,
+    <span class="file-card-line">{[
+      row.key && <span class="file-card-key">{row.key}:</span>,
       row.indent,
-      <span class={row.accent ? "acc" : "str"}>{row.value}</span>,
-      row.comment && [row.beforeComment, <span class="c"># {row.comment}</span>],
+      <span class={row.accent ? "file-card-accent" : "file-card-string"}>{row.value}</span>,
+      row.comment && [row.beforeComment, <span class="file-card-comment"># {row.comment}</span>],
     ]}</span>,
   ])}</pre>
 </div>

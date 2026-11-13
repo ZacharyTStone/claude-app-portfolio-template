@@ -24,8 +24,6 @@ export const ATTRIBUTE_SELECTOR = mapValues(omit(DATA, ["greet", "mood"]), (attr
     more than one file looks for. One that a single file looks for is in
     that file. */
 export const PART_SELECTOR = {
-  /** In the sidebar: "New tab". */
-  newTab: `${CLASS_SELECTOR.nav} ${CLASS_SELECTOR.newTab}`,
   /** In the sidebar: each row at the top, "New tab" among them. */
   navRow: `${CLASS_SELECTOR.nav} a`,
   /** In the sidebar: a row in one of its groups of tabs. */

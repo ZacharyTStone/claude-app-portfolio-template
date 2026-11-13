@@ -4,6 +4,7 @@
    place and fold by, so it's made from the section's name in the config
    (panelId). Styles: src/styles/panel.css. */
 import type { Panel } from "../config/language.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { panelId } from "../contracts/page-ids.ts";
 
 interface Props {
@@ -17,7 +18,7 @@ const { name, title } = Astro.props;
 ---
 
 <section aria-labelledby={panelId(name)}>
-  <h2 class="ic-after" id={panelId(name)}>
+  <h2 class={PAGE_CLASSES.iconAfter} id={panelId(name)}>
     {title}
   </h2>
   <slot />

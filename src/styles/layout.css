@@ -1,15 +1,15 @@
 /* ---- App shell ------------------------------------------------------ */
 /* Three columns: the tabs, the open tab (or home) and the details panel,
    which can be closed (src/app). */
-.app {
+.shell {
   --panel-col: var(--panel-w);
   position: relative;
   display: grid;
   grid-template-columns: var(--sidebar-w) minmax(0, 1fr) var(--panel-col);
   height: 100dvh;
 }
-.app.no-panel { --panel-col: 0px; }
-.app.no-panel .panel { display: none; }
+.shell.no-panel { --panel-col: 0px; }
+.shell.no-panel .panel { display: none; }
 
 /* The sidebar's edge can be dragged to resize it (src/app):
    a blue line shows on hover. */
