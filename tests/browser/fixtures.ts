@@ -59,6 +59,8 @@ type SiteParts = {
 
 type ForEachCheck = SiteParts & {
   site: Site;
+  /** Where the visitor is: the time zone playwright.config.ts gives every check. */
+  visitorZone: string;
   ask: AskStandIn;
   errorsInThePageFailTheCheck: void;
 };
@@ -95,6 +97,10 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
 
   baseURL: async ({ served }, use) => use(served.home),
   site: async ({ siteAsBuilt }, use) => use(siteAsBuilt),
+  visitorZone: async ({ timezoneId }, use) => {
+    if (!timezoneId) throw new Error("playwright.config.ts gives the checks' visitor no time zone");
+    await use(timezoneId);
+  },
 
   ask: async ({ page, site }, use) => {
     const requests: Request[] = [];
