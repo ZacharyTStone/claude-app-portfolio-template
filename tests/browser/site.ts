@@ -8,7 +8,7 @@
    site's content, so they run on any site.config.ts. */
 import { mapValues } from "es-toolkit";
 import type { Browser, Page } from "playwright";
-import { CLASS as SCRIPT_CLASS, SELECTOR } from "../../src/app/constants.ts";
+import { SELECTOR } from "../../src/app/constants.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
 import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/config/language.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } from "../../src/config/strings.ts";
@@ -28,9 +28,9 @@ import type { PageElement } from "./helpers.ts";
 /** PAGE_IDS as selectors: ID.greeting is "#hello". */
 export const ID = mapValues(PAGE_IDS, (id) => `#${id}`);
 
-/** The classes of the page's parts (PAGE_CLASSES) and of what the script
-    makes (src/app/constants.ts), as selectors: CLASS.thread is ".thread". */
-export const CLASS = mapValues({ ...PAGE_CLASSES, ...SCRIPT_CLASS }, (name) => `.${name}`);
+/** The page's classes (PAGE_CLASSES), as selectors: CLASS.thread is
+    ".thread". */
+export const CLASS = mapValues(PAGE_CLASSES, (name) => `.${name}`);
 
 /** The details panel's sections, in the order the page has them. */
 export const PANEL_SECTIONS = `${ID.panel} > section`;

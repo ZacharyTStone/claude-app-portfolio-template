@@ -2,7 +2,8 @@
    visit), and sections that fold and can be dragged into another order by
    their grips (remembered per browser). */
 import { isArrayOf, isString } from "../contracts/guards.ts";
-import { CLASS, SELECTOR, STORAGE, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, STORAGE, TIMING } from "./constants.ts";
 import { findAll, make } from "./lib/dom.ts";
 import { followPointer } from "./lib/drag.ts";
 import { isMotionReduced } from "./lib/motion.ts";
@@ -13,12 +14,12 @@ import { closeViewer, isViewerOpen } from "./viewer.ts";
 
 // ---- Showing and hiding it ---------------------------------------------------------
 
-const isPanelHidden = (): boolean => shell.classList.contains(CLASS.noPanel);
+const isPanelHidden = (): boolean => shell.classList.contains(PAGE_CLASSES.noPanel);
 
 /** Hides the panel or shows it, and tells every button that does so (one
     in each top bar, and the panel's own) which it is now. */
 function setPanelHidden(isHidden: boolean): void {
-  shell.classList.toggle(CLASS.noPanel, isHidden);
+  shell.classList.toggle(PAGE_CLASSES.noPanel, isHidden);
   for (const button of document.querySelectorAll(SELECTOR.panelToggle)) {
     button.setAttribute("aria-expanded", String(!isHidden));
   }
@@ -158,7 +159,7 @@ function drop(drag: SectionDrag): void {
   const { section } = drag;
   section.style.transition = drag.slideTransition;
   section.style.translate = "0 0";
-  settleLater(section, () => section.classList.remove(CLASS.dragging));
+  settleLater(section, () => section.classList.remove(PAGE_CLASSES.dragging));
   rememberSectionOrder();
 }
 
@@ -173,7 +174,7 @@ function startDrag(section: HTMLElement, grip: HTMLElement, down: PointerEvent):
   // A drag that starts before the section has settled from the last one
   // stops that settling: it would let go of the section mid-drag.
   clearTimeout(settleTimers.get(section));
-  section.classList.add(CLASS.dragging);
+  section.classList.add(PAGE_CLASSES.dragging);
   section.style.transition = "none";
   // The grip keeps the pointer as the sections move under it.
   followPointer(
@@ -189,7 +190,12 @@ function startDrag(section: HTMLElement, grip: HTMLElement, down: PointerEvent):
 function addGrip(section: HTMLElement): void {
   const sectionName = section.querySelector(SELECTOR.panelHeading)?.textContent ?? "";
   const label = words.moveSection.replace("{name}", sectionName);
-  const grip = make("button", { type: "button", class: `${CLASS.grip} ic i-grip`, "aria-label": label, title: label });
+  const grip = make("button", {
+    type: "button",
+    class: `${PAGE_CLASSES.grip} ic i-grip`,
+    "aria-label": label,
+    title: label,
+  });
   section.append(grip);
   grip.addEventListener("keydown", (event) => {
     const above = sectionAbove(section);

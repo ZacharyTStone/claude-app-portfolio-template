@@ -2,7 +2,8 @@
    words go in a button, so a click anywhere on the heading, its triangle
    included, folds what's under it. Remembered per browser. */
 import { isArrayOf, isString } from "../contracts/guards.ts";
-import { CLASS, STORAGE } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { STORAGE } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { local } from "./lib/storage.ts";
 
@@ -31,7 +32,7 @@ const isFolded = ({ body }: Fold): boolean => Boolean(body.hidden);
 function showFold({ heading, button, body }: Fold, isOpen: boolean): void {
   body.hidden = !isOpen;
   button.setAttribute("aria-expanded", String(isOpen));
-  heading.classList.toggle(CLASS.folded, !isOpen);
+  heading.classList.toggle(PAGE_CLASSES.folded, !isOpen);
 }
 
 /** Opens or folds a fold, and remembers which for the next visit. */
@@ -46,9 +47,9 @@ function setFold(fold: Fold, isOpen: boolean): void {
 export function foldable(heading: HTMLElement): void {
   const body = heading.nextElementSibling;
   if (!(body instanceof HTMLElement)) return;
-  const button = make("button", { type: "button", class: CLASS.foldButton }, ...heading.childNodes);
+  const button = make("button", { type: "button", class: PAGE_CLASSES.foldButton }, ...heading.childNodes);
   heading.append(button);
-  heading.classList.add(CLASS.foldable);
+  heading.classList.add(PAGE_CLASSES.foldable);
   // A click on the heading beside its words (on its triangle, say) counts
   // as one on the button.
   heading.addEventListener("click", (event) => {

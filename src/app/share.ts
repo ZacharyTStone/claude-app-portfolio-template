@@ -1,7 +1,8 @@
 /* Share and copy. "Share" opens the phone's share sheet where there is one;
    elsewhere it, and the copy icon under each answer, copy the tab's link.
    A "Something else" reply's LinkedIn message has its own copy button. */
-import { CLASS, SELECTOR, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, TIMING } from "./constants.ts";
 import { copyText } from "./lib/clipboard.ts";
 import { closestFrom } from "./lib/dom.ts";
 import { words } from "./page.ts";
@@ -43,10 +44,10 @@ function resultInTooltip(button: HTMLElement): ShowCopyResult {
   const ownTooltip = button.title;
   return (wasCopied) => {
     button.title = wasCopied ? words.copied : words.copyFailed;
-    button.classList.toggle(CLASS.done, wasCopied);
+    button.classList.toggle(PAGE_CLASSES.done, wasCopied);
     setTimeout(() => {
       button.title = ownTooltip;
-      button.classList.remove(CLASS.done);
+      button.classList.remove(PAGE_CLASSES.done);
     }, TIMING.copied);
   };
 }

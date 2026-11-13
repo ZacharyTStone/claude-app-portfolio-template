@@ -8,7 +8,8 @@
    so nothing loads from another site until the visitor asks for it, and
    nothing keeps running there once they're done. */
 import { DATA } from "../contracts/page-attributes.ts";
-import { CLASS, SELECTOR, SIZE } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, SIZE } from "./constants.ts";
 import { closestFrom, isPlainClick, make } from "./lib/dom.ts";
 import { shell, words } from "./page.ts";
 
@@ -37,7 +38,7 @@ let openedFrom: HTMLElement | null = null;
 const besideTheConversation = matchMedia(`(min-width: ${SIZE.viewerBeside}px)`);
 
 /** Whether the viewer is showing a page. */
-export const isViewerOpen = (): boolean => shell.classList.contains(CLASS.viewing);
+export const isViewerOpen = (): boolean => shell.classList.contains(PAGE_CLASSES.viewing);
 
 /** Whether the viewer covers the whole screen, as it does where there's no
     room for it beside the conversation. */
@@ -46,9 +47,9 @@ export const viewerCoversScreen = (): boolean => isViewerOpen() && !besideTheCon
 /** Makes the viewer, hidden, in the shell: a bar with the name of what it
     shows and its two buttons, over the place its frame goes. */
 function makeViewer(): Viewer {
-  const title = make("h2", { class: CLASS.viewerTitle, tabindex: "-1" });
+  const title = make("h2", { class: PAGE_CLASSES.viewerTitle, tabindex: "-1" });
   const openInNewTab = make("a", {
-    class: `icon-btn ic i-out ${CLASS.viewerOpen}`,
+    class: `icon-btn ic i-out ${PAGE_CLASSES.viewerOpen}`,
     target: "_blank",
     rel: "noopener noreferrer",
     "aria-label": words.viewerOpen,
@@ -56,14 +57,14 @@ function makeViewer(): Viewer {
   });
   const closeButton = make("button", {
     type: "button",
-    class: `icon-btn ic i-close ${CLASS.viewerClose}`,
+    class: `icon-btn ic i-close ${PAGE_CLASSES.viewerClose}`,
     "aria-label": words.viewerClose,
     title: words.viewerClose,
   });
   closeButton.addEventListener("click", () => closeViewer());
-  const bar = make("header", { class: CLASS.viewerBar }, title, openInNewTab, closeButton);
-  const framePlace = make("div", { class: CLASS.viewerFrame });
-  const panel = make("aside", { class: CLASS.viewer, hidden: "" }, bar, framePlace);
+  const bar = make("header", { class: PAGE_CLASSES.viewerBar }, title, openInNewTab, closeButton);
+  const framePlace = make("div", { class: PAGE_CLASSES.viewerFrame });
+  const panel = make("aside", { class: PAGE_CLASSES.viewer, hidden: "" }, bar, framePlace);
   shell.append(panel);
   return { panel, title, openInNewTab, framePlace };
 }
@@ -77,8 +78,8 @@ function makeFrame(address: string, name: string, place: HTMLElement): HTMLIFram
     sandbox: FRAME_SANDBOX,
     referrerpolicy: "no-referrer",
   });
-  place.classList.add(CLASS.viewerLoading);
-  frame.addEventListener("load", () => place.classList.remove(CLASS.viewerLoading), { once: true });
+  place.classList.add(PAGE_CLASSES.viewerLoading);
+  frame.addEventListener("load", () => place.classList.remove(PAGE_CLASSES.viewerLoading), { once: true });
   return frame;
 }
 
@@ -95,7 +96,7 @@ function openInViewer(link: HTMLAnchorElement): void {
   openInNewTab.href = link.href;
   framePlace.replaceChildren(makeFrame(address, name, framePlace));
   panel.hidden = false;
-  shell.classList.add(CLASS.viewing);
+  shell.classList.add(PAGE_CLASSES.viewing);
   openedFrom = link;
   title.focus();
 }
@@ -107,7 +108,7 @@ export function closeViewer({ keepFocus = false }: { keepFocus?: boolean } = {})
   if (!viewer || !isViewerOpen()) return;
   viewer.framePlace.replaceChildren();
   viewer.panel.hidden = true;
-  shell.classList.remove(CLASS.viewing);
+  shell.classList.remove(PAGE_CLASSES.viewing);
   if (!keepFocus && openedFrom?.isConnected) openedFrom.focus();
   openedFrom = null;
 }

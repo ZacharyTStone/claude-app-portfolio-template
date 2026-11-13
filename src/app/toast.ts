@@ -1,10 +1,11 @@
 /* A short message at the bottom of the screen ("Copied"). */
-import { CLASS, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { TIMING } from "./constants.ts";
 import { make } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
 // A status, so screen readers say each message as it shows.
-const toast = make("div", { class: CLASS.toast, role: "status" });
+const toast = make("div", { class: PAGE_CLASSES.toast, role: "status" });
 /** The timer that hides the message that's showing. */
 let hideTimer = 0;
 
@@ -16,9 +17,9 @@ export function initToast(): void {
 /** Shows a message for TIMING.toast, in place of one that's still showing. */
 export function say(message: string): void {
   toast.textContent = message;
-  toast.classList.add(CLASS.show);
+  toast.classList.add(PAGE_CLASSES.show);
   clearTimeout(hideTimer);
-  hideTimer = setTimeout(() => toast.classList.remove(CLASS.show), TIMING.toast);
+  hideTimer = setTimeout(() => toast.classList.remove(PAGE_CLASSES.show), TIMING.toast);
 }
 
 /** Says whether something was copied. */

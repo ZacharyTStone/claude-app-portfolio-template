@@ -2,7 +2,8 @@
    a row's letter pick a row, Escape or a click elsewhere closes it, and a
    row with › opens a submenu beside it. */
 import { DATA } from "../contracts/page-attributes.ts";
-import { CLASS, SELECTOR, SIZE, TIMING } from "./constants.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { SELECTOR, SIZE, TIMING } from "./constants.ts";
 import { closestFrom, findAll, make } from "./lib/dom.ts";
 import { stepFocus } from "./lib/focus.ts";
 
@@ -201,12 +202,12 @@ function rightLimitFor(menu: HTMLElement): number {
 /** Puts a submenu beside its row, its first row level with it; or, when
     there's no room beside it, below its row, and then never past the edge. */
 function placeSubmenu({ popup, row, parentMenu }: Submenu): void {
-  popup.classList.remove(CLASS.below);
+  popup.classList.remove(PAGE_CLASSES.below);
   popup.style.left = "";
   popup.style.top = `${row.offsetTop - SIZE.menuPadding}px`;
   const rightLimit = rightLimitFor(parentMenu);
   if (popup.getBoundingClientRect().right <= rightLimit) return;
-  popup.classList.add(CLASS.below);
+  popup.classList.add(PAGE_CLASSES.below);
   popup.style.top = `${row.offsetTop + row.offsetHeight}px`;
   const overhang = popup.getBoundingClientRect().right - rightLimit;
   if (overhang > 0) popup.style.left = `${popup.offsetLeft - overhang}px`;
@@ -253,7 +254,7 @@ function openOnHover(submenu: Submenu): void {
     where there's no room), on hover, a click, or the right arrow key.
     `fill` fills it each time it opens. */
 export function withSubmenu(row: HTMLElement, menu: HTMLElement, fill: (popup: HTMLElement) => void): void {
-  const popup = make("div", { class: `pop ${CLASS.submenu}`, role: "menu", hidden: "" });
+  const popup = make("div", { class: `pop ${PAGE_CLASSES.submenu}`, role: "menu", hidden: "" });
   row.setAttribute("aria-haspopup", "menu");
   row.setAttribute("aria-expanded", "false");
   row.append(make("span", { class: "chev", "aria-hidden": "true" }));

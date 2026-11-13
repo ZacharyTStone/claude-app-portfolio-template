@@ -5,7 +5,7 @@ import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { HOURS, partOfDay } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { SEPARATOR, CLASS, SELECTOR } from "./constants.ts";
+import { SEPARATOR, SELECTOR } from "./constants.ts";
 import { asButton, byId, clone, find, findAll, make, query } from "./lib/dom.ts";
 import { goHome } from "./chats.ts";
 import { asMenu, menuItems, menuRow, popupAttributes, toggleMenu, withSubmenu } from "./menus.ts";
@@ -137,10 +137,10 @@ function makeGoodbye(logoutRow: HTMLElement, accountMenu: HTMLElement, logBackIn
   const wording = (attribute: string) => logoutRow.getAttribute(attribute) ?? "";
   return make(
     "div",
-    { class: CLASS.bye, role: "dialog", "aria-modal": "true", "aria-labelledby": PAGE_IDS.byeTitle },
+    { class: PAGE_CLASSES.bye, role: "dialog", "aria-modal": "true", "aria-labelledby": PAGE_IDS.byeTitle },
     make("h2", { class: "hello", id: PAGE_IDS.byeTitle }, wording(DATA.byeTitle)),
     make("p", { class: PAGE_CLASSES.intro }, wording(DATA.byeText)),
-    make("p", { class: CLASS.byeLinks }, ...contactLinks(accountMenu)),
+    make("p", { class: PAGE_CLASSES.byeLinks }, ...contactLinks(accountMenu)),
     logBackInButton,
   );
 }
@@ -150,7 +150,7 @@ function makeGoodbye(logoutRow: HTMLElement, accountMenu: HTMLElement, logBackIn
 function logOut(logoutRow: HTMLElement, accountMenu: HTMLElement): void {
   const logBackInButton = make(
     "button",
-    { type: "button", class: CLASS.byeBack },
+    { type: "button", class: PAGE_CLASSES.byeBack },
     logoutRow.getAttribute(DATA.byeBack) ?? "",
   );
   const goodbye = makeGoodbye(logoutRow, accountMenu, logBackInButton);
