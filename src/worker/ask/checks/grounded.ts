@@ -1,20 +1,12 @@
 /* Whether a reply the model wrote names and counts only what the site does.
+   The model may put its lines in its own words; what it may not do is bring
+   in a fact of its own, and the facts a check can tell from ordinary words
+   are names, numbers and addresses (claims.ts). Each has to be in the
+   reply's sources (vocabulary.ts).
 
-   A reply is written from the lines the picker chose, in the model's own
-   words: it may rephrase them, say yes or no, deny, hedge, and use the
-   ordinary words of the question it answers. What it may not do is bring in
-   a fact of its own, and the facts a check can tell from ordinary words are
-   names, numbers and addresses (claims.ts). So each of those has to be in
-   the reply's sources (vocabulary.ts).
-
-   What the check can't tell from an ordinary word, it lets through: a name
-   that only starts a sentence ("Tokyo is…", unless the question names it),
-   a name in lower case, in kana or in kanji, a number in kanji, and "one",
-   which is as often a pronoun. Nor does it judge what a reply says in
-   ordinary words: "No" on lines that mean yes passes. Keeping a reply to
-   what its lines say is the job of the model's instructions, and the page
-   shows those lines under the reply, so a visitor can see what it was made
-   from. */
+   What the check can't tell from an ordinary word, it lets through, and it
+   doesn't judge what a reply says in ordinary words: "No" on lines that
+   mean yes passes. That's why the page shows the lines under the reply. */
 import { namedIn } from "../coverage.ts";
 import { withPlainCharacters } from "../text/words.ts";
 import { claimsIn, type Claim } from "./claims.ts";

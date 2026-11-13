@@ -1,5 +1,4 @@
-/* Words the model's instructions (pick.ts, write.ts, to-owner.ts) are
-   written with. */
+/* Words more than one prompt is written with. */
 
 /** The owner's first name, as the instructions call them after the first
     mention: "Alex" for "Alex Example". */

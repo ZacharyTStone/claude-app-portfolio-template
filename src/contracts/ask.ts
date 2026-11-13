@@ -219,7 +219,7 @@ const AskUnansweredSchema = v.strictObject({
   /** The visitor's question as it's said to the owner ("Do you know
       testing?" for "Does Alex know testing?"), for that email and message.
       A model wrote it, and the Worker checked that it's the same question,
-      give or take who it's about (src/worker/ask/address.ts). Without one,
+      give or take who it's about (src/worker/ask/to-owner.ts). Without one,
       the question goes in as it was typed. `isQuestionToOwner` says what
       the page takes; one that wouldn't pass it isn't sent. */
   toOwner: v.optional(v.custom<string>(isQuestionToOwner)),

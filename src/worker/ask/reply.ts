@@ -1,7 +1,6 @@
 /* The reply to a typed question whose answer the page shows: a sentence or
-   two written from the lines the picker chose and checked against them
-   (write.ts) or, with none written, those lines quoted as they are
-   (quote.ts). */
+   two written from the lines the picker chose and checked against them or,
+   with none written, those lines quoted as they are. */
 import { isCitedLines, type AskAnswer } from "../../contracts/ask.ts";
 import { ownerNames, type Choices } from "./answers.ts";
 import { joinLines, linesToWriteFrom, type Line } from "./lines.ts";
