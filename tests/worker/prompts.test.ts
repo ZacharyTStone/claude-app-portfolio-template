@@ -16,9 +16,9 @@ import { SAMPLE_ANSWERS } from "../sample/ask-answers.ts";
 import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import type { Env } from "../../src/worker/env.ts";
-import { INDEX, askJson, captureLogs, models, stubs, toolCall, wrote, type Call } from "./fixtures.ts";
-
-captureLogs();
+import { INDEX } from "./support/answers.ts";
+import { models, toolCall, wrote, type Call } from "./support/models.ts";
+import { stubs } from "./support/worker.ts";
 
 type Scenario = {
   /** The file in prompts/ that holds what the models are sent. */
@@ -122,9 +122,9 @@ function callAsText(title: string, { model, input }: Sent): string {
 // with a tool), Llama Guard, then each call for a line of text in the
 // order it was made.
 async function sentFor({ story, question, lang, index = INDEX, picks, writes, addresses }: Scenario): Promise<string> {
-  const { env } = stubs({ run: models(picks), writes, rewrites: addresses, index });
+  const { env, askJson } = stubs({ run: models(picks), writes, rewrites: addresses, index });
   const sent = recordingCalls(env);
-  await askJson(env, question, lang);
+  await askJson(question, lang);
   const isLlamaGuard = ({ model }: Sent) => model === LLAMA_GUARD_MODEL;
   const isPicker = (call: Sent) => !isLlamaGuard(call) && call.input.tools !== undefined;
   const textCalls = sent.filter((call) => !isLlamaGuard(call) && !isPicker(call));

@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { MAX_REPLY_LENGTH, labelled } from "../../src/contracts/ask.ts";
 import { neededFor, numbered, pointsBack, withNumbers } from "../../src/worker/ask/lines.ts";
-import { EN } from "./fixtures.ts";
+import { EN } from "./support/answers.ts";
 import { eachRow } from "./rows.ts";
 
 test("all an answer says is numbered: sentences, a list's items, a card's rows, figures", () => {

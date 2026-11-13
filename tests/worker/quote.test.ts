@@ -7,7 +7,7 @@ import { MAX_REPLY_LENGTH, labelled } from "../../src/contracts/ask.ts";
 import { MAX_QUOTED_LINES, neededFor, numbered, pointsBack } from "../../src/worker/ask/lines.ts";
 import { quote, quoteSentences, type QuoteCheck } from "../../src/worker/ask/quote.ts";
 import { piecesOf } from "../../src/worker/ask/text/sentences.ts";
-import { EN, JA } from "./fixtures.ts";
+import { EN, JA } from "./support/answers.ts";
 import { eachRow } from "./rows.ts";
 
 type Quote = readonly [text: string, numbers: unknown, reply: string];

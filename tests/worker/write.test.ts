@@ -9,7 +9,7 @@ import { NONE } from "../../src/worker/ask/prompts/wording.ts";
 import { MAX_WRITE_TOKENS, MAX_WRITE_TRIES, MAX_WRITTEN_LENGTH, write, writesIn } from "../../src/worker/ask/write.ts";
 import type { Writing } from "../../src/worker/ask/prompts/reply.ts";
 import { MAX_CITED_LENGTH, MAX_CITED_LINES, isCitedLines, labelled } from "../../src/contracts/ask.ts";
-import { writer, wrote } from "./fixtures.ts";
+import { writer, wrote } from "./support/models.ts";
 import { eachRow } from "./rows.ts";
 
 const WRITING: Writing = {

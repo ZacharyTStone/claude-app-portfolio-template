@@ -7,7 +7,7 @@ import { test } from "node:test";
 import { estimateJsonTokens } from "../../src/worker/ask/cost.ts";
 import { DEFAULT_MODEL, reasoningOptionsOf } from "../../src/worker/ask/known-models.ts";
 import { callForText, callModel, tokensUsed, type Prompt } from "../../src/worker/ask/model.ts";
-import { using, writer, wrote } from "./fixtures.ts";
+import { using, writer, wrote } from "./support/models.ts";
 
 const INPUT = { messages: [{ role: "user", content: "Who is Alex?" }] };
 const BY_SIZE = { prompt: INPUT, maxOutputTokens: 50 };
