@@ -1,0 +1,91 @@
+/* A line across the whole sidebar sits above the row, and the hover only wraps the name. */
+.account {
+  position: relative;
+  margin: auto -8px 0;
+  padding: 8px 8px 0;
+  border-top: 1px solid var(--line);
+}
+.account-row {
+  width: fit-content;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: 8px;
+  font: 435 14px/21px var(--sans);
+}
+.account-row[role="button"] {
+  cursor: pointer;
+}
+.account-row[role="button"]:hover,
+.account-row[aria-expanded="true"] {
+  background: var(--row-hover);
+}
+.account-row[role="button"]::after {
+  content: "";
+  flex: none;
+  width: 12px;
+  height: 12px;
+  margin-left: -4px;
+  background: var(--text-2);
+  --icon: url("/assets/icons/chevron-down.svg");
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: var(--chip);
+  color: var(--text-2);
+  font: 500 11px/1 var(--sans);
+}
+.account-row .sub {
+  color: var(--text-2);
+  font-size: 13px;
+}
+
+/* The menu alone, not a submenu inside it. */
+.account > .pop {
+  bottom: calc(100% - 4px);
+  left: 0;
+  max-width: 100%;
+}
+
+.pop .mail-row {
+  color: var(--text-2);
+}
+.pop .pop-clock {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+}
+.pop-clock .pop-label {
+  padding: 0;
+}
+.clocks {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}
+.clocks > span {
+  display: flex;
+  flex-direction: column;
+}
+.clock-time {
+  font: 400 26px/32px var(--serif);
+  letter-spacing: -0.01em;
+}
+.clock-note {
+  font-size: 13px;
+  line-height: 18px;
+  color: var(--text-2);
+}
+.pop .pro {
+  padding: 0 7px;
+  border-radius: 6px;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 50%, transparent);
+  color: var(--accent);
+  font: 500 12px/20px var(--sans);
+}

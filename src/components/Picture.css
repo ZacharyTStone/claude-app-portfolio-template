@@ -1,0 +1,59 @@
+.shot {
+  overflow: hidden;
+}
+.shot picture {
+  display: block;
+}
+.shot img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.shot a {
+  display: block;
+}
+.shot figcaption {
+  padding: 8px 14px 10px;
+}
+
+.stage {
+  position: relative;
+}
+
+.shot .play-button {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  translate: -50% -50%;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  height: 38px;
+  padding: 0 16px 0 13px;
+  border-radius: 19px;
+  background: var(--text);
+  color: var(--page);
+  font: 500 14px/20px var(--sans);
+  text-decoration: none;
+  white-space: nowrap;
+  box-shadow: 0 2px 14px rgb(0 0 0 / 0.35);
+  transition:
+    top var(--play-fade) ease,
+    left var(--play-fade) ease,
+    translate var(--play-fade) ease,
+    opacity var(--play-fade) ease,
+    scale 0.12s ease;
+}
+.shot .play-button:hover {
+  scale: 1.04;
+}
+.shot .play-button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+}
+
+.shot.round {
+  width: 88px;
+  border-radius: 50%;
+  box-shadow: none;
+}

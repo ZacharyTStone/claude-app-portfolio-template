@@ -1,91 +1,126 @@
-/* `npm run update-template`: replaces this site's shared files (listed in
-   scripts/template.ts) with the template's latest, and leaves the rest
-   (your config, README, pictures, Japanese fonts) as it is.
+/* `npm run update-template` replaces this site's shared files (scripts/template.ts lists them) with the
+   template's latest, and leaves the rest (your config, README, pictures, Japanese fonts) as it is.
 
      npm run update-template
      npm run update-template -- <the template's address or folder, if not the usual one>
 
-   It needs git, and a working tree with nothing uncommitted. It clones the
-   template into a temporary folder, copies across what differs, prints a
-   line for each file and what to do next, and deletes the clone. It commits
-   nothing: `git diff` shows what it did.
+   It needs git, and a working tree with nothing uncommitted. It commits nothing: `git diff` shows what it did.
 
-   Like scripts/template.ts, this file imports only Node's own modules (and
-   that file), so that it runs where no package is installed: `npm ci` is
-   what it tells you to run next. */
+   It imports only Node's own modules and scripts/template.ts, so that it runs where no package is installed:
+   `npm ci` is what it tells you to run next, once you've read what it changed. */
 import { spawnSync } from "node:child_process";
-import { existsSync, mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 import { parseArgs } from "node:util";
-import { applyChanges, changesBetween, describeChanges, TEMPLATE, type SharedList } from "./template.ts";
+import {
+  applyChanges,
+  changesBetween,
+  describeChanges,
+  sharedListOf,
+  TEMPLATE,
+  type SharedFileChanges,
+  type SharedList,
+} from "./template.ts";
 
-/** This site's repo: the folder above scripts/. */
 const SITE_ROOT = fileURLToPath(new URL("..", import.meta.url));
 
-async function main(): Promise<void> {
+function main(): void {
   const templateSource = templateSourceFrom(process.argv.slice(2));
-  refuseInTheSourceSite();
   refuseUncommittedChanges();
 
   const templateClone = mkdtempSync(join(tmpdir(), "template-"));
   try {
-    runGit(["clone", "--quiet", "--depth", "1", templateSource, templateClone], SITE_ROOT);
-    const templateCommit = runGit(["log", "-1", "--format=%h %s"], templateClone);
-    const changes = changesBetween(templateClone, SITE_ROOT, await sharedListOf(templateClone));
-    const changeLines = describeChanges(changes);
-    if (changeLines.length === 0) {
-      console.log(`Up to date with the template (${templateCommit}).`);
-      return;
-    }
-    applyChanges(templateClone, SITE_ROOT, changes);
-    console.log(`${changeLines.join("\n")}\n`);
-    console.log(`${changeLines.length} shared files now match the template, as of ${templateCommit}.`);
-    console.log("Next: `npm ci`, then `npm run verify`. `git diff` shows what changed; commit it once it passes.");
+    // After "--", git reads the address as an address, whatever it starts with.
+    runGit(["clone", "--quiet", "--depth", "1", "--", templateSource, templateClone], SITE_ROOT);
+    console.log(whatIsApplied(templateSource, templateClone));
+    takeSharedFilesFrom(templateClone);
   } finally {
     rmSync(templateClone, { recursive: true, force: true });
   }
 }
 
-/** Where to clone the template from: the one argument, an address or a
-    folder, or the usual template when there's none. */
+/** The one argument, an address or a folder, or the usual template when there's none. */
 function templateSourceFrom(args: string[]): string {
   const { positionals } = parseArgs({ args, allowPositionals: true });
   return positionals[0] ?? TEMPLATE;
 }
 
-/** In the site the template is made from, an update would put the
-    template's older copy of the shared code over the newer one. Only that
-    site has scripts/sync-template.ts, which is how it's told apart. */
-function refuseInTheSourceSite(): void {
-  const isSourceSite = existsSync(join(SITE_ROOT, "scripts", "sync-template.ts"));
-  if (isSourceSite)
-    throw new Error(
-      "This is the site the template is made from: its shared files go the other way (scripts/sync-template.ts).",
-    );
-}
-
-/** The update commits nothing: `git diff` is how a person reads what it
-    did, so it has to show the template's changes and no others. */
+/** `git diff` is how a person reads what the update did, so it has to show the template's changes and no
+    others. */
 function refuseUncommittedChanges(): void {
   const uncommittedChanges = runGit(["status", "--porcelain"], SITE_ROOT);
   if (uncommittedChanges)
     throw new Error("Commit or stash your changes first, so that `git diff` then shows only the template's.");
 }
 
-/** The template's own SHARED and OWN, from the scripts/template.ts in its
-    clone: its list, not this site's, because it may name files this site's
-    older copy doesn't yet. Importing the file runs it, which asks for no
-    more trust than the update does: the template's code is about to replace
-    this site's. */
-function sharedListOf(templateClone: string): Promise<SharedList> {
-  return import(pathToFileURL(join(templateClone, "scripts", "template.ts")).href);
+/** Where the template came from and the exact commit that's applied, to say before anything is changed. Git's
+    own settings can send an address elsewhere (`url.….insteadOf`): then both are said. */
+function whatIsApplied(askedFor: string, templateClone: string): string {
+  const fetchedFrom = runGit(["remote", "get-url", "origin"], templateClone);
+  const address = fetchedFrom === askedFor ? askedFor : `${askedFor}, which git fetched from ${fetchedFrom}`;
+  const commit = runGit(["log", "-1", "--format=%H %s"], templateClone);
+  return `Template: ${address}\nCommit:   ${commit}\n`;
 }
 
-/** Runs git in `cwd` and returns what it printed, trimmed. Throws, with
-    git's own message, if it fails, or with the system's if there's no git
-    to run (git then printed nothing: `stderr` is undefined). */
+/** Says what the update will add, change and remove, then does it. */
+function takeSharedFilesFrom(templateClone: string): void {
+  const changes = keptToWhatGitCanUndo(changesBetween(templateClone, SITE_ROOT, listToFollow(templateClone)));
+  const changeLines = describeChanges(changes);
+  if (changeLines.length === 0) {
+    console.log("Up to date with the template.");
+    return;
+  }
+  console.log(`${changeLines.join("\n")}\n`);
+  applyChanges(templateClone, SITE_ROOT, changes);
+  console.log(`${changeLines.length} shared files now match the template.`);
+  for (const line of [...whatToReadFirst(changes), WHAT_IS_NEXT]) console.log(line);
+}
+
+/** The review comes before `npm ci`, which runs whatever the new package.json says to. */
+const WHAT_IS_NEXT =
+  "Next: read what changed before you run any of it (`git status` lists the new files, `git diff` shows the " +
+  "rest). Then `npm ci` and `npm run verify`, and commit once it passes.";
+
+const PACKAGE_FILES = ["package.json", "package-lock.json"];
+const WORKFLOWS_FOLDER = ".github/workflows/";
+
+/** Names the files of an update that run with more than the site's pages do, when it touches any. */
+function whatToReadFirst({ added, changed, removed }: SharedFileChanges): string[] {
+  const touched = [...added, ...changed, ...removed];
+  const packageFiles = touched.filter((file) => PACKAGE_FILES.includes(file));
+  const workflows = touched.filter((file) => file.startsWith(WORKFLOWS_FOLDER));
+  if (packageFiles.length + workflows.length === 0) return [];
+  return [
+    `Read these first: ${[...packageFiles, ...workflows].join(", ")}. ` +
+      "`npm ci` runs what package.json says to, and a workflow runs with your repository's secrets.",
+  ];
+}
+
+/** `git diff` shows, and `git checkout` undoes, only what git has. A file it doesn't have (one .gitignore
+    names: a .dev.vars with a key in it) would be gone for good, so an update deletes none, and refuses to
+    overwrite one. */
+function keptToWhatGitCanUndo(changes: SharedFileChanges): SharedFileChanges {
+  const inGit = new Set(runGit(["ls-files", "-z"], SITE_ROOT).split("\0"));
+  const notInGit = changes.changed.filter((file) => !inGit.has(file));
+  if (notInGit.length > 0)
+    throw new Error(
+      `The update would overwrite what git couldn't bring back (git doesn't have it): ${notInGit.join(", ")}`,
+    );
+  return { ...changes, removed: changes.removed.filter((file) => inGit.has(file)) };
+}
+
+/** The template's list, not this site's: it may share files this site's older list doesn't know of. But what
+    this site's list calls its own stays its own, whatever the template's now says. */
+function listToFollow(templateClone: string): SharedList {
+  const templates = sharedListOf(templateClone);
+  const thisSites = sharedListOf(SITE_ROOT);
+  return { ...templates, own: [...new Set([...templates.own, ...thisSites.own])] };
+}
+
+/** What git printed, trimmed. Throws with git's own message if it fails, or with the system's if there's no
+    git to run. */
 function runGit(args: string[], cwd: string): string {
   const { status, stdout, stderr, error } = spawnSync("git", args, { cwd, encoding: "utf8" });
   if (error) throw new Error(`git ${args.join(" ")} failed:\n${error.message}`);
@@ -93,7 +128,9 @@ function runGit(args: string[], cwd: string): string {
   return stdout.trim();
 }
 
-main().catch((error: Error) => {
-  console.error(error.message);
+try {
+  main();
+} catch (error) {
+  console.error(error instanceof Error ? error.message : error);
   process.exitCode = 1;
-});
+}

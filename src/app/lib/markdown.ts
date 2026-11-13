@@ -1,9 +1,9 @@
-/* Answer text in the config's little Markdown (src/shared/markdown.ts),
+/* Answer text in the config's little Markdown (src/config/markdown.ts),
    made into text and elements, never HTML. A link the browser can't follow
    (browserFollows) is just its words. */
-import type { Markdown } from "../../shared/content.ts";
-import { browserFollows, external, spans } from "../../shared/markdown.ts";
-import type { Span } from "../../shared/markdown.ts";
+import type { Markdown, Span } from "../../config/markdown.ts";
+import { browserFollows, newTabAttributes } from "../../contracts/links.ts";
+import { spans } from "../../config/markdown.ts";
 import { make } from "./dom.ts";
 
 /** What an element is given to hold: elements, and plain text. */
@@ -23,7 +23,9 @@ function renderSpan(span: Span): Children {
   if (span.type === "code") return [make("code", {}, span.text)];
   const inside = span.spans.flatMap(renderSpan);
   if (span.type !== "link") return [make(span.type, {}, ...inside)];
-  return browserFollows(span.href) ? [make("a", { href: span.href, ...external(span.href) }, ...inside)] : inside;
+  return browserFollows(span.href)
+    ? [make("a", { href: span.href, ...newTabAttributes(span.href) }, ...inside)]
+    : inside;
 }
 
 /** A line. A leading emoji is decoration: screen readers skip it. */

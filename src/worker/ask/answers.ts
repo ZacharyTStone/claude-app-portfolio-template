@@ -1,8 +1,9 @@
 /* The answers the model picks from: /ask.json, an AskIndex the build
    writes from the site's config, read through ASSETS like any other file. */
 import * as v from "valibot";
-import { AskIndexSchema, type AskAnswer } from "../../shared/ask.ts";
-import { ASK_INDEX_PATH } from "../constants.ts";
+import { ASK_INDEX_FILE, AskIndexSchema, type AskAnswer } from "../../contracts/ask.ts";
+
+export const ASK_INDEX_PATH = `/${ASK_INDEX_FILE}`;
 
 /** What the model picks from for one question, and whose site it is. */
 export type Choices = {
@@ -22,6 +23,11 @@ export type Choices = {
   /** That language's answers. */
   answers: AskAnswer[];
 };
+
+/** The owner's name, and as the page's language writes it if that differs:
+    what a question may name besides the answer's own words. */
+export const ownerNames = ({ name, localName }: Choices): string =>
+  localName === name ? name : `${name} ${localName}`;
 
 /** The answers in the page's language (the site's main one's if it has
     none). An ask.json that can't be read, or isn't an AskIndex, throws. */

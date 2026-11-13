@@ -1,0 +1,29 @@
+---
+import type { FileCard } from "../config/blocks.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { cardRows } from "./file-card.ts";
+
+interface Props {
+  card: FileCard;
+}
+const { card } = Astro.props;
+const rows = cardRows(card);
+---
+
+<div class={PAGE_CLASSES.fileCard}>
+  <p class="file-card-head icon i-file">
+    {card.file}
+    <span class="ok">✓</span>
+  </p>
+  {/* In a <pre> every space and line break is kept, so each line's parts are a list, not lines of markup.
+      Each line is in a span of its own (.file-card-line), which the stylesheet writes out one after another. */}
+  <pre>{rows.map((row, rowIndex) => [
+    rowIndex > 0 && "\n",
+    <span class="file-card-line">{[
+      row.key && <span class="file-card-key">{row.key}:</span>,
+      row.indent,
+      <span class={row.accent ? "file-card-accent" : "file-card-string"}>{row.value}</span>,
+      row.comment && [row.beforeComment, <span class="file-card-comment"># {row.comment}</span>],
+    ]}</span>,
+  ])}</pre>
+</div>

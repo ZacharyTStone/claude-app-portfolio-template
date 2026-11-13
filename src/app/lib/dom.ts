@@ -5,7 +5,6 @@
 /** Attributes to set. One that's null or undefined is left off. */
 export type Attributes = Record<string, string | null | undefined>;
 
-/** A new element, with these attributes and children. */
 export function make<K extends keyof HTMLElementTagNameMap>(
   tag: K,
   attributes: Attributes = {},
@@ -73,7 +72,6 @@ export function find(parent: ParentNode, selector: string): HTMLElement {
   return element;
 }
 
-/** Every element in `parent` that matches. */
 export function findAll(parent: ParentNode, selector: string): HTMLElement[] {
   return [...parent.querySelectorAll(selector)].filter((element) => element instanceof HTMLElement);
 }
@@ -90,6 +88,16 @@ export function parentOf(element: Element): HTMLElement {
     on a parent, which hears about clicks on anything in it. */
 export const closestFrom = (target: EventTarget | null, selector: string): Element | null =>
   target instanceof Element ? target.closest(selector) : null;
+
+/** Runs `handle` for each click on, or inside, an element that matches:
+    one the page has now, or one added to it later (a chat's tab, a copy of
+    an answer). */
+export function onClick(selector: string, handle: (element: HTMLElement, event: MouseEvent) => void): void {
+  document.addEventListener("click", (event) => {
+    const element = closestFrom(event.target, selector);
+    if (element instanceof HTMLElement) handle(element, event);
+  });
+}
 
 /** Whether a click is a plain one: with a modifier key or another button,
     the visitor is asking the browser for a new tab or window themselves. */

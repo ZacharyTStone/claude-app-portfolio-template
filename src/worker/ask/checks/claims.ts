@@ -1,0 +1,115 @@
+/* What a reply says that a check can tell from its ordinary words: an
+   address, a number, a name. Each is a claim its sources have to have. */
+import { addressesIn } from "../text/addresses.ts";
+import { numberIn } from "../text/numbers.ts";
+import {
+  compoundParts,
+  dottedParts,
+  hasCapitalInside,
+  hiddenCharactersIn,
+  latinWordsIn,
+  lettersOutside,
+  startsWithCapital,
+  type Found,
+} from "../text/words.ts";
+
+/** One thing a reply says that has to be its sources', as the reply wrote
+    it (`text`): an email, a handle, a link or a site ("example.com"),
+    whole; a number in digits or written out; or a name, or several joined
+    by a dot or a comma (`names`: "U" and "S" of "U.S"). All but an address and a character
+    are a part of `word`, the word of the reply they're in ("US" of
+    "US-based"). A character is one a reader can't see ("U+034F"), or
+    letters of a script the reply's language doesn't use ("М" of
+    "Мicrosoft"): no source makes either one a reply may show. */
+export type Claim =
+  | { kind: "character"; text: string }
+  | { kind: "address"; text: string }
+  | { kind: "number"; text: string; word: string }
+  | { kind: "name"; text: string; word: string; names: string[] };
+
+/** How a reply's words are read for names. */
+export type Reading = {
+  /** The reply is in a language without capitals (Japanese): a name can't
+      be told by its capital there, so every word in Latin letters is one. */
+  isEveryLatinWordAName: boolean;
+  /** The scripts the language's letters are in, as Unicode names them. */
+  scripts: readonly string[];
+  /** What the visitor's question names, in lower case. */
+  namedInQuestion: ReadonlySet<string>;
+};
+
+/** Words that may have a capital and name nothing: a sentence's first, one
+    after a colon or a dash ("No: He has…"), or "I" as it always does.
+    "May" isn't here (a capitalised one is the month), and "US" never reaches
+    this list: a word all in capitals is a name. */
+const GRAMMAR = new Set(
+  (
+    "a an the this that these those there here he him his she her hers they them their theirs it its we us our " +
+    "you your i my me mr mrs ms who whom whose which what where when why how is are was were be been being am " +
+    "has have had having does do did doing done can could will would shall should might must and or but so nor " +
+    "yet if as at by for from in into of on onto to with within without about across after before between " +
+    "during over under through until since than then also too both either neither each every all any some " +
+    "most many much more less few several such only just even still already always never often sometimes " +
+    "usually yes yeah yep no nope not none nothing okay sure right correct exactly absolutely indeed " +
+    "actually basically currently mostly mainly primarily probably maybe perhaps unfortunately sorry well now " +
+    "today however though although because while whereas besides instead otherwise meanwhile overall"
+  ).split(" "),
+);
+
+const isGrammar = (lowered: string): boolean => GRAMMAR.has(lowered) || lowered.endsWith("n't");
+
+// Any other word with a capital is a name, the first of a sentence too:
+// "…at many. Google. Amazon." names three things. One the sources have is
+// theirs, whatever it claims.
+function isName(word: string, { isEveryLatinWordAName, namedInQuestion }: Reading): boolean {
+  const lowered = word.toLowerCase();
+  // "OK" is no name, however it's written.
+  if (lowered === "ok") return false;
+  if (isEveryLatinWordAName || hasCapitalInside(word)) return true;
+  if (!startsWithCapital(word)) return false;
+  return namedInQuestion.has(lowered) || !isGrammar(lowered);
+}
+
+/** What one part of a word claims, if anything. */
+type PartRule = (part: string, word: string, reading: Reading) => Claim | undefined;
+
+const aNumber: PartRule = (part, word) =>
+  numberIn(part) === undefined ? undefined : { kind: "number", text: part, word };
+
+const itsNames: PartRule = (part, word, reading) => {
+  const names = dottedParts(part).filter((name) => isName(name, reading));
+  return names.length ? { kind: "name", text: part, word, names } : undefined;
+};
+
+/** The first of these to find a claim in a part of a word decides what the
+    part claims. */
+const PART_RULES: readonly PartRule[] = [aNumber, itsNames];
+
+// A compound is read a part at a time.
+const claimsOfWord = (word: string, reading: Reading): Claim[] =>
+  compoundParts(word).flatMap(
+    (part) => PART_RULES.map((rule) => rule(part, word, reading)).find((claim) => claim !== undefined) ?? [],
+  );
+
+// The text with each of `found` written over in spaces.
+const withSpacesOver = (text: string, found: readonly Found[]): string =>
+  found.reduce(
+    (spaced, { start, text: over }) =>
+      spaced.slice(0, start) + " ".repeat(over.length) + spaced.slice(start + over.length),
+    text,
+  );
+
+/** What a reply claims, in its order: its characters, its addresses, then
+    what its words claim. An address is one claim, whole ("alex@example.org" isn't the
+    sources' "alex@example.com", though each of its words but one is), so
+    the words inside one claim nothing more. */
+export function claimsIn(reply: string, reading: Reading): Claim[] {
+  const addresses = addressesIn(reply);
+  const wordClaims = latinWordsIn(withSpacesOver(reply, addresses)).flatMap((word) => claimsOfWord(word.text, reading));
+  const characters = [...hiddenCharactersIn(reply), ...lettersOutside(reply, reading.scripts)];
+  return [
+    ...characters.map(({ text }): Claim => ({ kind: "character", text })),
+    ...addresses.map(({ text }): Claim => ({ kind: "address", text })),
+    ...wordClaims,
+  ];
+}

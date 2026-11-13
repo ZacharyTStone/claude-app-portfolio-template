@@ -1,21 +1,15 @@
 ---
-/* One part of an answer: a paragraph, a list, a file card, a link, a
-   figure, a picture, a quote or a heading (src/shared/content.ts's Block).
-   A paragraph is a string and a list an array; anything else is an object
-   named for its kind ({ card: … }, { quote: … }), drawn by the component
-   for that kind.
-
-   Styles: src/styles/thread.css (paragraphs and lists) and figures.css
-   (pictures side by side, a quote, a heading). */
-import type { Strings } from "../shared/config.ts";
-import type { Block, BlockParts } from "../shared/content.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
-import Artifact from "./Artifact.astro";
+import type { Strings } from "../config/strings.ts";
+import type { Block, BlockByKind } from "../config/blocks.ts";
 import Bars from "./Bars.astro";
-import Card from "./Card.astro";
+import FileCard from "./FileCard.astro";
 import Flow from "./Flow.astro";
+import Gallery from "./Gallery.astro";
+import Heading from "./Heading.astro";
 import Inline from "./Inline.astro";
+import LinkCard from "./LinkCard.astro";
 import Picture from "./Picture.astro";
+import Quote from "./Quote.astro";
 
 interface Props {
   block: Block;
@@ -24,13 +18,9 @@ interface Props {
 }
 const { block, strings } = Astro.props;
 
-// What a block that's an object holds, under each kind's name: one of
-// these is set, and the others are undefined (all of them, for a paragraph
-// or a list).
-const namedParts: Partial<BlockParts> = typeof block === "object" && !Array.isArray(block) ? block : {};
-const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = namedParts;
-// Every kind is drawn below. One added to Block and not taken out on the
-// line above would be left in here, and this line would be a type error.
+const byKind: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
+const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = byKind;
+// A kind added to Block and not drawn below would be left in here, and this line would be a type error.
 kindsNotDrawn satisfies Record<string, never>;
 ---
 
@@ -48,33 +38,11 @@ kindsNotDrawn satisfies Record<string, never>;
     ))}
   </ul>
 )}
-{card && <Card card={card} />}
-{link && <Artifact link={link} />}
+{card && <FileCard card={card} />}
+{link && <LinkCard link={link} />}
 {bars && <Bars bars={bars} />}
 {flow && <Flow flow={flow} />}
 {image && <Picture picture={image} strings={strings} />}
-{images && (
-  <div class="gallery">
-    {images.map((picture) => (
-      <Picture picture={picture} strings={strings} />
-    ))}
-  </div>
-)}
-{quote && (
-  <figure class={PAGE_CLASSES.quote}>
-    <blockquote>
-      <p>{quote.text}</p>
-    </blockquote>
-    <figcaption>{quote.by}</figcaption>
-  </figure>
-)}
-{heading && (
-  <h3>
-    {heading.label && (
-      <>
-        <span>{heading.label}</span>{" "}
-      </>
-    )}
-    {heading.title}
-  </h3>
-)}
+{images && <Gallery pictures={images} strings={strings} />}
+{quote && <Quote quote={quote} />}
+{heading && <Heading heading={heading} />}

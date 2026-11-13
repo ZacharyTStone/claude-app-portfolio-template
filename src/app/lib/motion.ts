@@ -1,9 +1,8 @@
 /* Motion, unless the visitor's system asks for less. */
-import { REDUCED_MOTION } from "../../shared/page-data.ts";
+import { REDUCED_MOTION } from "../../contracts/page-attributes.ts";
 
 const reducedMotionQuery = matchMedia(REDUCED_MOTION);
 
-/** Whether the visitor's system asks for less motion. */
 export const isMotionReduced = (): boolean => reducedMotionQuery.matches;
 
 /** How to scroll (for scrollTo and scrollIntoView): smoothly, or at once

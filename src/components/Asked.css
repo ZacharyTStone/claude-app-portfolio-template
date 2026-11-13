@@ -1,0 +1,16 @@
+.draft-head {
+  min-height: 36px;
+  padding: 2px 4px 2px 12px;
+  font-family: var(--sans);
+  color: var(--text-2);
+}
+.draft-head .icon-button {
+  margin-left: auto;
+  width: var(--control-small);
+  height: var(--control-small);
+}
+.draft-text {
+  padding: 10px 12px;
+  white-space: pre-wrap;
+  font: 400 14px/21px var(--sans);
+}

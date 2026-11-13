@@ -1,23 +1,17 @@
-/* A picture a visitor plays: a diagram that rests as its still, dimmed,
-   with a Play button over it (Picture.astro), so nothing moves beside the
-   text until it's asked to. Without the script the button is a link to the
-   picture as it moves.
-
-   With it, pressing the button, or the picture, plays the picture where it
-   is: the moving file is put over the still and the figure lights up. It's
-   taken away again when it has played through (the button says for how
-   long: DATA.play), when it's pressed again, when another picture is
-   played, or when it's out of sight. One picture plays at a time.
-
-   A chat's copy of an answer has a button of its own, which works the
-   same: the presses are heard on the document, and the copy starts at
-   rest (restStill). */
-import { DATA } from "../shared/page-data.ts";
-import { CLASS, SELECTOR, TIMING } from "./constants.ts";
-import { closestFrom, find, findAll, isPlainClick, make } from "./lib/dom.ts";
+/* A picture a visitor plays rests as its still with a Play button over it
+   (Picture.astro), so nothing moves beside the text until it's asked to;
+   without the script the button is a link to the picture as it moves.
+   Pressed, the moving file is put over the still until it has played
+   through, is pressed again, another picture is played, or it leaves the
+   screen. A chat's copy of an answer works the same, and starts at rest
+   (restStill). */
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { TIMING } from "./constants.ts";
+import { closestFrom, find, findAll, isPlainClick, make, onClick } from "./lib/dom.ts";
 import { words } from "./page.ts";
 
-/** The picture that's playing. */
 type Playing = {
   figure: HTMLElement;
   button: HTMLElement;
@@ -27,7 +21,7 @@ type Playing = {
   playsUntil?: ReturnType<typeof setTimeout>;
 };
 
-/** The one picture playing, if any is. */
+/** One picture plays at a time. */
 let playing: Playing | null = null;
 
 /** Stops the picture that's playing when it leaves the screen. */
@@ -47,14 +41,13 @@ const PLAY_NUMBER = "play";
 /** From now on, a picture with a Play button plays where it is. A page
     with none gets nothing. */
 export function initPlay(): void {
-  const buttons = findAll(document, SELECTOR.playButton);
+  const buttons = findAll(document, PART_SELECTOR.playButton);
   if (!buttons.length) return;
   // It's a link in the page, and a button from here on: it does something
   // where it is.
   for (const button of buttons) button.setAttribute("role", "button");
   if ("IntersectionObserver" in window) outOfSight = new IntersectionObserver(stopOutOfSight);
-  // On the document, so the copies of an answer that chats make work too.
-  document.addEventListener("click", (event) => {
+  onClick(CLASS_SELECTOR.stage, (_stage, event) => {
     const figure = playedFigureAt(event.target);
     if (!figure || !isPlainClick(event)) return;
     event.preventDefault();
@@ -62,7 +55,7 @@ export function initPlay(): void {
   });
   // A link takes Enter by itself; a button takes Space as well.
   document.addEventListener("keydown", (event) => {
-    if (event.key !== " " || !closestFrom(event.target, SELECTOR.playButton)) return;
+    if (event.key !== " " || !closestFrom(event.target, PART_SELECTOR.playButton)) return;
     const figure = playedFigureAt(event.target);
     if (!figure) return;
     event.preventDefault();
@@ -73,34 +66,33 @@ export function initPlay(): void {
 /** A copy of something in the page, with every picture in it at rest: the
     copy of one that was playing isn't. */
 export function restStill(copy: Element): void {
-  const figures = copy.matches(SELECTOR.playedFigure) ? [copy] : findAll(copy, SELECTOR.playedFigure);
+  const figures = copy.matches(CLASS_SELECTOR.playedFigure) ? [copy] : findAll(copy, CLASS_SELECTOR.playedFigure);
   for (const figure of figures) {
-    figure.classList.remove(CLASS.playing);
-    for (const moving of findAll(figure, `.${CLASS.moving}`)) moving.remove();
-    const button = figure.querySelector(SELECTOR.playButton);
-    if (button) name(button, words.play);
+    figure.classList.remove(PAGE_CLASSES.playing);
+    for (const moving of findAll(figure, CLASS_SELECTOR.moving)) moving.remove();
+    const button = figure.querySelector(PART_SELECTOR.playButton);
+    if (button) setButtonWord(button, words.play);
   }
 }
 
-/** Gives a Play button its word. The word is in an element of its own, so
-    the stylesheet can show the icon alone where there's little room. */
-function name(button: Element, word: string): void {
-  find(button, SELECTOR.label).textContent = word;
+/** The word is in an element of its own, so the stylesheet can show the
+    icon alone where there's little room. */
+function setButtonWord(button: Element, word: string): void {
+  find(button, CLASS_SELECTOR.label).textContent = word;
 }
 
 /** The figure a press plays or pauses: the one whose Play button, or whose
     picture, it was on. A picture that links somewhere (its `href`) is
     left to its link; only its button plays it. */
 function playedFigureAt(target: EventTarget | null): HTMLElement | null {
-  const stage = closestFrom(target, SELECTOR.stage);
+  const stage = closestFrom(target, CLASS_SELECTOR.stage);
   if (!stage) return null;
   const link = closestFrom(target, "a");
-  if (link && !link.matches(SELECTOR.playButton)) return null;
-  const figure = stage.closest(SELECTOR.playedFigure);
+  if (link && !link.matches(PART_SELECTOR.playButton)) return null;
+  const figure = stage.closest(CLASS_SELECTOR.playedFigure);
   return figure instanceof HTMLElement ? figure : null;
 }
 
-/** Plays a figure's picture, or stops it if it's the one playing. */
 function toggle(figure: HTMLElement): void {
   const wasPlaying = playing?.figure === figure;
   stop();
@@ -110,19 +102,19 @@ function toggle(figure: HTMLElement): void {
 /** Puts the picture as it moves over the still. It shows once it has
     loaded, and plays for as long as its button says. */
 function play(figure: HTMLElement): void {
-  const button = find(figure, SELECTOR.playButton);
+  const button = find(figure, PART_SELECTOR.playButton);
   const address = button.getAttribute("href");
   if (!address) return;
   timesPlayed++;
   // The still under it has the picture's description.
-  const moving = make("img", { class: CLASS.moving, src: `${address}?${PLAY_NUMBER}=${timesPlayed}`, alt: "" });
+  const moving = make("img", { class: PAGE_CLASSES.moving, src: `${address}?${PLAY_NUMBER}=${timesPlayed}`, alt: "" });
   const nowPlaying: Playing = { figure, button, moving };
   moving.addEventListener(
     "load",
     () => {
       // Stopped, or another one played, while it loaded.
       if (playing !== nowPlaying) return;
-      moving.classList.add(CLASS.movingShown);
+      moving.classList.add(PAGE_CLASSES.movingShown);
       const seconds = Number(button.getAttribute(DATA.play));
       if (seconds > 0) nowPlaying.playsUntil = setTimeout(stop, seconds * 1000);
     },
@@ -131,23 +123,22 @@ function play(figure: HTMLElement): void {
   // A file that can't be had leaves the still as it was.
   moving.addEventListener("error", () => playing === nowPlaying && stop(), { once: true });
   button.before(moving);
-  figure.classList.add(CLASS.playing);
-  name(button, words.pause);
+  figure.classList.add(PAGE_CLASSES.playing);
+  setButtonWord(button, words.pause);
   outOfSight?.observe(figure);
   playing = nowPlaying;
 }
 
-/** Stops the picture that's playing: the still shows again, as the moving
-    one fades from over it. */
+/** The still shows again, as the moving picture fades from over it. */
 function stop(): void {
   if (!playing) return;
   const { figure, button, moving, playsUntil } = playing;
   playing = null;
   clearTimeout(playsUntil);
   outOfSight?.unobserve(figure);
-  figure.classList.remove(CLASS.playing);
-  name(button, words.play);
-  moving.classList.remove(CLASS.movingShown);
+  figure.classList.remove(PAGE_CLASSES.playing);
+  setButtonWord(button, words.play);
+  moving.classList.remove(PAGE_CLASSES.movingShown);
   setTimeout(() => moving.remove(), TIMING.playFade);
 }
 

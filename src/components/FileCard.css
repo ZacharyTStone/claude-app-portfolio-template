@@ -1,0 +1,44 @@
+/* The message to copy in "Something else" (Asked.astro) has the file card's frame. */
+.file-card,
+.draft {
+  border-radius: 8px;
+  background: var(--code-bg);
+  border: 0.5px solid var(--code-edge);
+  overflow: hidden;
+}
+.file-card-head,
+.draft-head {
+  display: flex;
+  align-items: center;
+  border-bottom: 0.5px solid var(--code-edge);
+  font: 400 13px/19px var(--mono);
+}
+.file-card-head {
+  gap: 8px;
+  padding: 8px 12px;
+}
+.file-card-head::before {
+  color: var(--text-2);
+}
+.file-card-head .ok {
+  margin-left: auto;
+  color: var(--green);
+  font-family: var(--sans);
+}
+.file-card pre {
+  margin: 0;
+  padding: 12px;
+  font: 400 13px/19px var(--mono);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+.file-card-key,
+.file-card-comment {
+  color: var(--text-2);
+}
+.file-card-string {
+  color: var(--syntax-string);
+}
+.file-card-accent {
+  color: var(--accent);
+}

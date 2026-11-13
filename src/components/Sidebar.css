@@ -1,0 +1,144 @@
+.side {
+  background: var(--sidebar);
+  border-right: 1px solid var(--line);
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 0 8px 8px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--row-selected) transparent;
+}
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: var(--topbar-h);
+  padding: 0 2px 0 10px;
+  margin-bottom: 8px;
+  flex: none;
+}
+.wordmark {
+  font: 500 20px/20px var(--serif);
+  letter-spacing: -0.005em;
+  color: var(--text);
+}
+.language-switch {
+  margin-left: auto;
+  display: flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--chip);
+}
+.language-switch > * {
+  font: 500 12px/20px var(--sans);
+  padding: 0 8px;
+  border-radius: 6px;
+  color: var(--text-2);
+}
+.language-switch [aria-current] {
+  background: var(--row-selected);
+  color: var(--text);
+}
+.language-switch a:hover {
+  color: var(--text);
+}
+.side .drawer-close {
+  display: none;
+}
+.side-toggle {
+  margin-left: -6px;
+}
+@media (min-width: 800px) {
+  .shell.no-side {
+    grid-template-columns: minmax(0, 1fr) var(--panel-col);
+  }
+  .shell.no-side .side,
+  .shell.no-side .resizer {
+    display: none;
+  }
+  .shell.no-side .menu-button {
+    display: inline-grid;
+    margin-left: -10px;
+  }
+}
+
+.nav {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+.nav a {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 32px;
+  padding: 0 10px;
+  border-radius: 8px;
+  font: 435 14px/21px var(--sans);
+}
+.nav a:hover,
+.group-rows a:hover {
+  background: var(--row-hover);
+}
+.group-heading {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  height: 28px;
+  margin-top: 16px;
+  padding: 4px 0 4px 10px;
+  font: 520 12px/20px var(--sans);
+  color: var(--text);
+}
+.group-heading::after {
+  content: "";
+  width: 14px;
+  height: 14px;
+  background: currentColor;
+  --icon: url("/assets/icons/caret-down.svg");
+  transition: rotate 0.2s var(--ease);
+}
+.group-heading.folded::after {
+  rotate: -90deg;
+}
+.group-rows {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 2px;
+}
+/* Only the rows themselves: a row's menu sits in the list too. */
+.group-rows > li > a {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 54px;
+  padding: 6px 8px 6px 10px;
+  border-radius: 8px;
+}
+.group-rows .row-name {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font: 400 14px/21px var(--sans);
+}
+.group-rows .row-hint {
+  font: 400 13px/16px var(--sans);
+  color: var(--text-2);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.live {
+  width: 6px;
+  height: 6px;
+  border-radius: 3px;
+  background: var(--blue);
+  margin-left: auto;
+  flex: none;
+}
+
+/* The script marks the open tab's row, or "New tab", with aria-current. */
+.side a[aria-current="page"] {
+  background: var(--row-selected);
+}

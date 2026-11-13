@@ -1,12 +1,9 @@
 ---
-/* GitHub and LinkedIn are drawn as small lettered badges, not as .i-*
-   icons. Draws the badge for an icon name that is a logo (logos.ts), and
-   nothing for any other: its element has the icon's classes instead
-   (iconClass). Styles: .logo in src/styles/panel.css. */
+/* Draws the lettered badge of an icon that is a logo, and nothing for any other icon: its element has the
+   icon's classes instead (iconClass). */
 import { BADGES } from "./logos.ts";
 
 interface Props {
-  /** An icon's name, as the config has it: "github", or "file". */
   icon: string;
   /** Hidden from screen readers, beside a name that says the same. */
   hidden?: boolean;

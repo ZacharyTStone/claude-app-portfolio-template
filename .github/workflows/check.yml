@@ -13,18 +13,14 @@ jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-node@v7
+      # Each action is pinned to a commit, with its version beside it: a tag can be moved, a commit can't.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
         with:
           node-version-file: .node-version
           cache: npm
-      - uses: actions/setup-python@v7
-        with:
-          python-version: "3.12"
-      # For the Japanese fonts' check.
-      - run: pip install fonttools brotli
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
-      # Everything, in order, as it runs on your machine: see scripts/verify.ts.
+      # Everything, in order, as it runs on your machine: the chain is `verify` in package.json.
       - run: npm run verify

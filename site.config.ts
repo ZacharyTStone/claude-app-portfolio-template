@@ -1,28 +1,9 @@
-/* site.config.ts: everything the site says. Replace the sample person,
-   Alex Example, with yourself.
-
-   `npm run dev` shows the site as you edit, and the build stops with a
-   clear message if something here points at a thread that doesn't exist.
-   Every field is documented in src/shared/config.ts (SiteConfig), so your
-   editor completes and checks this file as you type; the blocks an answer
-   can hold (cards, bars, flows, pictures, quotes…) are in
-   src/shared/content.ts.
-
-   - A thread's `id` is its address (#about). The sidebar, the panel, the
-     question card and links in answers name threads by id.
-   - Markdown is only **bold**, *italic*, `code` and [links](#thread or
-     https://…).
-   - Icons are about, skills, file, contact, work and globe; panel rows and
-     link cards can also be github or linkedin.
-   - A `flow` draws steps in order, as boxes and arrows. A diagram that
-     moves is a picture: diagrams/ has one ("Saving a note"), `npm run
-     diagrams` writes its files, and an `image` shows them (AGENTS.md,
-     "Adding a picture that moves").
-   - `viewer` lists the links that open in a panel beside the conversation,
-     in a frame, instead of a new tab: a resume in Google Docs, say. The
-     sample has none; there's one to uncomment under `ask`.
-   - To add a language, see examples/ja.ts. */
-import type { SiteConfig } from "./src/shared/config.ts";
+/* Everything the site says. Start with `me`, just below: replace the
+   sample person, Alex Example, with yourself. docs/content.md is the map
+   of this file, and an editor shows what each field is for as you hover
+   over it. `npm run dev` shows the site as you edit, and `npm run build`
+   names anything here that points at a thread that doesn't exist. */
+import type { SiteConfig } from "./src/config/site-config.ts";
 
 /* Facts that appear in many places, written once. Sentences are written
    out in full below, so read them through after changing a fact. */
@@ -43,9 +24,6 @@ const me = {
 } as const;
 const { acme, globex } = me.jobs;
 
-/** The facts, for a language in another file (examples/ja.ts). */
-export type Me = typeof me;
-
 /** A name as a visitor types it in a question. */
 const lower = (name: string) => name.toLowerCase();
 
@@ -54,7 +32,7 @@ export default {
   // With a path if it's served under one: "https://you.github.io/portfolio/".
   url: "https://example.com",
   // Who serves the built site: "cloudflare", "netlify", "vercel",
-  // "github-pages" or "static". README.md's "Deploy" has each one's steps.
+  // "github-pages" or "static". docs/deploy.md has each one's steps.
   host: "cloudflare",
   name: me.name,
   nameLang: "en",
@@ -67,8 +45,8 @@ export default {
   themeColor: "#191919",
   // Ask (optional, Cloudflare only): a typed question gets a reply of a
   // sentence or two, written from the answer here that fits, with the
-  // lines it was written from quoted under it. Uncomment, and see "Ask" in
-  // README.md.
+  // lines it was written from quoted under it. Uncomment, and see
+  // docs/ask.md.
   // ask: { role: "a software engineer" },
   // The viewer (optional): a link listed here opens in a panel beside the
   // conversation, in a frame, instead of a new tab. Each entry is a link's
@@ -77,7 +55,7 @@ export default {
   // address ending /preview. The sample has none, because nothing it links
   // to can be shown in a frame: GitHub and LinkedIn refuse, and so does a
   // file on the site itself. With the resume in Google Docs, it would be
-  // the line below. See "Pictures that move, and the viewer" in README.md.
+  // the line below. See "The viewer" in docs/content.md.
   // viewer: { [me.resume]: "https://docs.google.com/document/d/YOUR-DOC-ID/preview" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
@@ -518,58 +496,13 @@ export default {
       },
 
       // ---- The interface's own words --------------------------------------
+      // The page's own labels and tooltips are in English already
+      // (src/config/english-strings.ts): state only the ones you change. A
+      // page in another language states them all (examples/ja.ts).
       strings: {
-        skip: "Skip to content",
-        tabs: "Tabs",
-        hideTabs: "Hide tabs",
-        closeTabs: "Close tabs",
-        showTabs: "Show tabs",
-        panelToggle: "Show or hide the details panel",
-        panelToggleTitle: "Details",
-        credit: "Design inspired by the Claude app. Not affiliated with Anthropic.",
-        share: "Share",
-        copyTab: "Copy link to this tab",
-        copyTitle: "Copy link",
-        question: "Question: ",
-        followUpPlaceholder: "Ask a follow-up…",
-        model: "Portfolio",
-        status: "Read {file}",
-        panel: "Details",
-        closePanel: "Close the details panel",
-        closePanelTitle: "Close",
-        copied: "Copied",
-        copyFailed: "Couldn’t copy",
-        menuCopy: "Copy link",
-        menuOptions: "Thread options",
-        menuRename: "Rename",
-        menuFollowUp: "Ask a follow-up",
-        menuJump: "Jump to",
-        menuMore: "More options",
-        menuDelete: "Delete",
-        thinking: "Thinking…",
-        // One of these (split at |) shows while a reply is on its way.
-        thinkingWords: "Thinking|Pondering|Mulling|Brewing|Tinkering|Puzzling|Wondering|Considering",
-        chats: "Chats",
-        chatDeleted: "Chat deleted",
-        newChat: "New chat",
-        moveSection: "Move {name}",
-        resize: "Resize the tabs",
-        // The viewer's two buttons, on a site with `viewer`.
-        viewerOpen: "Open in a new tab",
-        viewerClose: "Close",
-        // The button on a diagram, which rests still until it's played.
-        play: "Play",
-        pause: "Pause",
-        // The rest show only with Ask on. Under a reply to a typed question:
-        // where it's from.
-        askFrom: "From the {tab} tab",
-        askFromPersonal: "From “{tab}”",
-        // What replaces a question found inappropriate.
-        askRemoved: "Question removed",
-        // Past a visitor's {limit} questions for the day, and the note under
-        // replies when only {n} are left.
+        // With Ask on, the reply past a visitor's {limit} questions for the
+        // day. This one names you, and links to your "contact" thread.
         askLimited: `That’s the limit for today. Asking runs on a free service, so it’s capped at {limit} questions a day. Everything about ${me.first} is in the tabs, and [Contact](#contact) has how to reach them.`,
-        askLeft: "Heads up: asking runs on a free service, so it’s capped per day: {n} left today.",
       },
     },
   },

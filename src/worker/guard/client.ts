@@ -1,104 +1,85 @@
-/* What /ask asks of the site's AskGuard. When the guard is missing or
-   can't be reached, the visitor gets no pick: the safe side. */
-import {
-  ASK_GUARD_NAME,
-  ASK_GUARD_ORIGIN,
-  ASK_GUARD_PATH,
-  ASK_GUARD_REPLY,
-  type BlockQuery,
-  type SpendQuery,
-  type TakeQuery,
-} from "../constants.ts";
-import type { Settings } from "../env.ts";
+import type { Settings } from "../settings.ts";
+import { ASK_GUARD_NAME, readTaken, urlAsking, type Asked, type Asker, type DayLimits, type Gate } from "./wire.ts";
 
-/** Whether the visitor's question can go to the model.
-    - ok: yes, and `questionsLeft` is how many more they can ask today.
-    - limited: they've asked `visitorLimit` today, the most there is.
-    - spent: the site's questions for today are used up, or the Neurons
-      they may cost.
-    - blocked: they asked something inappropriate earlier.
-    - down: the guard isn't bound, can't be reached, or said something else. */
-export type Gate =
-  | { state: "ok"; questionsLeft: number }
-  | { state: "limited"; visitorLimit: number }
-  | { state: "spent" | "blocked" | "down" };
+/** What /ask asks of the site's AskGuard while it answers one request. */
+export type Guard = {
+  /** Takes one question from the allowances of the visitor, their network
+      and the site, and says whether it can go to the model. */
+  takeQuestion(asker: Asker): Promise<Gate>;
+  /** Blocks the visitor from /ask for ASK_BLOCK_HOURS. */
+  blockVisitor(visitorHash: string): Promise<void>;
+  /** Pays for a question that was taken with what its model calls cost,
+      in Neurons. One that failed is paid for with nothing: until it's
+      paid for, AskGuard counts it at the most a question has cost. */
+  spendNeurons(neurons: number): Promise<void>;
+};
 
-const GUARD_IS_DOWN: Gate = { state: "down" };
+const DOWN: Gate = { state: "down" };
 
-// Sends the site's one AskGuard a request. It's created where
-// ASK_GUARD_LOCATION says (eastern North America by default), not near
-// whoever happened to ask first.
-function callAskGuard(
-  namespace: DurableObjectNamespace,
-  { guardLocation }: Settings,
-  path: string,
-  query: TakeQuery | BlockQuery | SpendQuery,
-): Promise<Response> {
-  const guard = namespace.get(namespace.idFromName(ASK_GUARD_NAME), { locationHint: guardLocation });
-  return guard.fetch(`${ASK_GUARD_ORIGIN}${path}?${new URLSearchParams(query)}`, { method: "POST" });
+// With no guard, the visitor gets no pick: the safe side.
+const NO_GUARD: Guard = {
+  takeQuestion: async () => DOWN,
+  blockVisitor: async () => {},
+  spendNeurons: async () => {},
+};
+
+/** However many addresses ask, the day's questions can't all be asked in
+    fewer hours than this: a flood ends Ask for the rest of an hour, not of
+    the day. */
+const FEWEST_HOURS_TO_ASK_A_DAYS_QUESTIONS = 3;
+
+/** A network may ask as much as this many visitors: room for neighbours
+    who share one, and too little for one of them to use up the site's hour. */
+const VISITORS_A_NETWORK_MAY_ASK_FOR = 2;
+
+/** The limits AskGuard is asked with. The hour's and the network's are read
+    off the day's and the visitor's, and are never less than one visitor's
+    day: a visitor alone meets their own limit first. */
+export function limitsFrom({ dailyLimit, visitorLimit, neuronBudget }: Settings): DayLimits {
+  const sharePerHour = Math.ceil(dailyLimit / FEWEST_HOURS_TO_ASK_A_DAYS_QUESTIONS);
+  return {
+    siteLimit: dailyLimit,
+    hourLimit: Math.max(sharePerHour, visitorLimit),
+    visitorLimit,
+    networkLimit: visitorLimit * VISITORS_A_NETWORK_MAY_ASK_FOR,
+    neuronBudget,
+  };
 }
 
-// What AskGuard's reply to /take means: "ok 25" (the visitor has 25
-// questions left today), "limited", "spent" or "blocked". Anything else is
-// read as the guard being down.
-function readGate(guardReply: string, visitorLimit: number): Gate {
-  const [state, questionsLeft] = guardReply.split(" ");
-  if (state === ASK_GUARD_REPLY.ok) return { state, questionsLeft: Number(questionsLeft) };
-  if (state === ASK_GUARD_REPLY.limited) return { state, visitorLimit };
-  if (state === ASK_GUARD_REPLY.spent || state === ASK_GUARD_REPLY.blocked) return { state };
-  return GUARD_IS_DOWN;
-}
-
-/** Takes one question from the visitor's and the site's allowances for the
-    day, and says whether it can go to the model. */
-export async function takeQuestion(
-  namespace: DurableObjectNamespace | undefined,
-  visitorHash: string,
-  settings: Settings,
-): Promise<Gate> {
-  if (!namespace) return GUARD_IS_DOWN;
-  const { dailyLimit, visitorLimit, neuronBudget } = settings;
-  try {
-    const query: TakeQuery = {
-      limit: String(dailyLimit),
-      each: String(visitorLimit),
-      budget: String(neuronBudget),
-      who: visitorHash,
-    };
-    const response = await callAskGuard(namespace, settings, ASK_GUARD_PATH.take, query);
-    return response.ok ? readGate(await response.text(), visitorLimit) : GUARD_IS_DOWN;
-  } catch {
-    return GUARD_IS_DOWN;
-  }
-}
-
-/** Blocks the visitor from /ask for ASK_BLOCK_HOURS. */
-export async function blockVisitor(
-  namespace: DurableObjectNamespace | undefined,
-  visitorHash: string,
-  settings: Settings,
-): Promise<void> {
-  if (!namespace) return;
-  try {
-    const query: BlockQuery = { hours: String(settings.blockHours), who: visitorHash };
-    await callAskGuard(namespace, settings, ASK_GUARD_PATH.block, query);
-  } catch {
-    // This question is turned away all the same; only the block is missed.
-  }
-}
-
-/** Adds what a question's model calls cost, in Neurons, to the day's. */
-export async function spendNeurons(
-  namespace: DurableObjectNamespace | undefined,
-  neurons: number,
-  settings: Settings,
-): Promise<void> {
-  // Nothing to add for a cost of 0, or one that isn't a number.
-  if (!namespace || !(neurons > 0)) return;
-  try {
-    const query: SpendQuery = { neurons: String(neurons) };
-    await callAskGuard(namespace, settings, ASK_GUARD_PATH.spend, query);
-  } catch {
-    // The question is answered all the same; only its cost goes uncounted.
-  }
+/** The site's AskGuard, asked with the limits the settings have. A guard
+    that isn't bound or can't be reached lets no question through. */
+export function guardFor(namespace: DurableObjectNamespace | undefined, settings: Settings): Guard {
+  if (!namespace) return NO_GUARD;
+  const { blockHours, guardLocation } = settings;
+  const limits = limitsFrom(settings);
+  // It's created where ASK_GUARD_LOCATION says, not near whoever happened
+  // to ask first.
+  const ask = (asked: Asked): Promise<Response> =>
+    namespace
+      .get(namespace.idFromName(ASK_GUARD_NAME), { locationHint: guardLocation })
+      .fetch(urlAsking(asked), { method: "POST" });
+  return {
+    async takeQuestion(asker) {
+      try {
+        const response = await ask({ ask: "take", ...asker, limits });
+        return response.ok ? readTaken(await response.text()) : DOWN;
+      } catch {
+        return DOWN;
+      }
+    },
+    async blockVisitor(visitorHash) {
+      try {
+        await ask({ ask: "block", visitorHash, hours: blockHours });
+      } catch {
+        // This question is turned away all the same; only the block is missed.
+      }
+    },
+    async spendNeurons(neurons) {
+      try {
+        await ask({ ask: "spend", neurons: neurons > 0 ? neurons : 0 });
+      } catch {
+        // The question is answered all the same; only its cost goes uncounted.
+      }
+    },
+  };
 }

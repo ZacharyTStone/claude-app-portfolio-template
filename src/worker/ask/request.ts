@@ -2,8 +2,8 @@
    question in it (an AskRequest). Anything else is turned away with a 4xx
    and a word on why, before anything is spent on it. */
 import * as v from "valibot";
-import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES, type AskRequest } from "../../shared/ask.ts";
-import { HTTP_STATUS, json } from "../lib/http.ts";
+import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES, type AskRequest } from "../../contracts/ask.ts";
+import { HTTP_STATUS } from "../lib/http.ts";
 
 /** An AskRequest as the Worker reads it. The body is whatever was sent, so
     each field says what's done with one that isn't as the page sends it. */
@@ -24,24 +24,23 @@ const CheckedAskRequestSchema = v.object({
   // Every field of an AskRequest is read here, and nothing else is.
 } satisfies Record<keyof AskRequest, v.GenericSchema>);
 
-/** An AskRequest, checked: the question trimmed and cut to
-    MAX_QUESTION_LENGTH, and the page's language if it sent one. */
 export type CheckedAskRequest = v.InferOutput<typeof CheckedAskRequestSchema>;
 
-const refuse = (status: number, error: string, headers?: Record<string, string>) => json({ error }, status, headers);
+/** Why a request isn't one /ask reads, and the status it's turned away with. */
+export type Rejection = { status: number; error: string; headers?: Record<string, string> };
 
-/** The reply that turns the request away if it isn't a JSON POST;
-    undefined if it is one. */
-export function refuseUnlessJsonPost(request: Request): Response | undefined {
-  if (request.method !== "POST") return refuse(HTTP_STATUS.methodNotAllowed, "POST only", { Allow: "POST" });
+export function rejectionUnlessJsonPost(request: Request): Rejection | undefined {
+  if (request.method !== "POST") {
+    return { status: HTTP_STATUS.methodNotAllowed, error: "POST only", headers: { Allow: "POST" } };
+  }
   // A page on another site can't send this content type without asking
   // first, and isn't allowed to.
   const contentType = request.headers.get("Content-Type") ?? "";
-  if (!contentType.startsWith("application/json")) return refuse(HTTP_STATUS.unsupportedMediaType, "JSON only");
-  return undefined;
+  const isJson = contentType.startsWith("application/json");
+  return isJson ? undefined : { status: HTTP_STATUS.unsupportedMediaType, error: "JSON only" };
 }
 
-// The body as text, read no further than `maxBytes`: null past them.
+// Null for a body longer than `maxBytes`: no more of it is read.
 async function readBodyText(request: Request, maxBytes: number): Promise<string | null> {
   const reader = request.body?.getReader();
   if (!reader) return "";
@@ -59,20 +58,19 @@ async function readBodyText(request: Request, maxBytes: number): Promise<string 
   return text + decoder.decode();
 }
 
-/** The request's body as a checked AskRequest, or the reply that turns it
-    away: too long, not JSON, or with no question in it. */
-export async function readAskRequest(request: Request): Promise<CheckedAskRequest | Response> {
-  const tooLong = () => refuse(HTTP_STATUS.payloadTooLarge, "too long");
-  if (Number(request.headers.get("Content-Length") ?? 0) > MAX_REQUEST_BYTES) return tooLong();
+const TOO_LONG: Rejection = { status: HTTP_STATUS.payloadTooLarge, error: "too long" };
+
+export async function readAskRequest(request: Request): Promise<CheckedAskRequest | Rejection> {
+  if (Number(request.headers.get("Content-Length") ?? 0) > MAX_REQUEST_BYTES) return TOO_LONG;
   let body: unknown;
   try {
     // Measured as it comes, too: Content-Length can be missing.
     const text = await readBodyText(request, MAX_REQUEST_BYTES);
-    if (text === null) return tooLong();
+    if (text === null) return TOO_LONG;
     body = JSON.parse(text);
   } catch {
-    return refuse(HTTP_STATUS.badRequest, "bad JSON");
+    return { status: HTTP_STATUS.badRequest, error: "bad JSON" };
   }
   const checked = v.safeParse(CheckedAskRequestSchema, body);
-  return checked.success ? checked.output : refuse(HTTP_STATUS.badRequest, "no question");
+  return checked.success ? checked.output : { status: HTTP_STATUS.badRequest, error: "no question" };
 }

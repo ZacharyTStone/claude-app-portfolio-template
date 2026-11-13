@@ -1,0 +1,25 @@
+---
+import type { LinkCard } from "../config/blocks.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { linkAttributes } from "./attributes.ts";
+import { iconClass } from "./logos.ts";
+import Logo from "./Logo.astro";
+
+interface Props {
+  link: LinkCard;
+  /** data-* attributes for the link itself, for the script to read. */
+  [attribute: `data-${string}`]: string;
+}
+const { link, ...dataAttributes } = Astro.props;
+const { name, kind, href, icon } = link;
+---
+
+<a class={`link-card i-out ${PAGE_CLASSES.iconAfter}`} {...linkAttributes(href, name)} {...dataAttributes}>
+  <span class:list={["tile", iconClass(icon)]} aria-hidden="true">
+    <Logo icon={icon} />
+  </span>
+  <span>
+    <span class="name">{name}</span>
+    <span class="kind">{kind}</span>
+  </span>
+</a>

@@ -1,0 +1,27 @@
+/* A click anywhere on the heading, its triangle included, presses the button inside it. */
+.foldable {
+  cursor: pointer;
+  border-radius: 8px;
+}
+.foldable:hover {
+  background: var(--row-hover);
+}
+.foldable:has(> .fold-button:focus-visible) {
+  box-shadow: var(--focus-ring);
+}
+.fold-button {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  color: inherit;
+  text-align: inherit;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+}
+.fold-button:focus-visible {
+  box-shadow: none;
+}

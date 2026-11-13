@@ -1,4 +1,7 @@
-.vscode
+# The editor's settings: yours, but for the two files every site shares
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
 
 # wrangler files
 .wrangler
@@ -17,5 +20,8 @@ node_modules
 dist
 .astro
 
-# Python: what it caches when a script is imported
-__pycache__
+# Playwright: what a failed browser check leaves to look at
+test-results
+
+# macOS folder settings
+.DS_Store

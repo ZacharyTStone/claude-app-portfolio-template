@@ -1,0 +1,53 @@
+.panel section {
+  position: relative;
+}
+.grip {
+  position: absolute;
+  top: 12px;
+  right: -8px;
+  width: 24px;
+  height: 28px;
+  display: grid;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-3);
+  cursor: grab;
+  touch-action: none;
+  opacity: 0;
+  transition: opacity 0.15s var(--ease);
+}
+.panel section:first-of-type .grip {
+  top: 8.5px;
+  right: 36px;
+}
+.panel section:hover .grip,
+.grip:focus-visible,
+.dragging .grip {
+  opacity: 1;
+}
+.grip:hover {
+  color: var(--text);
+  background: var(--row-hover);
+}
+/* Lifted while dragged: the spread shadows paint a padded card around it
+   without moving anything, and the line above it goes. */
+.panel .dragging {
+  z-index: 1;
+  border-top-color: transparent;
+  border-radius: 4px;
+  background: var(--menu);
+  box-shadow:
+    0 0 0 8px var(--menu),
+    0 0 0 9px var(--rim),
+    0 10px 32px 8px rgb(0 0 0 / 0.45);
+}
+.dragging .grip {
+  cursor: grabbing;
+}
+.panel:has(.dragging) {
+  cursor: grabbing;
+  user-select: none;
+}

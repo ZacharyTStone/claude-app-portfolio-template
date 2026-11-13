@@ -1,25 +1,19 @@
 ---
-/* A conversation, in a tab of its own (Tab.astro): each question and its
-   answer. A question can have a status line ("Read experience/acme.md ▸")
-   that opens onto a file card. The buttons under an answer are only under
-   the last one. Styles: src/styles/thread.css. */
-import type { Thread } from "../shared/config.ts";
-import { PAGE_CLASSES } from "../shared/page-data.ts";
+import type { Thread } from "../config/language.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import type { Page } from "../site/site.ts";
 import Block from "./Block.astro";
-import Card from "./Card.astro";
+import FileCard from "./FileCard.astro";
 import Inline from "./Inline.astro";
 import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
-  /** The thread, from the language's `threads` in the config. */
   thread: Thread;
 }
 const { page, thread } = Astro.props;
-const { strings } = page.lang;
+const { strings } = page.language;
 // "Read {file}": the words around the file's name.
 const [statusBeforeFile, statusAfterFile = ""] = strings.status.split("{file}");
 const lastMessageIndex = thread.messages.length - 1;
@@ -39,7 +33,7 @@ const lastMessageIndex = thread.messages.length - 1;
             <b>{message.read.file}</b>
             {statusAfterFile}
           </summary>
-          <Card card={message.read.card} />
+          <FileCard card={message.read.card} />
         </details>
       )}
       <div class={PAGE_CLASSES.answer}>

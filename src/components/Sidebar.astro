@@ -1,41 +1,37 @@
 ---
-/* The sidebar: the name and the language switch, "New tab" and the rows at
-   the top, the groups of tabs, and the account row at the bottom
-   (Account.astro). It's drawn from the language's `sidebar` in the config.
-   Styles: src/styles/sidebar.css, and narrow.css where it's a drawer. */
-import { DATA, groupId, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { groupId, PAGE_IDS } from "../contracts/page-ids.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import Account from "./Account.astro";
 import { flag } from "./attributes.ts";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
 const { page } = Astro.props;
-const { site, code: pageLanguage, lang } = page;
+const { code: pageLanguage } = page;
 const { config, codes: languageCodes } = site;
-const { strings } = lang;
-const { newTab, nav, groups } = lang.sidebar;
+const { strings, sidebar } = page.language;
+const { newTab, nav, groups } = sidebar;
 // On a page in another language, the name is marked as its own.
 const nameLang = config.nameLang && config.nameLang !== pageLanguage ? config.nameLang : undefined;
-// The language switch, on a site with more than one language: this page's
-// language as plain text, and each other one as a link to its page.
 const hasLanguageSwitch = languageCodes.length > 1;
 const languageSwitch = languageCodes.map((code) => {
-  const { label, name } = site.lang(code);
-  return { code, label, name, href: site.path(code), isThisPage: code === pageLanguage };
+  const { label, name } = site.language(code);
+  return { code, label, name, href: site.pagePath(code), isThisPage: code === pageLanguage };
 });
 ---
 
-<nav class="side" id={PAGE_IDS.tabs} aria-label={strings.tabs}>
+<nav class="side" id={PAGE_IDS.sidebar} aria-label={strings.tabs}>
   <div class="brand">
     <button
-      class="icon-btn ic i-sidebar side-toggle"
+      class="icon-button icon i-sidebar side-toggle"
       type="button"
       data-js-only
       {...flag(DATA.sideToggle)}
-      aria-controls={PAGE_IDS.tabs}
+      aria-controls={PAGE_IDS.sidebar}
       aria-expanded="true"
       aria-label={strings.hideTabs}
       title={strings.hideTabs}
@@ -44,12 +40,17 @@ const languageSwitch = languageCodes.map((code) => {
       {config.name}
     </a>
     {hasLanguageSwitch && (
-      <span class={PAGE_CLASSES.lang}>
+      <span class={PAGE_CLASSES.languageSwitch}>
         {languageSwitch.map((language) =>
           language.isThisPage ? (
             <span aria-current="true">{language.label}</span>
           ) : (
-            <a href={language.href} hreflang={language.code} lang={language.code} {...{ [DATA.name]: language.name }}>
+            <a
+              href={language.href}
+              hreflang={language.code}
+              lang={language.code}
+              {...{ [DATA.languageName]: language.name }}
+            >
               {language.label}
             </a>
           ),
@@ -57,21 +58,21 @@ const languageSwitch = languageCodes.map((code) => {
       </span>
     )}
     <a
-      class={`${PAGE_CLASSES.drawerClose} btn-ghost ic i-close`}
-      href={`#${PAGE_IDS.top}`}
+      class={`${PAGE_CLASSES.drawerClose} ghost-button icon i-close`}
+      href={`#${PAGE_IDS.home}`}
       aria-label={strings.closeTabs}
     ></a>
   </div>
 
   <ul class={PAGE_CLASSES.nav}>
     <li>
-      <a class={`${PAGE_CLASSES.newTab} ic i-plus`} href="./">
+      <a class={`${PAGE_CLASSES.newTab} icon i-plus`} href="./">
         {newTab}
       </a>
     </li>
     {nav.map((navRow) => (
       <li>
-        <a class={`ic i-${navRow.icon}`} href={`#${navRow.tab}`}>
+        <a class={`icon i-${navRow.icon}`} href={`#${navRow.tab}`}>
           {navRow.label}
         </a>
       </li>
@@ -80,10 +81,10 @@ const languageSwitch = languageCodes.map((code) => {
 
   {groups.map((group) => (
     <>
-      <p class={PAGE_CLASSES.group} id={groupId(group.id)}>
+      <p class={PAGE_CLASSES.groupHeading} id={groupId(group.id)}>
         {group.label}
       </p>
-      <ul class={PAGE_CLASSES.tabs} aria-labelledby={groupId(group.id)}>
+      <ul class={PAGE_CLASSES.groupRows} aria-labelledby={groupId(group.id)}>
         {group.tabs.map((tabRow) => (
           <li>
             <a href={`#${tabRow.tab}`}>

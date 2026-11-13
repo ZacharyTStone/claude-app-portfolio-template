@@ -1,0 +1,11 @@
+{
+  // The Worker's tests, run by Node: the Workers types, and Node's for
+  // node:test. Kept apart from src/worker/tsconfig.json so the Worker
+  // itself can't use anything Node has and Workers doesn't.
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "lib": ["es2023"],
+    "types": ["@cloudflare/workers-types", "node"]
+  },
+  "include": ["."]
+}

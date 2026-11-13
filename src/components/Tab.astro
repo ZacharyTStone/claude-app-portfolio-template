@@ -1,28 +1,23 @@
 ---
-/* A tab: an <article> that :target shows, with its title and Share in the
-   bar across the top, the conversation (the slot), and the composer under
-   it. Every thread is one (Thread.astro), and so is "Something else"
-   (Asked.astro), which the script copies for each chat and personal
-   answer. Styles: src/styles/thread.css, and composer.css for the
-   composer. */
-import type { Pill } from "../shared/config.ts";
-import { DATA, PAGE_CLASSES, PAGE_IDS, titleId } from "../shared/page-data.ts";
+/* An <article> that :target shows. The script copies the "Something else" tab for each chat and each personal
+   answer. */
+import type { Pill } from "../config/language.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS, titleId } from "../contracts/page-ids.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Topbar from "./Topbar.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
-  /** The tab's address: #id. */
   id: string;
-  /** The tab's name, in the bar across its top. */
   title: string;
-  /** A label beside the title, if the thread has one. */
   pill?: Pill;
 }
 const { page, id, title, pill } = Astro.props;
-const { strings } = page.lang;
+const { strings } = page.language;
 ---
 
 <article class={PAGE_CLASSES.tab} id={id} aria-labelledby={titleId(id)}>
@@ -36,7 +31,7 @@ const { strings } = page.lang;
         {pill.label}
       </span>
     )}
-    <button slot="actions" class="btn-ghost ic i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
+    <button slot="actions" class="ghost-button icon i-share" type="button" data-js-only {...flag(DATA.copyLink)}>
       <span class={PAGE_CLASSES.label}>{strings.share}</span>
     </button>
   </Topbar>
@@ -47,14 +42,14 @@ const { strings } = page.lang;
   </div>
   {/* The app's slim composer: a link home without JavaScript, and with it, the way to open the question card. */}
   <div class="dock">
-    <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.top}`}>
-      <span class="ic i-plus" aria-hidden="true"></span>
-      <span class="ph">{strings.followUpPlaceholder}</span>
+    <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.home}`}>
+      <span class="icon i-plus" aria-hidden="true"></span>
+      <span class="composer-placeholder">{strings.followUpPlaceholder}</span>
     </a>
     <p class="under">
       <span class="credit">{strings.credit}</span>
       <span class="model">
-        {page.site.config.name} <em>{strings.model}</em>
+        {site.config.name} <em>{strings.model}</em>
       </span>
     </p>
   </div>

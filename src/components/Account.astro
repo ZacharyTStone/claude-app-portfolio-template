@@ -1,37 +1,38 @@
 ---
-/* The account row at the foot of the sidebar, and the menu it opens: your
-   email, your time beside the visitor's, the other language, "Upgrade"
-   (hire you), GitHub and "Log out". It's drawn from the language's
-   `account` in the config. The menu is in the page but hidden: the script
-   opens it, tells the time and shows the goodbye, all from the wording the
-   clock and "Log out" carry as data-* attributes.
-   Styles: src/styles/sidebar.css (the row) and menus.css (the menu). */
-import { CLOCK_MOODS } from "../shared/config.ts";
-import { DATA, LOCAL_ZONE, PAGE_CLASSES, PAGE_IDS } from "../shared/page-data.ts";
-import { external } from "../shared/markdown.ts";
+/* The menu is in the page, hidden: the script opens it, and reads the clock's and the goodbye's wording from
+   the data-* attributes here. */
+import { CLOCK_MOODS } from "../config/language.ts";
+import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { newTabAttributes } from "../contracts/links.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Logo from "./Logo.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
-const { site, code: pageLanguage, lang } = Astro.props.page;
+const { code: pageLanguage, language } = Astro.props.page;
 const { email, github } = site.config.links;
-const { initial, name, sub, label: menuLabel, clock, language: languageRowLabel = "", upgrade, logout } = lang.account;
-// The first of the site's other languages, if it has one: the menu's
-// language row opens its page.
-const otherLanguage = site.codes.find((code) => code !== pageLanguage);
-// For the script: how far apart your time and the visitor's are, and a
-// mood for each part of your day.
+const {
+  initial,
+  name,
+  sub,
+  label: menuLabel,
+  clock,
+  language: languageRowLabel = "",
+  upgrade,
+  logout,
+} = language.account;
+const firstOtherLanguage = site.codes.find((code) => code !== pageLanguage);
 const clockWording = {
-  [DATA.ahead]: clock.ahead,
-  [DATA.behind]: clock.behind,
-  [DATA.same]: clock.same,
+  [DATA.clockAhead]: clock.ahead,
+  [DATA.clockBehind]: clock.behind,
+  [DATA.clockSame]: clock.same,
   ...Object.fromEntries(CLOCK_MOODS.map((mood) => [DATA.mood(mood), clock.moods[mood]])),
 };
-// For the script: what the goodbye says when "Log out" is pressed.
 const goodbyeWording = {
   [DATA.byeTitle]: logout.title,
   [DATA.byeText]: logout.text,
@@ -40,7 +41,7 @@ const goodbyeWording = {
 ---
 
 <div class={PAGE_CLASSES.account}>
-  <div class={PAGE_CLASSES.me}>
+  <div class={PAGE_CLASSES.accountRow}>
     <span class="avatar" aria-hidden="true">
       {initial}
     </span>
@@ -56,13 +57,13 @@ const goodbyeWording = {
       <span class="clocks">
         <span>
           <span class="pop-label">{clock.me}</span>
-          <span class="clock-time" {...{ [DATA.zone]: site.config.timezone }}>
+          <span class={PAGE_CLASSES.clockTime} {...{ [DATA.zone]: site.config.timezone }}>
             {clock.zone}
           </span>
         </span>
         <span>
           <span class="pop-label">{clock.you}</span>
-          <span class="clock-time" {...{ [DATA.zone]: LOCAL_ZONE }}>
+          <span class={PAGE_CLASSES.clockTime} {...{ [DATA.zone]: LOCAL_ZONE }}>
             –
           </span>
         </span>
@@ -70,36 +71,36 @@ const goodbyeWording = {
       <span class={PAGE_CLASSES.clockNote}></span>
     </div>
     <hr />
-    {otherLanguage && (
+    {firstOtherLanguage && (
       <>
         <a
-          class="ic i-globe"
+          class="icon i-globe"
           role="menuitem"
-          href={site.path(otherLanguage)}
-          hreflang={otherLanguage}
+          href={site.pagePath(firstOtherLanguage)}
+          hreflang={firstOtherLanguage}
           {...flag(DATA.langLink)}
         >
           {languageRowLabel}
-          <span class={PAGE_CLASSES.rowMeta} lang={otherLanguage}>
-            {site.lang(otherLanguage).name}
+          <span class={PAGE_CLASSES.rowMeta} lang={firstOtherLanguage}>
+            {site.language(firstOtherLanguage).name}
           </span>
         </a>
         <hr />
       </>
     )}
-    <a class="ic i-bolt" role="menuitem" href={`#${upgrade.tab}`}>
+    <a class="icon i-bolt" role="menuitem" href={`#${upgrade.tab}`}>
       {upgrade.label}
       <span class={`${PAGE_CLASSES.rowMeta} pro`}>{upgrade.hire}</span>
     </a>
     {github && (
-      <a role="menuitem" href={github} {...external(github)}>
+      <a role="menuitem" href={github} {...newTabAttributes(github)}>
         <Logo icon="github" hidden />
         GitHub
-        <span class={`${PAGE_CLASSES.rowMeta} ic i-out`} aria-hidden="true" />
+        <span class={`${PAGE_CLASSES.rowMeta} icon i-out`} aria-hidden="true" />
       </a>
     )}
     <hr />
-    <button class="ic i-logout" type="button" role="menuitem" {...flag(DATA.logout)} {...goodbyeWording}>
+    <button class="icon i-logout" type="button" role="menuitem" {...flag(DATA.logout)} {...goodbyeWording}>
       {logout.label}
     </button>
   </div>

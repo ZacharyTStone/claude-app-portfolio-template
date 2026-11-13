@@ -1,23 +1,19 @@
 ---
-/* A section of the details panel, under its heading: what's in it goes in
-   the slot. The heading's id is what the script remembers the section's
-   place and fold by, so it's made from the section's name in the config
-   (panelId). Styles: src/styles/panel.css. */
-import type { Panel } from "../shared/config.ts";
-import { panelId } from "../shared/page-data.ts";
+/* The script remembers a section's place and fold by its heading's id, so the id is made from the section's
+   name in the config. */
+import type { Panel } from "../config/language.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { panelId } from "../contracts/page-ids.ts";
 
 interface Props {
-  /** Which of the config's panel sections this is: "progress", "outputs"
-      or "context". */
   name: keyof Panel;
-  /** The section's heading. */
   title: string;
 }
 const { name, title } = Astro.props;
 ---
 
 <section aria-labelledby={panelId(name)}>
-  <h2 class="ic-after" id={panelId(name)}>
+  <h2 class={PAGE_CLASSES.iconAfter} id={panelId(name)}>
     {title}
   </h2>
   <slot />

@@ -4,10 +4,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { covers, namedIn } from "../../src/worker/ask/coverage.ts";
-import { NONE } from "../../src/worker/constants.ts";
-import { UNADDRESSED, ask, captureLogs, lines, stubs, toolCall } from "./fixtures.ts";
-
-const logs = captureLogs();
 
 const OWNER = "Alex Example アレックス・イグザンプル";
 const SKILLS = {
@@ -68,6 +64,25 @@ test("a longer word isn't the same thing, but for a plural or a -JS or -QL", () 
   for (const [question, text] of same) assert.ok(covers(answer(text), question, OWNER), question);
 });
 
+test("a small s on the end may be a plural's; a capital one is the name's own", () => {
+  const answer = (text: string) => ({ title: "Skills", q: "what does alex work with?", text });
+  const different: Array<[question: string, text: string]> = [
+    ["Does he know CSS?", "He studied CS at university."],
+    ["Has he built for iOS?", "Real-time updates with Socket.io."],
+    ["Does Alex's team use CSS?", "He studied CS at university."],
+  ];
+  for (const [question, text] of different) assert.ok(!covers(answer(text), question, OWNER), question);
+  const same: Array<[question: string, text: string]> = [
+    ["Has he built APIs?", "A REST API for payments."],
+    ["Does he review PRs?", "Every PR gets a review."],
+    ["Does he use Cloudflare Workers?", "A Cloudflare Worker."],
+    ["Has he written Svelte Kits?", "SvelteKit."],
+    ["Does he know CSS?", "HTML and CSS."],
+    ["Has he built for iOS?", "An iOS app."],
+  ];
+  for (const [question, text] of same) assert.ok(covers(answer(text), question, OWNER), question);
+});
+
 test("a name is the same with or without its dots and dashes, and a short form covers what's spelled out", () => {
   const answer = (text: string) => ({ title: "Skills", q: "what does alex work with?", text });
   const covered: Array<[question: string, text: string]> = [
@@ -111,20 +126,4 @@ test("a name with one slip of the keyboard inside it, or written as two words, i
     ["Does he know Svelte Native?", "Svelte / SvelteKit."],
   ];
   for (const [question, text] of not) assert.ok(!covers(answer(text), question, OWNER), `${question} ${text}`);
-});
-
-test("a pick that doesn't name what was asked is no pick, and the log says which it was", async () => {
-  logs.mock.resetCalls();
-  const { env } = stubs({ run: () => toolCall("skills.1", [1]) });
-  const response = await ask(env, { question: "Does Alex have experience with Vercel?", lang: "en" });
-  assert.deepEqual(await response.json(), { id: null });
-  const logged = lines(logs);
-  assert.ok(logged.includes(JSON.stringify({ ask: NONE, uncovered: "skills.1", ...UNADDRESSED })), logged.join("\n"));
-  assert.ok(!logged.some((line) => line.includes("Vercel")), "never the question");
-});
-
-test("a pick that names what was asked stands", async () => {
-  const { env } = stubs({ run: () => toolCall("skills.1") });
-  const response = await ask(env, { question: "Does Alex know Postgres?", lang: "en" });
-  assert.equal(((await response.json()) as { id: string | null }).id, "skills.1");
 });

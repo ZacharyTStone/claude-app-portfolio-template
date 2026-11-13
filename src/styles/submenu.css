@@ -1,0 +1,19 @@
+.pop .chevron {
+  flex: none;
+  width: 14px;
+  height: 14px;
+  margin-left: auto;
+  background: var(--text-2);
+  --icon: url("/assets/icons/chevron-right.svg");
+}
+.pop [aria-expanded="true"] {
+  background: var(--row-hover);
+}
+.pop .submenu {
+  top: 0;
+  left: calc(100% - 4px);
+  min-width: 200px;
+}
+.pop .submenu.below {
+  left: 12px;
+}

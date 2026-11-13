@@ -1,13 +1,14 @@
 /* Astro builds the site from site.config.ts (or the file SITE_CONFIG names)
    into dist/: static HTML with no script but the site's own and nothing
-   inline, so the Content-Security-Policy in src/shared/headers.ts holds. */
+   inline, so the Content-Security-Policy in src/site/security-headers.ts holds. */
 import { defineConfig } from "astro/config";
 import { checkConfig } from "./src/integrations/check-config.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
-import { loadSiteConfig } from "./src/integrations/site-config.ts";
-import { basePath } from "./src/shared/url.ts";
+import { loadSiteConfig } from "./src/site/load-site-config.ts";
+import { basePath } from "./src/site/url.ts";
 
-const { fileName, filePath, config } = await loadSiteConfig();
+const loaded = await loadSiteConfig();
+const { filePath, config } = loaded;
 
 /** The address Astro is given when the config's own isn't one, so that this
     file loads and the config's check can report the address, in words. */
@@ -33,6 +34,6 @@ export default defineConfig({
     // the config being built.
     resolve: { alias: [{ find: IMPORT_OF_SITE_CONFIG, replacement: filePath }] },
   },
-  integrations: [checkConfig(config, fileName), hostFiles(config)],
+  integrations: [checkConfig(loaded), hostFiles(config)],
   devToolbar: { enabled: false },
 });

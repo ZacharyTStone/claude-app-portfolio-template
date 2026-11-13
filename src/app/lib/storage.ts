@@ -17,10 +17,13 @@ export type SafeStorage = {
   clear(prefix: string): void;
 };
 
+/** What a SafeStorage needs of the browser's store. */
+type Store = Pick<Storage, "getItem" | "setItem" | "removeItem">;
+
 /** A store that never throws. It takes a function, not the store, because
     only naming `localStorage` can throw where site data is blocked: the
     store is asked for inside each `try`. */
-function safeStorage(openStore: () => Storage): SafeStorage {
+export function safeStorage(openStore: () => Store): SafeStorage {
   function get(key: string): string | null {
     try {
       return openStore().getItem(key);
@@ -31,7 +34,9 @@ function safeStorage(openStore: () => Storage): SafeStorage {
   function set(key: string, value: string): void {
     try {
       openStore().setItem(key, value);
-    } catch {}
+    } catch {
+      // Nothing is kept: the page works without what it would have remembered.
+    }
   }
   function getJson(key: string): unknown {
     try {
@@ -45,7 +50,9 @@ function safeStorage(openStore: () => Storage): SafeStorage {
     try {
       const store = openStore();
       for (const key of Object.keys(store)) if (key.startsWith(prefix)) store.removeItem(key);
-    } catch {}
+    } catch {
+      // A store that can't be reached has nothing to forget.
+    }
   }
   return { get, set, getJson, setJson, clear };
 }

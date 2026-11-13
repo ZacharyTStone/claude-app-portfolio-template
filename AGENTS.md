@@ -6,346 +6,136 @@ Everything the site says is in `site.config.ts`. Astro builds it into
 static HTML and CSS that work without JavaScript; one small script adds
 polish, and an optional `/ask` Worker runs on Cloudflare.
 
-The same code runs two repos: a person's own site, and a public template
-with a sample person. The shared files (`SHARED` in `scripts/template.ts`)
-are byte for byte the same in both. A site made from the template takes
-the template's changes with `npm run update-template`; the site the
-template is made from sends its own with `scripts/sync-template.ts`.
+## What you may change here
+
+This code lives in many repos: a public template with a sample person
+(Alex Example), and every site made from it. The paths in the `shared`
+list of `scripts/shared-files.json` are the same in all of them. A site
+takes the template's latest with `npm run update-template`, which replaces
+them. Updates go one way, from the template to a site.
+
+- **In a site made from the template**, change its own files:
+  `site.config.ts`, `src/styles/site.css`, its diagrams in `diagrams/`, its
+  pictures in `public/assets/`, `wrangler.jsonc`, `README.md` and
+  `tests/ask-questions.json`. A change to a shared file is replaced by the
+  next update, and so is a file added inside a shared folder.
+- **In the template**, any file can change, and shared code never names a
+  person: it holds only the sample one. A new file is the template's own
+  until it is in the `shared` list. A shared path that goes moves to the
+  `retired` list, so an update deletes it from older sites.
 
 ## Commands
 
-Run `npm ci` once. `npm run dev` serves the site as you edit it. Before you
-call anything done:
+Node 24 (`.node-version`; `engine-strict` refuses an older one). Run
+`npm ci` once. `npm run dev` serves the site as you edit it. Before you
+call anything done, run `npm run verify`.
 
-```sh
-npm run verify   # everything CI checks, in order; stops at the first failure and names the script to rerun
-```
+| Command | What it does |
+| --- | --- |
+| `npm run verify` | Everything CI checks, in order, stopping at the first failure: the eight scripts below it |
+| `npm run format:check` | Prettier, on TypeScript, JavaScript, JSON, CSS and `.astro` (`npm run format` applies it) |
+| `npm run lint` | ESLint (`eslint.config.js`): the rules under "Rules" |
+| `npm run knip` | Fails on a file, an export or a dependency nothing uses: remove it |
+| `npm run typecheck` | `astro check` for the components, then `tsc` for the browser code, the Worker and the tests |
+| `npm test` | Builds, then runs the unit tests (`tests/**/*.test.ts`); some read `dist/`, some build `tests/sample` |
+| `npm run lint:html` | Validates every built page |
+| `npm run fonts:check` | The Japanese fonts have every character the built Japanese page uses |
+| `npm run test:browser` | The built pages in Chromium, with the real security headers, on the site and on the sample |
+| `npm run build` | Type-checks `site.config.ts`, checks what a type can't, then builds `dist/` |
+| `npm run diagrams` | Writes each diagram in `diagrams/` as SVG files in `public/assets/` |
+| `npm run deploy` | Deploys to Cloudflare with one pinned Wrangler (`npm run wrangler` for its other commands) |
+| `npm run update-template` | In a site: replaces the shared files with the template's latest |
 
-It needs `npx playwright install chromium` (the browser checks) and, on a
-site with a Japanese page, Python with `pip install fonttools brotli` (the
-font check). Its steps, one by one:
-
-| Command                           | What it does                                                                    |
-| --------------------------------- | ------------------------------------------------------------------------------- |
-| `npm run lint` / `npm run format` | Checks or applies Prettier (TypeScript, JSON and `.astro`)                      |
-| `npm run typecheck`               | `astro check` for the components, then `tsc` for the rest                       |
-| `npm run build`                   | Checks `site.config.ts`, then Astro builds the site into `dist/`                |
-| `npm run lint:html`               | Validates every built page                                                      |
-| `npm test`                        | Unit tests (`tests/**/*.test.ts`): some read `dist/`, one builds `tests/sample` |
-| `npm run fonts:check`             | The Japanese fonts have every character the Japanese page uses                  |
-| `npm run test:browser`            | The built pages in Chromium, with the real security headers                     |
-| `npm run diagrams`                | Writes the diagrams (`diagrams/*.ts`) as SVG files in `public/assets`           |
-
-`npm run update-template` (in a site made from the template) replaces the
-shared files with the template's latest; it needs a clean working tree.
-
-After changing Japanese text: `npm run build`, `npm run fonts` (it reads the
-built page and rewrites the font subsets in `public/`), then build again.
-
-`SITE_CONFIG=path/to/another.config.ts npm run build` builds another
-config, as the sample-site test does.
+- `npm run lint:html`, `npm run fonts:check` and `npm run test:browser`
+  read `dist/` and say so when there is none: run `npm run build` first.
+- The browser checks need Chromium, once: `npx playwright install chromium`
+  (CI adds `--with-deps`). Run one file with
+  `npx playwright test viewer.spec`.
+- `SITE_CONFIG=<a config file> npm run build` builds that config, as the
+  tests do with `tests/sample/site.config.ts`.
 
 ## Layout
 
-```
-site.config.ts    Everything the site says, in every language (each repo's own)
-astro.config.ts   How Astro builds it: static files, nothing inline
-src/pages/        The routes: each language's page, 404, llms.txt, sitemap.xml, robots.txt, ask.json
-src/layouts/      Document.astro: the <head> every page starts with
-src/components/   The page's parts, one .astro file each
-src/site/         What the pages are built from, as plain TypeScript: the site's links and addresses,
-                  the config's checks (validate.ts lists them; validate/ has them), its Markdown,
-                  llms.txt, Ask's answers
-src/integrations/ Astro hooks: check the config before a build, write the host's _headers after
-src/shared/       The contracts between the pages, the browser code and the Worker
-src/styles/       The stylesheet in parts; app.css imports them in order, a site's own (site.css) last
-src/app/          The browser code; Astro bundles it into the pages' one script
-src/worker/       POST /ask, the only server code (Cloudflare Workers, bundled by wrangler)
-public/           Files served as they are: favicons, the social card, pictures, icons, fonts
-diagrams/         (each repo's own) Pictures that move, as code: `npm run diagrams` writes their files
-dist/             What Astro builds and the host serves (never committed)
-scripts/          template.ts (the shared list), update-template.ts, verify.ts, fonts.ts and ja-font.py
-                  (font subsets), diagram.ts (the kit a diagram is drawn with) and diagrams.ts (writes
-                  them); in the site the template is made from, sync-template.ts
-tests/            Unit tests (*.test.ts), browser/ (Playwright checks), sample/ (a made-up site the
-                  tests build with SITE_CONFIG), the Ask eval
-examples/         (template) Sample content to import into the config, such as a second language
-```
+| Path | What is there |
+| --- | --- |
+| `site.config.ts` | Everything the site says, in every language (each site's own) |
+| `src/config/` | The config's types: a doc comment on every field, which an editor shows on hover; English wording's defaults |
+| `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, `/ask`'s wire format |
+| `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the config's checks (`checks/`), each file it writes (`files/`), the security headers |
+| `src/pages/`, `src/layouts/` | The routes (each language's page, 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
+| `src/components/` | The page's parts: `Name.astro`, its rules in `Name.css` beside it |
+| `src/integrations/` | Astro hooks: check the config before a build, write the host's files after |
+| `src/styles/` | Shared rules, and the rules for what the script makes; `app.css` lists every stylesheet in order |
+| `src/app/` | The browser code: `main.ts` starts it; a feature of several files is a folder |
+| `src/worker/` | `POST /ask`, the only server code; its settings are `src/worker/settings.ts` |
+| `src/shared/config.ts` | Only the path an older site's config imports its types from |
+| `public/` | Files served as they are: favicons, the social card, pictures, icons, fonts |
+| `diagrams/` | Pictures that move, as code (each site's own) |
+| `scripts/` | The diagram kit (`diagram.ts`), the fonts (`fonts.ts`), the update and its list |
+| `tests/` | Unit tests mirroring `src/`, the browser checks (`tests/browser/`), the sample site, Ask's eval |
+| `playwright.config.ts` | How the browser checks run: the two sites, the visitor's time zone |
+| `docs/` | The guides: see the last section |
+
+`dist/` is what Astro builds and the host serves. It is never committed.
 
 ## Rules
 
-- **Nothing inline, and no HTML from strings in the browser.** The CSP
-  allows only the site's own files (and, on a site with a `viewer`, frames
-  from the sites it lists) and requires Trusted Types with no policy
-  (`trusted-types 'none'`). So a component has no `style` attribute,
-  no `<style>`, no `is:inline`, and no `<script>` or `set:html` but the
-  three in the page: the one that brings in `src/app` (Astro writes it to a
-  file) and the two JSON data blocks. In `src/app`, `innerHTML`,
-  `outerHTML`, `insertAdjacentHTML` and `document.write` throw: make
-  elements with `make()` from `src/app/lib/dom.ts`. Icons are CSS masks
-  over files in `public/assets/icons`.
+- **Nothing inline, and no HTML from strings in the browser.** The
+  Content-Security-Policy allows only the site's own files (and, on a site
+  with a `viewer`, frames from the sites it lists) and requires Trusted
+  Types with no policy. So a component has no `style` attribute, no
+  `<style>`, no `is:inline`, and no `<script>` or `set:html` but the three
+  in the page: the one that brings in `src/app/` and the two JSON data
+  blocks. In the browser code, `innerHTML`, `outerHTML`,
+  `insertAdjacentHTML` and `document.write` throw: make elements with
+  `make()` from `src/app/lib/dom.ts`. Icons are CSS masks over the files in
+  `public/assets/icons/`. ESLint refuses each of these.
+- **No framework code reaches the browser.** No `client:` directives, view
+  transitions or UI-framework integrations, and no schema library
+  (`tests/contracts/page-script.test.ts`).
 - **A space between elements is written on one line.** Astro keeps
   whitespace between elements only when it has no line break in it.
-  Prettier (`htmlWhitespaceSensitivity: "strict"`) writes a space it has
-  to move as `{" "}`; write a needed one the same way. Inside `<pre>`
-  every character counts: build its lines as an array (`Card.astro`).
-- **No framework code reaches the browser.** No `client:` directives, view
-  transitions or UI-framework integrations: the pages' only script is
-  `src/app`.
-- **Nothing built is committed.** `dist/` is Astro's. `public/` holds only
-  files served as they are. Two kinds of them are written by a script and
-  committed, so the host builds nothing but the pages: the Japanese font
-  subsets (`npm run fonts`) and the diagrams' SVG files
-  (`npm run diagrams`). A check fails while either is out of date.
-- **Shared code never names a person.** Shared files (`SHARED`) go to the
-  public template; the sync refuses to copy a shared file that names the
-  owner (the name whole and in parts in every language, the domain, email,
-  profile handles, employer and school), and `tests/sync-template.test.ts`
-  fails CI on one. The template's address in `scripts/template.ts` is the
-  one exception. Everything else (`site.config.ts`, `README.md`,
-  `wrangler.jsonc`, images, `tests/ask-questions.json`, and `OWN` in
-  `scripts/template.ts`: `src/styles/site.css` and the Japanese font
-  subsets) is each repo's own. A new file is each repo's own until it's in
-  `SHARED`.
-- **Every fact has one home.** Ids, data attributes, classes, storage keys,
-  wording, headers and limits are defined once and imported wherever they're
-  needed, tests included: a name a component writes into the page and the
-  script or the browser checks rely on is in `src/shared/page-data.ts`; what
-  the script makes, and the classes the checks find on it, are in
-  `src/app/constants.ts` (`CLASS`). Site facts (names, threads, questions)
-  come from `site.config.ts` or the built page, never from a literal, so the
-  tests pass on any site.
-- **The contracts are in `src/shared`:** `config.ts` (the config's shape,
-  documented field by field), `page-data.ts` (what a page hands the script:
-  `SCRIPT_STRINGS`, the question card, and the names both find their way
-  by: `PAGE_IDS`, `DATA`, `PAGE_CLASSES`, `ID_PREFIX`, `HOURS` and the
-  rest), `ask.ts` (`/ask`'s path, request, reply, index and limits),
-  `headers.ts` (the security headers), `content.ts` (an answer's blocks),
-  `markdown.ts` (the config's Markdown, read one way by the pages, the
-  script and the checks). Change one, and the type checker shows every
-  side that has to follow.
-- **Ask answers from what the site says, and shows it.** The model reads
-  every answer, says what it makes of the question (its thinking, which
-  goes to the log), then picks an answer and the numbers of its lines
-  (`src/worker/ask/pick.ts`). A second, small call answers the question in
-  a sentence or two, in its own words, from those lines (`write.ts`). The
-  Worker checks the names, numbers and addresses in it (`grounded.ts`):
-  each has to be in the lines, their tab's name, the site's own question or
-  the owner's name, and what the visitor typed is never a source. One that
-  fails is asked for once more, then dropped, and the lines are quoted as
-  they are if they're sentences (`quote.ts`); a card's row is never a
-  reply, so the page shows the answer. A reply the model wrote goes out
-  with the lines it was written from (`cited`, in `src/shared/ask.ts`),
-  and the page quotes them under it; lines too long to quote together
-  (`MAX_CITED_LENGTH`) aren't sent, and the reply has only its tab's link. The reply's ordinary words are the
-  model's: what it's told is in `write.ts`, and what's checked is in
-  `grounded.ts` and its tests. A change to either is a change to what
-  Ask may say: make it there, with a test, and say so in the README.
-  With no answer to show, one more small call says the visitor's question
-  to the owner ("Do you…?" for "Does Alex…?") for the email and the
-  message the page offers, and it's used only if the Worker finds it the
-  same question, give or take who it's about (`address.ts` has what the
-  model is told and what's checked); otherwise the question goes in as it
-  was typed.
-- **The template scripts run on Node alone.** `scripts/template.ts`,
-  `update-template.ts` and `sync-template.ts` import only `node:` modules
-  and each other (and the config): they run in a fresh clone of the
-  template and in the sync workflow, where nothing is installed. A package
-  import in one fails there, and a test says so first.
+  Prettier writes a space it has to move as `{" "}`; write a needed one
+  the same way. Inside `<pre>` every character counts: build its lines as
+  an array.
+- **Small units.** ESLint fails more than 4 parameters, complexity over
+  10, nesting deeper than 3, a nested ternary and a `----` banner, and,
+  outside `tests/`, a function of more than 50 lines or a file of more
+  than 300. Split the code; never add an `eslint-disable` comment.
+- **Each folder of `src/` imports only from the folders below it**
+  (`MAY_IMPORT` in `eslint.config.js`), and imports name the `.ts` file.
+- **Every fact has one home.** Ids, data attributes, classes, storage
+  keys, wording, headers and limits are defined once and imported wherever
+  they're needed, tests included. A class's key is its value in whole
+  words (`rowName` is `row-name`), in `src/contracts/page-classes.ts`;
+  `tests/styles/names.test.ts` holds the classes and the stylesheets
+  together. Site facts (names, threads, questions) come from
+  `site.config.ts` or the built page, never from a literal, so the tests
+  pass on any site.
+- **The type checker carries a contract's change.** Change a type in
+  `src/config/` or a name in `src/contracts/`, and it shows every side that
+  has to follow. Saved chats only ever grow by optional fields.
+- **Ask answers only from what the site says, and shows it.** What its
+  models are told and what is checked in a reply are a safety property:
+  change them only as `docs/changing-the-code.md` says.
+- **Nothing built is committed**, but for two things a script writes into
+  `public/`: the Japanese font subsets (`npm run fonts`) and the diagrams'
+  SVG files (`npm run diagrams`). A test fails while either is out of date.
+- **The update runs on Node alone.** `scripts/template.ts` and
+  `scripts/update-template.ts` import only `node:` modules and each other.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,
-  namespaces or parameter properties, and imports name the `.ts` file. The
-  tests and scripts import `src/site` and `src/shared` straight into Node.
+  namespaces or parameter properties. The tests and scripts import the
+  build's code straight into Node.
 
-## Adding a config field
+## Before you do it, read its guide
 
-1. Add it, with a doc comment, to its type in `src/shared/config.ts`.
-   Make it optional unless every site must set it (the template's config
-   has to have it too).
-2. Set it in `site.config.ts`.
-3. If it can be wrong (it names a thread, a file, an icon), check it in
-   `src/site/validate/`: `language.ts` for one language's text,
-   `whole-site.ts` for a setting of the site, `blocks.ts` for a part of an
-   answer. `src/site/validate.ts` lists the checks in the order their
-   problems print. Add a test in `tests/config.test.ts`.
-4. Show it in the component it belongs to, in `src/components/`. Astro
-   escapes text; the config's Markdown goes through `<Inline>`.
-5. If the script needs it, it goes through `src/shared/page-data.ts`:
-   wording the script shows is a `SCRIPT_STRINGS` entry (each language's
-   `strings` then needs it; the page carries it as a `data-*` on `<html>`,
-   and the script reads it as `words` in `src/app/page.ts`), or, for a
-   part only some sites have, an `OPTIONAL_SCRIPT_STRINGS` entry listed
-   under its part in `PART_STRINGS`, which the config's checks ask for only on
-   a site with the part; another
-   `data-*` attribute is a `DATA` entry, spread onto its element
-   (`{...{ [DATA.prompt]: value }}`, or `flag(DATA.copyLink)` for a bare
-   one); data with a shape goes in a type there that both sides import.
-6. `npm run verify`.
-
-## Adding a picture that moves
-
-A diagram is a picture: boxes, lines, and things that move along them. Each
-is a short TypeScript file in `diagrams/`, drawn with the kit in
-`scripts/diagram.ts`. `npm run diagrams` writes it as SVG files in
-`public/assets`, and an `image` in the config shows it:
-
-```ts
-// diagrams/order.ts
-import { arrowhead, box, label, levelCurve, line, loopOf, moving } from "../scripts/diagram.ts";
-import type { Diagram } from "../scripts/diagrams.ts";
-
-type Words = { till: string; kitchen: string };
-
-function draw(words: Words) {
-  const loop = loopOf(6); // seconds, and then it starts again
-  const road = levelCurve({ x: 520, y: 200 }, { x: 1048, y: 200 });
-  return {
-    width: 1600,
-    height: 400,
-    plays: loop.clears.from, // a visitor plays it: for this long, then it's still again
-    shapes: [
-      box({ x: 120, y: 120, width: 400, height: 160 }),
-      label(words.till, { x: 320, y: 214 }, { size: 46, weight: 600 }),
-      box({ x: 1080, y: 120, width: 400, height: 160 }),
-      label(words.kitchen, { x: 1280, y: 214 }, { size: 46, weight: 600 }),
-      moving(line(road), ...loop.draw(0.5, 1.5)), // the line draws itself,
-      arrowhead({ x: 1064, y: 200 }, 0),
-      loop.traveller(road, 1.5, 3), // and an order travels along it
-    ],
-  };
-}
-
-export default {
-  name: "order",
-  words: { en: { till: "The till", kitchen: "The kitchen" }, ja: { till: "レジ", kitchen: "キッチン" } },
-  draw,
-} satisfies Diagram<Words>;
-```
-
-```ts
-// site.config.ts, in an answer
-{ image: { src: "/assets/order.svg", still: "/assets/order-still.svg", alt: "…", width: 1600, height: 400 } }
-```
-
-What the kit has, each documented where it's defined:
-
-- **Shapes.**
-  - To draw: `box`, `label`, `dot`, `line`, `arrowhead`, `bar` (it stands
-    for words), `dots` (a map).
-  - A line's path: `levelCurve`, `arc`, or any SVG path (`rounded` writes a
-    number in one).
-  - Where things go: `Place`, `centreOf`, `rightOf`; `aroundOrigin` and
-    `placed`, for what turns or grows about its own middle.
-  - Room for text: `textWidth`, `sizeToFit`, `baselineAround`.
-  - Together: `group`, `moving` (a shape with motion on it),
-    `onlyWhenMoving`.
-- **Motion**, from `loopOf(seconds)`.
-  - A value changing: `loop.track` (any attribute), `loop.transform`,
-    `loop.shown`, `loop.changing` (one text after another).
-  - A line: `loop.draw` draws it, `loop.along` moves a shape along one.
-  - Passing through: `loop.traveller` (a dot) and `loop.carried` (any
-    shapes) along a path, `loop.ripple`.
-  - A light: `loop.flash`, `loop.light` (over anything), `loop.edgeLight`
-    (a box's edge, as something arrives).
-- **A story's loop**, for a picture that follows one thing, ends as its
-  still, then clears and starts again.
-  - When it clears: `loopOf(seconds, { from, to })`. What the story built
-    up fades then, together.
-  - Coming to stay: `loop.since`, or by `loop.popping`, `loop.rising` or
-    `loop.gliding` into place.
-  - Starting over: `loop.fromTheStart` (what the loop changes),
-    `loop.untilClear` (what something else brought in).
-
-- **A diagram waits to be played.** Motion beside text pulls the eye off
-  the text, so a picture that says how long it `plays` rests as its still,
-  dimmed, with a Play button; pressed, it moves for that long, and rests
-  again (`Picture.astro`, `src/app/play.ts`). Give `plays` the moment the
-  moving picture looks as the still does: a story's loop is
-  `loop.clears.from`. The build reads it from the picture's own file, so
-  the config says nothing about it. Without JavaScript the button is a
-  link to the moving file. A picture where little moves leaves `plays`
-  out and moves all the time: a marker that pulses on a map isn't worth a
-  press. A site with either needs `strings.play` and `strings.pause`.
-- **Move things, not words.** A dot along a line, a card up a list, a box
-  that lights as something reaches it. Text that fades in a row at a time
-  is a list: a `flow` or a paragraph says it better, and without motion.
-- **The motion is SVG's own** (`<animate>`, `<animateMotion>`), which runs
-  in an `<img>`: the page needs no script for it and its policy allows
-  nothing new. So a diagram has no `<style>`, `<script>`, `class` or file
-  of another's (`tests/diagrams.test.ts` says so).
-- **Every motion lasts the whole loop.** Say when a thing happens in
-  seconds into the loop (`loop.shown(2, 5)`), never with a length of its
-  own, or the parts drift apart. Make the loop's end meet its start: what
-  resets does it out of sight (a story's loop does this for what's put on
-  it).
-- **Draw each shape the way it rests.** The `-still.svg` file is the same
-  shapes without their motion (the image's `still`; a test says if it's
-  missing). It's what a played picture shows before and after it plays,
-  so most of the time, and what a visitor who has asked for less motion
-  sees of one that moves all the time. It should read as a finished
-  diagram. What only passes through is
-  `onlyWhenMoving` (what's `loop.carried`, a `traveller`, a `ripple` and a
-  `light` already are).
-- **Big and few words.** It's shown about 700 px wide on a desktop and 340
-  on a phone: draw it 1600 wide, with text at 32 or more. It's drawn in
-  the visitor's own font, so leave room around text (`textWidth`
-  estimates it).
-- **Each language's words are in `words`.** The first language's files are
-  `NAME.svg` and `NAME-still.svg`; another's have its code (`NAME-ja.svg`).
-- **What two diagrams draw goes in a part:** a file in a folder inside
-  `diagrams/` (say `diagrams/parts/`), named for what it draws, with a
-  header that says which diagrams use it. What any diagram might need
-  goes in the kit instead. A change to either shouldn't change a picture
-  it wasn't meant to: `npm run diagrams -- --check` names the files that
-  would change.
-- **Look at it.** `npm run diagrams NAME` writes one diagram; open the SVG
-  file in a browser. Commit the files with the diagram: `npm test` fails
-  while they aren't what it draws.
-- `alt` says what the picture shows and what moves in it, for someone who
-  can't see it. Ask and llms.txt read its caption.
-
-## Opening a link in the viewer
-
-The viewer shows a link's page in a panel beside the conversation, in a
-frame, instead of a new tab. List the link in the config's `viewer`: its
-`href` exactly as a link card, a picture or a panel row has it, and the
-address to show in the frame (a Google Doc's ends `/preview`).
-
-- The build adds that address's site to the policy's `frame-src`
-  (`frameOrigins` in `src/shared/headers.ts`), and nothing else changes in
-  the policy. It refuses an address that isn't `https://`, one on the site
-  itself (its pages refuse to be framed), and a link nothing links to.
-- It's the one thing a page loads from another site, and only once a
-  visitor opens it. If the site says it loads nothing from elsewhere (a
-  README, an answer about privacy), make that sentence true again.
-- Each language needs `strings.viewerOpen` and `strings.viewerClose`.
-- Not every site lets itself be framed: open the viewer once and look.
-
-## Adding a browser check
-
-- Add `{ name, url, device?, skip?, allowAsk?, test(page) }` to the list in
-  the `tests/browser/checks/` file for its area (`home`, `ask`, `chats`,
-  `sidebar`, `figures`, `viewer`, `views`); a new area is a new file there, listed in `run.ts`.
-- Find what to look for through `site` (`tests/browser/site.ts`): its
-  threads (`A`, `B`, `C`), `words`, `questions`, `languages`, `ask`. When a
-  site might not have the thing, set `skip` to say why.
-- Select by `ID` and `CLASS` (the page's ids, and its and the script's
-  classes, as selectors, from `site.ts`) and `DATA` (the data attributes,
-  from `src/shared/page-data.ts`, with `LOCAL_ZONE`, `MENU_KEYS`, `HOURS`
-  and the other names the page has), not by ids, classes or attributes
-  typed out. A new chat is `askInNewChat(page, question)`, and the open
-  chat is `OPEN_CHAT` (`helpers.ts`).
-- Stand in for `/ask` with `askReturns(page, site.askUrl, replies)`; the
-  checks never use the network.
-- Wait for anything that changes a moment after an action (`waitFor()`,
-  `eventually()`, `settledTitle()`) instead of reading it straight away.
-  Waits time out after 10 s (`run.ts`); pass a timeout only when a check
-  needs another.
-- Callbacks that run in the page are compiled with Node's types, not the
-  DOM's: type their arguments as `PageElement` (`helpers.ts`), adding the
-  member a callback needs. `attributeOfEach`, `hasClass`, `hasFocus` and
-  `computedStyle` cover the common reads.
-- Give each assertion words that say what was expected. A step of more
-  than a few lines is a function under the list (`check…` when it
-  asserts): a failure prints the step it happened in.
-- Run `npm run test:browser` a few times: a check that passes once may
-  still race.
+| Before you… | Read |
+| --- | --- |
+| change what the site says: a thread, an answer, a picture, a link, the viewer | `docs/content.md` |
+| add a language, or change Japanese text | `docs/languages.md` |
+| draw or change a diagram | `docs/diagrams.md` |
+| turn Ask on, or change its limits or its cost | `docs/ask.md` |
+| change a header, the policy, or what a page loads | `docs/security.md` |
+| deploy, or change `host` or `url` | `docs/deploy.md` |
+| take the template's updates | `docs/updating.md` |
+| add a config field, a string, a stylesheet or a browser check, or change a prompt or what Ask may say | `docs/changing-the-code.md` |

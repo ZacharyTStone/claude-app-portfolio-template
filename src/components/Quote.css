@@ -1,0 +1,16 @@
+.quote {
+  display: grid;
+  gap: 4px;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--line);
+}
+.quote blockquote {
+  margin: 0;
+}
+.quote figcaption {
+  color: var(--text-2);
+  font: 400 13px/20px var(--sans);
+}
+.quote figcaption::before {
+  content: "— ";
+}

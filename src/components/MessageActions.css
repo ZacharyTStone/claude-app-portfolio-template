@@ -1,0 +1,9 @@
+.message-actions {
+  display: flex;
+  gap: 2px;
+  margin: -4px 0 0 -6px;
+}
+.message-actions .icon-button {
+  width: var(--control-small);
+  height: var(--control-small);
+}

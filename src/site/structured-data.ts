@@ -1,15 +1,15 @@
-/* schema.org Person data, for search engines: who the site is about. */
+/* A page's schema.org Person, for search engines: who the site is about. */
 
-import { JSON_INDENT, PERSON_FRAGMENT } from "./constants.ts";
-import { scriptJson } from "./script-json.ts";
-import type { Page } from "./site.ts";
+import { JSON_INDENT, scriptJson } from "./json.ts";
+import type { Page, Site } from "./site.ts";
 
-/** A page's schema.org Person, as JSON for its <script
-    type="application/ld+json">: the owner's name and job title in the
-    page's language, and what the config's `person` and `links` say. The
-    Person has one id on every page, so search engines read the languages'
-    pages as being about one person. */
-export function structuredData({ site, code, lang: language }: Page): string {
+/** After the main page's address, the Person's id:
+    "https://example.com/#person". It's one id on every page, so search
+    engines read the languages' pages as being about one person. */
+const PERSON_FRAGMENT = "#person";
+
+/** As JSON, for the page's <script type="application/ld+json">. */
+export function structuredData(site: Site, { code, language }: Page): string {
   const { config, codes } = site;
   const person = config.person ?? {};
   const nameInThisLanguage = language.person.name;
@@ -17,11 +17,11 @@ export function structuredData({ site, code, lang: language }: Page): string {
   const data = {
     "@context": "https://schema.org",
     "@type": "Person",
-    "@id": site.address(`/${PERSON_FRAGMENT}`),
+    "@id": `${site.pageUrl(site.main)}${PERSON_FRAGMENT}`,
     name: nameInThisLanguage,
     ...(nameInThisLanguage !== config.name ? { alternateName: config.name } : {}),
-    url: site.url(code),
-    ...(person.image ? { image: site.address(person.image) } : {}),
+    url: site.pageUrl(code),
+    ...(person.image ? { image: site.fileUrl(person.image) } : {}),
     jobTitle: language.person.jobTitle,
     ...(person.worksFor ? { worksFor: { "@type": "Organization", name: person.worksFor } } : {}),
     ...(person.alumniOf ? { alumniOf: { "@type": "CollegeOrUniversity", name: person.alumniOf } } : {}),

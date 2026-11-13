@@ -1,11 +1,13 @@
-/* ---- The viewer ----------------------------------------------------- */
-/* A link's page in a frame, in the details panel's place beside the
-   conversation (src/app/viewer.ts makes it), as the app shows an artifact.
-   It's wider than the panel, as a document needs the room, but always
-   leaves the conversation enough to be read. */
-.app { --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px)); }
-.app.viewing { --panel-col: var(--viewer-w); }
-.app.viewing .panel { display: none; }
+/* Wider than the panel, as a document needs the room, but it always leaves the conversation enough to be read. */
+.shell {
+  --viewer-w: min(50vw, calc(100vw - var(--sidebar-w) - 360px));
+}
+.shell.viewing {
+  --panel-col: var(--viewer-w);
+}
+.shell.viewing .panel {
+  display: none;
+}
 .viewer {
   display: grid;
   grid-template-rows: var(--topbar-h) minmax(0, 1fr);
@@ -13,7 +15,13 @@
   border-left: 1px solid var(--line);
   background: var(--page);
 }
-.viewer-bar { display: flex; align-items: center; gap: 4px; min-width: 0; padding: 0 8px 0 16px; }
+.viewer-bar {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  min-width: 0;
+  padding: 0 8px 0 16px;
+}
 .viewer-title {
   flex: 1;
   min-width: 0;
@@ -22,8 +30,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-/* The frame's place: a rounded sheet, with the sparkle turning in it until
-   the page it shows has loaded. */
 .viewer-frame {
   position: relative;
   margin: 0 8px 8px;
@@ -42,8 +48,10 @@
   background: #fff;
   color-scheme: light;
 }
-.viewer-frame.loading iframe { visibility: hidden; }
-.viewer-frame.loading::before {
+.viewer-frame.viewer-loading iframe {
+  visibility: hidden;
+}
+.viewer-frame.viewer-loading::before {
   content: "";
   position: absolute;
   inset: 0;
@@ -54,15 +62,4 @@
   --icon: url("/assets/icons/sparkle.svg");
   -webkit-mask: var(--icon) center / contain no-repeat;
   mask: var(--icon) center / contain no-repeat;
-}
-/* Where there's no room beside the conversation, it covers the screen. */
-@media (max-width: 1199px) {
-  .app.viewing { --panel-col: 0px; }
-  .viewer {
-    position: fixed;
-    inset: 0;
-    z-index: 30;
-    border-left: 0;
-    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-  }
 }

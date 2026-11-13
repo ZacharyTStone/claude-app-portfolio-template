@@ -1,10 +1,8 @@
 ---
-/* Each other language's page, at /<code>/. */
+/* Each language's page but the main one's (../index.astro), at /<code>/. */
 import Portfolio from "../../components/Portfolio.astro";
 import { site } from "../../site/current.ts";
 
-/** A page for every language but the main one, which is at the site's root
-    (../index.astro). The route's `lang` is the language's code. */
 export const getStaticPaths = () =>
   site.codes.filter((code) => code !== site.main).map((code) => ({ params: { lang: code } }));
 ---

@@ -2,22 +2,21 @@
 /* The page the host serves for any address with nothing there: in the
    main language, with a line and a way back in each. Its links start at
    the site's root, as it can be served at any depth. */
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import Document from "../layouts/Document.astro";
 import { site } from "../site/current.ts";
 
 const { config, codes, main } = site;
-const { dir, meta, notFound } = site.lang(main);
+const { dir, meta, notFound } = site.language(main);
 
-/** The full stop or exclamation mark a heading ends with, as Latin or CJK
-    text writes it: the "." of "Not found." */
+/** The mark a heading ends with, as Latin or CJK text writes it. */
 const LAST_PUNCTUATION = /[.。!！]$/;
 // The window's title goes on after the heading's words ("Not found — Alex
-// Example"), so it leaves the heading's last mark out.
+// Example"), so it leaves the mark out.
 const titleWords = notFound.title.replace(LAST_PUNCTUATION, "");
 
-/** The `lang` attribute for a line in the language `code`: the other
-    languages' lines are marked as theirs, and the main one's are the
-    page's own. */
+/** Another language's line is marked as its own; the main one's is the
+    page's. */
 const langAttribute = (code: string) => (code === main ? undefined : code);
 ---
 
@@ -28,16 +27,16 @@ const langAttribute = (code: string) => (code === main ? undefined : code);
   </Fragment>
   <main class="lost">
     <p class="code">404</p>
-    <h1 class="hello">{notFound.title}</h1>
+    <h1 class={PAGE_CLASSES.hello}>{notFound.title}</h1>
     {codes.map((code) => (
-      <p class="intro" lang={langAttribute(code)}>
-        {site.lang(code).notFound.text}
+      <p class={PAGE_CLASSES.intro} lang={langAttribute(code)}>
+        {site.language(code).notFound.text}
       </p>
     ))}
     <p class="lost-links">
       {codes.map((code) => (
-        <a href={site.path(code)} hreflang={langAttribute(code)} lang={langAttribute(code)}>
-          {site.lang(code).notFound.back}
+        <a href={site.pagePath(code)} hreflang={langAttribute(code)} lang={langAttribute(code)}>
+          {site.language(code).notFound.back}
         </a>
       ))}
     </p>

@@ -4,10 +4,10 @@
    page's own <head> lines go in the "head" slot, and its <body> in the
    default one. */
 import "../styles/app.css";
-import { REFERRER_POLICY } from "../shared/headers.ts";
-import { ICONS } from "../site/constants.ts";
+import { REFERRER_POLICY } from "../site/security-headers.ts";
 import { site } from "../site/current.ts";
-import { pagePolicy } from "../site/hosts.ts";
+import { pagePolicy } from "../site/files/headers-file.ts";
+import { FAVICONS } from "../site/icons.ts";
 
 interface Props {
   /** The page's language, as a code: "en". */
@@ -20,9 +20,8 @@ interface Props {
   htmlAttributes?: Record<string, string>;
 }
 const { lang, dir = "ltr", preload, htmlAttributes = {} } = Astro.props;
-// Where the host sends no headers, the page carries the policy itself,
-// ahead of everything it covers, and the referrer policy. Null where the
-// host sends them.
+// Every page carries the policy itself, ahead of everything it covers, and
+// the referrer policy: a host that sends them as headers enforces both.
 const policyForMetaTag = pagePolicy(site);
 ---
 
@@ -31,18 +30,14 @@ const policyForMetaTag = pagePolicy(site);
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-    {policyForMetaTag && (
-      <>
-        <meta http-equiv="Content-Security-Policy" content={policyForMetaTag} />
-        <meta name="referrer" content={REFERRER_POLICY} />
-      </>
-    )}
+    <meta http-equiv="Content-Security-Policy" content={policyForMetaTag} />
+    <meta name="referrer" content={REFERRER_POLICY} />
     <slot name="head" />
     <meta name="color-scheme" content="dark" />
     <meta name="theme-color" content={site.config.themeColor} />
-    <link rel="icon" href={site.link(ICONS.svg)} type="image/svg+xml" />
-    <link rel="icon" href={site.link(ICONS.png)} type="image/png" sizes="32x32" />
-    <link rel="apple-touch-icon" href={site.link(ICONS.appleTouch)} />
+    <link rel="icon" href={site.link(FAVICONS.svg)} type="image/svg+xml" />
+    <link rel="icon" href={site.link(FAVICONS.png)} type="image/png" sizes="32x32" />
+    <link rel="apple-touch-icon" href={site.link(FAVICONS.appleTouch)} />
     {preload.map((fontPath) => (
       <link rel="preload" href={site.link(fontPath)} as="font" type="font/woff2" crossorigin />
     ))}

@@ -1,38 +1,34 @@
 ---
-/* The home screen, shown when no tab is open: a greeting, a line about
-   you, and the app's box for a question with a few to start with. Without
-   JavaScript the box is hidden, and the hint points at the tabs. It's
-   drawn from the language's `home` in the config, and the question card's
-   own question and "send" (so the box and the card say the same).
-   Styles: src/styles/greeting.css (the greeting) and home.css. */
-import { MAX_QUESTION_LENGTH } from "../shared/ask.ts";
-import { DATA, HOURS, PAGE_CLASSES, PAGE_IDS, type GreetingPart } from "../shared/page-data.ts";
+/* The home screen, shown when no tab is open. Without JavaScript its box for a question is hidden, and the
+   hint points at the tabs. */
+import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { PAGE_IDS } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import Inline from "./Inline.astro";
 import Topbar from "./Topbar.astro";
 
 interface Props {
-  /** The language's page this is part of. */
   page: Page;
 }
-const { lang } = Astro.props.page;
-const { strings } = lang;
-const { greeting, intro, hint, tagline, prompts = [] } = lang.home;
+const { language } = Astro.props.page;
+const { strings } = language;
+const { greeting, intro, hint, tagline, prompts = [] } = language.home;
 // The box asks what the question card asks, and its button is the card's.
-const { ask: cardQuestion, ui: cardWords } = lang.questions;
-// For the script: a greeting for each part of the visitor's day, and who
-// this is in a line.
+const { ask: cardQuestion, ui: cardWords } = language.questions;
 const greetingParts = Object.keys(HOURS.greeting) as GreetingPart[];
-const wordingForScript = {
+const greetingsForScript = {
   ...Object.fromEntries(greetingParts.map((part) => [DATA.greet(part), greeting[part]])),
   ...(tagline ? { [DATA.tagline]: tagline } : {}),
 };
 ---
 
-<section class="home" id={PAGE_IDS.top} aria-labelledby={PAGE_IDS.hello}>
+<section class="home" id={PAGE_IDS.home} aria-labelledby={PAGE_IDS.greeting}>
   <Topbar strings={strings} />
-  <div class="hello-wrap" {...wordingForScript}>
-    <h1 class="hello" id={PAGE_IDS.hello}>
+  <div class={PAGE_CLASSES.homeBody} {...greetingsForScript}>
+    <h1 class={PAGE_CLASSES.hello} id={PAGE_IDS.greeting}>
       {greeting.default}
     </h1>
     <p class={PAGE_CLASSES.intro}>
@@ -49,7 +45,7 @@ const wordingForScript = {
           enterkeyhint="send"
         />
         <button
-          class={`${PAGE_CLASSES.homeSend} ic i-up`}
+          class={`${PAGE_CLASSES.homeSend} icon i-up`}
           type="button"
           aria-label={cardWords.send}
           title={cardWords.send}
@@ -67,7 +63,7 @@ const wordingForScript = {
         </ul>
       )}
     </div>
-    {hint && <p class="hint ic i-back">{hint}</p>}
+    {hint && <p class="hint icon i-back">{hint}</p>}
     <p class="under">
       <span class="credit">{strings.credit}</span>
     </p>

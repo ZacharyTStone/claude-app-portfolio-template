@@ -1,7 +1,7 @@
 {
   // Node: the config, what Astro builds the site from, scripts and tests.
-  // tsc checks the .ts files; `astro check` reads this too, for the .astro
-  // ones (and checks a component's <script> with the browser's types).
+  // `astro check` checks them all, the .ts files and the .astro ones (a
+  // component's <script> with the browser's types).
   "extends": "./tsconfig.base.json",
   "compilerOptions": {
     "lib": ["es2023"],
@@ -10,6 +10,7 @@
   "include": [
     "site.config.ts",
     "astro.config.ts",
+    "playwright.config.ts",
     "examples",
     "src/pages",
     "src/layouts",
@@ -17,10 +18,12 @@
     "src/site",
     "src/integrations",
     "src/shared",
+    "src/config",
+    "src/contracts",
     "scripts",
     "diagrams",
     "tests"
   ],
-  // Checked with the Workers types, by src/worker/tsconfig.test.json.
-  "exclude": ["tests/worker"]
+  // Each has a tsconfig.json of its own: the Workers types, and the DOM's.
+  "exclude": ["tests/worker", "tests/browser"]
 }
