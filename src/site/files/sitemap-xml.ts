@@ -1,8 +1,6 @@
-/* sitemap.xml, with every page's hreflang pairs, and robots.txt, which
-   points crawlers at it. */
+/* sitemap.xml, with every page's hreflang pairs. */
 
-import { SITEMAP_FILE } from "./constants.ts";
-import type { Site } from "./site.ts";
+import type { Site } from "../site.ts";
 
 /** Text made safe in XML, as content or inside a double-quoted attribute:
     the four characters XML reads as markup there are written as entities.
@@ -29,8 +27,3 @@ ${pages.join("\n")}
 </urlset>
 `;
 }
-
-/** robots.txt, as the text of the file: every crawler may read everything,
-    and the sitemap is at its full address. */
-export const robotsTxt = (site: Site): string =>
-  `User-agent: *\nAllow: /\n\nSitemap: ${site.address(`/${SITEMAP_FILE}`)}\n`;

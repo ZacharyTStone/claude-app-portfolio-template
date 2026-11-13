@@ -1,12 +1,12 @@
 /* llms.txt: the site as plain text, for a model reading it on someone's
    behalf (a recruiter pasting the address into an assistant): who this is,
-   how to reach them, and every answer, in the words /ask reads (answers.ts). */
+   how to reach them, and every answer, in the words /ask reads (../plain-answers.ts). */
 
-import type { AskAnswer } from "../contracts/ask.ts";
-import type { SiteConfig } from "../config/site-config.ts";
-import { plainAnswers } from "./answers.ts";
-import { panelRows } from "./panel.ts";
-import type { Site } from "./site.ts";
+import type { AskAnswer } from "../../contracts/ask.ts";
+import type { SiteConfig } from "../../config/site-config.ts";
+import { plainAnswers } from "../plain-answers.ts";
+import { panelRows } from "../panel.ts";
+import type { Site } from "../site.ts";
 
 /** What sets one paragraph or heading of llms.txt apart from the next: an
     empty line, as in Markdown. */

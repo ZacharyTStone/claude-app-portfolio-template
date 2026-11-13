@@ -3,7 +3,7 @@
    (src/components/Block.astro and the component each kind names), and the
    browser renders personal answers from the same data. Ask and llms.txt
    read every answer as plain text, a line for each block
-   (src/site/answers.ts).
+   (src/site/plain-answers.ts).
 
    An answer is a list of blocks, top to bottom:
 

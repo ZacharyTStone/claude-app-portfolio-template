@@ -15,7 +15,7 @@ import { escapeRegExp } from "es-toolkit";
 import { DATA, REDUCED_MOTION } from "../src/contracts/page-attributes.ts";
 import { basePath } from "../src/site/url.ts";
 import { HEADERS_FILE, ICONS, ROOT } from "../src/site/constants.ts";
-import { pagePolicy } from "../src/site/hosts.ts";
+import { pagePolicy } from "../src/site/files/headers-file.ts";
 import { makeSite } from "../src/site/site.ts";
 import sampleConfig from "./sample/site.config.ts";
 
