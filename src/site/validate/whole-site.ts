@@ -8,7 +8,7 @@ import type { Language } from "../../config/language.ts";
 import { ASK_HOST, MAX_TOPICS } from "../constants.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
-import { answerBlocksIn, isTextBlock, picturesIn } from "./blocks.ts";
+import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { ProblemUnless } from "./reporting.ts";
 import {
   isColour,

@@ -33,7 +33,7 @@ import {
 import { diagramFiles, staleDiagramFiles } from "../scripts/diagrams.ts";
 import { ROOT } from "../src/site/constants.ts";
 import { PLAYS_ATTRIBUTE as PLAYS_ATTRIBUTE_THE_PAGE_READS, secondsPlayed } from "../src/site/pictures.ts";
-import { answerBlocksIn, picturesIn } from "../src/site/validate/blocks.ts";
+import { answerBlocksIn, picturesIn } from "../src/config/blocks.ts";
 
 /** Every file the diagrams make: its path from the repo's root, and its text. */
 const files = await diagramFiles(ROOT);

@@ -14,6 +14,7 @@
          { link: { name: "Resume", kind: "PDF", href: "/assets/resume.pdf", icon: "file" } },
        ] */
 
+import type { Language } from "./language.ts";
 import type { Markdown } from "./markdown.ts";
 
 // ---- File cards ----------------------------------------------------------------
@@ -192,3 +193,21 @@ export type Block =
 export type BlockByKind = {
   [Named in Exclude<Block, Markdown | Markdown[]> as keyof Named]: Named[keyof Named];
 };
+
+// ---- Reading an answer's blocks -------------------------------------------------
+
+/** Whether a block is words alone: a paragraph, or a list of lines. Every
+    other block is an object with one key that says what it is. */
+export const isTextBlock = (block: Block): block is Markdown | Markdown[] =>
+  typeof block !== "object" || Array.isArray(block);
+
+/** Every block of every answer in a language's threads. */
+export const answerBlocksIn = (language: Language): Block[] =>
+  language.threads.flatMap((thread) => thread.messages.flatMap((message) => message.a));
+
+/** The pictures in a block: one, a row of them, or none. */
+export function picturesIn(block: Block): Picture[] {
+  if (isTextBlock(block)) return [];
+  if ("image" in block) return [block.image];
+  return "images" in block ? block.images : [];
+}

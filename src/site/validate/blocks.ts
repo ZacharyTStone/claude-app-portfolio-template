@@ -3,28 +3,10 @@
    a list is text, and its links are checked with all the others
    (language.ts). */
 
-import type { Language } from "../../config/language.ts";
-import { FIGURE_LIMITS } from "../../config/blocks.ts";
+import { FIGURE_LIMITS, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
-import type { Markdown } from "../../config/markdown.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isPathOnSite, isPixelCount } from "./shapes.ts";
-
-/** Whether a block is words alone: a paragraph, or a list of lines. Every
-    other block is an object with one key that says what it is. */
-export const isTextBlock = (block: Block): block is Markdown | Markdown[] =>
-  typeof block !== "object" || Array.isArray(block);
-
-/** Every block of every answer in a language's threads. */
-export const answerBlocksIn = (language: Language): Block[] =>
-  language.threads.flatMap((thread) => thread.messages.flatMap((message) => message.a));
-
-/** The pictures in a block: one, a row of them, or none. */
-export function picturesIn(block: Block): Picture[] {
-  if (isTextBlock(block)) return [];
-  if ("image" in block) return [block.image];
-  return "images" in block ? block.images : [];
-}
 
 /** Checks one block of an answer. `where` starts each message with the
     place the block is in: `the thread "work"`. */

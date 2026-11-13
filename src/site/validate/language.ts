@@ -12,7 +12,8 @@ import { SCRIPT_STRING_NAMES, PART_STRINGS } from "../../config/strings.ts";
 import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, personalTabId, titleId } from "../../contracts/page-ids.ts";
 import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
-import { answerBlocksIn, checkBlock, picturesIn } from "./blocks.ts";
+import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
+import { checkBlock } from "./blocks.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isLocale, isPathOnSite } from "./shapes.ts";
 
