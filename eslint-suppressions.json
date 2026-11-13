@@ -101,17 +101,6 @@
       "count": 3
     }
   },
-  "tests/config.test.ts": {
-    "complexity": {
-      "count": 1
-    },
-    "max-depth": {
-      "count": 2
-    },
-    "no-warning-comments": {
-      "count": 9
-    }
-  },
   "tests/contracts/ask.test.ts": {
     "no-warning-comments": {
       "count": 2

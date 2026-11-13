@@ -25,12 +25,13 @@ const SHARED_NOW = [
   // Gone: `npm run verify` is a chain of npm scripts. Listed so an update takes it away.
   "scripts/verify.ts",
   "tests/browser",
-  "tests/config.test.ts",
+  "tests/build",
+  "tests/components",
+  "tests/config",
   "tests/diagrams.test.ts",
   "tests/sample",
-  "tests/sample-site.test.ts",
   "tests/scripts",
-  "tests/site.test.ts",
+  "tests/site",
   "tests/app",
   "tests/contracts",
   "tests/worker",
@@ -61,7 +62,13 @@ const SHARED_NOW = [
 /** What was shared once and has since been deleted or moved. A site made before then still has it, and an
     update deletes it there, as it deletes any shared file the template no longer has. A shared path that goes
     is added here, and never taken out. */
-export const RETIRED = ["scripts/ja-font.py", "tests/template.test.ts"];
+export const RETIRED = [
+  "scripts/ja-font.py",
+  "tests/template.test.ts",
+  "tests/config.test.ts",
+  "tests/site.test.ts",
+  "tests/sample-site.test.ts",
+];
 
 /** Every path an update makes the same as the template's. A site's older copy of the update reads the list
     under this name, and `OWN` under its. */

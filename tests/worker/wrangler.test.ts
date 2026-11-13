@@ -6,6 +6,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { test, type TestContext } from "node:test";
 import ts from "typescript";
+import { ASK_PATH } from "../../src/contracts/ask.ts";
 import type { Env } from "../../src/worker/env.ts";
 import { AskGuard } from "../../src/worker/index.ts";
 import { SETTINGS, readSettings } from "../../src/worker/settings.ts";
@@ -107,4 +108,11 @@ test("a file with Ask still commented out turns it on with every other setting a
   if (!on) return;
   if (!on.wasOff) return t.skip("this site has Ask on, with settings of its own");
   assert.deepEqual(readSettings(on.wrangler.vars ?? {}), { ...readSettings({}), enabled: true });
+});
+
+test("Ask's questions go where wrangler.jsonc runs the Worker first", () => {
+  assert.match(
+    readFileSync(join(ROOT, "wrangler.jsonc"), "utf8"),
+    new RegExp(`"run_worker_first": \\[[^\\]]*"${ASK_PATH}"`),
+  );
 });
