@@ -24,9 +24,6 @@ const me = {
 } as const;
 const { acme, globex } = me.jobs;
 
-/** The facts, for a language in another file (examples/ja.ts). */
-export type Me = typeof me;
-
 /** A name as a visitor types it in a question. */
 const lower = (name: string) => name.toLowerCase();
 
