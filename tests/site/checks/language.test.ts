@@ -1,21 +1,9 @@
-/* The checks of one language (src/site/checks/language.ts): each problem's
-   wording, and what's allowed. */
+/* The checks of one language's parts (src/site/checks/language.ts): each
+   problem's wording, and what's allowed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Language } from "../../../src/config/language.ts";
-import { hrefsIn } from "../../../src/config/markdown.ts";
 import type { Topic } from "../../../src/config/question-card.ts";
-import { isSafeHref } from "../../../src/site/checks/formats.ts";
-import { sampleConfig, sampleInEnglishOnly } from "../sample.ts";
-import {
-  inBothLanguages,
-  inEveryLanguage,
-  problemsAfter,
-  problemsIn,
-  testEachProblem,
-  workAnswer,
-  type Change,
-} from "./problems.ts";
+import { inBothLanguages, inEveryLanguage, problemsAfter, testEachProblem, type Change } from "./problems.ts";
 
 /** Something that would end the attribute it's written into, and start another. */
 const BREAKS_OUT_OF_AN_ATTRIBUTE = `x" onclick="alert(1)`;
@@ -182,80 +170,9 @@ testEachProblem([
     problems: inBothLanguages("two personal answers have the same id"),
   },
   {
-    wrong: "the email's wording without {question}",
-    change: (_, english) => (english.asked.email = "Hello"),
-    problems: ["en: asked.email should have {question} in it, where the question goes"],
-  },
-  {
-    wrong: `the "Read …" line's wording without {file}`,
-    change: (_, english) => (english.strings.status = "Read"),
-    problems: [`en: strings.status should have {file} in it, where the file goes ("Read {file}")`],
-  },
-  {
-    wrong: "a site in two languages without the account menu's language row",
-    change: inEveryLanguage((language) => delete language.account.language),
-    problems: inBothLanguages("account.language is missing: the account menu's row that opens the other language"),
-  },
-  {
-    wrong: "a LinkedIn profile without the label of its link",
-    change: (_, english) => delete english.asked.linkedin,
-    problems: ["en: asked.linkedin is missing (links.linkedin needs it)"],
-  },
-  {
-    wrong: "a LinkedIn profile without the message to send there",
-    change: (_, english) => delete english.asked.message,
-    problems: ["en: asked.message is missing (links.linkedin needs it)"],
-  },
-  {
     wrong: "an upgrade row that opens no thread",
     change: (_, english) => (english.account.upgrade.tab = "nowhere"),
     problems: [`en: the account menu's upgrade row ${NOT_A_THREAD}`],
-  },
-  {
-    wrong: "a viewer without the words for its buttons",
-    change: inEveryLanguage((language) => {
-      delete language.strings.viewerOpen;
-      delete language.strings.viewerClose;
-    }),
-    problems: [
-      "en: strings.viewerOpen is missing (viewer needs it)",
-      "en: strings.viewerClose is missing (viewer needs it)",
-      "fr: strings.viewerOpen is missing (viewer needs it)",
-      "fr: strings.viewerClose is missing (viewer needs it)",
-    ],
-  },
-  {
-    wrong: "a link in the text that would run code",
-    change: (_, english) => (english.home.intro = "[hi](javascript:run)"),
-    problems: [`en: a link in "[hi](javascript:run)" links to "javascript:run", ${NOT_A_SAFE_LINK}`],
-  },
-  {
-    wrong: "an unsafe link in a long text, which is named by its start",
-    change: (_, english) =>
-      (english.home.intro = "Sam has built a good many things, and [one](javascript:run) is here."),
-    problems: [
-      `en: a link in "Sam has built a good many things, and [o…" links to "javascript:run", ${NOT_A_SAFE_LINK}`,
-    ],
-  },
-  {
-    wrong: "links in the text to tabs that aren't there",
-    change: (_, english) => {
-      english.home.intro = "See [this](#nowhere).";
-      english.asked.answer = "Or [that](#elsewhere).";
-    },
-    problems: [
-      "en: a link in the text points at #nowhere, which isn't a thread",
-      "en: a link in the text points at #elsewhere, which isn't a thread",
-    ],
-  },
-  {
-    wrong: "a link to a file on the site in text the script shows, which only follows #tab, web and mailto links",
-    change: inEveryLanguage(
-      (language) => (language.questions.personal = [{ id: "fun", q: "for fun?", a: ["My [resume](/resume.pdf)."] }]),
-    ),
-    problems: inBothLanguages(
-      `a link in "My [resume](/resume.pdf)." goes to "/resume.pdf", but the script shows this text, and only follows #tab, web and mailto links`,
-    ),
   },
 ]);
 
@@ -265,69 +182,3 @@ test("a question to start with can get a personal answer", () => {
   });
   assert.deepEqual(problemsAfter(withAPersonalPrompt), []);
 });
-
-test("a link in the text can open the home screen or a personal answer's tab", () => {
-  const withLinksToTabs: Change = (_, english) => {
-    english.home.intro = "Back to [the start](#top), or [what Sam does for fun](#personal-fun).";
-  };
-  assert.deepEqual(problemsAfter(withLinksToTabs), []);
-});
-
-test("a site in one language needs no language row", () => {
-  const inEnglishOnly = sampleInEnglishOnly();
-  delete inEnglishOnly.languages.en?.account.language;
-  assert.deepEqual(problemsIn(inEnglishOnly), []);
-});
-
-test("a site without a LinkedIn profile needs no words for one", () => {
-  const withoutLinkedIn = sampleConfig({ links: { email: "sam@example.com" } });
-  for (const language of Object.values(withoutLinkedIn.languages)) {
-    delete language.asked.linkedin;
-    delete language.asked.message;
-  }
-  assert.deepEqual(problemsIn(withoutLinkedIn), []);
-});
-
-/** A change that leaves a picture that moves in English alone, and gives every language `wording` for its button. */
-const withAMovingPictureInEnglishOnly =
-  (wording: Partial<Language["strings"]>): Change =>
-  (sample, english) => {
-    for (const language of Object.values(sample.languages)) {
-      const answer = workAnswer(language);
-      answer.splice(0, answer.length, ...answer.filter((block) => !(typeof block === "object" && "image" in block)));
-      delete language.strings.play;
-      delete language.strings.pause;
-      Object.assign(language.strings, wording);
-    }
-    workAnswer(english).push({
-      image: { src: "/favicon.svg", still: "/favicon.png", alt: "A picture that moves", width: 16, height: 16 },
-    });
-  };
-
-test("a picture that moves is fine with the words for its button", () => {
-  assert.deepEqual(problemsAfter(withAMovingPictureInEnglishOnly({ play: "Play", pause: "Pause" })), []);
-});
-
-test("a picture that moves needs the words for its button, in the language that has it and no other", () => {
-  assert.deepEqual(problemsAfter(withAMovingPictureInEnglishOnly({})), [
-    "en: strings.play is missing (a picture with a still needs it)",
-    "en: strings.pause is missing (a picture with a still needs it)",
-  ]);
-});
-
-for (const text of [
-  "`[a](b`[c](javascript:alert(1))",
-  "*[a](b*[c](javascript:alert(1))",
-  "**[a](#about) [b](javascript:x)**",
-  "[a [b](javascript:x)](#about)",
-  "[a](JavaScript:x)",
-  "[a](java\tscript:x)",
-  "`[a](javascript:x)`",
-  "**[a](#about)** and [b](https://example.com/x?y=(1))",
-]) {
-  test(`the text ${JSON.stringify(text)} is refused exactly when a link in it is unsafe, however it's written`, () => {
-    const hasAnUnsafeLink = hrefsIn(text).some((href) => !isSafeHref(href));
-    const problems = problemsAfter((_, english) => (english.home.intro = text));
-    assert.equal(problems.length > 0, hasAnUnsafeLink, problems.join("; "));
-  });
-}

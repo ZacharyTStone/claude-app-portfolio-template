@@ -14,8 +14,6 @@
     "src/config/question-card.ts": ["types"],
     "src/config/strings.ts": ["types"],
     "src/contracts/ask.ts": ["exports", "types"],
-    "src/site/security-headers.ts": ["exports"],
-    "src/site/validate.ts": ["exports"],
     "src/worker/ask/to-owner.ts": ["types"],
     "tests/browser/helpers.ts": ["exports", "types"],
     "tests/browser/site.ts": ["types"]

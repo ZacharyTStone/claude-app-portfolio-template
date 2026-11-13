@@ -1,15 +1,14 @@
-/* The checks of one block of an answer (src/config/blocks.ts's Block): a
-   picture, a link card, bars, a flow, a heading or a quote. A paragraph or
-   a list is text, and its links are checked with all the others
-   (language.ts). */
+/* The checks of one block of an answer (src/config/blocks.ts's Block). A
+   paragraph or a list is text: its links are checked with all the others
+   (text-links.ts). */
 
 import { FIGURE_LIMITS, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
-import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 import { isPathOnSite, isPixelCount } from "./formats.ts";
+import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 
-/** Checks one block of an answer. `where` starts each message with the
-    place the block is in: `the thread "work"`. */
+/** `where` starts each problem with the place the block is in: `the thread
+    "work"`. */
 export function checkBlock(block: Block, where: string, checks: LanguageChecks): void {
   for (const picture of picturesIn(block)) checkPicture(picture, where, checks);
   if (isTextBlock(block)) return;
@@ -20,12 +19,8 @@ export function checkBlock(block: Block, where: string, checks: LanguageChecks):
   if ("quote" in block) checkQuote(block.quote, where, checks);
 }
 
-/** A picture is a file on this site (the security policy lets images come
-    from nowhere else), with words for anyone who can't see it, and its size
-    in pixels, so the page keeps its place while the file loads. One that
-    moves has a still of itself, which is a file on this site too. A site
-    gets it wrong by pasting a picture's address from another site, or by
-    leaving the alt for later. */
+/** The security policy lets a picture come from nowhere but this site, and
+    its size is how the page keeps its place while the file loads. */
 function checkPicture(
   { src, still, alt, width, height, href }: Picture,
   where: string,
@@ -47,26 +42,21 @@ function checkPicture(
   if (href != null) checkLinkIsSafe(href, `the picture "${src}"`);
 }
 
-/** A link card's icon is one the stylesheet has (or a logo), and its link
-    one a browser can safely follow. */
 function checkLinkCard({ name, icon, href }: LinkCard, { checkIsIconOrLogo, checkLinkIsSafe }: LanguageChecks): void {
   checkIsIconOrLogo(icon, `the link card "${name}"`);
   checkLinkIsSafe(href, `the link card "${name}"`);
 }
 
-/** How many of something a figure can hold (one of FIGURE_LIMITS). */
+/** One of FIGURE_LIMITS. */
 type CountLimits = { min: number; max: number };
 
 const isWithin = (count: number, { min, max }: CountLimits): boolean => count >= min && count <= max;
 
-/** The limits as a problem's message says them: "2 to 6". */
+/** "2 to 6". */
 const inWords = ({ min, max }: CountLimits): string => `${min} to ${max}`;
 
-/** Bars are a figure: a title, and few enough rows to read at a glance but
-    more than one (one number alone is a sentence, not a chart). Each bar's
-    length is drawn from its `amount`, so that has to be a number above
-    zero: a site gets it wrong by giving the amount as it's written
-    ("385 ms") instead of as a number (385). */
+/** A bar's length is drawn from its `amount`: a site gets it wrong by
+    giving the amount as it's written ("385 ms") instead of as a number. */
 function checkBars({ title, rows }: Bars, where: string, { problemUnless }: LanguageChecks): void {
   problemUnless(isFilledIn(title), `${where} has bars without a title`);
   problemUnless(
@@ -86,8 +76,6 @@ function checkBars({ title, rows }: Bars, where: string, { problemUnless }: Lang
   }
 }
 
-/** A flow is a figure too: a title, and named steps, few enough to read at
-    a glance. */
 function checkFlow({ title, steps }: Flow, where: string, { problemUnless }: LanguageChecks): void {
   problemUnless(isFilledIn(title), `${where} has a flow without a title`);
   problemUnless(
@@ -99,14 +87,10 @@ function checkFlow({ title, steps }: Flow, where: string, { problemUnless }: Lan
   }
 }
 
-/** A heading sets a part of a long answer apart by its title: without one
-    there's nothing to draw. */
 function checkHeading({ title }: Heading, where: string, { problemUnless }: LanguageChecks): void {
   problemUnless(isFilledIn(title), `${where} has a heading without a title`);
 }
 
-/** A quote is someone's words and who said them; `by` can be their part
-    ("A fellow engineer"), but not nothing. */
 function checkQuote({ text, by }: Quote, where: string, { problemUnless }: LanguageChecks): void {
   problemUnless(isFilledIn(text) && isFilledIn(by), `${where} has a quote without its text or who said it (by)`);
 }

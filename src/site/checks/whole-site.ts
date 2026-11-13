@@ -1,15 +1,13 @@
 /* The checks of the site as a whole: that its languages match, and the
-   settings every language shares (the address, the links, the social card,
-   Ask, the viewer). Each takes the site and reports through `problemUnless`;
-   check-site.ts runs them in order. */
+   settings every language shares. */
 
 import { isEqual } from "es-toolkit";
+import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Language } from "../../config/language.ts";
-import type { Host } from "../../config/site-config.ts";
+import type { Host, SiteConfig } from "../../config/site-config.ts";
+import { isRecord } from "../../contracts/guards.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
-import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
-import type { ProblemUnless } from "./reporting.ts";
 import {
   isColour,
   isEmailAddress,
@@ -21,31 +19,14 @@ import {
   isTimeZone,
   isWebAddress,
 } from "./formats.ts";
+import type { ProblemUnless } from "./reporting.ts";
 
-/** The one host that runs Ask's Worker (src/worker): Cloudflare Workers. */
-const ASK_HOST: Host = "cloudflare";
-
-/** The question card's first step reads best with this many topics or
-    fewer (plus "Something else"), on a phone above all. */
-const MAX_TOPICS = 4;
+type SiteCheck = (site: Site, problemUnless: ProblemUnless) => void;
 
 /** What has to be the same in every language: the ids, counts and order of
     everything an answer's id, a topic or a home prompt can name. Never the
     wording. */
-type LanguageOutline = {
-  /** Each thread's id and how many questions it answers, in order. */
-  threads: Array<[threadId: string, questionCount: number]>;
-  /** The question card's topics, in order: the thread each opens, whether
-      it lists the personal answers, and the threads its choices open. */
-  topics: Array<{ tab: string | undefined; personal: boolean; choices: string[] }>;
-  /** The personal answers' ids, in order. */
-  personal: string[];
-  /** The answer each question on the home screen gets, in order. */
-  prompts: string[];
-};
-
-/** A language's outline, to compare with another's. */
-function outlineOf(language: Language): LanguageOutline {
+function outlineOf(language: Language): unknown {
   return {
     threads: language.threads.map((thread) => [thread.id, thread.messages.length]),
     topics: language.questions.topics.map((topic) => ({
@@ -58,14 +39,11 @@ function outlineOf(language: Language): LanguageOutline {
   };
 }
 
-/** Every language has the same threads, with as many questions each, and
-    the same topics, personal answers and home prompts, in the same order.
-    An answer's id ("work.2") has to name the same answer in each: /ask
-    replies with an id, which each language's page shows from its own copy,
-    and the account menu's link to another language keeps the open tab's
-    #id. A site gets it wrong by adding a thread or a question to one
-    language only. */
-export function checkLanguagesMatch(site: Site, problemUnless: ProblemUnless): void {
+/** An answer's id ("work.2") has to name the same answer in every language:
+    /ask replies with an id, which each language's page shows from its own
+    copy, and the account menu's link to another language keeps the open
+    tab's #id. */
+const checkLanguagesMatch: SiteCheck = (site, problemUnless) => {
   const { codes, main } = site;
   for (const code of codes.slice(1)) {
     problemUnless(
@@ -73,98 +51,87 @@ export function checkLanguagesMatch(site: Site, problemUnless: ProblemUnless): v
       `${code}: its threads, questions and home prompts don't match ${main}'s (same ids, as many questions, same order)`,
     );
   }
-}
+};
 
-/** A language's code is its page's `lang` attribute and the name of its
-    page's folder ("/pt-BR/"), so it's a code, not the language's name
-    ("English") and not a path. */
-export function checkLanguageCodes({ codes }: Site, problemUnless: ProblemUnless): void {
+const checkLanguageCodes: SiteCheck = ({ codes }, problemUnless) => {
   for (const code of codes) {
     problemUnless(
       isLanguageCode(code),
       `"${code}" should be a language code like "en" or "pt-BR" (it's also the name of its page's folder)`,
     );
   }
-}
+};
 
-/** The site's address starts every full link the build writes (canonical,
-    the sitemap, the social card), and its path every link between pages. A
-    site gets it wrong by leaving off "https://", or by pasting an address
-    with a query or a # on the end. */
-export function checkSiteAddress({ config }: Site, problemUnless: ProblemUnless): void {
-  problemUnless(isSiteAddress(config.url), `url should be the site's address, like "https://example.com"`);
-}
+/** A setting that has to look a certain way. */
+type SettingFormat = {
+  /** Where the setting is in the config, as its problem names it. */
+  field: string;
+  looksRight: (value: unknown) => boolean;
+  /** How its problem ends: "<field> should be <shouldBe>". */
+  shouldBe: string;
+  mayBeLeftOut?: true;
+};
 
-/** The account menu's clock tells the owner's time, in a zone named as
-    browsers know it: "Asia/Tokyo", not "Tokyo". */
-export function checkTimeZone({ config }: Site, problemUnless: ProblemUnless): void {
-  problemUnless(isTimeZone(config.timezone), `timezone should be a time zone, like "Asia/Tokyo" or "UTC"`);
-}
+/** The pages write these into attributes and addresses as they are, in the
+    order their problems are listed. */
+const SETTING_FORMATS: SettingFormat[] = [
+  { field: "url", looksRight: isSiteAddress, shouldBe: `the site's address, like "https://example.com"` },
+  { field: "timezone", looksRight: isTimeZone, shouldBe: `a time zone, like "Asia/Tokyo" or "UTC"` },
+  { field: "nameLang", looksRight: isLanguageCode, shouldBe: `a language code like "en"`, mayBeLeftOut: true },
+  { field: "links.email", looksRight: isEmailAddress, shouldBe: "an email address" },
+  // Without "https://", a browser would read a profile as a page of this site.
+  { field: "links.github", looksRight: isWebAddress, shouldBe: `a web address, like "https://…"`, mayBeLeftOut: true },
+  {
+    field: "links.linkedin",
+    looksRight: isWebAddress,
+    shouldBe: `a web address, like "https://…"`,
+    mayBeLeftOut: true,
+  },
+  { field: "themeColor", looksRight: isColour, shouldBe: `a colour, like "#191919"` },
+  { field: "social.image", looksRight: isPathOnSite, shouldBe: `a path on this site, like "/assets/og.png"` },
+  { field: "social.width", looksRight: isPixelCount, shouldBe: "a whole number of pixels" },
+  { field: "social.height", looksRight: isPixelCount, shouldBe: "a whole number of pixels" },
+  {
+    field: "person.image",
+    looksRight: isPathOnSite,
+    shouldBe: `a path on this site, like "/assets/portrait.webp"`,
+    mayBeLeftOut: true,
+  },
+];
 
-/** The list of HTTPS-only sites that browsers ship with (hstspreload.org)
-    takes a site only when its header covers every subdomain too, so
-    `preload` alone would ask for something it can't get. */
-export function checkHsts({ config }: Site, problemUnless: ProblemUnless): void {
+/** A setting's value, by where it is in the config: "links.email". */
+const settingAt = (config: SiteConfig, field: string): unknown =>
+  field.split(".").reduce<unknown>((value, key) => (isRecord(value) ? value[key] : undefined), config);
+
+const checkSettingFormats: SiteCheck = ({ config }, problemUnless) => {
+  for (const { field, looksRight, shouldBe, mayBeLeftOut } of SETTING_FORMATS) {
+    const value = settingAt(config, field);
+    const isLeftOut = value == null;
+    problemUnless((mayBeLeftOut && isLeftOut) || looksRight(value), `${field} should be ${shouldBe}`);
+  }
+};
+
+/** hstspreload.org takes a site only when its header covers every
+    subdomain too, so `preload` alone would ask for something it can't get. */
+const checkHsts: SiteCheck = ({ config }, problemUnless) => {
   const { hsts } = config;
   problemUnless(
     !hsts?.preload || hsts.includeSubDomains === true,
     `hsts.preload needs hsts.includeSubDomains too (browsers only preload a whole domain)`,
   );
-}
+};
 
-/** The language the owner's name is written in becomes a `lang` attribute
-    on the name, on pages in other languages. */
-export function checkNameLanguage({ config }: Site, problemUnless: ProblemUnless): void {
-  if (config.nameLang == null) return;
-  problemUnless(isLanguageCode(config.nameLang), `nameLang should be a language code like "en"`);
-}
+/** The one host that runs Ask's Worker (src/worker). */
+const ASK_HOST: Host = "cloudflare";
 
-/** The contact links go into the pages as they are: the email after
-    "mailto:", the profiles as full web addresses. A site gets them wrong by
-    writing a profile without "https://" ("github.com/alex"), which a
-    browser would read as a page of this site. */
-export function checkContactLinks({ config }: Site, problemUnless: ProblemUnless): void {
-  problemUnless(isEmailAddress(config.links.email), `links.email should be an email address`);
-  for (const profile of ["github", "linkedin"] as const) {
-    const href = config.links[profile];
-    if (href != null) problemUnless(isWebAddress(href), `links.${profile} should be a web address, like "https://…"`);
-  }
-}
-
-/** The theme colour is written into a <meta> tag for the browser's own
-    bars: a colour, and nothing that could end the attribute. */
-export function checkThemeColour({ config }: Site, problemUnless: ProblemUnless): void {
-  problemUnless(isColour(config.themeColor), `themeColor should be a colour, like "#191919"`);
-}
-
-/** The social card is a picture on this site, and its size in pixels: the
-    page tells both to the sites that show link previews (og:image, and its
-    width and height). */
-export function checkSocialCard({ config }: Site, problemUnless: ProblemUnless): void {
-  const { social } = config;
-  problemUnless(isPathOnSite(social.image), `social.image should be a path on this site, like "/assets/og.png"`);
-  for (const side of ["width", "height"] as const) {
-    problemUnless(isPixelCount(social[side]), `social.${side} should be a whole number of pixels`);
-  }
-}
-
-/** The owner's portrait, for search engines (schema.org), is a file on
-    this site, which the build turns into a full address. */
-export function checkPersonImage({ config }: Site, problemUnless: ProblemUnless): void {
-  const portrait = config.person?.image;
-  if (portrait == null) return;
-  problemUnless(isPathOnSite(portrait), `person.image should be a path on this site, like "/assets/portrait.webp"`);
-}
-
-/** Ask's Worker runs on Cloudflare Workers and nowhere else: on any other
-    host the page would send its questions to an address with nothing
-    there. A site gets it wrong by moving host and leaving `ask` on. */
-export function checkAskRunsOnItsHost({ config, host }: Site, problemUnless: ProblemUnless): void {
+/** On any other host the page would send its questions to an address with
+    nothing there. */
+const checkAskRunsOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
   problemUnless(
     !config.ask || host === ASK_HOST,
     `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "${ASK_HOST}"`,
   );
-}
+};
 
 /** Where a language's link cards, pictures and panel rows link to: the
     links the viewer can open. */
@@ -178,18 +145,15 @@ function viewableHrefs(language: Language): string[] {
   return [...inThreads, ...inPanel].filter((href) => href != null);
 }
 
-/** The viewer shows each link it lists at another address, in a frame.
-    Three things make that work: some link card, picture or panel row links
-    to exactly the address listed (the viewer matches it character for
-    character, so a missing slash is a different link); the frame's address
-    is https://, as a page served over HTTPS can frame no other; and it's on
-    another site, because this site's own pages refuse to be framed
+/** The viewer matches a link character for character, so a missing slash
+    is a different link. A page served over HTTPS can frame no other kind
+    of address, and this site's own pages refuse to be framed
     (X-Frame-Options, frame-ancestors). */
-export function checkViewer(site: Site, problemUnless: ProblemUnless): void {
+const checkViewer: SiteCheck = (site, problemUnless) => {
   const { viewer, url } = site.config;
   if (!viewer) return;
   const hrefsOnTheSite = new Set(site.codes.flatMap((code) => viewableHrefs(site.language(code))));
-  // An address that isn't one is checkSiteAddress's to report.
+  // An address that isn't one is reported as the `url` it is.
   const ownOrigin = URL.canParse(url) ? new URL(url).origin : "";
   for (const [href, frameAddress] of Object.entries(viewer)) {
     problemUnless(
@@ -203,11 +167,25 @@ export function checkViewer(site: Site, problemUnless: ProblemUnless): void {
       `viewer shows "${href}" at "${frameAddress}", a page of this site, and this site's pages refuse to be shown in a frame`,
     );
   }
-}
+};
 
-/** Advice, not a problem: the question card's first step reads best with
-    MAX_TOPICS topics or fewer. The main language's count is every
-    language's (checkLanguagesMatch). */
+/** The checks of the site as a whole, in the order their problems are
+    listed: all of them before any language's. */
+export const SITE_CHECKS: SiteCheck[] = [
+  checkLanguagesMatch,
+  checkLanguageCodes,
+  checkSettingFormats,
+  checkHsts,
+  checkAskRunsOnItsHost,
+  checkViewer,
+];
+
+/** The question card's first step reads best with this many topics or
+    fewer (plus "Something else"), on a phone above all. */
+const MAX_TOPICS = 4;
+
+/** Advice, not a problem. The main language's count is every language's
+    (checkLanguagesMatch). */
 export function noteManyTopics(site: Site, notes: string[]): void {
   const topicCount = site.language(site.main).questions.topics.length;
   if (topicCount > MAX_TOPICS) {

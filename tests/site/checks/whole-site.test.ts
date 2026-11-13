@@ -2,7 +2,7 @@
    problem's wording, and what's allowed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { HOSTS } from "../../../src/config/site-config.ts";
+import { HOSTS, type SiteConfig } from "../../../src/config/site-config.ts";
 import { sampleConfig } from "../sample.ts";
 import {
   findingsIn,
@@ -89,6 +89,11 @@ testEachProblem([
   {
     wrong: "themeColor would break out of its attribute",
     change: (sample) => (sample.themeColor = BREAKS_OUT_OF_AN_ATTRIBUTE),
+    problems: [`themeColor should be a colour, like "#191919"`],
+  },
+  {
+    wrong: "themeColor is left out, in a config no type checker has seen",
+    change: (sample) => delete (sample as Partial<SiteConfig>).themeColor,
     problems: [`themeColor should be a colour, like "#191919"`],
   },
   {

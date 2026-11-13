@@ -1,14 +1,11 @@
-/* What the config's checks find, the one way a check reports a problem, and
-   what every check of one language is handed: that language, and the three
-   questions most of them ask (is this a thread, is this an icon, is this
-   link safe to follow). */
+/* What the config's checks find, how a check reports a problem, and what
+   every check of one language is handed. */
 
 import type { Language } from "../../config/language.ts";
 import { LOGO_NAMES } from "../icons.ts";
 import type { Site } from "../site.ts";
 import { isSafeHref } from "./formats.ts";
 
-/** What the checks found in a config. */
 export type Findings = {
   /** What stops the build: each is a line of the message the build prints. */
   problems: string[];
@@ -16,49 +13,38 @@ export type Findings = {
   notes: string[];
 };
 
-/** How a check reports: it says what has to be true, and the problem to
-    list when it isn't. `problem` is recorded unless `isOk`.
-
-    A problem's wording is what a person reads when the build stops, and
-    what they search this folder for; tests/config.test.ts expects many of
-    them word for word. */
+/** Records `problem` unless `isOk`. A problem's wording is what a person
+    reads when the build stops, and what they search this folder for: the
+    tests in tests/site/checks hold each word for word. */
 export type ProblemUnless = (isOk: boolean, problem: string) => void;
 
-/** Whether the config says something here: the value isn't left out, and
-    isn't "". For what a part of the page can't do without (a picture's
-    alt, a figure's title). */
+/** Whether the config says something here: not left out, and not "". */
 export const isFilledIn = (value: unknown): boolean => Boolean(value);
 
-/** What each check of one language is handed. */
+/** What each check of one language is handed. A problem recorded through
+    it starts with the language's code ("en: …"), so a check's own wording
+    leaves the language out. */
 export type LanguageChecks = {
   site: Site;
   language: Language;
-  /** The ids of the language's threads: what a sidebar row, a topic or a
-      link to "#about" can point at. */
+  /** What a sidebar row, a topic or a link to "#about" can point at. */
   threadIds: Set<string>;
-  /** Records a problem with this language. The message starts with the
-      language's code ("en: …"), so the check's own wording leaves it out. */
   problemUnless: ProblemUnless;
-  /** Records a problem unless `threadId` is one of the language's threads.
-      `whatPointsAtIt` starts the message: `the sidebar's "About"`. */
+  /** `whatPointsAtIt` starts the problem: `the sidebar's "About"`. */
   checkIsThread: (threadId: string, whatPointsAtIt: string) => void;
-  /** Records a problem unless the stylesheet has the icon: for a part drawn
-      with an .i-* icon and nothing else (a sidebar row). `whatHasIt` starts
-      the message: `the sidebar's "About"`. */
+  /** For a part drawn with one of the stylesheet's .i-* icons and nothing
+      else (a sidebar row). */
   checkIsIcon: (iconName: string, whatHasIt: string) => void;
-  /** As checkIsIcon, for a part that draws a logo's name as a lettered
-      badge instead (LOGO_NAMES: a link card, a panel row). */
+  /** For a part that draws a logo's name as a lettered badge instead
+      (LOGO_NAMES: a link card, a panel row). */
   checkIsIconOrLogo: (iconName: string, whatHasIt: string) => void;
-  /** Records a problem unless a browser can safely follow `href`
-      (isSafeHref). `whatLinksThere` starts the message: `the link card
-      "Resume"`. */
   checkLinkIsSafe: (href: string, whatLinksThere: string) => void;
 };
 
+export type LanguageCheck = (checks: LanguageChecks) => void;
+
 /** What the checks of the language `code` are handed. `stylesheetIcons` are
-    the icons the styles have (iconsIn), and `problemUnless` records a
-    problem for the whole site: each one recorded through the result says
-    which language it's in. */
+    the icons the styles have (iconsIn). */
 export function languageChecks(
   site: Site,
   code: string,

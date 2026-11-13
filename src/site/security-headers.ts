@@ -59,7 +59,7 @@ export const REFERRER_POLICY = "strict-origin-when-cross-origin";
 const HSTS_MAX_AGE_SECONDS = 2 * 365 * 24 * 60 * 60;
 
 /** Browsers use only HTTPS for the site for two years after a visit. */
-export function strictTransportSecurity({ includeSubDomains, preload }: Hsts = {}): string {
+function strictTransportSecurity({ includeSubDomains, preload }: Hsts = {}): string {
   return [
     `max-age=${HSTS_MAX_AGE_SECONDS}`,
     ...(includeSubDomains ? ["includeSubDomains"] : []),

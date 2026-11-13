@@ -65,11 +65,6 @@
       "count": 5
     }
   },
-  "src/site/checks/language.ts": {
-    "no-warning-comments": {
-      "count": 8
-    }
-  },
   "tests/browser/checks/ask.ts": {
     "max-params": {
       "count": 1
