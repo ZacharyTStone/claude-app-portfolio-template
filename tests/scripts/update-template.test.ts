@@ -295,3 +295,33 @@ test("an update that replaces package.json or a workflow names them as what to r
   assert.equal(result.status, 0, result.stderr);
   assert.match(result.stdout, /Read these first: package\.json, \.github\/workflows\/release\.yml\. `npm ci` runs/);
 });
+
+/** A site with a file git ignores, as a key for `wrangler dev` is kept: nothing could bring it back. */
+function siteWithAKey(name: string): string {
+  const mine = siteRepo(name);
+  writeFileSync(join(mine, ".gitignore"), ".dev.vars\n");
+  runGit(mine, "add", ".gitignore");
+  runGit(mine, "commit", "-qm", "Ignore the key");
+  writeFileSync(join(mine, ".dev.vars"), "KEY=mine");
+  return mine;
+}
+
+test("an update never deletes a file git doesn't have, though the template's list has retired its path", () => {
+  const mine = siteWithAKey("site-key-retired");
+  const retiring = repoOf("template-retires-key", {
+    ...TEMPLATE_FILES,
+    [SHARED_LIST_FILE]: JSON.stringify({ ...TEMPLATE_LIST, retired: [".dev.vars"] }),
+  });
+  const result = runUpdate(mine, retiring);
+  assert.equal(result.status, 0, result.stderr);
+  assert.equal(readText(mine, ".dev.vars"), "KEY=mine");
+});
+
+test("an update refuses to overwrite a file git doesn't have, and changes nothing", () => {
+  const mine = siteWithAKey("site-key-shared");
+  const result = runUpdate(mine, templateSharing("template-shares-key", [".dev.vars"], { ".dev.vars": "KEY=theirs" }));
+  assert.notEqual(result.status, 0);
+  assert.match(result.stderr, /would overwrite what git couldn't bring back.*: \.dev\.vars/);
+  assert.equal(readText(mine, ".dev.vars"), "KEY=mine");
+  assert.equal(readText(mine, "src/app.ts"), "old");
+});

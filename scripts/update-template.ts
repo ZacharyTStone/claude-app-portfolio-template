@@ -66,7 +66,7 @@ function whatIsApplied(askedFor: string, templateClone: string): string {
 
 /** Says what the update will add, change and remove, then does it. */
 function takeSharedFilesFrom(templateClone: string): void {
-  const changes = changesBetween(templateClone, SITE_ROOT, listToFollow(templateClone));
+  const changes = keptToWhatGitCanUndo(changesBetween(templateClone, SITE_ROOT, listToFollow(templateClone)));
   const changeLines = describeChanges(changes);
   if (changeLines.length === 0) {
     console.log("Up to date with the template.");
@@ -96,6 +96,19 @@ function whatToReadFirst({ added, changed, removed }: SharedFileChanges): string
     `Read these first: ${[...packageFiles, ...workflows].join(", ")}. ` +
       "`npm ci` runs what package.json says to, and a workflow runs with your repository's secrets.",
   ];
+}
+
+/** `git diff` shows, and `git checkout` undoes, only what git has. A file it doesn't have (one .gitignore
+    names: a .dev.vars with a key in it) would be gone for good, so an update deletes none, and refuses to
+    overwrite one. */
+function keptToWhatGitCanUndo(changes: SharedFileChanges): SharedFileChanges {
+  const inGit = new Set(runGit(["ls-files", "-z"], SITE_ROOT).split("\0"));
+  const notInGit = changes.changed.filter((file) => !inGit.has(file));
+  if (notInGit.length > 0)
+    throw new Error(
+      `The update would overwrite what git couldn't bring back (git doesn't have it): ${notInGit.join(", ")}`,
+    );
+  return { ...changes, removed: changes.removed.filter((file) => inGit.has(file)) };
 }
 
 /** The template's list, not this site's: it may share files this site's older list doesn't know of. But what
