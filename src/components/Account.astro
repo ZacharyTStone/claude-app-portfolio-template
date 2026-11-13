@@ -10,7 +10,7 @@ import { CLOCK_MOODS } from "../config/language.ts";
 import { DATA, LOCAL_ZONE } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { external } from "../contracts/links.ts";
+import { newTabAttributes } from "../contracts/links.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Logo from "./Logo.astro";
@@ -94,7 +94,7 @@ const goodbyeWording = {
       <span class={`${PAGE_CLASSES.rowMeta} pro`}>{upgrade.hire}</span>
     </a>
     {github && (
-      <a role="menuitem" href={github} {...external(github)}>
+      <a role="menuitem" href={github} {...newTabAttributes(github)}>
         <Logo icon="github" hidden />
         GitHub
         <span class={`${PAGE_CLASSES.rowMeta} ic i-out`} aria-hidden="true" />

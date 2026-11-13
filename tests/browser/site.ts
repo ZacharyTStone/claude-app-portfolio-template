@@ -11,7 +11,7 @@ import type { Browser, Page } from "playwright";
 import { CLASS as SCRIPT_CLASS, SELECTOR } from "../../src/app/constants.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
 import { CLOCK_MOODS, type ClockMood, type Prompt } from "../../src/config/language.ts";
-import { ALL_SCRIPT_STRINGS, dataAttribute, type ScriptStrings } from "../../src/config/strings.ts";
+import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } from "../../src/config/strings.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
@@ -297,8 +297,8 @@ const readAttributeOfEach = (page: Page, selector: string, name: string): Promis
 /** The script's wording: each string from its data-* attribute on <html>. */
 async function readScriptWords(page: Page): Promise<ScriptStrings> {
   const words = {} as ScriptStrings;
-  for (const key of ALL_SCRIPT_STRINGS) {
-    words[key] = (await readAttribute(page, "html", `data-${dataAttribute(key)}`)) ?? "";
+  for (const key of SCRIPT_STRING_NAMES) {
+    words[key] = (await readAttribute(page, "html", SCRIPT_STRING_ATTRIBUTES[key])) ?? "";
   }
   return words;
 }

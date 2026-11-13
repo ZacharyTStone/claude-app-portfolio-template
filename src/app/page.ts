@@ -1,7 +1,7 @@
 /* The page this runs on: the elements the script works with, and what it
    says. Each page carries its own wording and question card, so one script
    serves every language. */
-import { ALL_SCRIPT_STRINGS, dataAttribute, type ScriptStrings } from "../config/strings.ts";
+import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES, type ScriptStrings } from "../config/strings.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
@@ -22,7 +22,7 @@ export const root = document.documentElement;
 
 /** Every script string, as its data-* attribute on <html> has it. */
 function readScriptStrings(): ScriptStrings {
-  const wording = ALL_SCRIPT_STRINGS.map((name) => [name, root.getAttribute(`data-${dataAttribute(name)}`) ?? ""]);
+  const wording = SCRIPT_STRING_NAMES.map((name) => [name, root.getAttribute(SCRIPT_STRING_ATTRIBUTES[name]) ?? ""]);
   // Object.fromEntries forgets which keys it was given.
   return Object.fromEntries(wording) as ScriptStrings;
 }

@@ -5,11 +5,11 @@
    language. */
 
 import { personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
-import { ID } from "../../config/language.ts";
+import { ID_PATTERN } from "../../config/language.ts";
 import { browserFollows } from "../../contracts/links.ts";
 import { hrefsIn } from "../../config/markdown.ts";
-import { ALL_SCRIPT_STRINGS, PART_STRINGS } from "../../config/strings.ts";
-import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, personalTab, titleId } from "../../contracts/page-ids.ts";
+import { SCRIPT_STRING_NAMES, PART_STRINGS } from "../../config/strings.ts";
+import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, personalTabId, titleId } from "../../contracts/page-ids.ts";
 import { PROBLEM_EXCERPT_LENGTH } from "../constants.ts";
 import { panelRows } from "../panel.ts";
 import { answerBlocksIn, checkBlock, picturesIn } from "./blocks.ts";
@@ -21,7 +21,7 @@ import { isLocale, isPathOnSite } from "./shapes.ts";
 /** Whether `id` can be a thread's, a sidebar group's or a personal
     answer's id: lowercase letters, digits and dashes ("about"). Each ends
     up in an element's id and after a # in an address. */
-const looksLikeAnId = (id: string): boolean => ID.test(id);
+const looksLikeAnId = (id: string): boolean => ID_PATTERN.test(id);
 
 const areAllDifferent = (ids: string[]): boolean => new Set(ids).size === ids.length;
 
@@ -286,7 +286,7 @@ export function checkTextLinksAreSafe({ language, checkLinkIsSafe }: LanguageChe
     answer's tab, or the home screen (#top). A site gets it wrong by
     renaming a thread and leaving a sentence that links to the old id. */
 export function checkTextLinksOpenTabs({ language, threadIds, problemUnless }: LanguageChecks): void {
-  const personalTabIds = language.questions.personal.map((personalAnswer) => personalTab(personalAnswer.id));
+  const personalTabIds = language.questions.personal.map((personalAnswer) => personalTabId(personalAnswer.id));
   for (const href of everyStringIn(language).flatMap(hrefsIn)) {
     if (!href.startsWith("#")) continue;
     const tabId = href.slice(1);
@@ -303,7 +303,7 @@ export function checkTextLinksOpenTabs({ language, threadIds, problemUnless }: L
     leaves a link to a file on the site ("/resume.pdf") as its words alone,
     and the visitor gets no link. */
 export function checkScriptTextLinks({ language, problemUnless }: LanguageChecks): void {
-  const scriptWording = ALL_SCRIPT_STRINGS.flatMap((key) => language.strings[key] ?? []);
+  const scriptWording = SCRIPT_STRING_NAMES.flatMap((key) => language.strings[key] ?? []);
   const textTheScriptShows = [...everyStringIn(language.questions.personal), ...scriptWording];
   for (const text of textTheScriptShows) {
     for (const href of hrefsIn(text)) {

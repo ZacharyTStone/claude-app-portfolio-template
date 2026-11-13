@@ -3,7 +3,7 @@
    Its words are text, which Astro escapes, so no HTML gets through. Bold,
    italic and a link hold pieces of their own, which this draws by using
    itself. */
-import { external } from "../contracts/links.ts";
+import { newTabAttributes } from "../contracts/links.ts";
 import { spans, type Span } from "../config/markdown.ts";
 import { site } from "../site/current.ts";
 
@@ -29,7 +29,7 @@ const pieces = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spa
       <Astro.self spans={piece.spans} />
     </em>
   ) : (
-    <a href={site.link(piece.href)} {...external(piece.href)}>
+    <a href={site.link(piece.href)} {...newTabAttributes(piece.href)}>
       <Astro.self spans={piece.spans} />
     </a>
   ),

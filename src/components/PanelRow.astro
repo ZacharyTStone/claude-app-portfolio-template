@@ -5,7 +5,7 @@
    Styles: src/styles/panel.css. */
 import type { PanelRow } from "../config/language.ts";
 import { site } from "../site/current.ts";
-import { external } from "../contracts/links.ts";
+import { newTabAttributes } from "../contracts/links.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { viewerLink } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
@@ -18,7 +18,7 @@ interface Props {
 const { label, meta, icon, href } = Astro.props.row;
 // A link's element and its attributes, or a plain element with none.
 const RowElement = href ? "a" : "span";
-const linkAttributes = href ? { href: site.link(href), ...external(href), ...viewerLink(href, label) } : {};
+const linkAttributes = href ? { href: site.link(href), ...newTabAttributes(href), ...viewerLink(href, label) } : {};
 ---
 
 <RowElement class={iconClass(icon)} {...linkAttributes}>

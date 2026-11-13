@@ -8,7 +8,7 @@
    script. */
 
 import * as v from "valibot";
-import { personalTab } from "./page-ids.ts";
+import { personalTabId } from "./page-ids.ts";
 
 // ---- Labels ------------------------------------------------------------------------
 
@@ -102,7 +102,7 @@ export type AskIndex = v.InferOutput<typeof AskIndexSchema>;
 export const threadAnswerId = (thread: string, n: number): string => `${thread}.${n}`;
 
 /** The id of a personal answer: the one answer in its tab. */
-export const personalAnswerId = (personal: string): string => threadAnswerId(personalTab(personal), 1);
+export const personalAnswerId = (personal: string): string => threadAnswerId(personalTabId(personal), 1);
 
 // ---- POST /ask ---------------------------------------------------------------------
 

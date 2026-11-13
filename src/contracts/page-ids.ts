@@ -67,8 +67,8 @@ export const groupId = (id: string): string => `${ID_PREFIX.group}${id}`;
 /** A panel section's id: panelId("context") is "panel-context". */
 export const panelId = (key: keyof Panel): string => `${ID_PREFIX.panel}${key}`;
 
-/** A personal answer's tab: personalTab("food") is "personal-food". */
-export const personalTab = (id: string): string => `${ID_PREFIX.personal}${id}`;
+/** A personal answer's tab: personalTabId("food") is "personal-food". */
+export const personalTabId = (id: string): string => `${ID_PREFIX.personal}${id}`;
 
 /** The sidebar group the browser code adds for the visitor's chats. No group
     in the config can have its id. */

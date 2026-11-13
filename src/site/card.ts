@@ -1,7 +1,7 @@
 /* A file card's lines, laid out like a small config file: the values start
    in one column, and so do the comments (src/components/Card.astro). */
 
-import type { Card, CardValue } from "../config/blocks.ts";
+import type { FileCard, CardValue } from "../config/blocks.ts";
 
 /** One line of a card as it's drawn in the <pre>, left to right. */
 export type CardRow = {
@@ -45,7 +45,7 @@ function firstLineOf(value: CardValue): string {
 
 /** A card's lines as they're drawn: a row for each line, and one more for
     each later line of a list, under the list's first. */
-export function cardRows({ lines, gap = DEFAULT_GAP }: Card): CardRow[] {
+export function cardRows({ lines, gap = DEFAULT_GAP }: FileCard): CardRow[] {
   // Every value starts in one column, `gap` spaces after the longest key and its colon.
   const widestKeyAndColon = Math.max(...lines.map(([key]) => key.length + COLON_WIDTH));
   const valueColumn = widestKeyAndColon + gap;

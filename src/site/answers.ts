@@ -5,7 +5,7 @@
 
 import type { AskAnswer, AskIndex } from "../contracts/ask.ts";
 import { labelled, personalAnswerId, threadAnswerId } from "../contracts/ask.ts";
-import type { Bars, Block, Card, CardValue, Flow } from "../config/blocks.ts";
+import type { Bars, Block, FileCard, CardValue, Flow } from "../config/blocks.ts";
 import { plainText } from "../config/markdown.ts";
 import { JSON_INDENT } from "./constants.ts";
 import type { Site } from "./site.ts";
@@ -91,7 +91,8 @@ function flowText({ title, steps }: Flow): string {
 
 /** A file card, a row to a line: "company: Acme", then
     "role: Senior Engineer". */
-const cardText = (card: Card): string => joinLines(card.lines.map(([key, value]) => `${key}: ${cardValueText(value)}`));
+const cardText = (card: FileCard): string =>
+  joinLines(card.lines.map(([key, value]) => `${key}: ${cardValueText(value)}`));
 
 /** A card's value on one line: a list's lines are joined with spaces. */
 function cardValueText(value: CardValue): string {

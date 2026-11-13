@@ -8,7 +8,7 @@
    Styles: src/styles/thread.css (paragraphs and lists) and figures.css
    (pictures side by side, a quote, a heading). */
 import type { Strings } from "../config/strings.ts";
-import type { Block, BlockParts } from "../config/blocks.ts";
+import type { Block, BlockByKind } from "../config/blocks.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import Artifact from "./Artifact.astro";
 import Bars from "./Bars.astro";
@@ -27,7 +27,7 @@ const { block, strings } = Astro.props;
 // What a block that's an object holds, under each kind's name: one of
 // these is set, and the others are undefined (all of them, for a paragraph
 // or a list).
-const namedParts: Partial<BlockParts> = typeof block === "object" && !Array.isArray(block) ? block : {};
+const namedParts: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
 const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = namedParts;
 // Every kind is drawn below. One added to Block and not taken out on the
 // line above would be left in here, and this line would be a type error.

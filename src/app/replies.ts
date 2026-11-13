@@ -2,7 +2,7 @@
    copied from the page (a thread's, the one /ask picked, or "Something
    else"), or /ask's reply when it sent one (src/contracts/ask.ts). */
 import { isCitedLines, isQuestionToOwner, isReplyText } from "../contracts/ask.ts";
-import { ID } from "../config/language.ts";
+import { ID_PATTERN } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS, SELECTOR } from "./constants.ts";
@@ -85,7 +85,7 @@ function fromLine(tab: HTMLElement, template: string): Element {
 // question in Work), if it names one.
 function findAnswer(id: string): { tab: HTMLElement; q: Element } | null {
   const [tabId = "", n = ""] = id.split(".");
-  const tab = ID.test(tabId) ? document.getElementById(tabId) : null;
+  const tab = ID_PATTERN.test(tabId) ? document.getElementById(tabId) : null;
   if (!tab?.matches(SELECTOR.tab)) return null;
   const q = tab.querySelectorAll(`${SELECTOR.threadQuestion}:not(${SELECTOR.sent})`)[Number(n) - 1];
   return q ? { tab, q } : null;

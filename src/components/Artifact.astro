@@ -5,7 +5,7 @@
    Styles: src/styles/cards.css. */
 import type { LinkCard } from "../config/blocks.ts";
 import { site } from "../site/current.ts";
-import { external } from "../contracts/links.ts";
+import { newTabAttributes } from "../contracts/links.ts";
 import { viewerLink } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
@@ -23,7 +23,7 @@ const { name, kind, href, icon } = link;
 <a
   class="artifact i-out ic-after"
   href={site.link(href)}
-  {...external(href)}
+  {...newTabAttributes(href)}
   {...viewerLink(href, name)}
   {...dataAttributes}
 >

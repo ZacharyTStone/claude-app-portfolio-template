@@ -7,7 +7,7 @@
    Styles: src/styles/layout.css (the columns). */
 import Document from "../layouts/Document.astro";
 import { ASK_PATH } from "../contracts/ask.ts";
-import { ALL_SCRIPT_STRINGS, dataAttribute } from "../config/strings.ts";
+import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES } from "../config/strings.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
@@ -34,9 +34,9 @@ const { strings } = lang;
 // each (an optional string the language doesn't have is left off), and
 // where /ask is, when Ask is on.
 const scriptAttributes: Record<string, string> = {};
-for (const key of ALL_SCRIPT_STRINGS) {
+for (const key of SCRIPT_STRING_NAMES) {
   const wording = strings[key];
-  if (wording !== undefined) scriptAttributes[`data-${dataAttribute(key)}`] = wording;
+  if (wording !== undefined) scriptAttributes[SCRIPT_STRING_ATTRIBUTES[key]] = wording;
 }
 if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
 ---

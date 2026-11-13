@@ -27,7 +27,7 @@ import {
   type Reply,
 } from "../helpers.ts";
 import { DATA } from "../../../src/contracts/page-attributes.ts";
-import { ID_PREFIX, personalTab } from "../../../src/contracts/page-ids.ts";
+import { ID_PREFIX, personalTabId } from "../../../src/contracts/page-ids.ts";
 import { CLASS, ID, type Site } from "../site.ts";
 
 // A reply as /ask might send it. What looks like a tag in it must stay text.
@@ -166,7 +166,7 @@ export default (site: Site): Check[] => {
         await askIn(page, A.id, "And what about that?");
         const from = {
           text: words.askFromPersonal.replace("{tab}", personal.title ?? personal.q),
-          href: `#${personalTab(personal.id)}`,
+          href: `#${personalTabId(personal.id)}`,
         };
         await checkReplied(page, `#${A.id}`, from);
       },
@@ -506,7 +506,7 @@ export default (site: Site): Check[] => {
         }
         for (const item of hiddenAnswers) {
           assert.ok(
-            await page.locator(`#${personalTab(item.id)}`).count(),
+            await page.locator(`#${personalTabId(item.id)}`).count(),
             `the hidden answer ${item.id} has a tab, for Ask`,
           );
         }

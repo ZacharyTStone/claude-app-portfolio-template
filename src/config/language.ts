@@ -2,7 +2,7 @@
    in the order the page draws them: Home, Sidebar, Thread, Asked, Panel,
    Account. The whole site is in site-config.ts. */
 
-import type { Block, Card } from "./blocks.ts";
+import type { Block, FileCard } from "./blocks.ts";
 import type { Markdown } from "./markdown.ts";
 import type { QuestionCard } from "./question-card.ts";
 import type { Strings } from "./strings.ts";
@@ -138,7 +138,7 @@ export type SidebarNavRow = {
 /** Rows under a heading ("Work history"), below the ones at the top. With
     JavaScript the heading folds its rows away. */
 export type SidebarGroup = {
-  /** The group's own id (an ID, like a thread's): the page remembers by
+  /** The group's own id (ID_PATTERN, like a thread's): the page remembers by
       it which groups a visitor folded. Each group's is different, and none
       is "chats", the group the browser code adds for the visitor's chats. */
   id: string;
@@ -167,11 +167,11 @@ export type SidebarRow = {
 
 /** What a thread's, a sidebar group's or a personal answer's id looks
     like: lowercase letters, digits and dashes ("about"). */
-export const ID = /^[a-z][a-z0-9-]*$/;
+export const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 
 /** A conversation: a tab of its own, at #id. */
 export type Thread = {
-  /** Its address (#about): an ID. The sidebar, the panel, the question
+  /** Its address (#about): ID_PATTERN. The sidebar, the panel, the question
       card and links in the text name the thread by it. The page uses some
       ids itself (such as "top", "main" and "asked", and anything starting
       "personal-", "chat-", "group-" or "panel-", or ending "-title"): the
@@ -213,7 +213,7 @@ export type StatusLine = {
   /** The file's name in the line, in bold: "experience/acme.md". */
   file: string;
   /** The file card the line opens onto. */
-  card: Card;
+  card: FileCard;
 };
 
 // ---- "Something else" ----------------------------------------------------------

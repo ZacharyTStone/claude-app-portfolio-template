@@ -10,11 +10,11 @@ import ownConfig from "../site.config.ts";
 import { ASK_PATH, isLabel, labelled } from "../src/contracts/ask.ts";
 import type { AskAnswer, AskIndex } from "../src/contracts/ask.ts";
 import { HOSTS } from "../src/config/site-config.ts";
-import { PAGE_STRINGS, SCRIPT_STRINGS } from "../src/config/strings.ts";
+import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES } from "../src/config/strings.ts";
 import type { Language } from "../src/config/language.ts";
 import type { SiteConfig } from "../src/config/site-config.ts";
 import type { Strings } from "../src/config/strings.ts";
-import type { Block, Card } from "../src/config/blocks.ts";
+import type { Block, FileCard } from "../src/config/blocks.ts";
 import { hrefsIn, plainText, spans } from "../src/config/markdown.ts";
 import { contentSecurityPolicy, frameOrigins, securityHeaders } from "../src/site/security-headers.ts";
 import { askIndexJson, plainAnswers } from "../src/site/answers.ts";
@@ -43,7 +43,7 @@ const stylesheetIcons = iconsIn(stylesheet);
     the panel. */
 function sampleLanguage(label: string, locale: string): Language {
   // Every string says its own key, but for the one that needs a placeholder.
-  const everyKey = [...PAGE_STRINGS, ...SCRIPT_STRINGS];
+  const everyKey = [...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES];
   const strings = { ...Object.fromEntries(everyKey.map((key) => [key, key])), status: "Read {file}" } as Strings;
   const image = "/assets/og.png";
   return {
@@ -601,7 +601,7 @@ test("A safe link is a web, mailto, #thread or relative address, whatever its le
 
 test("A card's comments line up, unless a value has wide characters", () => {
   // The card's lines as they show, tags aside.
-  const linesAsDrawn = (lines: Card["lines"]) =>
+  const linesAsDrawn = (lines: FileCard["lines"]) =>
     cardRows({ file: "role.yaml", lines }).map(
       (row) =>
         `${row.key ? `${row.key}:` : ""}${row.indent}${row.value}${row.comment ? `${row.beforeComment}# ${row.comment}` : ""}`,

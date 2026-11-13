@@ -66,7 +66,7 @@ export type Choice = {
 /** An answer that isn't in a thread. Each gets its own tab. Hidden ones
     aren't in the card, but /ask can pick them. */
 export type PersonalAnswer = {
-  /** Its own id (an ID, as a thread's): "food". Its tab is at
+  /** Its own id (ID_PATTERN, as a thread's): "food". Its tab is at
       #personal-food, and /ask names its answer "personal-food.1". */
   id: string;
   /** The question, as a visitor would type it: what the card lists it by,

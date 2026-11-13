@@ -1,7 +1,7 @@
 /* The personal answers: the only ones that aren't in a thread (they're in
    the question card's data). Each gets a tab of its own, made from a copy
    of the "Something else" tab. */
-import { ID_PREFIX, personalTab } from "../contracts/page-ids.ts";
+import { ID_PREFIX, personalTabId } from "../contracts/page-ids.ts";
 import { type PersonalAnswer } from "../config/question-card.ts";
 import { SELECTOR } from "./constants.ts";
 import { clone, find } from "./lib/dom.ts";
@@ -20,7 +20,7 @@ export const isPersonalTab = (tabId: string): boolean => tabId.startsWith(ID_PRE
     lists in place of the pattern's answer, above the buttons the pattern's
     answer ends with. */
 function makePersonalTab(personal: PersonalAnswer): HTMLElement {
-  const tab = copyTab(tabPattern, personalTab(personal.id));
+  const tab = copyTab(tabPattern, personalTabId(personal.id));
   find(tab, SELECTOR.title).textContent = personal.title ?? personal.q;
   find(tab, SELECTOR.askedQuestion).textContent = personal.q;
   const answer = find(tab, SELECTOR.answer);

@@ -2,7 +2,7 @@
    made into text and elements, never HTML. A link the browser can't follow
    (browserFollows) is just its words. */
 import type { Markdown, Span } from "../../config/markdown.ts";
-import { browserFollows, external } from "../../contracts/links.ts";
+import { browserFollows, newTabAttributes } from "../../contracts/links.ts";
 import { spans } from "../../config/markdown.ts";
 import { make } from "./dom.ts";
 
@@ -23,7 +23,9 @@ function renderSpan(span: Span): Children {
   if (span.type === "code") return [make("code", {}, span.text)];
   const inside = span.spans.flatMap(renderSpan);
   if (span.type !== "link") return [make(span.type, {}, ...inside)];
-  return browserFollows(span.href) ? [make("a", { href: span.href, ...external(span.href) }, ...inside)] : inside;
+  return browserFollows(span.href)
+    ? [make("a", { href: span.href, ...newTabAttributes(span.href) }, ...inside)]
+    : inside;
 }
 
 /** A line. A leading emoji is decoration: screen readers skip it. */

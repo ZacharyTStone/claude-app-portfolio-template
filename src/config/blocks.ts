@@ -31,7 +31,7 @@ export type CardLine = [key: string, value: CardValue, comment?: string];
     `key: value`, the values in one column.
 
         { file: "acme.yaml", lines: [["role", "Engineer", "since 2020"], ["stack", ["TypeScript", "Astro"]]] } */
-export type Card = {
+export type FileCard = {
   /** The file's name, in the card's heading: "acme.yaml". */
   file: string;
   /** Its lines, top to bottom. */
@@ -176,7 +176,7 @@ export type Heading = { title: string; label?: string };
 export type Block =
   | Markdown
   | Markdown[]
-  | { card: Card }
+  | { card: FileCard }
   | { link: LinkCard }
   | { bars: Bars }
   | { flow: Flow }
@@ -187,8 +187,8 @@ export type Block =
   | { heading: Heading };
 
 /** What each kind of block that's an object holds, under the name of its
-    kind: { card: Card; link: LinkCard; bars: Bars; … }. It's made from
+    kind: { card: FileCard; link: LinkCard; bars: Bars; … }. It's made from
     Block, so a kind added there is here too. */
-export type BlockParts = {
+export type BlockByKind = {
   [Named in Exclude<Block, Markdown | Markdown[]> as keyof Named]: Named[keyof Named];
 };

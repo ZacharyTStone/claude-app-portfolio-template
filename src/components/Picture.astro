@@ -19,7 +19,7 @@ import { DATA, REDUCED_MOTION } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
 import { secondsPlayed } from "../site/pictures.ts";
-import { external } from "../contracts/links.ts";
+import { newTabAttributes } from "../contracts/links.ts";
 import { viewerLink } from "./attributes.ts";
 
 interface Props {
@@ -38,7 +38,9 @@ const shown = still && playsForSeconds ? still : src;
 const imageAttributes = { src: site.link(shown), alt, width, height, loading: "lazy", decoding: "async" } as const;
 // A link, or nothing, around the picture.
 const Frame = href ? "a" : Fragment;
-const frameAttributes = href ? { href: site.link(href), ...external(href), ...viewerLink(href, caption ?? alt) } : {};
+const frameAttributes = href
+  ? { href: site.link(href), ...newTabAttributes(href), ...viewerLink(href, caption ?? alt) }
+  : {};
 // What holds a picture that's played, with its button over it.
 const Stage = playsForSeconds ? "div" : Fragment;
 const stageAttributes = playsForSeconds ? { class: PAGE_CLASSES.stage } : {};

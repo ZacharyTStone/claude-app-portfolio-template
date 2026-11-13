@@ -5,7 +5,7 @@
 import type { Language } from "../../src/config/language.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import type { Strings } from "../../src/config/strings.ts";
-import { PAGE_STRINGS, SCRIPT_STRINGS } from "../../src/config/strings.ts";
+import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES } from "../../src/config/strings.ts";
 import { ICONS } from "../../src/site/constants.ts";
 
 /** The one picture the sample uses, for its social card too: a file every
@@ -25,7 +25,7 @@ const notes = { href: "https://docs.example.com/d/notes/edit", inFrame: "https:/
     label and the locale tell them apart. */
 function sampleLanguage(label: string, locale: string): Language {
   // Every string says its own key, but for the ones set below.
-  const everyKey = [...PAGE_STRINGS, ...SCRIPT_STRINGS];
+  const everyKey = [...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES];
   const strings = Object.fromEntries(everyKey.map((key) => [key, key]));
   return {
     label,
