@@ -7,7 +7,9 @@ import {
   compoundParts,
   dottedParts,
   hasCapitalInside,
+  hiddenCharactersIn,
   latinWordsIn,
+  lettersOutside,
   startsWithCapital,
   type Found,
 } from "../text/words.ts";
@@ -15,9 +17,13 @@ import {
 /** One thing a reply says that has to be its sources', as the reply wrote
     it (`text`): an email, a handle or a link, whole; a number in digits or
     written out; a site ("example.com"); or a name, or several joined by a
-    dot (`names`: "Node" of "Node.js"). All but an address are a part of
-    `word`, the word of the reply they're in ("US" of "US-based"). */
+    dot (`names`: "Node" of "Node.js"). All but an address and a character
+    are a part of `word`, the word of the reply they're in ("US" of
+    "US-based"). A character is one a reader can't see ("U+034F"), or
+    letters of a script the reply's language doesn't use ("М" of
+    "Мicrosoft"): no source makes either one a reply may show. */
 export type Claim =
+  | { kind: "character"; text: string }
   | { kind: "address"; text: string }
   | { kind: "number"; text: string; word: string }
   | { kind: "site"; text: string; word: string }
@@ -28,6 +34,8 @@ export type Reading = {
   /** The reply is in a language without capitals (Japanese): a name can't
       be told by its capital there, so every word in Latin letters is one. */
   isEveryLatinWordAName: boolean;
+  /** The scripts the language's letters are in, as Unicode names them. */
+  scripts: readonly string[];
   /** What the visitor's question names, in lower case. */
   namedInQuestion: ReadonlySet<string>;
 };
@@ -106,8 +114,8 @@ function isFirstOfItsSentence(text: string, sentenceStarts: number[], wordStart:
   return !/[\p{L}\p{N}]/u.test(text.slice(sentenceStart, wordStart));
 }
 
-/** What a reply claims, in its order: its addresses, then what its words
-    claim. An address is one claim, whole ("alex@example.org" isn't the
+/** What a reply claims, in its order: its characters, its addresses, then
+    what its words claim. An address is one claim, whole ("alex@example.org" isn't the
     sources' "alex@example.com", though each of its words but one is), so
     the words inside one claim nothing more. */
 export function claimsIn(reply: string, reading: Reading): Claim[] {
@@ -119,5 +127,10 @@ export function claimsIn(reply: string, reading: Reading): Claim[] {
       const isFirstOfSentence = isFirstOfItsSentence(reply, sentenceStarts, word.start);
       return claimsOfWord(word.text, { ...reading, isFirstOfSentence });
     });
-  return [...addresses.map(({ text }): Claim => ({ kind: "address", text })), ...wordClaims];
+  const characters = [...hiddenCharactersIn(reply), ...lettersOutside(reply, reading.scripts)];
+  return [
+    ...characters.map(({ text }): Claim => ({ kind: "character", text })),
+    ...addresses.map(({ text }): Claim => ({ kind: "address", text })),
+    ...wordClaims,
+  ];
 }

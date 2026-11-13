@@ -156,10 +156,33 @@ shown("its ordinary words aren't checked: a description, a hedge or a denial the
   ["Svelteは使っていません。", JA_SKILLS, ja],
 ]);
 
-shown("nor is what it can't tell from an ordinary word: a name in lower case, in kana or kanji, or in another script", [
+shown("nor is what it can't tell from an ordinary word: a name in lower case, or in kana or kanji", [
   ["東京を拠点に働いています。", JA_SKILLS, ja],
   ["No, he doesn't use vercel.", SKILLS, { question: "does he use vercel?" }],
-  ["He works at Яндекс in 東京.", SKILLS],
+]);
+
+notShown("a character a reader can't see isn't shown, as its code point", [
+  ["He left for A\u034Fmazon.", ["U+034F"], SKILLS],
+  ["He is great\u3164 really.", ["U+1160"], SKILLS],
+  ["He knows React\u200B.", ["U+200B"], SKILLS],
+  ["He knows React.\u0007", ["U+0007"], SKILLS],
+  ["He knows\nReact.", ["U+000A"], SKILLS],
+  ["He knows React\uE000.", ["U+E000"], SKILLS],
+  ["はい、Svelte\u034Fを使っています。", ["U+034F"], JA_SKILLS, ja],
+]);
+
+notShown("nor a letter of a script the reply's language doesn't use, however it's written", [
+  ["He now works at Мicrosoft and Аmazon.", ["М", "А"], SKILLS],
+  ["He works at Яндекс in 東京.", ["Яндекс", "東京"], SKILLS],
+  ["He has 九十 years of experience.", ["九十"], SKILLS],
+  ["He was fired by Гугл.", ["Гугл"], SKILLS],
+  ["はい、Яндексで働いています。", ["Яндекс"], JA_SKILLS, ja],
+  ["はい、구글で働いています。", ["구글"], JA_SKILLS, ja],
+]);
+
+shown("the letters of the reply's language are its own: accents in English, and kana, kanji and Latin in Japanese", [
+  ["Yes, he knows React, café-style.", SKILLS],
+  ["はい、SvelteとSvelteKitを使っています。ー々", JA_SKILLS, ja],
 ]);
 
 notShown("a name the sources don't have isn't shown: a technology, a company, a place, a month", [

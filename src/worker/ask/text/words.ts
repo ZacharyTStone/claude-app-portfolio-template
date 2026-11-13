@@ -26,6 +26,27 @@ export const compoundParts = (word: string): string[] => word.split(/[/&-]+/).fi
     A number has none: "1.04" has no "04", nor "2,350" a "350". */
 export const dottedParts = (word: string): string[] => (hasDigit(word) ? [word] : word.split(/[.,]+/).filter(Boolean));
 
+// What a reader can't see: control and format characters, and those meant
+// to be drawn as nothing ("A\u034Fmazon").
+const HIDDEN = /[\p{C}\p{Default_Ignorable_Code_Point}]/gu;
+
+const codePointOf = (character: string): string =>
+  `U+${(character.codePointAt(0) ?? 0).toString(16).toUpperCase().padStart(4, "0")}`;
+
+/** The characters a text has that a reader can't see, each as its code
+    point ("U+034F"). */
+export const hiddenCharactersIn = (text: string): Found[] =>
+  [...text.matchAll(HIDDEN)].map((found) => ({ text: codePointOf(found[0]), start: found.index }));
+
+/** The runs of letters in a text from none of `scripts` (Unicode script
+    names): "Мicrosoft" has a Cyrillic "М" among Latin letters. A hidden
+    one isn't among them: it's a hidden character. */
+export function lettersOutside(text: string, scripts: readonly string[]): Found[] {
+  const ownLetter = scripts.map((script) => `\\p{scx=${script}}`).join("");
+  const foreign = new RegExp(`(?:(?![${ownLetter}\\p{Default_Ignorable_Code_Point}])\\p{L})+`, "gu");
+  return [...text.matchAll(foreign)].map((found) => ({ text: found[0], start: found.index }));
+}
+
 export const hasDigit = (word: string): boolean => /\p{N}/u.test(word);
 export const hasLetter = (word: string): boolean => /\p{L}/u.test(word);
 export const hasCapitalInside = (word: string): boolean => /\p{Lu}/u.test(word.slice(1));

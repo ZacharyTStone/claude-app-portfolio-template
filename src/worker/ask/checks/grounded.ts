@@ -12,11 +12,12 @@ import { withPlainCharacters } from "../text/words.ts";
 import { claimsIn, type Claim } from "./claims.ts";
 import { hasAddress, hasNumber, hasWord, vocabularyOf, type Vocabulary } from "./vocabulary.ts";
 
-/** How the check reads each language a reply can be written in. Japanese
-    has no capitals to tell a name by. */
+/** How the check reads each language a reply can be written in, and the
+    scripts its letters may be in. Japanese has no capitals to tell a name
+    by. */
 const READS = {
-  en: { isEveryLatinWordAName: false },
-  ja: { isEveryLatinWordAName: true },
+  en: { isEveryLatinWordAName: false, scripts: ["Latin"] },
+  ja: { isEveryLatinWordAName: true, scripts: ["Latin", "Hiragana", "Katakana", "Han"] },
 } as const;
 
 export type CheckedLanguage = keyof typeof READS;
@@ -34,6 +35,7 @@ export type Sources = { lines: string; title: string; q: string; owner: string }
 export type CheckedReply = { reply: string; unsourced?: undefined } | { reply?: undefined; unsourced: string[] };
 
 function isSourced(claim: Claim, vocabulary: Vocabulary): boolean {
+  if (claim.kind === "character") return false;
   if (claim.kind === "address") return hasAddress(vocabulary, claim.text);
   // A word the sources have as it's written is theirs, whatever it claims.
   if (hasWord(vocabulary, claim.word) || hasWord(vocabulary, claim.text)) return true;
