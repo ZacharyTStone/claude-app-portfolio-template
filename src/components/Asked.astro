@@ -5,7 +5,7 @@
    (the config's asked.q), and the email and the message carry their
    wording as it is before the question is in, for the script to fill.
    Styles: src/styles/cards.css (the message to copy). */
-import type { LinkCard } from "../config/blocks.ts";
+import type { LinkCard as LinkCardBlock } from "../config/blocks.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
@@ -13,8 +13,8 @@ import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { shortUrl } from "../site/url.ts";
 import { flag } from "./attributes.ts";
-import Artifact from "./Artifact.astro";
 import Inline from "./Inline.astro";
+import LinkCard from "./LinkCard.astro";
 import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
@@ -32,7 +32,7 @@ const withSampleQuestion = (template: string) => template.replaceAll("{question}
 // The link that opens an email with the question in it.
 const mailSubject = encodeURIComponent(asked.subject);
 const mailBody = encodeURIComponent(withSampleQuestion(asked.email));
-const mailLink: LinkCard = {
+const mailLink: LinkCardBlock = {
   name: asked.mail,
   kind: email,
   href: `mailto:${email}?subject=${mailSubject}&body=${mailBody}`,
@@ -48,7 +48,12 @@ const mailTemplate = { [DATA.emailBody]: asked.email, [DATA.emailSubject]: asked
 const linkedinOffer =
   linkedin && asked.linkedin && asked.message
     ? {
-        link: { name: asked.linkedin, kind: shortUrl(linkedin), href: linkedin, icon: "linkedin" } satisfies LinkCard,
+        link: {
+          name: asked.linkedin,
+          kind: shortUrl(linkedin),
+          href: linkedin,
+          icon: "linkedin",
+        } satisfies LinkCardBlock,
         message: asked.message,
       }
     : undefined;
@@ -63,10 +68,10 @@ const linkedinOffer =
     <p>
       <Inline text={asked.answer} />
     </p>
-    <Artifact link={mailLink} {...mailTemplate} />
+    <LinkCard link={mailLink} {...mailTemplate} />
     {linkedinOffer && (
       <>
-        <Artifact link={linkedinOffer.link} />
+        <LinkCard link={linkedinOffer.link} />
         <div class={PAGE_CLASSES.draft} {...{ [DATA.messageDraft]: linkedinOffer.message.text }}>
           <p class="draft-head">
             {linkedinOffer.message.label}

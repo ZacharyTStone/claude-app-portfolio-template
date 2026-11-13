@@ -1,5 +1,5 @@
 /* A file card's lines, laid out like a small config file: the values start
-   in one column, and so do the comments (src/components/Card.astro). */
+   in one column, and so do the comments (src/components/FileCard.astro). */
 
 import type { FileCard, CardValue } from "../config/blocks.ts";
 

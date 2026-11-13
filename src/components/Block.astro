@@ -10,11 +10,11 @@
 import type { Strings } from "../config/strings.ts";
 import type { Block, BlockByKind } from "../config/blocks.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import Artifact from "./Artifact.astro";
 import Bars from "./Bars.astro";
-import Card from "./Card.astro";
+import FileCard from "./FileCard.astro";
 import Flow from "./Flow.astro";
 import Inline from "./Inline.astro";
+import LinkCard from "./LinkCard.astro";
 import Picture from "./Picture.astro";
 
 interface Props {
@@ -48,8 +48,8 @@ kindsNotDrawn satisfies Record<string, never>;
     ))}
   </ul>
 )}
-{card && <Card card={card} />}
-{link && <Artifact link={link} />}
+{card && <FileCard card={card} />}
+{link && <LinkCard link={link} />}
 {bars && <Bars bars={bars} />}
 {flow && <Flow flow={flow} />}
 {image && <Picture picture={image} strings={strings} />}

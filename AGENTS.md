@@ -88,7 +88,7 @@ examples/         (template) Sample content to import into the config, such as a
   whitespace between elements only when it has no line break in it.
   Prettier (`htmlWhitespaceSensitivity: "strict"`) writes a space it has
   to move as `{" "}`; write a needed one the same way. Inside `<pre>`
-  every character counts: build its lines as an array (`Card.astro`).
+  every character counts: build its lines as an array (`FileCard.astro`).
 - **No framework code reaches the browser.** No `client:` directives, view
   transitions or UI-framework integrations: the pages' only script is
   `src/app`.
