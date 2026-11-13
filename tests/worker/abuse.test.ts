@@ -8,14 +8,13 @@ import { llamaGuardVerdict } from "../../src/worker/ask/moderation.ts";
 import {
   ASK_GUARD_PATH,
   ASK_GUARD_REPLY,
-  DEFAULT_VISITOR_SALT,
   INAPPROPRIATE,
   LLAMA_GUARD_OPTIONS,
   NONE,
   VISITOR_ADDRESS_HEADER,
 } from "../../src/worker/constants.ts";
-import { DEFAULTS } from "../../src/worker/env.ts";
 import { visitorAddress } from "../../src/worker/lib/visitor.ts";
+import { SETTINGS } from "../../src/worker/settings.ts";
 import {
   ADDRESS,
   UNADDRESSED,
@@ -38,7 +37,7 @@ const LOG_QUESTIONS = { ASK_LOG_QUESTIONS: "true" };
 test("the visitor is known by a salted hash of their address, never the address", async () => {
   const { env, guard } = stubs();
   await askJson(env, "who?");
-  assert.equal(guard.requests[0]?.searchParams.get("who"), hashOf(DEFAULT_VISITOR_SALT, ADDRESS));
+  assert.equal(guard.requests[0]?.searchParams.get("who"), hashOf(SETTINGS.salt.default, ADDRESS));
 });
 
 test("ASK_SALT, when it's set, is what the address is hashed with", async () => {
@@ -78,8 +77,8 @@ test("an inappropriate question is blocked, and so is its asker (hashed), for AS
   assert.deepEqual(await askJson(env, question), { blocked: true, flagged: true });
   const blocked = guardRequest(guard, ASK_GUARD_PATH.block);
   assert.ok(blocked, "the guard was told to block");
-  assert.equal(blocked.searchParams.get("hours"), String(DEFAULTS.blockHours));
-  assert.equal(blocked.searchParams.get("who"), hashOf(DEFAULT_VISITOR_SALT, ADDRESS));
+  assert.equal(blocked.searchParams.get("hours"), String(SETTINGS.blockHours.default));
+  assert.equal(blocked.searchParams.get("who"), hashOf(SETTINGS.salt.default, ADDRESS));
   assert.ok(!blocked.href.includes(ADDRESS), "the address itself isn't sent");
   const set = stubs({ run: models(toolCall(INAPPROPRIATE)), vars: { ASK_BLOCK_HOURS: "2" } });
   await askJson(set.env, question);

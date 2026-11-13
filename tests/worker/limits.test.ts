@@ -13,7 +13,7 @@ import {
   INAPPROPRIATE,
   WARN_AT_QUESTIONS_LEFT,
 } from "../../src/worker/constants.ts";
-import { DEFAULTS } from "../../src/worker/env.ts";
+import { SETTINGS } from "../../src/worker/settings.ts";
 import { AskGuard } from "../../src/worker/index.ts";
 import { ask, askJson, captureLogs, guardStub, lines, models, okLeft, stubs, toolCall } from "./fixtures.ts";
 
@@ -58,7 +58,9 @@ test("AskGuard is asked with the day's limits (the site's, a visitor's, the Neur
     const url = guard.requests.find((request) => request.pathname === ASK_GUARD_PATH.take);
     return ["limit", "each", "budget"].map((name) => url?.searchParams.get(name));
   };
-  const defaults = [DEFAULTS.dailyLimit, DEFAULTS.visitorLimit, DEFAULTS.neuronBudget].map(String);
+  const defaults = [SETTINGS.dailyLimit.default, SETTINGS.visitorLimit.default, SETTINGS.neuronBudget.default].map(
+    String,
+  );
   assert.deepEqual(await take(), defaults);
   assert.deepEqual(await take({ ASK_DAILY_LIMIT: "7", ASK_VISITOR_LIMIT: "5", ASK_DAILY_NEURONS: "1200" }), [
     "7",
@@ -94,11 +96,11 @@ test("a question turned away at the guard is logged with why, and nothing else",
 
 test("the guard is one object, placed where ASK_GUARD_LOCATION says, and anything else is the default", async () => {
   for (const [location, expected] of [
-    [undefined, DEFAULTS.guardLocation],
+    [undefined, SETTINGS.guardLocation.default],
     ["weur", "weur"],
     ["apac", "apac"],
-    ["mars", DEFAULTS.guardLocation],
-    ["", DEFAULTS.guardLocation],
+    ["mars", SETTINGS.guardLocation.default],
+    ["", SETTINGS.guardLocation.default],
   ]) {
     const { env, guard } = stubs({ run: models(toolCall(INAPPROPRIATE)), vars: { ASK_GUARD_LOCATION: location } });
     await askJson(env, "rude");
@@ -138,7 +140,7 @@ test("a small visitor's limit is warned about near its end, not from its start: 
 
 test("past the visitor's limit: { limited } with the limit, no model call", async () => {
   for (const [vars, limit] of [
-    [{}, DEFAULTS.visitorLimit],
+    [{}, SETTINGS.visitorLimit.default],
     [{ ASK_VISITOR_LIMIT: "5" }, 5],
   ] as const) {
     const { env, calls } = stubs({ guardSays: ASK_GUARD_REPLY.limited, vars });
