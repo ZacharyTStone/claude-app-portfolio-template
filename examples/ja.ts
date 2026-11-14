@@ -61,6 +61,7 @@ export default function japanese(me: SampleFacts): Language {
       hint: "左のタブから詳しくご覧ください。",
       tagline: `${ja.place}を拠点にリモートで働く${ja.role}`,
       prompts: [
+        { q: `${ja.name}ってどんな人？`, answer: "about.1" },
         { q: `${acme.company}では何を作ったの？`, answer: "acme.2" },
         { q: `${me.project.name}はオフラインでどう動くの？`, answer: "notes.2" },
         { q: "コーヒーはどう飲むの？", answer: "personal-coffee.1" },
