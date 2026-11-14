@@ -92,6 +92,7 @@ export default {
         // the second answer in the thread "acme", "personal-coffee.1" the
         // personal answer "coffee".
         prompts: [
+          { q: `Who is ${me.first}?`, answer: "about.1" },
           { q: `What has ${me.first} built at ${acme.company}?`, answer: "acme.2" },
           { q: `How does ${me.project.name} work offline?`, answer: "notes.2" },
           { q: `How does ${me.first} take their coffee?`, answer: "personal-coffee.1" },
