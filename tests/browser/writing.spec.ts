@@ -23,8 +23,8 @@ async function expectTheTab(page: Page, writingTab: WritingTab): Promise<void> {
   await expect(cardsIn(page)).toHaveCount(writingTab.posts.length);
   for (const [at, post] of writingTab.posts.entries()) {
     await expect(cardsIn(page).nth(at)).toHaveAttribute("href", post.href);
+    await expect(cardsIn(page).nth(at)).toBeVisible();
   }
-  await expect(cardsIn(page).first()).toBeVisible();
 }
 
 test.describe("the Writing tab, opened from its row in the sidebar", () => {
