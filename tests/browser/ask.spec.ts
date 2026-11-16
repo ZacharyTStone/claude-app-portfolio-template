@@ -284,7 +284,7 @@ test.describe("the day's limit", () => {
     await expect(noteOfQuestionsLeft(page, site)).toBeVisible();
     await askIn(page, site.firstThread.id, "And GraphQL?");
     await expect(reminderIn(page, site)).toBeVisible();
-    for (const [, href] of site.words.askLimited.matchAll(MARKDOWN_LINK)) {
+    for (const [, href = ""] of site.words.askLimited.matchAll(MARKDOWN_LINK)) {
       // A link to a tab ("#contact") goes to the tab's page, as every link to one does.
       const shown = href.startsWith("#") ? site.pathOf(href.slice(1)) : href;
       await expect(reminderIn(page, site).locator(`a[href="${shown}"]`), `its link to ${href}`).not.toHaveCount(0);
