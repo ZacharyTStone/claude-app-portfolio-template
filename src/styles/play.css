@@ -1,5 +1,6 @@
-/* A played picture rests as its still, dimmed, so nothing moves beside the text until it's asked to. Without
-   JavaScript the still isn't dimmed: it's all there is to see. */
+/* A played picture rests as its still, dimmed, but for the times it plays: once by itself, when it's first
+   scrolled to, and then when it's asked to. So little moves beside the text. Without JavaScript the still isn't
+   dimmed: it's all there is to see. */
 
 .js .played-figure .stage {
   cursor: pointer;
