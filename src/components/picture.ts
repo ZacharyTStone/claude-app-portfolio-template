@@ -2,8 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Picture } from "../config/blocks.ts";
 import { PLAYS_ATTRIBUTE } from "../contracts/picture-files.ts";
-
-const PUBLIC_FOLDER = "public";
+import { PUBLIC_FOLDER } from "../site/repo.ts";
 
 // An <svg> tag that says how long it plays: <svg … data-plays="18.6">.
 const SVG_THAT_PLAYS = new RegExp(`<svg\\b[^>]*\\s${PLAYS_ATTRIBUTE}="([0-9.]+)"`);
@@ -19,7 +18,8 @@ export function secondsPlayed(src: string, root: string = process.cwd()): number
 }
 
 /** How a picture is shown. One with a `still` moves: if its file says how long it plays, it rests as the still
-    with a Play button; if not, it moves all the time, and the still is for a visitor who wants less motion. */
+    with a Play button (and plays once by itself, when it's first scrolled to); if not, it moves all the time,
+    and the still is for a visitor who wants less motion. */
 type PictureMode =
   { kind: "plain" } | { kind: "moving"; still: string } | { kind: "played"; still: string; seconds: number };
 

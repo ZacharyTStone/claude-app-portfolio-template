@@ -218,8 +218,21 @@ test("Ask runs where the host is Cloudflare, named or left out", () => {
 
 for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
   test(`Ask doesn't run on the host "${host}"`, () => {
-    assert.deepEqual(problemsIn(sampleConfig({ ask: { role: "an engineer" }, host })), [
+    assert.deepEqual(problemsIn(sampleConfig({ ask: { role: "an engineer" }, contactForm: undefined, host })), [
       `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "cloudflare"`,
     ]);
   });
+
+  test(`the contact form doesn't run on the host "${host}"`, () => {
+    assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [
+      `contactForm needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove contactForm, or set host to "cloudflare"`,
+    ]);
+  });
 }
+
+test("the contact form goes under a thread the site has", () => {
+  assert.deepEqual(problemsIn(sampleConfig({ contactForm: { tab: "work" } })), []);
+  assert.deepEqual(problemsIn(sampleConfig({ contactForm: { tab: "contact" } })), [
+    "contactForm.tab points at #contact, which isn't a thread",
+  ]);
+});

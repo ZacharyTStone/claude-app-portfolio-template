@@ -48,6 +48,11 @@ export default {
   // lines it was written from quoted under it. Uncomment, and see
   // docs/ask.md.
   // ask: { role: "a software engineer" },
+  // The contact form (optional, Cloudflare only): the visitor's email, a
+  // message and Send, under the Contact thread's answer, and their message
+  // in your inbox with Reply going to them. Uncomment, and see
+  // docs/contact-form.md: it needs Email Routing on for your domain.
+  // contactForm: { tab: "contact" },
   // The viewer (optional): a link listed here opens in a panel beside the
   // conversation, in a frame, instead of a new tab. Each entry is a link's
   // `href`, exactly as this file has it, then the address the frame shows:
@@ -332,7 +337,12 @@ export default {
               q: `can i see ${lower(me.first)}’s resume?`,
               // Listed in `viewer`, this link (and the panel's row for it)
               // would open beside the conversation, not in a new tab.
-              a: ["Sure:", { link: { name: "Resume", kind: "Document · PDF", href: me.resume, icon: "file" } }],
+              a: [
+                "Sure:",
+                { link: { name: "Resume", kind: "Document · PDF", href: me.resume, icon: "file" } },
+                // A link to a thread by its id goes to that tab's own page.
+                `Or start with the jobs on it: [${acme.company}](#acme) and [${globex.company}](#globex).`,
+              ],
             },
           ],
         },
@@ -380,7 +390,8 @@ export default {
           },
           { label: "How to reach them", tab: "contact" },
         ],
-        // Answers that aren't in a thread. Each gets a tab of its own.
+        // Answers that aren't in a thread. Each gets a tab of its own, with
+        // a page of its own: /personal-from/.
         personal: [
           {
             id: "from",

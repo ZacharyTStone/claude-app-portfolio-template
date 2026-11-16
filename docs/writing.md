@@ -28,7 +28,8 @@ your next push, or, on Cloudflare, by itself within a day
    `examples/ja.ts` has them in Japanese, and the build names one that's
    missing.
 3. `npm run build`, or `npm run dev`. The build prints how many posts it
-   found, and the tab is at `#writing`.
+   found, and the tab has a page of its own at `/writing/` (`/ja/writing/`
+   on a Japanese page).
 
 ## Where it is
 

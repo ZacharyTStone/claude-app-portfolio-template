@@ -38,6 +38,7 @@ test("what /ask asks of the guard reads back as it was asked", () => {
     { ask: "block", visitorHash: "abc", hours: 24 },
     { ask: "spend", neurons: 21.25 },
     { ask: "spend", neurons: 0 },
+    { ask: "message", visitorHash: "abc", limits: { siteLimit: 20, visitorLimit: 3 } },
   ];
   assert.deepEqual(
     asked.map((one) => readAsked(new URL(urlAsking(one)))),
@@ -324,8 +325,13 @@ test("the alarm deletes all that's kept of visitors, however many and whatever d
   }
   stored.set(`${ASK_GUARD_KEYS.network}old`, { day: "2000-01-01", asked: 1 });
   stored.set(`${ASK_GUARD_KEYS.block}still`, Date.now() + 60_000);
+  await call(ASK_GUARD_PATH.message, { limit: 20, each: 3, who: "a" });
+  stored.set(`${ASK_GUARD_KEYS.message}old`, { day: "2000-01-01", asked: 1 });
   await guard.alarm();
-  assert.deepEqual([...stored.keys()].sort(), [ASK_GUARD_KEYS.dearest, ASK_GUARD_KEYS.hour, ASK_GUARD_KEYS.today]);
+  assert.deepEqual(
+    [...stored.keys()].sort(),
+    [ASK_GUARD_KEYS.dearest, ASK_GUARD_KEYS.hour, ASK_GUARD_KEYS.messages, ASK_GUARD_KEYS.today].sort(),
+  );
 });
 
 test("the next day's first question starts the site's count again and deletes nothing itself", async () => {

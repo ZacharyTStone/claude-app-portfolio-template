@@ -1,0 +1,78 @@
+.contact-form {
+  display: grid;
+  gap: 12px;
+  max-width: 560px;
+  padding: 14px;
+  border-radius: 12px;
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.contact-field {
+  display: grid;
+  gap: 6px;
+}
+.contact-label {
+  font: 500 13px/18px var(--sans);
+  color: var(--text-2);
+}
+.contact-input {
+  width: 100%;
+  padding: 9px 12px;
+  border: 0;
+  border-radius: 10px;
+  background: var(--composer);
+  box-shadow: var(--composer-shadow);
+  color: var(--text);
+  /* 16px, so a phone doesn't zoom in on the box as it's typed in. */
+  font: 400 16px/22px var(--sans);
+}
+textarea.contact-input {
+  min-height: 120px;
+  resize: vertical;
+}
+.contact-input:focus-visible {
+  border-radius: 10px;
+  box-shadow: var(--focus-ring);
+}
+/* Only a bot, which reads the HTML and not this, fills it in. */
+.contact-trap {
+  display: none;
+}
+.contact-send {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+}
+.contact-button {
+  height: 34px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 9px;
+  background: rgb(255 255 255 / 0.12);
+  font: 500 15px/1 var(--sans);
+  cursor: pointer;
+}
+.contact-button:hover {
+  background: rgb(255 255 255 / 0.18);
+}
+.contact-form[aria-busy="true"] .contact-button {
+  opacity: 0.45;
+  cursor: progress;
+}
+.contact-status,
+.contact-note {
+  font: 400 14px/20px var(--sans);
+  color: var(--text-2);
+}
+.contact-status {
+  flex: 1;
+  min-width: 0;
+}
+/* A note shows when the address names it: the Worker sends a visitor without JavaScript back to one. With
+   JavaScript the status says it instead, and the address goes back to the tab's. */
+.contact-note {
+  display: none;
+}
+.contact-note:target {
+  display: block;
+}

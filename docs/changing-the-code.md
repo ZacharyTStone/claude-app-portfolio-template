@@ -40,7 +40,9 @@ and the rules every change keeps to.
 ## Adding a string
 
 - Wording the page shows itself is a field of `PageStrings` and a name in
-  `PAGE_STRING_NAMES` (`src/config/strings.ts`).
+  `PAGE_STRING_NAMES` (`src/config/strings.ts`). Wording the page shows
+  for a part only some sites have is a type of its own, as the contact
+  form's is (`ContactFormStrings` and `CONTACT_FORM_STRING_NAMES`).
 - Wording the script shows is a key of `SCRIPT_STRING_ATTRIBUTES` in the
   same file, with its `data-*` attribute as the value and its doc comment
   over it. The page carries it on `<html>`, and the script reads it as
@@ -77,9 +79,17 @@ and not in a name list.
 `src/app/main.ts` is `start()`, in named phases. A feature that needs
 several files gets a folder (`src/app/conversation/`,
 `src/app/question-card/`); one that fits a file is that file. A pure
-decision (the clock's arithmetic, a tab's name, how a reply from `/ask` is
-read, saved chats) is a module of its own with unit tests in `tests/app/`;
-the DOM, pacing and focus are held by the browser checks.
+decision (the clock's arithmetic, a tab's name, what an address names, how
+a reply from `/ask` is read, saved chats) is a module of its own with unit
+tests in `tests/app/`; the DOM, pacing and focus are held by the browser
+checks.
+
+Each tab has a page of its own (`src/site/pages.ts`), and the script moves
+between them in place: `src/app/address.ts` pushes a tab's address onto
+the history and follows the address however it changes, and
+`src/app/tabs.ts` shows the tab it names. Go to a tab with `openTab()`
+(`src/app/navigation.ts`), not by setting `location`, so what was to
+happen once it's open does.
 
 Saved chats keep their storage key, and their JSON only ever grows by
 optional fields: the golden chats in
@@ -92,7 +102,10 @@ The Worker's settings are one table, `src/worker/settings.ts`, and
 goes in both. What came of a question is one `Outcome`
 (`src/worker/ask/outcome.ts`); the reply, the log line
 (`src/worker/ask/log.ts`) and the spend each come from it once.
-`src/worker/ask/model.ts` is the only caller of Workers AI.
+`src/worker/ask/model.ts` is the only caller of Workers AI. The contact
+form's `/contact` is built the same way, in `src/worker/contact/`: what
+came of a message is one `ContactOutcome`, and the reply (JSON, or a
+redirect back to the page) and the log line each come from it.
 
 ## Changing what Ask may say
 
@@ -142,20 +155,21 @@ says so.
   page or its console (a request the page's policy blocked is one).
 - **Look for what the site has, never for one site's content.** The
   `site` fixture (`tests/browser/site.ts`) has its threads
-  (`firstThread`, `secondThread`), `words`, `questions`, `languages` and
-  the rest, read from the built page.
+  (`firstThread`, `secondThread`, each with its page's `path`), `words`,
+  `questions`, `languages` and the rest, read from the built page; any
+  tab's page is `site.pathOf()` its id.
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `writingTab`. A test that asks for one is skipped, with the reason, on a
-  site without it. For any
+  `contactForm`, `writingTab`. A test that asks for one is skipped, with
+  the reason, on a site without it. For any
   other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.
 - **Select by the page's names**: `CLASS_SELECTOR`, `ID_SELECTOR`,
   `ATTRIBUTE_SELECTOR` (`src/contracts/page-selectors.ts`), not by a class
   or an id typed out. Parts more than one spec looks for are in
-  `tests/browser/parts.ts` (`OPEN_CHAT`, `sentInto()`); what a visitor does
-  in more than one is in `tests/browser/visitor.ts` (`askIn()`,
+  `tests/browser/parts.ts` (`openTab()`, `OPEN_CHAT`, `sentInto()`); what a
+  visitor does in more than one is in `tests/browser/visitor.ts` (`askIn()`,
   `askInNewChat()`, `renameTab()`, `revisit()`).
 - **Stand in for `/ask` with the `ask` fixture**:
   `await ask.returns({ id: null })`, or a list of replies to give in turn;

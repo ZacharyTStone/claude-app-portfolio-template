@@ -115,6 +115,10 @@ test("The 404 page comes with the Japanese page when the site has one", () => {
   assert.equal(builtPagesIn(withOne)?.notFound, englishPage("gone"));
 });
 
+test("The sans doesn't need the home screen's window title, which the browser draws", () => {
+  assert.equal(sansOf(japanesePage("<p>本</p>", ` ${DATA.homeTitle}="題名 — 名前"`)), "本");
+});
+
 test("The sans doesn't need what the build fetched, which changes from one build to the next", () => {
   const post = `<a class="link-card" href="https://qiita.com/sam/items/1" ${DATA.fetched}><span class="name">記事の題</span><span class="kind">2026/10/01 · 12 LGTM · 型</span></a>`;
   const page = japanesePage(`<div class="answer"><p>新しい順に：</p>${post}${post}</div><p>本</p>`);

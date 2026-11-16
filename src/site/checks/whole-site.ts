@@ -86,8 +86,8 @@ function firstDifference(code: string, outline: Outline, main: string, mainOutli
 
 /** An answer's id ("work.2") has to name the same answer in every language:
     /ask replies with an id, which each language's page shows from its own
-    copy, and the account menu's link to another language keeps the open
-    tab's #id. */
+    copy, and a link to another language goes to the open tab's page
+    there. */
 const checkLanguagesMatch: SiteCheck = (site, problemUnless) => {
   const { codes, main } = site;
   const mainOutline = outlineOf(site.language(main));
@@ -175,15 +175,33 @@ const checkHsts: SiteCheck = ({ config }, problemUnless) => {
   );
 };
 
-/** The one host that runs Ask's Worker (src/worker). */
-const ASK_HOST: Host = "cloudflare";
+/** The one host that runs the Worker (src/worker): Ask's, and the contact
+    form's. */
+const WORKER_HOST: Host = "cloudflare";
 
 /** On any other host the page would send its questions to an address with
     nothing there. */
 const checkAskRunsOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
   problemUnless(
-    !config.ask || host === ASK_HOST,
-    `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "${ASK_HOST}"`,
+    !config.ask || host === WORKER_HOST,
+    `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "${WORKER_HOST}"`,
+  );
+};
+
+/** On any other host the form would post to an address with nothing
+    there. Its thread is the main language's: the others have the same
+    threads (checkLanguagesMatch). */
+const checkContactForm: SiteCheck = (site, problemUnless) => {
+  const { config, host } = site;
+  if (!config.contactForm) return;
+  const { tab } = config.contactForm;
+  problemUnless(
+    host === WORKER_HOST,
+    `contactForm needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove contactForm, or set host to "${WORKER_HOST}"`,
+  );
+  problemUnless(
+    site.language(site.main).threads.some((thread) => thread.id === tab),
+    `contactForm.tab points at #${tab}, which isn't a thread`,
   );
 };
 
@@ -235,5 +253,6 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkSettingFormats,
   checkHsts,
   checkAskRunsOnItsHost,
+  checkContactForm,
   checkViewer,
 ];

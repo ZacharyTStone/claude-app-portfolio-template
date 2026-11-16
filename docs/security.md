@@ -8,8 +8,9 @@ in the code, see the security policy in the template's repository.
 
 - The Content-Security-Policy is `default-src 'none'`, with only the site's
   own scripts, styles, images and fonts. Nothing inline runs, the page may
-  fetch only from the site itself, and only with Ask on, and there is no
-  `<base>` and no form post. No other site can show the pages in a frame,
+  fetch only from the site itself, and only with Ask or the contact form
+  on, and there is no `<base>`, and no form post but the contact form's,
+  to the site itself. No other site can show the pages in a frame,
   and the pages show none themselves, unless you set `viewer`: then
   `frame-src` names the sites the viewer shows, and no other.
 - Trusted Types is required with no policy, so the script can't turn a
@@ -91,6 +92,28 @@ holds it.
 - **Two rules are yours to set by hand** in the Cloudflare dashboard: a
   rate limit on `/ask`, and a block on requests the site has no use for
   ([Rules at the edge](ask.md#rules-at-the-edge)).
+
+## The contact form
+
+The [contact form](contact-form.md) is off as a new site starts, like Ask.
+With it on:
+
+- **It takes only the site's own form.** A POST of form fields from one
+  of the site's own pages (its `Origin` the site's, and its
+  `Sec-Fetch-Site`, where a browser sends one, `same-origin`), of 24 KiB
+  at most. A page on another site can post a form to any address, but
+  this one turns it away unread.
+- **It emails only you.** The Worker sends to one address,
+  `CONTACT_TO`, and its `send_email` binding is locked to that address in
+  `wrangler.jsonc`, whatever the Worker asks. The visitor's address goes
+  in the email's Reply-To and subject only once it looks like an address,
+  with nothing in it that could start another line.
+- **Its sending is capped**, per visitor and per day for the site, in the
+  Durable Object Ask uses, with visitors counted by the same salted,
+  daily hash of their address. A field only a bot fills in drops what a
+  bot sends. Without the binding or the Durable Object, nothing is sent.
+- **Nothing a visitor sent is logged**: not their address, their email or
+  the message, only what came of it.
 
 ## The code
 

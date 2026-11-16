@@ -123,10 +123,18 @@ function textOf(markup: string): string {
   return withNumberedCharacters(markup.replace(ANY_TAG, " "));
 }
 
-/** The text of every data-* attribute on a page, or of those whose name starts with `prefix`. */
+/** The data-* attributes whose text no font of the page's draws: the home screen's window title, which the
+    browser shows in its own. */
+const NOT_ON_THE_PAGE: readonly string[] = [DATA.homeTitle];
+
+/** The text of every data-* attribute on a page, or of those whose name starts with `prefix`, but for the ones
+    not shown on the page. */
 function dataAttributeText(html: string, prefix = "data-"): string {
-  const attribute = new RegExp(`\\b${prefix}[\\w-]*="([^"]*)"`, "g");
-  return Array.from(html.matchAll(attribute), ([, value = ""]) => withNumberedCharacters(value)).join(" ");
+  const attribute = new RegExp(`\\b(${prefix}[\\w-]*)="([^"]*)"`, "g");
+  return Array.from(html.matchAll(attribute))
+    .filter(([, name = ""]) => !NOT_ON_THE_PAGE.includes(name))
+    .map(([, , value = ""]) => withNumberedCharacters(value))
+    .join(" ");
 }
 
 /** Every string in a page's JSON data blocks, at any depth. */

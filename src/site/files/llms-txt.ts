@@ -7,6 +7,7 @@ import type { AskAnswer } from "../../contracts/ask.ts";
 import type { SiteConfig } from "../../config/site-config.ts";
 import { plainAnswers } from "../plain-answers.ts";
 import { panelRows } from "../panel.ts";
+import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
 import { dayPosted, type Post } from "../writing/post.ts";
 
@@ -48,9 +49,17 @@ const postList = (posts: Post[]): string =>
     })
     .join("\n");
 
-/** "- [Portfolio (EN)](https://example.com/)", for each language. */
-const pageList = (site: Site): string =>
-  site.codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.pageUrl(code)})`).join("\n");
+/** "- [Portfolio (EN)](https://example.com/)" for each language, then
+    "- [About](https://example.com/about/)" for each of the main language's
+    tabs: the page that has its answers open. */
+function pageList(site: Site): string {
+  const { codes, main } = site;
+  const homePages = codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.pageUrl(code)})`);
+  const tabPages = tabsWithPages(site.language(main)).map(
+    ({ id, title }) => `- [${title}](${site.fileUrl(tabPath(site, main, id))})`,
+  );
+  return [...homePages, ...tabPages].join("\n");
+}
 
 /** The details panel's links, but for the contact links, which have their
     own section. */
@@ -66,8 +75,10 @@ function panelLinks(site: Site): string[] {
 }
 
 /** A link as an address of its own, for a reader with no page to follow
-    "#about" or "/resume.pdf" from. */
+    "#about" or "/resume.pdf" from: a tab's is its page's. */
 function fullAddress(site: Site, href: string): string {
+  const tabPage = tabLinkPath(site, site.main, href);
+  if (tabPage) return site.fileUrl(tabPage);
   if (href.startsWith("#")) return site.pageUrl(site.main) + href;
   if (href.startsWith("/")) return site.fileUrl(href);
   return href;

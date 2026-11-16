@@ -19,7 +19,7 @@ import { popupAttributes } from "./popup.ts";
 import { openCard } from "./question-card/card.ts";
 import { renameTab } from "./rename.ts";
 import { withSubmenu } from "./submenu.ts";
-import { isChat, tabLink } from "./tabs.ts";
+import { isChat, tabLink, tabLinkedTo } from "./tabs.ts";
 import { sayCopied } from "./toast.ts";
 
 /** How long a question jumped to is outlined. */
@@ -72,8 +72,7 @@ export function addTitleMenu(tab: HTMLElement): void {
 
 /** A sidebar row's "…" button, shown on hover, for the shorter menu. */
 export function addRowMenu(row: Element): void {
-  const tabId = (row.getAttribute("href") ?? "").slice(1);
-  const tab = document.getElementById(tabId);
+  const tab = tabLinkedTo(row.getAttribute("href") ?? "");
   if (!tab) return;
   const moreButton = make("button", {
     type: "button",

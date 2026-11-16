@@ -4,11 +4,12 @@
 import { emailLink, withQuestion } from "../../contracts/links.ts";
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
+import { ID_PREFIX } from "../../contracts/page-ids.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
 import { clone, find, make } from "../lib/dom.ts";
 import { rich } from "../lib/markdown.ts";
 import { askedTab, words } from "../page.ts";
-import { isPersonalTab } from "../personal-tabs.ts";
+import { addressOf, linkOnPage } from "../tabs.ts";
 import {
   byOutcome,
   isRemoved,
@@ -19,6 +20,8 @@ import {
   type TypedQuestion,
 } from "./exchange.ts";
 import { copyOfAnswer, copyOfThread, findAnswer, firstQuestionOf } from "./page-answers.ts";
+
+const isPersonalTab = (tab: HTMLElement): boolean => tab.id.startsWith(ID_PREFIX.personal);
 
 /** "Question: ", said before each question to screen readers, in the
     page's own words for it. */
@@ -61,7 +64,7 @@ export const questionsLeftNote = (questionsLeft: number): Element =>
 function fromLine(tab: HTMLElement, wording: string): Element {
   const title = tab.querySelector(CLASS_SELECTOR.titleText) ?? tab.querySelector(CLASS_SELECTOR.title);
   const [before = "", after = ""] = wording.split("{tab}");
-  const link = make("a", { href: `#${tab.id}` }, title?.textContent.trim() ?? tab.id);
+  const link = make("a", { href: addressOf(tab.id) }, title?.textContent.trim() ?? tab.id);
   return make("p", { class: PAGE_CLASSES.from }, before, link, after);
 }
 
@@ -101,7 +104,7 @@ function sitesAnswer(asked: QuestionWith<"answered">): Element[] {
   const answer = findAnswer(asked.outcome.answerId);
   if (!answer) return somethingElseAsTyped(asked);
   const messages = copyOfAnswer(answer);
-  if (!isPersonalTab(answer.tab.id)) addUnderReply(messages, fromLine(answer.tab, words.askFrom));
+  if (!isPersonalTab(answer.tab)) addUnderReply(messages, fromLine(answer.tab, words.askFrom));
   return messages;
 }
 
@@ -113,7 +116,7 @@ function madeReply(asked: QuestionWith<"replied">): Element[] {
   if (!answer) return somethingElseAsTyped(asked);
   const quotedLines = citedLines.map((line) => make("p", {}, line));
   const quoted = quotedLines.length ? [make("blockquote", { class: PAGE_CLASSES.cited }, ...quotedLines)] : [];
-  const from = fromLine(answer.tab, isPersonalTab(answer.tab.id) ? words.askFromPersonal : words.askFrom);
+  const from = fromLine(answer.tab, isPersonalTab(answer.tab) ? words.askFromPersonal : words.askFrom);
   return [
     make("div", { class: PAGE_CLASSES.answer }, make("p", { class: PAGE_CLASSES.reply }, replyText), ...quoted, from),
   ];
@@ -124,7 +127,7 @@ function limitReminder(asked: QuestionWith<"limited">): Element[] {
   const { limit } = asked.outcome;
   // A limit /ask sent without its number is 0: there's no reminder to give.
   if (!limit) return somethingElseAsTyped(asked);
-  const reminder = make("p", {}, ...rich(words.askLimited.replace("{limit}", String(limit))));
+  const reminder = make("p", {}, ...rich(words.askLimited.replace("{limit}", String(limit)), linkOnPage));
   return [make("div", { class: PAGE_CLASSES.answer }, reminder)];
 }
 

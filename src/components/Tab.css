@@ -5,11 +5,25 @@
   flex-direction: column;
   min-height: 0;
 }
-.tab:target {
+/* The open tab shows: the one a tab's page is built with, and the one the
+   script opens. Without JavaScript, a tab an old address's #id names
+   (:target) shows in its place, as does the tab with the contact form's
+   note the address names in it, where the Worker sends a visitor back
+   (ContactForm); with it, the script has the say, as history.pushState
+   leaves :target where it was. */
+.tab.open {
   display: flex;
 }
-.main:not(:has(.tab:target)) .home {
+.main:not(:has(.tab.open)) .home {
   display: flex;
+}
+html:not(.js) :is(.tab:target, .tab:has(.contact-note:target)) {
+  display: flex;
+}
+html:not(.js)
+  .main:has(.tab:target, .contact-note:target)
+  :is(.tab.open:not(:target, :has(.contact-note:target)), .home) {
+  display: none;
 }
 
 .topbar .title {

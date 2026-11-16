@@ -1,0 +1,51 @@
+---
+/* A personal answer's tab: its question, as a visitor would ask it, and its answer, in paragraphs and lists of
+   lines. It has a page of its own as a thread's tab does, and it's there without JavaScript too. */
+import type { PersonalAnswer } from "../config/question-card.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { personalTabId } from "../contracts/page-ids.ts";
+import type { Page } from "../site/site.ts";
+import Inline from "./Inline.astro";
+import MessageActions from "./MessageActions.astro";
+import { answerLine, isEmojiList } from "./personal-answer.ts";
+import Tab from "./Tab.astro";
+
+interface Props {
+  page: Page;
+  answer: PersonalAnswer;
+}
+const { page, answer } = Astro.props;
+const { code, language } = page;
+const { strings } = language;
+---
+
+<Tab page={page} id={personalTabId(answer.id)} title={answer.title ?? answer.q}>
+  <p class={PAGE_CLASSES.question}>
+    <span class={PAGE_CLASSES.srOnly}>{strings.question}</span>
+    {answer.q}
+  </p>
+  <div class={PAGE_CLASSES.answer}>
+    {answer.a.map((block) => {
+      const lines = (Array.isArray(block) ? block : [block]).map(answerLine);
+      const shown = lines.map(({ emoji, text }) => (
+        <>
+          {emoji && (
+            <>
+              <span aria-hidden="true">{emoji}</span>{" "}
+            </>
+          )}
+          <Inline text={text} code={code} />
+        </>
+      ));
+      if (!Array.isArray(block)) return <p>{shown}</p>;
+      return (
+        <ul class={isEmojiList(block) ? "plain" : undefined}>
+          {shown.map((line) => (
+            <li>{line}</li>
+          ))}
+        </ul>
+      );
+    })}
+    <MessageActions strings={strings} />
+  </div>
+</Tab>

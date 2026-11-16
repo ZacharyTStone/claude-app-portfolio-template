@@ -1,9 +1,9 @@
 /* A made-up site with what the template's own one-language site can't
    show, for the tests to check and to build (build.ts): it's served under
-   a path, in two languages, with Ask on, a link that opens in the viewer,
-   one of each kind of figure, a picture that moves all the time, and a
-   Writing tab of posts on Qiita, which the tests' builds are given from
-   qiita.json: no test reaches Qiita.
+   a path, in two languages, with Ask on, the contact form, a link that
+   opens in the viewer, one of each kind of figure, a picture that moves
+   all the time, and a Writing tab of posts on Qiita, which the tests'
+   builds are given from qiita.json: no test reaches Qiita.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -48,7 +48,7 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
     person: { name: "Sam Sample", jobTitle: "Engineer" },
     home: {
       greeting: { default: "Hi", morning: "Morning", afternoon: "Afternoon", evening: "Evening", late: "Late" },
-      intro: `Sam builds things. Here's [the icon](${icon}).`,
+      intro: `Sam builds things: [the work](#work), and [the icon](${icon}).`,
       hint: "Pick a tab.",
       prompts: [{ q: "What does Sam do?", answer: "work.1" }],
     },
@@ -158,6 +158,8 @@ const config: SiteConfig = {
   social: { image: icon, width: ICON_SIZE, height: ICON_SIZE },
   themeColor: "#191919",
   ask: { role: "an engineer" },
+  // Under the About thread, the one thread with one answer.
+  contactForm: { tab: "about" },
   // Sam's notes open in the viewer, at the address that shows them in a frame.
   viewer: { [notes.href]: notes.inFrame },
   // Its posts are made up: the tests' builds read them from qiita.json.

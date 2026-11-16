@@ -3,7 +3,7 @@
    page, so the unit tests and the browser checks use it as it is. */
 import type { ClockMood } from "../config/language.ts";
 import { HOURS, partOfDay } from "../contracts/day-parts.ts";
-import { SEPARATOR } from "./constants.ts";
+import { SEPARATOR } from "../contracts/tab-pages.ts";
 
 const MS_PER_MINUTE = 60_000;
 const MINUTES_PER_HOUR = 60;

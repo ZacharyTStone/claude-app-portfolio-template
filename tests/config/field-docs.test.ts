@@ -6,7 +6,12 @@ import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
 import ts from "typescript";
-import { PAGE_STRING_NAMES, SCRIPT_STRING_NAMES, WRITING_STRING_NAMES } from "../../src/config/strings.ts";
+import {
+  CONTACT_FORM_STRING_NAMES,
+  PAGE_STRING_NAMES,
+  SCRIPT_STRING_NAMES,
+  WRITING_STRING_NAMES,
+} from "../../src/config/strings.ts";
 import { ROOT } from "../../src/site/repo.ts";
 
 const CONFIG_TYPES_FILE = join(ROOT, "src/config/site-config.ts");
@@ -108,8 +113,11 @@ test("the lists of the strings' names have every string the type has, and no oth
   const namesInTheType = fields
     .filter((field) => field.path.startsWith(STRINGS))
     .map((field) => field.path.slice(STRINGS.length));
-  assert.deepEqual(
-    namesInTheType.toSorted(),
-    [...PAGE_STRING_NAMES, ...WRITING_STRING_NAMES, ...SCRIPT_STRING_NAMES].toSorted(),
-  );
+  const namesInTheLists = [
+    ...PAGE_STRING_NAMES,
+    ...CONTACT_FORM_STRING_NAMES,
+    ...WRITING_STRING_NAMES,
+    ...SCRIPT_STRING_NAMES,
+  ];
+  assert.deepEqual(namesInTheType.toSorted(), namesInTheLists.toSorted());
 });

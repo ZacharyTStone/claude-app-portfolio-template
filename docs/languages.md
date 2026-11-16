@@ -1,7 +1,9 @@
 # Languages and fonts
 
-The first language in `languages` is the site's main one, at `/`. Each
-other one is at `/<code>/`, with a switch in the sidebar.
+The first language in `languages` is the site's main one, at `/`, with
+each tab's page at `/<id>/`. Each other one is at `/<code>/`, its tabs'
+pages at `/<code>/<id>/`, with a switch in the sidebar that goes to the
+tab that's open in the other language.
 
 ## Adding a language
 

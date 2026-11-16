@@ -51,6 +51,33 @@ export type PageStrings = {
   closePanelTitle: string;
 };
 
+/** The contact form's wording (the config's contactForm), which the page
+    shows itself, so that it's there without JavaScript. Only a site with
+    the form needs it (PART_STRINGS). */
+export type ContactFormStrings = {
+  /** The label of the box for the visitor's address: "Your email". */
+  contactEmail: string;
+  /** The label of the box for their message: "Message". */
+  contactMessage: string;
+  /** The button that sends it: "Send". */
+  contactSend: string;
+  /** Under the form once the message has gone: "Sent, thanks. You’ll get
+      a reply by email." */
+  contactSent: string;
+  /** Under the form when it hasn't, with {email} where your address goes,
+      as a link: "That didn’t send. Try again later, or email {email}." */
+  contactFailed: string;
+};
+
+/** Every name in ContactFormStrings. */
+export const CONTACT_FORM_STRING_NAMES = [
+  "contactEmail",
+  "contactMessage",
+  "contactSend",
+  "contactSent",
+  "contactFailed",
+] as const satisfies readonly (keyof ContactFormStrings)[];
+
 /** Every name in PageStrings (tests/config/field-docs.test.ts holds the
     two together). */
 export const PAGE_STRING_NAMES = [
@@ -172,12 +199,14 @@ type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
 export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as ScriptStringName[];
 
 /** The strings a site needs only when it has the part (the build says
-    which are missing): the script's, and the Writing tab's own. */
+    which are missing): the script's, the contact form's, and the Writing
+    tab's own. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
+  contactForm: CONTACT_FORM_STRING_NAMES,
   writing: WRITING_STRING_NAMES,
-} as const satisfies Record<string, readonly (ScriptStringName | keyof WritingStrings)[]>;
+} as const satisfies Record<string, readonly (ScriptStringName | keyof ContactFormStrings | keyof WritingStrings)[]>;
 
 type OptionalScriptStringName = Extract<(typeof PART_STRINGS)[keyof typeof PART_STRINGS][number], ScriptStringName>;
 
@@ -193,6 +222,7 @@ export const REQUIRED_SCRIPT_STRING_NAMES = SCRIPT_STRING_NAMES.filter(
 export type ScriptStrings = { -readonly [Name in keyof typeof SCRIPT_STRING_ATTRIBUTES]: string };
 
 export type Strings = PageStrings &
+  Partial<ContactFormStrings> &
   Partial<WritingStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

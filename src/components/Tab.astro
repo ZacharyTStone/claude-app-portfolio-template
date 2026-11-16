@@ -1,10 +1,11 @@
 ---
-/* An <article> that :target shows. The script copies the "Something else" tab for each chat and each personal
-   answer. */
+/* An <article> that shows while it's the open tab: the one a page is built with open (PAGE_CLASSES.open), and with
+   JavaScript off one an old address's #id names (:target). The script copies the "Something else" tab for each
+   chat. */
 import type { Pill } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { PAGE_IDS, titleId } from "../contracts/page-ids.ts";
+import { titleId } from "../contracts/page-ids.ts";
 import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
@@ -18,9 +19,10 @@ interface Props {
 }
 const { page, id, title, pill } = Astro.props;
 const { strings } = page.language;
+const isOpen = page.tab === id;
 ---
 
-<article class={PAGE_CLASSES.tab} id={id} aria-labelledby={titleId(id)}>
+<article class:list={[PAGE_CLASSES.tab, { [PAGE_CLASSES.open]: isOpen }]} id={id} aria-labelledby={titleId(id)}>
   <Topbar strings={strings}>
     <h2 class={`${PAGE_CLASSES.title} ${PAGE_CLASSES.iconAfter}`} id={titleId(id)}>
       {title}
@@ -42,7 +44,7 @@ const { strings } = page.language;
   </div>
   {/* The app's slim composer: a link home without JavaScript, and with it, the way to open the question card. */}
   <div class="dock">
-    <a class={`${PAGE_CLASSES.composer} slim`} href={`#${PAGE_IDS.home}`}>
+    <a class={`${PAGE_CLASSES.composer} slim`} href={site.pagePath(page.code)}>
       <span class="icon i-plus" aria-hidden="true"></span>
       <span class="composer-placeholder">{strings.followUpPlaceholder}</span>
     </a>

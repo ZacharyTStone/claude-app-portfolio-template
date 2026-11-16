@@ -13,6 +13,7 @@ import { typeCheck } from "../site/checks/config-types.ts";
 import type { Findings } from "../site/checks/reporting.ts";
 import { iconsIn, readStylesheet, STYLES_FOLDER } from "../site/icons.ts";
 import type { LoadedSiteConfig } from "../site/load-site-config.ts";
+import { namesAtPublicRoot } from "../site/repo.ts";
 import { makeSite } from "../site/site.ts";
 
 /** Where a report of the config goes: Astro's logger for this integration. */
@@ -24,7 +25,7 @@ type Checked = { findings: Findings; sources: string[] };
 
 /** What the config's checks find in a config whose shape is right. */
 const checkedFindings = (config: SiteConfig, root: string): Findings =>
-  checkSite(makeSite(config), iconsIn(readStylesheet(join(root, STYLES_FOLDER))));
+  checkSite(makeSite(config), iconsIn(readStylesheet(join(root, STYLES_FOLDER))), namesAtPublicRoot(root));
 
 /** Checks a config's types, then the config. The checks read it as its
     types describe it, so they don't run on one whose shape is wrong. */

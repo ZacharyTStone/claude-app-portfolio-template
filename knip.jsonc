@@ -7,7 +7,6 @@
   // Temporary: the exports nothing imported on the day knip came. Delete a line, run `npm run knip`, and
   // unexport or delete what it prints. This block goes when its last line does.
   "ignoreIssues": {
-    "src/app/lib/markdown.ts": ["exports"],
     "src/app/lib/motion.ts": ["exports"],
     "src/worker/ask/to-owner.ts": ["types"],
   },

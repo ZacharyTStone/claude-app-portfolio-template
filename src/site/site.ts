@@ -48,16 +48,22 @@ export type Site = {
   link: (href: string) => string;
   /** A path on the site as a full address: "https://example.com/assets/og.png". */
   fileUrl: (path: string) => string;
-  /** A language's page, as the pages link to it: "/", or "/ja/". */
+  /** A language's home page, from the site's own root: "/", or "/ja/".
+      Its tabs' pages are under it (src/site/pages.ts). */
+  home: (code: string) => string;
+  /** A language's home page, as the pages link to it: "/", or "/ja/". */
   pagePath: (code: string) => string;
-  /** A language's page as a full address: "https://example.com/ja/". */
+  /** A language's home page as a full address: "https://example.com/ja/". */
   pageUrl: (code: string) => string;
 };
 
-/** One language's page, which each part of it is drawn from. */
+/** One of a language's pages, which each part of it is drawn from. */
 export type Page = {
   code: string;
   language: SiteLanguage;
+  /** The tab that's open from the first paint: its id. None on the home
+      screen. */
+  tab?: string;
 };
 
 /** What a page in another language says for a string its config leaves
@@ -107,7 +113,7 @@ export function makeSite(config: SiteConfig, posts: Post[] = []): Site {
   const sitePath = URL.canParse(config.url) ? basePath(config.url) : "/";
   const link = (href: string) => (isPathFromSiteRoot(href) ? sitePath + href.slice(1) : href);
   const fileUrl = (pathFromSiteRoot: string) => siteAddress + pathFromSiteRoot;
-  const pageFromSiteRoot = (code: string) => (code === main ? "/" : `/${code}/`);
+  const home = (code: string) => (code === main ? "/" : `/${code}/`);
   return {
     config,
     host: config.host ?? DEFAULT_HOST,
@@ -121,10 +127,16 @@ export function makeSite(config: SiteConfig, posts: Post[] = []): Site {
     },
     link,
     fileUrl,
-    pagePath: (code) => link(pageFromSiteRoot(code)),
-    pageUrl: (code) => fileUrl(pageFromSiteRoot(code)),
+    home,
+    pagePath: (code) => link(home(code)),
+    pageUrl: (code) => fileUrl(home(code)),
   };
 }
 
-/** Throws for a code the config doesn't have. */
-export const makePage = (site: Site, code: string): Page => ({ code, language: site.language(code) });
+/** Throws for a code the config doesn't have. `tab` is the one open on
+    the page, if any. */
+export const makePage = (site: Site, code: string, tab?: string): Page => ({
+  code,
+  language: site.language(code),
+  ...(tab === undefined ? {} : { tab }),
+});

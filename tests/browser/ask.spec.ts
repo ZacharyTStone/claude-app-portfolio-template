@@ -37,13 +37,13 @@ test.describe("a question typed into a tab, when /ask picks an answer", () => {
 
   test.beforeEach(async ({ page, site, ask }) => {
     await ask.returns({ id: threadAnswerId(site.secondThread.id, 1) });
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await askIn(page, site.firstThread.id, QUESTION);
   });
 
   test("gets that answer word for word, then the tab it's from, and no email to send", async ({ page, site }) => {
     const sent = sentInto(page, site.firstThread.id);
-    await expect(sent.whereFrom.locator(`a[href="#${site.secondThread.id}"]`)).toBeVisible();
+    await expect(sent.whereFrom.locator(`a[href="${site.secondThread.path}"]`)).toBeVisible();
     const whereFrom = (await sent.whereFrom.textContent()) ?? "";
     await expect
       .poll(async () =>
@@ -63,7 +63,7 @@ test.describe("a question typed into a tab, when /ask picks an answer", () => {
 test.describe("a reply /ask sends with the answer", () => {
   test("is shown as text, then the tab it's from, and no more of the answer", async ({ page, site, ask }) => {
     await ask.returns({ id: threadAnswerId(site.secondThread.id, 1), reply: REPLY });
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await askIn(page, site.firstThread.id, "Is that a yes?");
     await expectTheReply(page, `#${site.firstThread.id}`, { from: fromTheSecondThread(site) });
     await expect(sentInto(page, site.firstThread.id).whereFrom, "one line saying where it's from").toHaveCount(1);
@@ -71,11 +71,11 @@ test.describe("a reply /ask sends with the answer", () => {
 
   test("from a personal answer, links to that answer's own tab", async ({ page, site, ask, personalAnswer }) => {
     await ask.returns({ id: personalAnswerId(personalAnswer.id), reply: REPLY });
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await askIn(page, site.firstThread.id, "And what about that?");
     const from = {
       text: site.words.askFromPersonal.replace("{tab}", personalAnswer.title ?? personalAnswer.q),
-      href: `#${personalTabId(personalAnswer.id)}`,
+      href: site.pathOf(personalTabId(personalAnswer.id)),
     };
     await expectTheReply(page, `#${site.firstThread.id}`, { from });
   });
@@ -110,7 +110,7 @@ test.describe("a reply /ask sends with the answer", () => {
 
 test.describe("what /ask sends is read before it's shown", () => {
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
   });
 
   test("beside an answer, a reply of two lines, its lines and a question to the owner are all dropped: the answer shows", async ({
@@ -148,7 +148,7 @@ test.describe("when /ask has no answer", () => {
   for (const [whatAskSends, reply] of Object.entries(REPLIES_WITH_NO_ANSWER)) {
     test(`${whatAskSends} gives the "Something else" reply, and no tab it's from`, async ({ page, site, ask }) => {
       await ask.returns(reply);
-      await page.goto(`#${site.firstThread.id}`);
+      await page.goto(site.firstThread.path);
       await askIn(page, site.firstThread.id, "Are you free next month?");
       const sent = sentInto(page, site.firstThread.id);
       await expect(sent.emailLinks).toHaveCount(1);
@@ -244,7 +244,7 @@ test("a visitor already blocked gets the way to reach the owner; their question 
   ask,
 }) => {
   await ask.returns({ blocked: true });
-  await page.goto(`#${site.firstThread.id}`);
+  await page.goto(site.firstThread.path);
   await askIn(page, site.firstThread.id, "Where is he based?");
   const sent = sentInto(page, site.firstThread.id);
   await expect(sent.emailLinks).toBeVisible();
@@ -262,7 +262,7 @@ test.describe("the day's limit", () => {
       { id: threadAnswerId(site.secondThread.id, 1), left: LEFT },
       { id: null, limited: true, limit: LIMIT },
     ]);
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await askIn(page, site.firstThread.id, "Do you know Postgres?");
   });
 
@@ -308,7 +308,7 @@ test.describe("while /ask takes its time", () => {
       await answered;
       return route.fulfill({ json: { id: threadAnswerId(site.secondThread.id, 1) } });
     });
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await askIn(page, site.firstThread.id, "Do you know Postgres?");
   });
 
@@ -349,7 +349,7 @@ const asRead = (text: string): string => text.replace(/\s+/g, " ").trim();
 
 const fromTheSecondThread = (site: Site): WhereFrom => ({
   text: site.words.askFrom.replace("{tab}", site.secondThread.title),
-  href: `#${site.secondThread.id}`,
+  href: site.secondThread.path,
 });
 
 /** The words the thinking line may show: one of the site's, or "Thinking…" on a site that lists none. */

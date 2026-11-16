@@ -54,3 +54,15 @@ export async function askInNewChat(page: Page, question: string): Promise<void> 
   await page.keyboard.type(question);
   await page.keyboard.press("Enter");
 }
+
+/** Pastes the clipboard into the question card's box (the card opened from
+    the tab's composer), closes the card again, and says what was pasted. */
+export async function pasteIntoTheCard(page: Page, tab: string): Promise<string> {
+  const cardBox = page.locator(`${ID.questionCard} input`);
+  await page.locator(`${tab} ${CLASS.composer}`).click();
+  await cardBox.focus();
+  await page.keyboard.press("ControlOrMeta+V");
+  const pasted = await cardBox.inputValue();
+  await page.keyboard.press("Escape");
+  return pasted;
+}

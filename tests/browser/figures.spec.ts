@@ -1,16 +1,25 @@
-/* What moves in an answer. A picture a visitor plays rests as its still
-   until its button is pressed, then moves where it is, under the page's
-   real security headers, and rests again. A picture that moves all the
-   time does, and a visitor who has asked for less motion is shown its
-   still instead. A quote or a file card that's out of sight waits, and
-   comes in once it's scrolled to. */
+/* What moves in an answer. A picture a visitor plays rests as its still,
+   plays once by itself when it's scrolled to, and from then on when its
+   button is pressed: it moves where it is, under the page's real security
+   headers, and rests again. A picture that moves all the time does, and a
+   visitor who has asked for less motion is shown its still instead, and
+   none plays by itself for them. A quote or a file card that's out of
+   sight waits, and comes in once it's scrolled to. */
 import type { Locator, Page } from "@playwright/test";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import { COMES_INTO_VIEW, MOVING_PICTURE, OPEN_CHAT, PLAY_BUTTON, PLAYED_FIGURE, PLAYING_PICTURE } from "./parts.ts";
-import type { MovingPicture, PlayedPicture } from "./site.ts";
+import {
+  COMES_INTO_VIEW,
+  MOVING_PICTURE,
+  OPEN_CHAT,
+  PLAY_BUTTON,
+  PLAYED_FIGURE,
+  PLAYING_PICTURE,
+  sidebarRow,
+} from "./parts.ts";
+import type { MovingPicture, PlayedPicture, Site } from "./site.ts";
 import { askInNewChat } from "./visitor.ts";
 
 /** How long to watch a picture for something in it to move. Every diagram
@@ -35,8 +44,8 @@ const A_SHORT_WINDOW = { width: 1440, height: 420 };
 test.describe("a quote or a file card below a short window", () => {
   test.use({ viewport: A_SHORT_WINDOW });
 
-  test.beforeEach(async ({ page, comingIntoView }) => {
-    await page.goto(`#${comingIntoView.tab}`);
+  test.beforeEach(async ({ page, site, comingIntoView }) => {
+    await page.goto(site.pathOf(comingIntoView.tab));
   });
 
   test("waits: it isn't shown, and keeps its place in the page", async ({ page, comingIntoView }) => {
@@ -85,26 +94,16 @@ test.describe("a quote or a file card below a short window", () => {
 });
 
 test.describe("a picture a visitor plays", () => {
-  test.beforeEach(async ({ page, playedPicture }) => {
-    await page.goto(`#${playedPicture.tab}`);
+  test.beforeEach(async ({ page, site, playedPicture }) => {
+    await page.goto(site.pathOf(playedPicture.tab));
   });
 
-  test("rests as its still, dimmed, under a button that says Play", async ({ page, site, playedPicture }) => {
-    const figure = await scrollToItsTabs(page, playedPicture);
-    const still = figure.locator("img").first();
-    expect(await fileShown(still)).toBe(playedPicture.still);
-    await expect(figure.locator(PLAY_BUTTON)).toHaveText(site.words.play);
-    expect(await opacityOf(still), "the still is dimmed while it rests").toBeLessThan(1);
-    await expect(figure.locator(CLASS.moving), "nothing is over the still").toHaveCount(0);
-  });
-
-  test("played, has the picture that moves over it, moving, and its button says Pause", async ({
+  test("plays by itself once most of it is scrolled to, moving over its still, with a button that says Pause", async ({
     page,
     site,
     playedPicture,
   }) => {
     const figure = await scrollToItsTabs(page, playedPicture);
-    await figure.locator(PLAY_BUTTON).click();
     const moving = figure.locator(PLAYING_PICTURE);
     await expect(moving).toBeVisible();
     expect(await fileShown(moving)).toBe(playedPicture.moving);
@@ -113,42 +112,79 @@ test.describe("a picture a visitor plays", () => {
     await expectToChange(() => topOf(page, moving));
   });
 
-  test("paused, loses the moving picture, and its button says Play again", async ({ page, site, playedPicture }) => {
-    const figure = await scrollToItsTabs(page, playedPicture);
-    const button = figure.locator(PLAY_BUTTON);
-    await button.click();
-    await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
-    await button.click();
-    await expect(figure.locator(CLASS.moving)).toHaveCount(0);
-    await expect(button).toHaveText(site.words.play);
-  });
-
-  test("says how long it plays, and stops by itself once it has played through", async ({
+  test("paused as it plays by itself, rests for good: it doesn't start again when its tab is left and opened again", async ({
     page,
     site,
     playedPicture,
   }) => {
+    const elsewhere = tabToLeaveFor(site, playedPicture);
     const figure = await scrollToItsTabs(page, playedPicture);
-    const button = figure.locator(PLAY_BUTTON);
-    expect(Number(await button.getAttribute(DATA.play)), "the seconds the button says it plays").toBeGreaterThan(0);
-    await playFor(button, A_MOMENT);
-    await button.click();
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
+    await figure.locator(PLAY_BUTTON).click();
     await expect(figure.locator(CLASS.moving)).toHaveCount(0);
-    await expect(button).toHaveText(site.words.play);
+    await leaveAndOpenAgain(page, playedPicture, elsewhere);
+    await expectToStayAtRest(page, figure);
   });
 
   test("stops when its tab is left", async ({ page, site, playedPicture }) => {
-    const elsewhere = [site.firstThread, site.secondThread].find((thread) => thread.id !== playedPicture.tab);
-    test.skip(!elsewhere, "the sidebar has one thread");
+    const elsewhere = tabToLeaveFor(site, playedPicture);
     const figure = await scrollToItsTabs(page, playedPicture);
-    await figure.locator(PLAY_BUTTON).click();
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
-    await page.goto(`#${elsewhere?.id}`);
+    await sidebarRow(page, elsewhere).click();
     await expect(figure).not.toContainClass(PAGE_CLASSES.playing);
   });
 
-  test("plays in a chat's copy of its answer too, where it starts at rest", async ({
+  test.describe("once it has had its turn to play by itself", () => {
+    test("rests as its still, dimmed, under a button that says Play", async ({ page, site, playedPicture }) => {
+      const figure = await afterItsTurn(page, playedPicture);
+      const still = figure.locator("img").first();
+      expect(await fileShown(still)).toBe(playedPicture.still);
+      await expect(figure.locator(PLAY_BUTTON)).toHaveText(site.words.play);
+      expect(await opacityOf(still), "the still is dimmed while it rests").toBeLessThan(1);
+      await expect(figure.locator(CLASS.moving), "nothing is over the still").toHaveCount(0);
+    });
+
+    test("played, has the picture that moves over it, moving, and its button says Pause", async ({
+      page,
+      site,
+      playedPicture,
+    }) => {
+      const figure = await afterItsTurn(page, playedPicture);
+      await figure.locator(PLAY_BUTTON).click();
+      const moving = figure.locator(PLAYING_PICTURE);
+      await expect(moving).toBeVisible();
+      expect(await fileShown(moving)).toBe(playedPicture.moving);
+      await expect(figure.locator(PLAY_BUTTON)).toHaveText(site.words.pause);
+      await expectToChange(() => topOf(page, moving));
+    });
+
+    test("paused, loses the moving picture, and its button says Play again", async ({ page, site, playedPicture }) => {
+      const figure = await afterItsTurn(page, playedPicture);
+      const button = figure.locator(PLAY_BUTTON);
+      await button.click();
+      await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
+      await button.click();
+      await expect(figure.locator(CLASS.moving)).toHaveCount(0);
+      await expect(button).toHaveText(site.words.play);
+    });
+
+    test("says how long it plays, and stops by itself once it has played through", async ({
+      page,
+      site,
+      playedPicture,
+    }) => {
+      const figure = await afterItsTurn(page, playedPicture);
+      const button = figure.locator(PLAY_BUTTON);
+      expect(Number(await button.getAttribute(DATA.play)), "the seconds the button says it plays").toBeGreaterThan(0);
+      await playFor(button, A_MOMENT);
+      await button.click();
+      await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
+      await expect(figure.locator(CLASS.moving)).toHaveCount(0);
+      await expect(button).toHaveText(site.words.play);
+    });
+  });
+
+  test("in a chat's copy of its answer, doesn't play by itself: scrolled to, it rests", async ({
     page,
     site,
     ask,
@@ -159,7 +195,20 @@ test.describe("a picture a visitor plays", () => {
     await page.goto("./");
     await askInNewChat(page, "How did it go?");
     const copy = await scrollToPlayed(page, OPEN_CHAT, 0);
-    await expect(copy.locator(CLASS.moving), "the copy's picture is at rest").toHaveCount(0);
+    await expectToStayAtRest(page, copy);
+  });
+
+  test("plays in a chat's copy of its answer when pressed, as the one picture playing", async ({
+    page,
+    site,
+    ask,
+    playedPicture,
+  }) => {
+    test.skip(!site.ask, "Ask is off");
+    await ask.returns({ id: playedPicture.answer });
+    await page.goto("./");
+    await askInNewChat(page, "How did it go?");
+    const copy = await scrollToPlayed(page, OPEN_CHAT, 0);
     await copy.locator(PLAY_BUTTON).click();
     await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
     await expect(page.locator(CLASS.playing), "it's the one picture playing").toHaveCount(1);
@@ -168,20 +217,42 @@ test.describe("a picture a visitor plays", () => {
   test.describe("on a phone", () => {
     test.use(A_PHONE);
 
-    test("has a button that's the pause icon alone while it plays, and keeps its name", async ({
+    test("plays by itself once scrolled to, with a button that's the pause icon alone, which keeps its name", async ({
       page,
       site,
       playedPicture,
     }) => {
       const figure = await scrollToItsTabs(page, playedPicture);
       const button = figure.locator(PLAY_BUTTON);
-      const word = button.locator(CLASS.label);
-      expect(await widthOf(word), "at rest the button shows its word, Play").toBeGreaterThan(1);
-      await button.tap();
       await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
-      await expect.poll(() => widthOf(word), "playing, the word is out of sight").toBeLessThanOrEqual(1);
+      await expect.poll(() => widthOf(button.locator(CLASS.label)), "the word is out of sight").toBeLessThanOrEqual(1);
       await expect.poll(() => widthLessHeightOf(button), "the button is as wide as it's tall").toBeLessThanOrEqual(1);
       await expect(button).toHaveText(site.words.pause);
+    });
+
+    test("at rest, has a button that shows its word, Play", async ({ page, playedPicture }) => {
+      const figure = await afterItsTurn(page, playedPicture);
+      await expect.poll(() => widthOf(figure.locator(PLAY_BUTTON).locator(CLASS.label))).toBeGreaterThan(1);
+    });
+  });
+
+  test.describe("with motion reduced", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("doesn't play by itself: scrolled to, it rests under a button that says Play", async ({
+      page,
+      site,
+      playedPicture,
+    }) => {
+      const figure = await scrollToItsTabs(page, playedPicture);
+      await expectToStayAtRest(page, figure);
+      await expect(figure.locator(PLAY_BUTTON)).toHaveText(site.words.play);
+    });
+
+    test("still plays when its button is pressed", async ({ page, playedPicture }) => {
+      const figure = await scrollToItsTabs(page, playedPicture);
+      await figure.locator(PLAY_BUTTON).click();
+      await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
     });
   });
 
@@ -201,9 +272,46 @@ test.describe("a picture a visitor plays", () => {
   });
 });
 
+test.describe("a picture a visitor plays, in a tab that isn't open yet", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.goto("./");
+  });
+
+  test("doesn't play while its tab is closed, and plays by itself once the tab is opened and it's scrolled to", async ({
+    page,
+    playedPicture,
+  }) => {
+    await page.waitForTimeout(STILL_FOR_MS);
+    await expect(page.locator(CLASS.moving), "nothing plays out of sight").toHaveCount(0);
+    await sidebarRow(page, playedPicture.tab).click();
+    const figure = await scrollToItsTabs(page, playedPicture);
+    await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
+  });
+
+  test("having played through by itself, rests: it doesn't play by itself again when its tab is left and opened again", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    const elsewhere = tabToLeaveFor(site, playedPicture);
+    // Before its tab is opened, so that it plays by itself for a moment.
+    const button = itsFigure(page, playedPicture).locator(PLAY_BUTTON);
+    const itsOwnTime = (await button.getAttribute(DATA.play)) ?? "";
+    await playFor(button, A_MOMENT);
+    await sidebarRow(page, playedPicture.tab).click();
+    const figure = await scrollToItsTabs(page, playedPicture);
+    await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
+    await expect(figure.locator(CLASS.moving), "it has played through").toHaveCount(0);
+    // Were it to play again, it would still be playing when looked at.
+    await playFor(button, itsOwnTime);
+    await leaveAndOpenAgain(page, playedPicture, elsewhere);
+    await expectToStayAtRest(page, figure);
+  });
+});
+
 test.describe("a picture that moves all the time", () => {
-  test.beforeEach(async ({ page, movingPicture }) => {
-    await page.goto(`#${movingPicture.tab}`);
+  test.beforeEach(async ({ page, site, movingPicture }) => {
+    await page.goto(site.pathOf(movingPicture.tab));
   });
 
   test("is shown moving: its own file loads, and what it draws changes", async ({ page, movingPicture }) => {
@@ -237,6 +345,14 @@ test.describe("a picture that moves all the time", () => {
 
 const lastToComeIn = (page: Page, tabId: string): Locator => page.locator(`#${tabId} ${COMES_INTO_VIEW}`).last();
 
+/** A thread's tab other than the one a picture is in, to leave its tab for.
+    The check is skipped on a site with one thread. */
+function tabToLeaveFor(site: Site, picture: PlayedPicture): string {
+  const elsewhere = [site.firstThread, site.secondThread].find((thread) => thread.id !== picture.tab);
+  test.skip(!elsewhere, "the sidebar has one thread");
+  return elsewhere?.id ?? "";
+}
+
 /** The picture's <img>, in its tab, scrolled to and loaded. */
 async function scrollToMoving(page: Page, picture: MovingPicture): Promise<Locator> {
   const image = page.locator(`#${picture.tab} ${MOVING_PICTURE} img`).nth(picture.index);
@@ -257,6 +373,36 @@ async function scrollToPlayed(page: Page, within: string, index: number): Promis
 /** The figure of a site's played picture, in its own tab. */
 const scrollToItsTabs = (page: Page, { tab, index }: PlayedPicture): Promise<Locator> =>
   scrollToPlayed(page, `#${tab}`, index);
+
+/** The figure of a site's played picture, where it is: in its tab, open or
+    not. */
+const itsFigure = (page: Page, { tab, index }: PlayedPicture): Locator =>
+  page.locator(`#${tab} ${PLAYED_FIGURE}`).nth(index);
+
+/** A site's played picture once it has had its turn to play by itself,
+    scrolled to in its own tab: it started, and was paused. */
+async function afterItsTurn(page: Page, picture: PlayedPicture): Promise<Locator> {
+  const figure = await scrollToItsTabs(page, picture);
+  await expect(figure.locator(PLAYING_PICTURE), "it plays by itself").toBeVisible();
+  await figure.locator(PLAY_BUTTON).click();
+  await expect(figure.locator(CLASS.moving)).toHaveCount(0);
+  return figure;
+}
+
+/** Goes to another tab, then back to a picture's, and scrolls to it. */
+async function leaveAndOpenAgain(page: Page, picture: PlayedPicture, elsewhere: string): Promise<void> {
+  await sidebarRow(page, elsewhere).click();
+  await sidebarRow(page, picture.tab).click();
+  await scrollToItsTabs(page, picture);
+}
+
+/** Watches a played picture for a moment, in which nothing is put over its
+    still. */
+async function expectToStayAtRest(page: Page, figure: Locator): Promise<void> {
+  await page.waitForTimeout(STILL_FOR_MS);
+  await expect(figure.locator(CLASS.moving), "nothing is over the still").toHaveCount(0);
+  await expect(figure).not.toContainClass(PAGE_CLASSES.playing);
+}
 
 /** Has a Play button say its picture plays for `seconds`, in place of
     what it says. */

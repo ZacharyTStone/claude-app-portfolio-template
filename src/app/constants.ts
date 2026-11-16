@@ -2,10 +2,6 @@
    module and the browser checks, or a module and the stylesheet, which has
    the number typed out. What one module alone uses is in that module. */
 
-/** What joins a tab's name and the site's in the window title, and the
-    clock's two notes. */
-export const SEPARATOR = " · ";
-
 /** In milliseconds. */
 export const TIMING = {
   /** How long after a panel section starts to slide into place the drag's

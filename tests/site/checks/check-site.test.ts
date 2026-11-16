@@ -4,16 +4,18 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import ownConfig from "../../../site.config.ts";
 import { HOSTS } from "../../../src/config/site-config.ts";
+import { namesAtPublicRoot, ROOT } from "../../../src/site/repo.ts";
 import { languageOf, sampleConfig } from "../sample.ts";
 import { findingsIn, problemsIn } from "./problems.ts";
 
-test("this site's config has no problems", () => {
-  assert.deepEqual(problemsIn(ownConfig), []);
+test("this site's config has no problems, with what its public/ has", () => {
+  assert.deepEqual(problemsIn(ownConfig, namesAtPublicRoot(ROOT)), []);
 });
 
 for (const host of HOSTS) {
-  test(`the sample without Ask has no problems and gets no advice on the host "${host}"`, () => {
-    assert.deepEqual(findingsIn(sampleConfig({ host, ask: undefined })), { problems: [], notes: [] });
+  test(`the sample without Ask or the contact form has no problems and gets no advice on the host "${host}"`, () => {
+    const withoutTheWorker = sampleConfig({ host, ask: undefined, contactForm: undefined });
+    assert.deepEqual(findingsIn(withoutTheWorker), { problems: [], notes: [] });
   });
 }
 

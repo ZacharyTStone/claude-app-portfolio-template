@@ -7,14 +7,15 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { newTabAttributes } from "../contracts/links.ts";
 import { site } from "../site/current.ts";
+import { tabHref } from "../site/pages.ts";
 import type { Page } from "../site/site.ts";
-import { flag } from "./attributes.ts";
+import { flag, languageLinkAttributes } from "./attributes.ts";
 import Logo from "./Logo.astro";
 
 interface Props {
   page: Page;
 }
-const { code: pageLanguage, language } = Astro.props.page;
+const { code: pageLanguage, language, tab: openTab } = Astro.props.page;
 const { email, github } = site.config.links;
 const {
   initial,
@@ -76,7 +77,7 @@ const goodbyeWording = {
         <a
           class="icon i-globe"
           role="menuitem"
-          href={site.pagePath(firstOtherLanguage)}
+          {...languageLinkAttributes(firstOtherLanguage, openTab)}
           hreflang={firstOtherLanguage}
           {...flag(DATA.langLink)}
         >
@@ -88,7 +89,7 @@ const goodbyeWording = {
         <hr />
       </>
     )}
-    <a class="icon i-bolt" role="menuitem" href={`#${upgrade.tab}`}>
+    <a class="icon i-bolt" role="menuitem" href={tabHref(site, pageLanguage, upgrade.tab)}>
       {upgrade.label}
       <span class={`${PAGE_CLASSES.rowMeta} pro`}>{upgrade.hire}</span>
     </a>

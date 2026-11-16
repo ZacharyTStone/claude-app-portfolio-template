@@ -9,7 +9,7 @@ export type Writing = {
   qiita: string;
 };
 
-/** The Writing tab's id: its address (#writing), and the thread the build
+/** The Writing tab's id: its page's address (/writing/), and the thread the build
     adds to every language's page. No thread of a site with `writing` can
     have it (src/site/checks). */
 export const WRITING_TAB = "writing";

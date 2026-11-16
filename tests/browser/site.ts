@@ -11,8 +11,10 @@ import { WRITING_TAB } from "../../src/config/writing.ts";
 import type { PersonalAnswer, QuestionCard, Topic } from "../../src/config/question-card.ts";
 import { SCRIPT_STRING_ATTRIBUTES, SCRIPT_STRING_NAMES, type ScriptStrings } from "../../src/config/strings.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
+import type { ContactNote } from "../../src/contracts/contact.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
+import { tabPagePath } from "../../src/contracts/tab-pages.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -23,8 +25,11 @@ import { COMES_INTO_VIEW, MOVING_PICTURE, PANEL_SECTIONS, PLAY_BUTTON, PLAYED_FI
 
 /** One of the site's threads: a tab of questions, each with its answer. */
 export type Thread = {
-  /** Its tab's id: "about", for the tab at "#about". */
+  /** Its tab's id: "about", for the tab whose page is at "/about/". */
   id: string;
+  /** Its page, as the main page links to it: "/about/", or under the
+      site's path "/portfolio/about/". */
+  path: string;
   /** Its tab's title, as the page is built: a visitor can rename it. */
   title: string;
   /** Its questions in order, without the "Question: " said to screen
@@ -76,6 +81,18 @@ export type WritingTab = Thread & {
     last one is in, as /ask names it ("about.4"). */
 export type ComesIntoView = { tab: string; answer: string };
 
+/** The contact form (the config's contactForm). */
+export type ContactForm = {
+  /** The tab it's in. */
+  tab: string;
+  /** The address it posts to, in full: where the checks' /contact stands
+      in. */
+  action: string;
+  /** What its two notes say, as the page has them. */
+  sent: string;
+  failed: string;
+};
+
 /** A picture that moves all the time, with the still of itself that a
     visitor who wants less motion is shown instead. */
 export type MovingPicture = {
@@ -98,6 +115,10 @@ export type PlayedPicture = MovingPicture & {
 export type Site = {
   /** The main page's language, as its <html lang> has it ("en"). */
   lang: string;
+  /** Its home page, as the pages link to it: "/", or "/portfolio/". */
+  home: string;
+  /** A tab's page in the main language, by the tab's id: "/about/". */
+  pathOf: (tabId: string) => string;
   /** The script's wording in that language. A string the page doesn't
       carry (for a part the site doesn't have) is "". */
   words: ScriptStrings;
@@ -150,8 +171,9 @@ export type Site = {
 
   /** The other languages' pages, from the sidebar's links. */
   languages: LanguagePage[];
-  /** Where the account menu's language row goes, as the page is built (the
-      script adds the open tab to it); null on a site in one language. */
+  /** Where the account menu's language row goes, as the main page is built:
+      the other language's home page (the script points it at the open tab
+      there); null on a site in one language. */
   languageLink: string | null;
   clock: Clock | null;
   /** Whether a thread has a status line ("Read …"). */
@@ -161,12 +183,18 @@ export type Site = {
   movingPictures: MovingPicture[];
   playedPictures: PlayedPicture[];
   comesIntoView: ComesIntoView | null;
+  contactForm: ContactForm | null;
   /** The Writing tab, on a site with `writing`. */
   writing: WritingTab | null;
 };
 
-/** The tab a link on the page opens: "about" for href="#about". */
-export const tabIdOf = (href: string | null): string => (href ?? "").slice(1);
+/** The tab a link on the page opens: "about" for href="/about/" (or for
+    "/fr/about/", or an old "#about"), and "chat-1" for a chat's
+    "/#chat-1". */
+export function tabIdOf(href: string | null): string {
+  const { hash, pathname } = new URL(href ?? "", "https://site.test/");
+  return hash ? hash.slice(1) : (pathname.split("/").filter(Boolean).at(-1) ?? "");
+}
 
 // A thread's or a personal answer's tab, as the build wrote it. (The chats'
 // tabs are the script's, and no page has one with JavaScript off.)
@@ -178,7 +206,9 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
   const page = await context.newPage();
   await page.goto(home);
 
-  const threads = await readThreads(page);
+  const homePath = (await page.locator("html").getAttribute(DATA.home)) ?? "";
+  const pathOf = (tabId: string) => tabPagePath(homePath, tabId);
+  const threads = await readThreads(page, pathOf);
   const [firstThread] = threads;
   if (!firstThread) throw new Error("The page's sidebar lists no threads");
   const questions = await readQuestionCard(page);
@@ -186,6 +216,8 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
 
   const site: Site = {
     lang: (await page.locator("html").getAttribute("lang")) ?? "",
+    home: homePath,
+    pathOf,
     words: await readScriptWords(page),
     ask,
     askUrl: new URL(ask ?? "ask", home).href,
@@ -211,7 +243,11 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     movingPictures: await readMovingPictures(page),
     playedPictures: await readPlayedPictures(page),
     comesIntoView: await readComesIntoView(page),
-    writing: await readWriting(page, await readBuiltThreads(page)),
+    contactForm: await readContactForm(page),
+    writing: await readWriting(
+      page,
+      (await readBuiltThreads(page)).map((thread) => ({ ...thread, path: pathOf(thread.id) })),
+    ),
   };
   await context.close();
   return site;
@@ -236,19 +272,20 @@ async function readScriptWords(page: Page): Promise<ScriptStrings> {
   return Object.fromEntries(SCRIPT_STRING_NAMES.map((name, nth) => [name, wordsOnThePage[nth] ?? ""])) as ScriptStrings;
 }
 
-/** The thread each of the sidebar's rows opens: the rows at its top, then
-    its groups'. A row that opens no thread (a link to another site, say)
-    gives none. */
-async function readThreads(page: Page): Promise<Thread[]> {
-  const rows = `${ID.sidebar} ${CLASS.nav} a[href^='#'], ${ID.sidebar} ${PART.tabRow}`;
+/** The thread each of the sidebar's rows opens: the rows at its top but
+    "New tab", then its groups'. */
+async function readThreads(page: Page, pathOf: (tabId: string) => string): Promise<Thread[]> {
+  const rows = `${ID.sidebar} ${CLASS.nav} a:not(${CLASS.newTab}), ${ID.sidebar} ${PART.tabRow}`;
   const tabsTheRowsOpen = (await attributeOfEach(page.locator(rows), "href")).map(tabIdOf);
   const threadsBuilt = await readBuiltThreads(page);
-  return tabsTheRowsOpen.flatMap((tabId) => threadsBuilt.filter((thread) => thread.id === tabId));
+  return tabsTheRowsOpen.flatMap((tabId) =>
+    threadsBuilt.filter((thread) => thread.id === tabId).map((thread) => ({ ...thread, path: pathOf(thread.id) })),
+  );
 }
 
 /** Every tab the build wrote that asks a question, as a thread: a question,
     then what answers it (one block or several), then the next question. */
-async function readBuiltThreads(page: Page): Promise<Thread[]> {
+async function readBuiltThreads(page: Page): Promise<Array<Omit<Thread, "path">>> {
   const tabs = await page.locator(BUILT_TAB).evaluateAll(
     (builtTabs, selector) =>
       builtTabs.map((tab) => {
@@ -402,6 +439,20 @@ async function readComesIntoView(page: Page): Promise<ComesIntoView | null> {
   );
   const most = tabs.toSorted((a, b) => b.count - a.count)[0];
   return most && most.count > 0 ? { tab: most.tab, answer: threadAnswerId(most.tab, most.lastIn) } : null;
+}
+
+async function readContactForm(page: Page): Promise<ContactForm | null> {
+  const tab = page.locator(`${BUILT_TAB}:has(${CLASS.contactForm})`).first();
+  if (!(await tab.count())) return null;
+  const form = tab.locator(CLASS.contactForm);
+  const note = async (which: ContactNote) =>
+    ((await form.locator(`[${DATA.contactNote}="${which}"]`).textContent()) ?? "").trim();
+  return {
+    tab: (await tab.getAttribute("id")) ?? "",
+    action: await form.evaluate((element) => (element as HTMLFormElement).action),
+    sent: await note("sent"),
+    failed: await note("failed"),
+  };
 }
 
 /** Every picture that moves all the time, in the page's order. */

@@ -1,0 +1,17 @@
+---
+/* Every page of the portfolio (src/site/pages.ts): each language's home screen, at the site's root and at
+   /<code>/, and a page for each of its tabs with that tab open, at /<id>/ and /<code>/<id>/. A page of
+   another kind (404.astro, a blog's) has a route of its own, which wins over this one. */
+import Portfolio from "../components/Portfolio.astro";
+import { site } from "../site/current.ts";
+import { portfolioPages, routeParameter, type PortfolioPage } from "../site/pages.ts";
+
+export const getStaticPaths = () =>
+  portfolioPages(site).map((page) => ({ params: { page: routeParameter(page.head.path) }, props: { page } }));
+
+interface Props {
+  page: PortfolioPage;
+}
+---
+
+<Portfolio page={Astro.props.page} />

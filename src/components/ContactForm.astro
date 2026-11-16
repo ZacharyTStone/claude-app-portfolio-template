@@ -1,0 +1,82 @@
+---
+/* The contact form under a thread's last answer (the config's contactForm): the visitor's email, a message, and
+   Send. Without JavaScript it's a plain POST, which the Worker answers by sending the visitor back to its tab's page, at
+   one of the two notes under it, which :target shows. With it, src/app/contact-form.ts sends it with fetch and says
+   the note in place, under Send. */
+import {
+  CONTACT_FIELDS,
+  CONTACT_NOTE_IDS,
+  CONTACT_PATH,
+  MAX_EMAIL_LENGTH,
+  MAX_MESSAGE_LENGTH,
+} from "../contracts/contact.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { site } from "../site/current.ts";
+import { tabPath } from "../site/pages.ts";
+import type { Page } from "../site/site.ts";
+
+interface Props {
+  page: Page;
+}
+const { page } = Astro.props;
+const { strings } = page.language;
+const { email } = site.config.links;
+// "… or email {email}.": the words around the link to your address, which a note without {email} goes without.
+const [failedBeforeEmail = "", failedAfterEmail] = (strings.contactFailed ?? "").split("{email}");
+// Where the Worker sends a visitor without JavaScript back to: the form's own tab's page, which opens on it.
+const returnTo = site.link(tabPath(site, page.code, site.config.contactForm?.tab ?? ""));
+---
+
+<form class={PAGE_CLASSES.contactForm} action={site.link(CONTACT_PATH)} method="post">
+  <input type="hidden" name={CONTACT_FIELDS.page} value={returnTo} />
+  <label class="contact-field">
+    <span class="contact-label">{strings.contactEmail}</span>
+    <input
+      class="contact-input"
+      type="email"
+      name={CONTACT_FIELDS.email}
+      required
+      maxlength={MAX_EMAIL_LENGTH}
+      autocomplete="email"
+      spellcheck="false"
+    />
+  </label>
+  <label class="contact-field">
+    <span class="contact-label">{strings.contactMessage}</span>
+    <textarea
+      class="contact-input"
+      name={CONTACT_FIELDS.message}
+      required
+      maxlength={MAX_MESSAGE_LENGTH}
+      rows="5"
+    ></textarea>
+  </label>
+  {/* Only a bot fills this in: no one sees it, and the keyboard never reaches it. */}
+  <input
+    class="contact-trap"
+    type="text"
+    name={CONTACT_FIELDS.trap}
+    tabindex="-1"
+    autocomplete="off"
+    aria-hidden="true"
+  />
+  <div class="contact-send">
+    <button class="contact-button" type="submit">
+      {strings.contactSend}
+    </button>
+    <p class={PAGE_CLASSES.contactStatus} role="status" data-js-only></p>
+  </div>
+  <p class={PAGE_CLASSES.contactNote} id={CONTACT_NOTE_IDS.sent} {...{ [DATA.contactNote]: "sent" }}>
+    {strings.contactSent}
+  </p>
+  <p class={PAGE_CLASSES.contactNote} id={CONTACT_NOTE_IDS.failed} {...{ [DATA.contactNote]: "failed" }}>
+    {failedBeforeEmail}
+    {failedAfterEmail !== undefined && (
+      <>
+        <a href={`mailto:${email}`}>{email}</a>
+        {failedAfterEmail}
+      </>
+    )}
+  </p>
+</form>
