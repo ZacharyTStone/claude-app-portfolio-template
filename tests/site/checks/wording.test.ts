@@ -2,7 +2,12 @@
    problem's wording, and what's allowed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES, type Strings } from "../../../src/config/strings.ts";
+import {
+  CONTACT_FORM_STRING_NAMES,
+  PAGE_STRING_NAMES,
+  REQUIRED_SCRIPT_STRING_NAMES,
+  type Strings,
+} from "../../../src/config/strings.ts";
 import { languageOf, sampleConfig, sampleInEnglishOnly, statedStrings } from "../sample.ts";
 import {
   inBothLanguages,
@@ -65,7 +70,15 @@ testEachProblem([
     problems: [`fr: strings.credit is missing: ${ONLY_ENGLISH_HAS_ITS_OWN}`],
   },
   {
-    wrong: "a language other than English with no strings at all, on a site with a viewer and a picture that moves",
+    wrong: "a contact form without the words for its labels, its button and its notes, which only English has",
+    change: inEveryLanguage((language) => {
+      for (const name of CONTACT_FORM_STRING_NAMES) delete statedStrings(language)[name];
+    }),
+    problems: CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
+  },
+  {
+    wrong:
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves and the contact form",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -75,6 +88,7 @@ testEachProblem([
       "fr: strings.viewerClose is missing (viewer needs it)",
       "fr: strings.play is missing (a picture with a still needs it)",
       "fr: strings.pause is missing (a picture with a still needs it)",
+      ...CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
     ],
   },
 ]);
@@ -90,6 +104,14 @@ test("a site in one language needs no language row", () => {
   const inEnglishOnly = sampleInEnglishOnly();
   delete inEnglishOnly.languages.en?.account.language;
   assert.deepEqual(problemsIn(inEnglishOnly), []);
+});
+
+test("a site without the contact form needs no words for it", () => {
+  const withoutTheForm = sampleConfig({ contactForm: undefined });
+  for (const language of Object.values(withoutTheForm.languages)) {
+    for (const name of CONTACT_FORM_STRING_NAMES) delete statedStrings(language)[name];
+  }
+  assert.deepEqual(problemsIn(withoutTheForm), []);
 });
 
 test("a site without a LinkedIn profile needs no words for one", () => {

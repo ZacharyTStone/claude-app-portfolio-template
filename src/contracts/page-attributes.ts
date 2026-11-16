@@ -72,6 +72,9 @@ export const DATA = {
   /** On a played picture's Play button: how many seconds it plays, as the
       picture's own file says. */
   play: "data-play",
+  /** On each of the contact form's two notes: which it is, a ContactNote
+      ("sent" or "failed"), for the browser code to say under Send. */
+  contactNote: "data-note",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

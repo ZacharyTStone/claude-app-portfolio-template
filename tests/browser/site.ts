@@ -10,6 +10,7 @@ import { CLOCK_MOODS, type ClockMood } from "../../src/config/language.ts";
 import type { PersonalAnswer, QuestionCard, Topic } from "../../src/config/question-card.ts";
 import { SCRIPT_STRING_ATTRIBUTES, SCRIPT_STRING_NAMES, type ScriptStrings } from "../../src/config/strings.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
+import type { ContactNote } from "../../src/contracts/contact.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import {
@@ -61,6 +62,18 @@ export type ViewerLink = {
 /** The tab with the most quotes and file cards in it, and the answer its
     last one is in, as /ask names it ("about.4"). */
 export type ComesIntoView = { tab: string; answer: string };
+
+/** The contact form (the config's contactForm). */
+export type ContactForm = {
+  /** The tab it's in. */
+  tab: string;
+  /** The address it posts to, in full: where the checks' /contact stands
+      in. */
+  action: string;
+  /** What its two notes say, as the page has them. */
+  sent: string;
+  failed: string;
+};
 
 /** A picture that moves all the time, with the still of itself that a
     visitor who wants less motion is shown instead. */
@@ -147,6 +160,7 @@ export type Site = {
   movingPictures: MovingPicture[];
   playedPictures: PlayedPicture[];
   comesIntoView: ComesIntoView | null;
+  contactForm: ContactForm | null;
 };
 
 /** The tab a link on the page opens: "about" for href="#about". */
@@ -195,6 +209,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     movingPictures: await readMovingPictures(page),
     playedPictures: await readPlayedPictures(page),
     comesIntoView: await readComesIntoView(page),
+    contactForm: await readContactForm(page),
   };
   await context.close();
   return site;
@@ -372,6 +387,20 @@ async function readComesIntoView(page: Page): Promise<ComesIntoView | null> {
   );
   const most = tabs.toSorted((a, b) => b.count - a.count)[0];
   return most && most.count > 0 ? { tab: most.tab, answer: threadAnswerId(most.tab, most.lastIn) } : null;
+}
+
+async function readContactForm(page: Page): Promise<ContactForm | null> {
+  const tab = page.locator(`${BUILT_TAB}:has(${CLASS.contactForm})`).first();
+  if (!(await tab.count())) return null;
+  const form = tab.locator(CLASS.contactForm);
+  const note = async (which: ContactNote) =>
+    ((await form.locator(`[${DATA.contactNote}="${which}"]`).textContent()) ?? "").trim();
+  return {
+    tab: (await tab.getAttribute("id")) ?? "",
+    action: await form.evaluate((element) => (element as HTMLFormElement).action),
+    sent: await note("sent"),
+    failed: await note("failed"),
+  };
 }
 
 /** Every picture that moves all the time, in the page's order. */

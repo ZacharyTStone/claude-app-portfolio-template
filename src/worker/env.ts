@@ -9,6 +9,12 @@ export type Env = Variables & {
   ASSETS: Fetcher;
   /** Questions a minute from one visitor. Without it, /ask picks nothing. */
   ASK_LIMIT?: RateLimit;
-  /** AskGuard: the daily counts, and blocks. Without it, /ask picks nothing. */
+  /** AskGuard: the daily counts (Ask's questions and the contact form's
+      messages), and blocks. Without it, /ask picks nothing and /contact
+      sends nothing. */
   ASK_GUARD?: DurableObjectNamespace;
+  /** Where the contact form's messages go out: wrangler.jsonc locks it to
+      one address, the site owner's (destination_address). Without it,
+      /contact sends nothing. */
+  CONTACT_EMAIL?: SendEmail;
 };

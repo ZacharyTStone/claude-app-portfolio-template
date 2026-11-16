@@ -15,7 +15,7 @@ export type SiteConfig = {
   /** Who serves the built site ("cloudflare" if left out). "cloudflare"
       and "netlify" read the security headers from a file the build writes;
       on any other host the pages carry what a page can, in <meta> tags.
-      Only "cloudflare" runs Ask. */
+      Only "cloudflare" runs Ask and the contact form. */
   host?: Host;
   /** Strict-Transport-Security's extras. Both are hard to undo: leave them
       out unless every subdomain is HTTPS for good. */
@@ -49,6 +49,15 @@ export type SiteConfig = {
   ask?: {
     /** Who you are, in a few words, for the model: "a software engineer". */
     role: string;
+  };
+  /** A form under a thread's last answer that emails you a visitor's
+      message: their email, the message, and Send. Its Worker (src/worker)
+      sends it to the address wrangler.jsonc names (docs/contact-form.md).
+      Each language then needs the strings that start "contact". Leave out
+      for no form. It needs host "cloudflare". */
+  contactForm?: {
+    /** The id of the thread it's under: "contact". */
+    tab: string;
   };
   /** Links that open in a panel beside the conversation, in a frame,
       instead of in a new tab: each link's `href` exactly as this config has

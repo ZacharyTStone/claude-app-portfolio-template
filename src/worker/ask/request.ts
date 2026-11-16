@@ -3,7 +3,7 @@
    and a word on why, before anything is spent on it. */
 import * as v from "valibot";
 import { MAX_QUESTION_LENGTH, MAX_REQUEST_BYTES, type AskRequest } from "../../contracts/ask.ts";
-import { HTTP_STATUS } from "../lib/http.ts";
+import { HTTP_STATUS, readBodyText, type Rejection } from "../lib/http.ts";
 
 /** An AskRequest as the Worker reads it. The body is whatever was sent, so
     each field says what's done with one that isn't as the page sends it. */
@@ -26,9 +26,6 @@ const CheckedAskRequestSchema = v.object({
 
 export type CheckedAskRequest = v.InferOutput<typeof CheckedAskRequestSchema>;
 
-/** Why a request isn't one /ask reads, and the status it's turned away with. */
-export type Rejection = { status: number; error: string; headers?: Record<string, string> };
-
 export function rejectionUnlessJsonPost(request: Request): Rejection | undefined {
   if (request.method !== "POST") {
     return { status: HTTP_STATUS.methodNotAllowed, error: "POST only", headers: { Allow: "POST" } };
@@ -38,24 +35,6 @@ export function rejectionUnlessJsonPost(request: Request): Rejection | undefined
   const contentType = request.headers.get("Content-Type") ?? "";
   const isJson = contentType.startsWith("application/json");
   return isJson ? undefined : { status: HTTP_STATUS.unsupportedMediaType, error: "JSON only" };
-}
-
-// Null for a body longer than `maxBytes`: no more of it is read.
-async function readBodyText(request: Request, maxBytes: number): Promise<string | null> {
-  const reader = request.body?.getReader();
-  if (!reader) return "";
-  const decoder = new TextDecoder();
-  let text = "";
-  let bytesRead = 0;
-  for (let chunk = await reader.read(); !chunk.done; chunk = await reader.read()) {
-    bytesRead += chunk.value.byteLength;
-    if (bytesRead > maxBytes) {
-      await reader.cancel();
-      return null;
-    }
-    text += decoder.decode(chunk.value, { stream: true });
-  }
-  return text + decoder.decode();
 }
 
 const TOO_LONG: Rejection = { status: HTTP_STATUS.payloadTooLarge, error: "too long" };
