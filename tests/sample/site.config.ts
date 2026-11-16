@@ -1,7 +1,8 @@
 /* A made-up site with what the template's own one-language site can't
    show, for the tests to check and to build (build.ts): it's served under
-   a path, in two languages, with Ask on, a link that opens in the viewer,
-   one of each kind of figure, and a picture that moves all the time.
+   a path, in two languages, with Ask on, the contact form, a link that
+   opens in the viewer, one of each kind of figure, and a picture that
+   moves all the time.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -156,6 +157,8 @@ const config: SiteConfig = {
   social: { image: icon, width: ICON_SIZE, height: ICON_SIZE },
   themeColor: "#191919",
   ask: { role: "an engineer" },
+  // Under the About thread, the one thread with one answer.
+  contactForm: { tab: "about" },
   // Sam's notes open in the viewer, at the address that shows them in a frame.
   viewer: { [notes.href]: notes.inFrame },
   llms: { summary: "A sample.", about: "Sam is a sample." },

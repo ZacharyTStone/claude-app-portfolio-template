@@ -1,7 +1,18 @@
 import type { Settings } from "../settings.ts";
-import { ASK_GUARD_NAME, readTaken, urlAsking, type Asked, type Asker, type DayLimits, type Gate } from "./wire.ts";
+import {
+  ASK_GUARD_NAME,
+  readMessageTaken,
+  readTaken,
+  urlAsking,
+  type Asked,
+  type Asker,
+  type DayLimits,
+  type Gate,
+  type MessageGate,
+} from "./wire.ts";
 
-/** What /ask asks of the site's AskGuard while it answers one request. */
+/** What /ask and /contact ask of the site's AskGuard while each answers
+    one request. */
 export type Guard = {
   /** Takes one question from the allowances of the visitor, their network
       and the site, and says whether it can go to the model. */
@@ -12,15 +23,19 @@ export type Guard = {
       in Neurons. One that failed is paid for with nothing: until it's
       paid for, AskGuard counts it at the most a question has cost. */
   spendNeurons(neurons: number): Promise<void>;
+  /** Takes one of the contact form's messages from the day's allowances,
+      the visitor's and the site's, and says whether it can be sent. */
+  takeMessage(visitorHash: string): Promise<MessageGate>;
 };
 
-const DOWN: Gate = { state: "down" };
+const DOWN = { state: "down" } as const satisfies Gate & MessageGate;
 
-// With no guard, the visitor gets no pick: the safe side.
+// With no guard, the visitor gets no pick and sends nothing: the safe side.
 const NO_GUARD: Guard = {
   takeQuestion: async () => DOWN,
   blockVisitor: async () => {},
   spendNeurons: async () => {},
+  takeMessage: async () => DOWN,
 };
 
 /** However many addresses ask, the day's questions can't all be asked in
@@ -52,6 +67,7 @@ export function guardFor(namespace: DurableObjectNamespace | undefined, settings
   if (!namespace) return NO_GUARD;
   const { blockHours, guardLocation } = settings;
   const limits = limitsFrom(settings);
+  const messageLimits = { siteLimit: settings.contactDailyLimit, visitorLimit: settings.contactVisitorLimit };
   // It's created where ASK_GUARD_LOCATION says, not near whoever happened
   // to ask first.
   const ask = (asked: Asked): Promise<Response> =>
@@ -79,6 +95,14 @@ export function guardFor(namespace: DurableObjectNamespace | undefined, settings
         await ask({ ask: "spend", neurons: neurons > 0 ? neurons : 0 });
       } catch {
         // The question is answered all the same; only its cost goes uncounted.
+      }
+    },
+    async takeMessage(visitorHash) {
+      try {
+        const response = await ask({ ask: "message", visitorHash, limits: messageLimits });
+        return response.ok ? readMessageTaken(await response.text()) : DOWN;
+      } catch {
+        return DOWN;
       }
     },
   };

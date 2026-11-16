@@ -1,6 +1,6 @@
-/* How /ask and its AskGuard talk: a POST to a path with what's asked in the
-   query, and a word or two in reply. Nothing outside this folder reads or
-   writes either. */
+/* How /ask and /contact talk to the site's AskGuard: a POST to a path with
+   what's asked in the query, and a word or two in reply. Nothing outside
+   this folder reads or writes either. */
 import { positiveNumber } from "../lib/shape.ts";
 
 /** The name the site's one AskGuard is found by. */
@@ -20,15 +20,21 @@ export type DayLimits = {
 /** Who's asking: the hash of their address, and of the network it's in. */
 export type Asker = { visitorHash: string; networkHash: string };
 
+/** The most the contact form may send in a day: from the whole site, and
+    from one visitor. */
+type MessageLimits = { siteLimit: number; visitorLimit: number };
+
 /** What AskGuard is asked: to take one question from the day's allowances,
-    to block a visitor, or to pay for a question it took with what that
-    cost (nothing, for one that failed). */
+    to block a visitor, to pay for a question it took with what that cost
+    (nothing, for one that failed), or to take one of the contact form's
+    messages from the day's. */
 export type Asked =
   | ({ ask: "take"; limits: DayLimits } & Asker)
   | { ask: "block"; visitorHash: string; hours: number }
-  | { ask: "spend"; neurons: number };
+  | { ask: "spend"; neurons: number }
+  | { ask: "message"; visitorHash: string; limits: MessageLimits };
 
-export const ASK_GUARD_PATH = { take: "/take", block: "/block", spend: "/spend" } as const;
+export const ASK_GUARD_PATH = { take: "/take", block: "/block", spend: "/spend", message: "/message" } as const;
 
 // Any host does: a Durable Object gets whatever it's sent.
 const ORIGIN = "https://guard";
@@ -49,6 +55,8 @@ function queryOf(asked: Asked): Record<string, string> {
       return { hours: String(asked.hours), who: asked.visitorHash };
     case "spend":
       return { neurons: String(asked.neurons) };
+    case "message":
+      return { limit: String(asked.limits.siteLimit), each: String(asked.limits.visitorLimit), who: asked.visitorHash };
   }
 }
 
@@ -83,10 +91,19 @@ function readSpend(query: URLSearchParams): Asked | undefined {
   return neurons === null ? undefined : { ask: "spend", neurons };
 }
 
+function readMessage(query: URLSearchParams): Asked | undefined {
+  const visitorHash = query.get("who");
+  const [siteLimit, visitorLimit] = ["limit", "each"].map((name) => positiveNumber(query.get(name)));
+  return visitorHash && siteLimit && visitorLimit
+    ? { ask: "message", visitorHash, limits: { siteLimit, visitorLimit } }
+    : undefined;
+}
+
 const READERS: ReadonlyMap<string, (query: URLSearchParams) => Asked | undefined> = new Map([
   [ASK_GUARD_PATH.take, readTake],
   [ASK_GUARD_PATH.block, readBlock],
   [ASK_GUARD_PATH.spend, readSpend],
+  [ASK_GUARD_PATH.message, readMessage],
 ]);
 
 /** What a request asks: "unknown" at a path AskGuard doesn't have, and
@@ -121,4 +138,18 @@ export function readTaken(said: string): Gate {
   const isRefusal =
     state === ASK_GUARD_REPLY.limited || state === ASK_GUARD_REPLY.spent || state === ASK_GUARD_REPLY.blocked;
   return isRefusal ? { state } : { state: "down" };
+}
+
+/** What came of taking a message: it may go (ok), the visitor has sent
+    all they may today (limited), or the whole site has (spent). AskGuard
+    says the state alone. */
+export type MessageTaken = { state: "ok" | "limited" | "spent" };
+
+/** That, or `down`: AskGuard isn't bound, can't be reached, or said
+    something else. */
+export type MessageGate = MessageTaken | { state: "down" };
+
+export function readMessageTaken(said: string): MessageGate {
+  const isTaken = said === ASK_GUARD_REPLY.ok || said === ASK_GUARD_REPLY.limited || said === ASK_GUARD_REPLY.spent;
+  return isTaken ? { state: said } : { state: "down" };
 }

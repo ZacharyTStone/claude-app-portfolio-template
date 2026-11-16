@@ -5,10 +5,13 @@
   flex-direction: column;
   min-height: 0;
 }
-.tab:target {
+/* The tab the address names shows, or the tab with the contact form's note the address names in it: the Worker
+   sends a visitor without JavaScript back to one (ContactForm). With neither, the home screen shows. */
+.tab:target,
+.tab:has(.contact-note:target) {
   display: flex;
 }
-.main:not(:has(.tab:target)) .home {
+.main:not(:has(.tab:target, .contact-note:target)) .home {
   display: flex;
 }
 

@@ -12,8 +12,9 @@ test("this site's config has no problems", () => {
 });
 
 for (const host of HOSTS) {
-  test(`the sample without Ask has no problems and gets no advice on the host "${host}"`, () => {
-    assert.deepEqual(findingsIn(sampleConfig({ host, ask: undefined })), { problems: [], notes: [] });
+  test(`the sample without Ask or the contact form has no problems and gets no advice on the host "${host}"`, () => {
+    const withoutTheWorker = sampleConfig({ host, ask: undefined, contactForm: undefined });
+    assert.deepEqual(findingsIn(withoutTheWorker), { problems: [], notes: [] });
   });
 }
 

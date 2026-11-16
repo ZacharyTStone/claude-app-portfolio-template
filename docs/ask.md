@@ -84,8 +84,9 @@ First check which plan your Cloudflare account is on:
 
 1. In `site.config.ts`, set `ask: { role: "a software engineer" }`, with
    who you are in a few words. It needs `host: "cloudflare"`.
-2. In `wrangler.jsonc`, uncomment the Ask block and the two lines marked
-   "Ask" in `"assets"`.
+2. In `wrangler.jsonc`, uncomment the Worker's block, the two lines
+   marked "Worker" in `"assets"`, and the Ask block. (A site with the
+   [contact form](contact-form.md) on has the Worker's already.)
 3. Set a salt for hashing visitors' addresses:
    `npm run wrangler -- secret put ASK_SALT`. Without it, a salt anyone
    can read in the code is used ([Security](security.md#ask)).
@@ -189,23 +190,27 @@ those use up the 100,000 requests a day, after which Ask and the 404 page
 stop until midnight UTC (your pages keep loading); on Workers Paid they
 are billed. Two rules on your domain's zone turn the commonest of that
 traffic away before the Worker runs. Both are free, and both are set in
-the Cloudflare dashboard, under **Security → Security rules**.
+the Cloudflare dashboard, under **Security → Security rules**. They name
+the [contact form](contact-form.md)'s `/contact` beside `/ask`, since the
+Worker answers both: a site with only one of them loses nothing by
+leaving the other in.
 
 1. **A rate limiting rule** (the Free plan has one), for a flood of
    questions from one address:
 
-   - When incoming requests match: `(http.request.uri.path eq "/ask")`
+   - When incoming requests match:
+     `(http.request.uri.path in {"/ask" "/contact"})`
    - With the same characteristics: IP
    - When rate exceeds: 5 requests per 10 seconds
    - Then take action: Block, for 10 seconds
 
 2. **A custom rule**, action Block, for requests the site has no use for:
-   anything but a `POST` to `/ask`, anything but `GET` or `HEAD` to the
-   rest, and the paths scanners try.
+   anything but a `POST` to `/ask` and `/contact`, anything but `GET` or
+   `HEAD` to the rest, and the paths scanners try.
 
    ```txt
-   (http.request.uri.path eq "/ask" and http.request.method ne "POST")
-   or (http.request.uri.path ne "/ask" and not (http.request.method in {"GET" "HEAD"}))
+   (http.request.uri.path in {"/ask" "/contact"} and http.request.method ne "POST")
+   or (not (http.request.uri.path in {"/ask" "/contact"}) and not (http.request.method in {"GET" "HEAD"}))
    or (http.request.uri.path contains ".php")
    or (http.request.uri.path contains "/wp-")
    or (http.request.uri.path contains "/.env")
@@ -213,5 +218,6 @@ the Cloudflare dashboard, under **Security → Security rules**.
    or (http.request.uri.path contains "/cgi-bin/")
    ```
 
-A site served under a path has that path before `/ask` in both rules.
+A site served under a path has that path before `/ask` and `/contact` in
+both rules.
 **Security → Events** shows what each rule has matched.

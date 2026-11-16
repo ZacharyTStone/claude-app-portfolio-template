@@ -18,9 +18,11 @@ const readsHeadersFile = (host: Host): boolean => HOSTS_THAT_READ_A_HEADERS_FILE
 const EVERY_PATH = "/*";
 
 /** What the site's policy allows beyond its own files: /ask when Ask is
-    on, and frames from the sites its viewer shows. */
+    on, the contact form's post when it's on, and frames from the sites its
+    viewer shows. */
 const policyOptions = ({ config }: Site): PolicyOptions => ({
   ask: Boolean(config.ask),
+  contactForm: Boolean(config.contactForm),
   frames: frameOrigins(config.viewer),
 });
 

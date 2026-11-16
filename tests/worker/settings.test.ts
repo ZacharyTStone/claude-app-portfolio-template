@@ -2,7 +2,7 @@
    says, or its default when the variable isn't set or can't be read. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { mapValues } from "es-toolkit";
+import { mapValues, pick } from "es-toolkit";
 import { DEFAULT_MODEL, KNOWN_MODELS, UNLISTED_MODEL_PRICE } from "../../src/worker/ask/known-models.ts";
 import { DURABLE_OBJECT_LOCATIONS, SETTINGS, readSettings } from "../../src/worker/settings.ts";
 
@@ -25,6 +25,10 @@ test("each setting is read from its own variable", () => {
     ASK_GUARD_LOCATION: "weur",
     ASK_LOG_QUESTIONS: "true",
     ASK_SALT: "a secret",
+    CONTACT_DAILY_LIMIT: "9",
+    CONTACT_VISITOR_LIMIT: "2",
+    CONTACT_TO: "me@example.org",
+    CONTACT_FROM: "hello@example.com",
   });
   assert.deepEqual(settings, {
     enabled: true,
@@ -37,6 +41,10 @@ test("each setting is read from its own variable", () => {
     guardLocation: "weur",
     logQuestions: true,
     salt: "a secret",
+    contactDailyLimit: 9,
+    contactVisitorLimit: 2,
+    contactTo: "me@example.org",
+    contactFrom: "hello@example.com",
     price: { input: 1000, output: 2000 },
   });
 });
@@ -55,6 +63,8 @@ test("a number that isn't above 0, or isn't a number at all, is the default", ()
       ASK_DAILY_NEURONS: written,
       ASK_VISITOR_LIMIT: written,
       ASK_BLOCK_HOURS: written,
+      CONTACT_DAILY_LIMIT: written,
+      CONTACT_VISITOR_LIMIT: written,
     });
     assert.deepEqual(settings, readSettings({}), written);
   }
@@ -89,5 +99,16 @@ test("ASK_MODEL_PRICE is a price of the model's own: two numbers above 0, with o
 test("an ASK_MODEL_PRICE that isn't two numbers above 0 leaves the model's own price", () => {
   for (const written of ["1000", "1000/", "0/2000", "a/b", "1000/2000/3000", ""]) {
     assert.deepEqual(readSettings({ ASK_MODEL_PRICE: written }).price, readSettings({}).price, written);
+  }
+});
+
+test("the contact form's addresses are addresses, or none", () => {
+  const read = (written: string) => readSettings({ CONTACT_TO: written, CONTACT_FROM: written });
+  assert.deepEqual(pick(read("hi@example.com"), ["contactTo", "contactFrom"]), {
+    contactTo: "hi@example.com",
+    contactFrom: "hi@example.com",
+  });
+  for (const written of ["", "example.com", "hi@example", "hi there@example.com"]) {
+    assert.deepEqual(pick(read(written), ["contactTo", "contactFrom"]), { contactTo: "", contactFrom: "" }, written);
   }
 });

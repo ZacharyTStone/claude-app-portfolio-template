@@ -40,7 +40,9 @@ and the rules every change keeps to.
 ## Adding a string
 
 - Wording the page shows itself is a field of `PageStrings` and a name in
-  `PAGE_STRING_NAMES` (`src/config/strings.ts`).
+  `PAGE_STRING_NAMES` (`src/config/strings.ts`). Wording the page shows
+  for a part only some sites have is a type of its own, as the contact
+  form's is (`ContactFormStrings` and `CONTACT_FORM_STRING_NAMES`).
 - Wording the script shows is a key of `SCRIPT_STRING_ATTRIBUTES` in the
   same file, with its `data-*` attribute as the value and its doc comment
   over it. The page carries it on `<html>`, and the script reads it as
@@ -92,7 +94,10 @@ The Worker's settings are one table, `src/worker/settings.ts`, and
 goes in both. What came of a question is one `Outcome`
 (`src/worker/ask/outcome.ts`); the reply, the log line
 (`src/worker/ask/log.ts`) and the spend each come from it once.
-`src/worker/ask/model.ts` is the only caller of Workers AI.
+`src/worker/ask/model.ts` is the only caller of Workers AI. The contact
+form's `/contact` is built the same way, in `src/worker/contact/`: what
+came of a message is one `ContactOutcome`, and the reply (JSON, or a
+redirect back to the page) and the log line each come from it.
 
 ## Changing what Ask may say
 
@@ -134,7 +139,8 @@ says so.
   the rest, read from the built page.
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
-  `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`. A test that
+  `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
+  `contactForm`. A test that
   asks for one is skipped, with the reason, on a site without it. For any
   other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.

@@ -58,9 +58,6 @@ export type LogLine = Summary & Detail;
 
 export type LogSink = (line: LogLine) => void;
 
-/** One line of JSON. Fields left undefined are left out. */
-export const logToConsole: LogSink = (line) => console.log(JSON.stringify(line));
-
 const NEURON_DECIMALS = 1;
 
 function rounded(neurons: number): number {
