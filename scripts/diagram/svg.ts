@@ -23,9 +23,10 @@ export function shape(tag: string, attributes: Attributes = {}, ...children: Arr
 export type Drawing = {
   width: number;
   height: number;
-  /** For how many seconds a visitor plays it: the page then shows it still, with a button, and moving only once
-      that's pressed. Give the moment the moving picture looks as the still one does (a story's loop:
-      `loop.clears.from`). Left out, the picture moves all the time, which suits one where little moves. */
+  /** For how many seconds a visitor plays it: the page then shows it still, with a button, moving once by itself
+      the first time it's scrolled to and then only when the button is pressed. Give the moment the moving
+      picture looks as the still one does (a story's loop: `loop.clears.from`). Left out, the picture moves all
+      the time, which suits one where little moves. */
   plays?: number;
   shapes: Shape[];
 };

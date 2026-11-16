@@ -160,7 +160,8 @@ export const FIGURE_LIMITS = {
 /** A picture that moves (an SVG with its own animation, as `npm run
     diagrams` writes: docs/diagrams.md) names itself without its motion as
     `still`. One whose file says how long it plays rests as its still, with
-    a Play button; any other moves all the time.
+    a Play button, and plays once by itself when it's first scrolled to;
+    any other moves all the time.
 
         { src: "/assets/app.webp", alt: "The app's home screen", width: 1600, height: 900, caption: "The home screen" } */
 export type Picture = {
