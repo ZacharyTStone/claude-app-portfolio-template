@@ -18,6 +18,7 @@ import {
   type Site,
   type Thread,
   type ViewerLink,
+  type WritingTab,
 } from "./site.ts";
 import { OWN_SITE, type SiteUnderTest } from "./sites.ts";
 
@@ -57,6 +58,7 @@ type SiteParts = {
   movingPicture: MovingPicture;
   comingIntoView: ComesIntoView;
   contactForm: ContactForm;
+  writingTab: WritingTab;
 };
 
 type PageErrors = {
@@ -161,6 +163,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   movingPicture: partOrSkip((site) => site.movingPictures[0], "the site has no picture that moves all the time"),
   comingIntoView: partOrSkip((site) => site.comesIntoView, "no answer on the site has a quote or a file card"),
   contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
+  writingTab: partOrSkip((site) => site.writing, "the site has no Writing tab"),
 });
 
 // Chromium with a phone's screen, touch and user agent: the device's own

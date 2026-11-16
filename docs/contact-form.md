@@ -13,9 +13,10 @@ but Cloudflare's own. A new site starts without it.
   `src/components/ContactForm.astro`; its words are the five strings that
   start `contact` in `strings`.
 - **Without JavaScript** it's a plain form. Send posts it to `/contact`,
-  the Worker emails you, and the browser comes back to the page at a note
-  under the form that says it went (`#message-sent`) or that it didn't
-  (`#message-failed`), which `:target` shows, in the form's tab.
+  the Worker emails you, and the browser comes back to the form's tab's
+  page (`/contact/`) at a note under the form that says it went
+  (`#message-sent`) or that it didn't (`#message-failed`), which `:target`
+  shows.
 - **With JavaScript** (`src/app/contact-form.ts`) it's sent without
   leaving the tab, and the same note shows under Send. Once it has gone
   the boxes are emptied; if it hasn't, what the visitor typed stays, and

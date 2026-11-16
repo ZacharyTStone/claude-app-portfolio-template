@@ -24,6 +24,13 @@ export const words = readScriptStrings();
 /** Where a typed question goes (/ask), or "" when Ask is off. */
 export const askUrl = root.getAttribute(DATA.ask) ?? "";
 
+/** The page's language's home page ("/", "/ja/"): its tabs' pages are under
+    it. */
+export const homePath = root.getAttribute(DATA.home) ?? "/";
+
+/** The home screen's window title, whichever page this is. */
+export const homeTitle = root.getAttribute(DATA.homeTitle) ?? document.title;
+
 export const sidebar = byId(PAGE_IDS.sidebar);
 /** Around the sidebar, the open tab and the panel. */
 export const shell = find(document, CLASS_SELECTOR.shell);
@@ -37,8 +44,6 @@ export const askedTab = byId(PAGE_IDS.asked);
 
 /** Whose site this is. */
 export const siteName = sidebar.querySelector(CLASS_SELECTOR.wordmark)?.textContent.trim() ?? "";
-/** The home screen's window title: the one the page came with. */
-export const pageTitle = document.title;
 
 /** It carries the home screen's own words. */
 const homeBody = find(document, CLASS_SELECTOR.homeBody);

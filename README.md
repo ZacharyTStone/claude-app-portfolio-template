@@ -10,10 +10,12 @@ into static HTML and CSS that work with JavaScript off, plus one small
 script for the chats, menus and question card. An answer can hold more
 than text: file cards, bars, flows, pictures, quotes, and diagrams that
 move. A link you choose, such as a resume in Google Docs, can open in a
-viewer beside the conversation instead of a new tab. An optional Worker on
-Cloudflare, Ask, answers typed questions from your own answers, and quotes
-the lines it answered from; the same Worker can run a contact form that
-emails you, with JavaScript or without.
+viewer beside the conversation instead of a new tab. Each tab has a page
+of its own (`/about/`), so a link to one opens on it and previews as it.
+A Writing tab can list your posts on Qiita, fetched as the site builds.
+An optional Worker on Cloudflare, Ask, answers typed questions from your
+own answers, and quotes the lines it answered from; the same Worker can
+run a contact form that emails you, with JavaScript or without.
 
 ## Quick start
 
@@ -97,6 +99,7 @@ your config, README, pictures, diagrams or `src/styles/site.css`:
 | draw a diagram that moves | [Diagrams](docs/diagrams.md) |
 | let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
 | let visitors email you from the site | [The contact form](docs/contact-form.md) |
+| list your posts on Qiita in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
 | know what protects the site and its visitors | [Security](docs/security.md) |
 | take the template's later changes | [Updating](docs/updating.md) |
 | change the code itself | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |

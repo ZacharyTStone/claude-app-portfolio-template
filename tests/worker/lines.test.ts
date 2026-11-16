@@ -2,8 +2,10 @@
    needs to be read on its own. Each table is a rule. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { WRITING_TAB } from "../../src/config/writing.ts";
 import { MAX_REPLY_LENGTH, labelled } from "../../src/contracts/ask.ts";
 import { neededFor, numbered, pointsBack, withNumbers } from "../../src/worker/ask/lines.ts";
+import { SAMPLE_ANSWERS } from "../sample/ask-answers.ts";
 import { EN } from "./support/answers.ts";
 import { eachRow } from "./rows.ts";
 
@@ -273,4 +275,14 @@ test("what a line needs is itself and, while one points back, the sentence befor
   assert.deepEqual(neededFor(pieces, 4), [4]);
   // A row is no sentence to point back at.
   assert.equal(neededFor(numbered("role: Engineer\nIt’s a full-stack role."), 1), null);
+});
+
+test("the Writing tab's post titles are lines the picker may name and a reply may quote, and the line before them isn't", () => {
+  const writing = SAMPLE_ANSWERS.find((answer) => answer.id === `${WRITING_TAB}.1`);
+  assert.ok(writing, "the sample has a Writing tab");
+  const [before, ...titles] = writing.text.split("\n");
+  assert.deepEqual(
+    numbered(writing.text).map(({ text, n }) => [n, text]),
+    [[undefined, before], ...titles.map((title, index) => [index + 1, title])],
+  );
 });

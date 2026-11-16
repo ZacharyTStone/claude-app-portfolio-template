@@ -1,6 +1,8 @@
 ---
-import type { Strings } from "../config/strings.ts";
 import type { Block, BlockByKind } from "../config/blocks.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import type { Page } from "../site/site.ts";
+import { flag } from "./attributes.ts";
 import Bars from "./Bars.astro";
 import FileCard from "./FileCard.astro";
 import Flow from "./Flow.astro";
@@ -13,10 +15,13 @@ import Quote from "./Quote.astro";
 
 interface Props {
   block: Block;
-  /** The page's wording, for a picture's Play button. */
-  strings: Strings;
+  /** The page it's on: its language's links, and its wording for a picture's Play button. */
+  page: Page;
+  /** In the Writing tab: a link card is a post the build fetched. */
+  fetched?: boolean;
 }
-const { block, strings } = Astro.props;
+const { block, page, fetched } = Astro.props;
+const { code } = page;
 
 const byKind: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
 const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = byKind;
@@ -26,23 +31,23 @@ kindsNotDrawn satisfies Record<string, never>;
 
 {typeof block === "string" && (
   <p>
-    <Inline text={block} />
+    <Inline text={block} code={code} />
   </p>
 )}
 {Array.isArray(block) && (
   <ul>
     {block.map((item) => (
       <li>
-        <Inline text={item} />
+        <Inline text={item} code={code} />
       </li>
     ))}
   </ul>
 )}
 {card && <FileCard card={card} />}
-{link && <LinkCard link={link} />}
+{link && <LinkCard link={link} code={code} {...(fetched ? flag(DATA.fetched) : {})} />}
 {bars && <Bars bars={bars} />}
 {flow && <Flow flow={flow} />}
-{image && <Picture picture={image} strings={strings} />}
-{images && <Gallery pictures={images} strings={strings} />}
+{image && <Picture picture={image} page={page} />}
+{images && <Gallery pictures={images} page={page} />}
 {quote && <Quote quote={quote} />}
 {heading && <Heading heading={heading} />}

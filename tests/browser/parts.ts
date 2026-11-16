@@ -1,7 +1,7 @@
 /* Parts of the page that more than one file of checks looks for, made of
    the page's own names (src/contracts/page-selectors.ts). */
 import type { Locator, Page } from "@playwright/test";
-import { SEPARATOR } from "../../src/app/constants.ts";
+import { SEPARATOR } from "../../src/contracts/tab-pages.ts";
 import { CHATS_GROUP, groupId, ID_PREFIX } from "../../src/contracts/page-ids.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
@@ -14,8 +14,12 @@ import type { Site } from "./site.ts";
 /** "New tab", in the sidebar. */
 export const NEW_TAB = `${CLASS.nav} ${CLASS.newTab}`;
 
-/** The chat that's open. */
-export const OPEN_CHAT = `${CLASS.tab}${ATTRIBUTE.chat}:target`;
+/** The tab that's open, and the chat that's open. */
+export const OPEN_TAB = `${CLASS.tab}${CLASS.open}`;
+export const OPEN_CHAT = `${CLASS.tab}${ATTRIBUTE.chat}${CLASS.open}`;
+
+/** The tab with this id, while it's the one open. */
+export const openTab = (page: Page, tabId: string): Locator => page.locator(`[id="${tabId}"]${OPEN_TAB}`);
 
 /** The question card, while it shows. */
 export const OPEN_CARD = `${ID.questionCard}:not([hidden])`;
@@ -39,9 +43,12 @@ export const EMAIL_LINK = ATTRIBUTE.emailBody;
 export const PANEL_SECTIONS = `${ID.panel} > section`;
 
 /** A tab's row in the sidebar: its first, as a thread can be among the
-    rows at the top and in a group too. */
+    rows at the top and in a group too. A thread's row links to its page,
+    and a chat's to its #id. */
 export const sidebarRow = (page: Page, tabId: string): Locator =>
-  page.locator(`${ID.sidebar} a[href="#${tabId}"]`).first();
+  page
+    .locator(`${ID.sidebar} :is(${PART.navRow}, ${PART.tabRow}):is([href$="/${tabId}/"], [href$="#${tabId}"])`)
+    .first();
 
 /** The window's title while a tab is open. */
 export const windowTitle = (tabName: string, site: Site): string => `${tabName}${SEPARATOR}${site.name}`;
@@ -66,7 +73,7 @@ export function sentInto(page: Page, tabId: string) {
 
 /** A visitor's chat, in the sidebar: its first, the newest. */
 export const firstChatRow = (page: Page): Locator =>
-  page.locator(`${ID.sidebar} a[href^="#${ID_PREFIX.chat}"]`).first();
+  page.locator(`${ID.sidebar} a[href*="#${ID_PREFIX.chat}"]`).first();
 
 /** A figure whose picture a visitor plays, and in it its Play button and
     the picture as it moves, once that has loaded and shows. */

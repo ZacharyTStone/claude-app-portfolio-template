@@ -1,25 +1,55 @@
-/* The open tab: the one the address names (#about), shown by :target as it
-   is without JavaScript. This keeps the rest in step with it: the sidebar's
-   current row, the window title and where focus is. */
+/* The open tab: the one the address names (tab-addresses.ts). It shows by
+   PAGE_CLASSES.open, which a tab's page is built with and the script moves
+   to each tab it opens. This keeps the rest in step with it: the sidebar's
+   current row, the links to the other languages, the window title and
+   where focus is. */
 import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { titleId } from "../contracts/page-ids.ts";
-import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
-import { SEPARATOR } from "./constants.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { tabPagePath, tabWindowTitle } from "../contracts/tab-pages.ts";
 import { unfold } from "./folding.ts";
-import { clone, find } from "./lib/dom.ts";
-import { homeGreeting, pageTitle, sidebar, siteName } from "./page.ts";
-
-/** The tab the address names, if it names one. */
-export function currentTab(): HTMLElement | null {
-  const named = location.hash.length > 1 ? document.getElementById(location.hash.slice(1)) : null;
-  return named?.matches(CLASS_SELECTOR.tab) ? named : null;
-}
+import { clone, find, findAll } from "./lib/dom.ts";
+import { askedTab, homeGreeting, homePath, homeTitle, sidebar, siteName } from "./page.ts";
+import { addressOfPlace, openTabIn, ownAddress, placeOfLink, type Here, type IdKind } from "./tab-addresses.ts";
 
 /** Whether a tab is a visitor's chat, not one of the portfolio's threads. */
 export const isChat = (tab: HTMLElement): boolean => tab.hasAttribute(DATA.chat);
 
+/** A chat and "Something else" have no page: they're in this one alone. */
+function kindOf(id: string): IdKind {
+  const element = id ? document.getElementById(id) : null;
+  if (!element) return null;
+  if (!element.matches(CLASS_SELECTOR.tab)) return "part";
+  return isChat(element) || element === askedTab ? "tab" : "tab with a page";
+}
+
+/** This page, as its addresses are read. */
+export const here: Here = { origin: location.origin, home: homePath, kindOf };
+
+const tabWithId = (id: string | null | undefined): HTMLElement | null => (id ? document.getElementById(id) : null);
+
+/** The tab the address names, if it names one. */
+export const currentTab = (): HTMLElement | null => tabWithId(openTabIn(new URL(location.href), here));
+
+/** The tab a link opens in place, if it opens one: "/about/" or "#about"
+    opens the tab "about". */
+export const tabLinkedTo = (href: string): HTMLElement | null =>
+  tabWithId(placeOfLink(new URL(href, location.href), here)?.tab);
+
+/** A tab's own address, by its id: its page's ("/about/"), or a chat's
+    ("/#chat-l2x8f"). */
+export const addressOf = (tabId: string): string => ownAddress(tabId, here);
+
 /** A tab's address, to share. */
-export const tabLink = (tab: HTMLElement): string => `${location.origin}${location.pathname}#${tab.id}`;
+export const tabLink = (tab: HTMLElement): string => `${location.origin}${addressOf(tab.id)}`;
+
+/** Where a link in text the script shows goes: one to a tab ("#about") or
+    to the home screen ("#top") to its own address, and any other as it is. */
+export function linkOnPage(href: string): string {
+  const place = href.startsWith("#") ? placeOfLink(new URL(href, location.href), here) : undefined;
+  return place ? addressOfPlace(place, here) : href;
+}
 
 /** A copy of `pattern` as a new tab, under its own id (and its title's,
     which names it to screen readers). */
@@ -31,12 +61,16 @@ export function copyTab(pattern: HTMLElement, id: string): HTMLElement {
   return tab;
 }
 
-/** A tab's row in the sidebar. */
-export const rowFor = (id: string): Element | null => sidebar.querySelector(`a[href="#${CSS.escape(id)}"]`);
+const SIDEBAR_ROWS = `${PART_SELECTOR.navRow}, ${PART_SELECTOR.tabRow}`;
+
+/** A tab's row in the sidebar: its first, as a thread can be among the rows
+    at the top and in a group too. */
+export const rowFor = (id: string): HTMLElement | null =>
+  findAll(sidebar, SIDEBAR_ROWS).find((row) => tabLinkedTo(row.getAttribute("href") ?? "")?.id === id) ?? null;
 
 /** Null for the home screen. */
 function setWindowTitle(openTabName: string | null): void {
-  document.title = openTabName ? `${openTabName}${SEPARATOR}${siteName}` : pageTitle;
+  document.title = openTabName ? tabWindowTitle(openTabName, siteName) : homeTitle;
 }
 
 /** Shows a tab's name in its title, and in the window title if it's the
@@ -46,26 +80,8 @@ export function showTabName(tab: HTMLElement, name: string): void {
   if (tab === currentTab()) setWindowTitle(name);
 }
 
-function leaveNoBareHash(): void {
-  history.replaceState(null, "", location.pathname + location.search);
-}
-
-/** Takes the #… off the address: no tab is open, and Back returns to the
-    one that was. */
-export function clearHash(): void {
-  location.hash = "";
-  leaveNoBareHash();
-}
-
-/** Takes the #… off the address in place of the page you were on in the
-    history: Back doesn't return to it. */
-export function clearHashReplacingHistory(): void {
-  location.replace("#");
-  leaveNoBareHash();
-}
-
 function markCurrentRow(currentRow: Element | null): void {
-  for (const row of sidebar.querySelectorAll(`${PART_SELECTOR.navRow}, ${PART_SELECTOR.tabRow}`)) {
+  for (const row of findAll(sidebar, SIDEBAR_ROWS)) {
     if (row === currentRow) row.setAttribute("aria-current", "page");
     else row.removeAttribute("aria-current");
   }
@@ -80,15 +96,37 @@ function rowStandingInFor(tab: HTMLElement | null): Element | null {
 
 const headingOf = (tab: HTMLElement | null): HTMLElement => (tab ? find(tab, CLASS_SELECTOR.title) : homeGreeting);
 
-/** Brings the page into step with the open tab: its row is the sidebar's
-    current one (in a folded group, the group unfolds), and the window is
-    titled with its name. */
+/** The open tab shows, and no other. */
+function markOpen(openTab: HTMLElement | null): void {
+  for (const tab of findAll(document, `${CLASS_SELECTOR.tab}${CLASS_SELECTOR.open}`)) {
+    if (tab !== openTab) tab.classList.remove(PAGE_CLASSES.open);
+  }
+  openTab?.classList.add(PAGE_CLASSES.open);
+}
+
+/** Each link to another language's page goes to the open tab there: to its
+    page, under that language's home page (DATA.home), or to the home page
+    for a tab that's in this page alone (a chat). */
+function pointLanguageLinksAt(openTab: HTMLElement | null): void {
+  const tabId = openTab && kindOf(openTab.id) === "tab with a page" ? openTab.id : null;
+  for (const link of findAll(document, `a${ATTRIBUTE_SELECTOR.home}`)) {
+    const home = link.getAttribute(DATA.home) ?? "";
+    link.setAttribute("href", tabId ? tabPagePath(home, tabId) : home);
+  }
+}
+
+/** Brings the page into step with the open tab: it shows, its row is the
+    sidebar's current one (in a folded group, the group unfolds), the links
+    to the other languages go to it, and the window is titled with its
+    name. */
 export function showOpenTab(): void {
   const tab = currentTab();
+  markOpen(tab);
   const ownRow = tab ? rowFor(tab.id) : null;
   markCurrentRow(ownRow ?? rowStandingInFor(tab));
   const groupList = ownRow?.closest("ul");
   if (groupList?.hidden) unfold(groupList);
+  pointLanguageLinksAt(tab);
   setWindowTitle(tab ? headingOf(tab).textContent : null);
 }
 

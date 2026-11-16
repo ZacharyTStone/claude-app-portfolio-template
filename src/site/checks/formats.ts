@@ -59,6 +59,11 @@ export const isEmailAddress = looksLike(/^[^\s@"'<>\\]+@[^\s@"'<>\\]+$/);
 /** A size in pixels a picture can have. */
 export const isPixelCount = (size: unknown): boolean => typeof size === "number" && Number.isInteger(size) && size > 0;
 
+/** "alex-example": a Qiita user id, letters, digits, "-" and "_", as the
+    address of its profile has it. Not "@alex-example", and not the
+    profile's whole address. */
+export const isQiitaUserId = looksLike(/^[A-Za-z0-9_-]+$/);
+
 /** Whether the account menu's clock can tell the time in `zone`: it uses
     this constructor (src/app), which throws for a zone it doesn't know
     ("Tokyo", for "Asia/Tokyo"). */

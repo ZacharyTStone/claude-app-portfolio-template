@@ -17,4 +17,8 @@ export type Env = Variables & {
       one address, the site owner's (destination_address). Without it,
       /contact sends nothing. */
   CONTACT_EMAIL?: SendEmail;
+  /** A secret: the address of a Workers Builds deploy hook for the site's
+      branch, which the cron trigger POSTs to for the daily rebuild
+      (rebuild.ts). Without it, the trigger does nothing. */
+  DEPLOY_HOOK_URL?: string;
 };

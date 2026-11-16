@@ -20,9 +20,13 @@ const WRITTEN_BY_A_COMPONENT = {
   /** Around the sidebar, the open tab and the details panel. The browser
       code sets the sidebar's width on it, and marks on it what's hidden. */
   shell: "shell",
-  /** An <article> for each thread, and for each chat the browser code
-      makes. */
+  /** An <article> for each thread and each personal answer, and for each
+      chat the browser code makes. */
   tab: "tab",
+  /** On the tab that's open. A tab's page is built with it there; the
+      script moves it to each tab it opens, and with JavaScript off an old
+      address (#about) opens a tab by :target instead. */
+  open: "open",
   /** A tab's, in the bar across its top. */
   title: "title",
   /** The part of a tab that scrolls. */

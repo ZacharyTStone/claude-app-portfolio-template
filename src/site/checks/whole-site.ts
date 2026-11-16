@@ -17,6 +17,7 @@ import {
   isLanguageCode,
   isPathOnSite,
   isPixelCount,
+  isQiitaUserId,
   isSiteAddress,
   isTimeZone,
   isWebAddress,
@@ -85,8 +86,8 @@ function firstDifference(code: string, outline: Outline, main: string, mainOutli
 
 /** An answer's id ("work.2") has to name the same answer in every language:
     /ask replies with an id, which each language's page shows from its own
-    copy, and the account menu's link to another language keeps the open
-    tab's #id. */
+    copy, and a link to another language goes to the open tab's page
+    there. */
 const checkLanguagesMatch: SiteCheck = (site, problemUnless) => {
   const { codes, main } = site;
   const mainOutline = outlineOf(site.language(main));
@@ -141,6 +142,13 @@ const SETTING_FORMATS: SettingFormat[] = [
     field: "person.image",
     looksRight: isPathOnSite,
     shouldBe: `a path on this site, like "/assets/portrait.webp"`,
+    mayBeLeftOut: true,
+  },
+  // The build asks Qiita for this user's posts by it.
+  {
+    field: "writing.qiita",
+    looksRight: isQiitaUserId,
+    shouldBe: `a Qiita user id, as in your profile's address (qiita.com/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
 ];

@@ -1,8 +1,7 @@
 ---
-import type { Thread } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
-import type { Page } from "../site/site.ts";
+import type { Page, SiteThread } from "../site/site.ts";
 import Block from "./Block.astro";
 import ContactForm from "./ContactForm.astro";
 import FileCard from "./FileCard.astro";
@@ -12,7 +11,7 @@ import Tab from "./Tab.astro";
 
 interface Props {
   page: Page;
-  thread: Thread;
+  thread: SiteThread;
 }
 const { page, thread } = Astro.props;
 const { strings } = page.language;
@@ -28,7 +27,7 @@ const hasContactForm = site.config.contactForm?.tab === thread.id;
     <>
       <p class={PAGE_CLASSES.question}>
         <span class={PAGE_CLASSES.srOnly}>{strings.question}</span>
-        <Inline text={message.q} />
+        <Inline text={message.q} code={page.code} />
       </p>
       {message.read && (
         <details class={PAGE_CLASSES.status}>
@@ -42,7 +41,7 @@ const hasContactForm = site.config.contactForm?.tab === thread.id;
       )}
       <div class={PAGE_CLASSES.answer}>
         {message.a.map((block) => (
-          <Block block={block} strings={strings} />
+          <Block block={block} page={page} fetched={thread.fetched} />
         ))}
         {messageIndex === lastMessageIndex && hasContactForm && <ContactForm page={page} />}
         {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}

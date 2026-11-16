@@ -8,6 +8,8 @@ import { CONTACT_JSON, CONTACT_NOTE_IDS, isSent, type ContactNote } from "../con
 import { DATA } from "../contracts/page-attributes.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, closestFrom, find } from "./lib/dom.ts";
+import { go } from "./address.ts";
+import { addressOf } from "./tabs.ts";
 
 /** Longer than the Worker takes to send an email. */
 const CONTACT_TIMEOUT_MS = 15_000;
@@ -62,7 +64,8 @@ function say(form: Element, note: Element): void {
 
 /** A visitor the Worker sent back to a note (they sent the form before
     this script ran) is in the note's tab: the line under Send says the
-    note, and the address is the tab's, as any open tab's is. */
+    note, and the address is the tab's own page's, as any open tab's is,
+    in place of the one it came back to. */
 function sayTheNoteTheAddressNames(): void {
   const named = location.hash.slice(1);
   if (!Object.values(CONTACT_NOTE_IDS).includes(named)) return;
@@ -71,5 +74,5 @@ function sayTheNoteTheAddressNames(): void {
   const tab = note?.closest(CLASS_SELECTOR.tab);
   if (!note || !form || !tab) return;
   say(form, note);
-  location.replace(`#${tab.id}`);
+  go(addressOf(tab.id), true);
 }

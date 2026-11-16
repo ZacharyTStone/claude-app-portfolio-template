@@ -62,13 +62,13 @@ call anything done, run `npm run verify`.
 | `site.config.ts` | Everything the site says, in every language (each site's own) |
 | `src/config/` | The config's types: a doc comment on every field, which an editor shows on hover; English wording's defaults |
 | `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, the wire formats of `/ask` and `/contact` |
-| `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the config's checks (`checks/`), each file it writes (`files/`), the security headers |
-| `src/pages/`, `src/layouts/` | The routes (each language's page, 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
+| `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the pages and what each one's head says (`pages.ts`), the config's checks (`checks/`), each file it writes (`files/`), the Writing tab's posts (`writing/`), the security headers |
+| `src/pages/`, `src/layouts/` | The routes (`[...page].astro`: each language's home page and each tab's; 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
 | `src/components/` | The page's parts: `Name.astro`, its rules in `Name.css` beside it |
-| `src/integrations/` | Astro hooks: check the config before a build, write the host's files after |
+| `src/integrations/` | Astro hooks: check the config before a build, fetch the Writing tab's posts, write the host's files after |
 | `src/styles/` | Shared rules, and the rules for what the script makes; `app.css` lists every stylesheet in order |
 | `src/app/` | The browser code: `main.ts` starts it; a feature of several files is a folder |
-| `src/worker/` | `POST /ask` and `POST /contact`, the only server code; its settings are `src/worker/settings.ts` |
+| `src/worker/` | `POST /ask`, `POST /contact` and the daily rebuild, the only server code; its settings are `src/worker/settings.ts` |
 | `src/shared/config.ts` | Only the path an older site's config imports its types from |
 | `public/` | Files served as they are: favicons, the social card, pictures, icons, fonts |
 | `diagrams/` | Pictures that move, as code (each site's own) |
@@ -137,6 +137,7 @@ call anything done, run `npm run verify`.
 | draw or change a diagram | `docs/diagrams.md` |
 | turn Ask on, or change its limits or its cost | `docs/ask.md` |
 | turn the contact form on, or change its limits | `docs/contact-form.md` |
+| turn on the Writing tab or its daily rebuild, or change what the build fetches | `docs/writing.md` |
 | change a header, the policy, or what a page loads | `docs/security.md` |
 | deploy, or change `host` or `url` | `docs/deploy.md` |
 | take the template's updates | `docs/updating.md` |

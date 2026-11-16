@@ -66,8 +66,8 @@ async function fillIn(page: Page, form: ContactForm): Promise<void> {
 }
 
 test.describe("the contact form, with JavaScript", () => {
-  test.beforeEach(async ({ page, contactForm }) => {
-    await page.goto(`#${contactForm.tab}`);
+  test.beforeEach(async ({ page, site, contactForm }) => {
+    await page.goto(site.pathOf(contactForm.tab));
   });
 
   test("Send posts the form's fields to /contact, as a form would, asking for JSON back", async ({
@@ -93,6 +93,7 @@ test.describe("the contact form, with JavaScript", () => {
 
   test("once it has gone, the line under Send says so, the boxes are empty, and the tab stays open", async ({
     page,
+    site,
     contactForm,
   }) => {
     await standIn(page, contactForm, "sent");
@@ -102,7 +103,7 @@ test.describe("the contact form, with JavaScript", () => {
     await expect(form.status).toHaveText(contactForm.sent);
     await expect(form.email).toHaveValue("");
     await expect(form.message).toHaveValue("");
-    await expect(page).toHaveURL(new RegExp(`#${contactForm.tab}$`));
+    await expect(page).toHaveURL((url) => url.pathname === site.pathOf(contactForm.tab) && url.hash === "");
     await expect(form.note("sent")).toBeHidden();
   });
 
@@ -177,14 +178,15 @@ test.describe("the contact form, with JavaScript", () => {
 });
 
 test.describe("the contact form, after a visit without JavaScript", () => {
-  test("an address at one of its notes opens the note's tab, says the note under Send, and becomes the tab's", async ({
+  test("an address at one of its notes opens the note's tab, says the note under Send, and becomes the tab's page's", async ({
     page,
+    site,
     contactForm,
   }) => {
     await page.goto(`#${CONTACT_NOTE_IDS.sent}`);
     const form = formIn(page, contactForm);
     await expect(page.locator(`#${contactForm.tab}`)).toBeVisible();
-    await expect(page).toHaveURL(new RegExp(`#${contactForm.tab}$`));
+    await expect(page).toHaveURL((url) => url.pathname === site.pathOf(contactForm.tab) && url.hash === "");
     await expect(form.status).toHaveText(contactForm.sent);
     await expect(form.note("sent")).toBeHidden();
   });
@@ -197,8 +199,12 @@ test.describe("the contact form, without JavaScript", () => {
     ["it went", "sent"],
     ["it didn't", "failed"],
   ] as const) {
-    test(`Send posts the form, and the page comes back at its tab, saying ${said}`, async ({ page, contactForm }) => {
-      await page.goto(`#${contactForm.tab}`);
+    test(`Send posts the form, and the page comes back at its tab, saying ${said}`, async ({
+      page,
+      site,
+      contactForm,
+    }) => {
+      await page.goto(site.pathOf(contactForm.tab));
       const requests = await standIn(page, contactForm, note);
       await fillIn(page, contactForm);
       await formIn(page, contactForm).send.click();
@@ -212,8 +218,8 @@ test.describe("the contact form, without JavaScript", () => {
     });
   }
 
-  test("neither note shows until the address names it", async ({ page, contactForm }) => {
-    await page.goto(`#${contactForm.tab}`);
+  test("neither note shows until the address names it", async ({ page, site, contactForm }) => {
+    await page.goto(site.pathOf(contactForm.tab));
     const form = formIn(page, contactForm);
     await expect(form.element).toBeVisible();
     await expect(form.note("sent")).toBeHidden();
@@ -224,8 +230,8 @@ test.describe("the contact form, without JavaScript", () => {
 test.describe("the contact form, on a phone", () => {
   test.use(A_PHONE);
 
-  test("fits the screen, and sends", async ({ page, contactForm }) => {
-    await page.goto(`#${contactForm.tab}`);
+  test("fits the screen, and sends", async ({ page, site, contactForm }) => {
+    await page.goto(site.pathOf(contactForm.tab));
     await standIn(page, contactForm, "sent");
     const form = formIn(page, contactForm);
     const box = await form.element.boundingBox();

@@ -42,8 +42,8 @@ test.describe("a sidebar group, folded", () => {
     await expect(rowsUnder(page, foldingGroup.id)).toBeHidden();
   });
 
-  test("unfolds when a tab in it opens, and its button says so", async ({ page, foldingGroup }) => {
-    await page.goto(`#${foldingGroup.tabs[0]}`);
+  test("unfolds when a tab in it opens, and its button says so", async ({ page, site, foldingGroup }) => {
+    await page.goto(site.pathOf(foldingGroup.tabs[0] ?? ""));
     await expect(rowsUnder(page, foldingGroup.id)).toBeVisible();
     await expect(foldButtonOf(page, foldingGroup.id)).toHaveAttribute("aria-expanded", "true");
   });
@@ -51,7 +51,7 @@ test.describe("a sidebar group, folded", () => {
 
 test.describe("the sidebar, beside an open tab", () => {
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
   });
 
   test("ArrowDown takes the focus from its first row to its second", async ({ page }) => {
@@ -77,7 +77,7 @@ test.describe("the sidebar, beside an open tab", () => {
 
   test("a click on its edge, with no drag, leaves the default width", async ({ page, site }) => {
     await page.locator(CLASS.resizer).click();
-    await revisit(page, `#${site.firstThread.id}`);
+    await revisit(page, site.firstThread.path);
     // A width that's been set is on the shell, as its style.
     await expect(page.locator(CLASS.shell)).not.toHaveAttribute("style");
   });
@@ -87,7 +87,7 @@ test.describe("the sidebar's edge, moved two steps by ArrowRight", () => {
   let defaultWidth: number;
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     defaultWidth = await sidebarWidth(page);
     await page.locator(CLASS.resizer).focus();
     await page.keyboard.press("ArrowRight");
@@ -99,7 +99,7 @@ test.describe("the sidebar's edge, moved two steps by ArrowRight", () => {
   });
 
   test("leaves it that wide on the next visit", async ({ page, site }) => {
-    await revisit(page, `#${site.firstThread.id}`);
+    await revisit(page, site.firstThread.path);
     await expectSidebarWidth(page, defaultWidth + 2 * SIDEBAR_WIDTH.arrowKeyStep);
   });
 
@@ -113,7 +113,7 @@ test.describe("the sidebar's edge, dragged", () => {
   let widthBefore: number;
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     widthBefore = await sidebarWidth(page);
     await pressAndMove(page, page.locator(CLASS.resizer), { dx: EDGE_DRAG_PX, moves: EDGE_DRAG_MOVES });
     await page.mouse.up();
@@ -124,7 +124,7 @@ test.describe("the sidebar's edge, dragged", () => {
   });
 
   test("leaves it that wide on the next visit", async ({ page, site }) => {
-    await revisit(page, `#${site.firstThread.id}`);
+    await revisit(page, site.firstThread.path);
     await expectSidebarWidth(page, widthBefore + EDGE_DRAG_PX);
   });
 });

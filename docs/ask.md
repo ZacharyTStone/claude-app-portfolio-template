@@ -75,7 +75,10 @@ Ask finds what your site says, so write full sentences that make sense on
 their own ("Alex joined Acme in 2024", not "Joined in 2024"), and state the
 facts people ask about (dates, titles, tools) somewhere in words. A
 picture is an illustration: Ask reads only its caption, so a fact belongs
-in the answer's text too.
+in the answer's text too. A link card is a label Ask reads and never
+quotes, but for the Writing tab's: each post's title there is a line Ask
+may quote, as it quotes your sentences
+([Writing](writing.md#ask-and-llmstxt)).
 
 ## Turning it on
 
@@ -128,8 +131,9 @@ picker may write 512 tokens, the reply's writer 320 a try, two tries at
 most, and Llama Guard 10. Each reports the tokens it used, and the Worker prices them in
 Neurons. Past `ASK_DAILY_NEURONS` (9,000, inside Workers AI's free 10,000
 a day) no more are asked until midnight UTC. What one question costs
-depends on how much your site says, since the model reads every answer:
-each log line has it, as `neurons`. A question still being answered is
+depends on how much your site says, since the model reads every answer,
+the Writing tab's titles among them: each log line has it, as `neurons`.
+A question still being answered is
 counted at the most one has cost, so a burst of them takes the day past
 its budget by one question's cost at most.
 

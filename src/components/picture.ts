@@ -2,8 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Picture } from "../config/blocks.ts";
 import { PLAYS_ATTRIBUTE } from "../contracts/picture-files.ts";
-
-const PUBLIC_FOLDER = "public";
+import { PUBLIC_FOLDER } from "../site/repo.ts";
 
 // An <svg> tag that says how long it plays: <svg … data-plays="18.6">.
 const SVG_THAT_PLAYS = new RegExp(`<svg\\b[^>]*\\s${PLAYS_ATTRIBUTE}="([0-9.]+)"`);

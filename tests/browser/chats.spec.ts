@@ -4,6 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 import { clockNote, timeIn } from "../../src/app/clock.ts";
 import { DATA, LOCAL_ZONE, MENU_KEYS } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
+import { tabPagePath } from "../../src/contracts/tab-pages.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -18,6 +19,7 @@ import {
   OPEN_CARD,
   OPEN_CHAT,
   OPEN_DRAWER,
+  openTab,
   sidebarRow,
   windowTitle,
 } from "./parts.ts";
@@ -44,7 +46,7 @@ const AN_AFTERNOON_HOUR = 15;
 
 test.describe("the thread's menu, opened by keyboard", () => {
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await chevronOf(page, site.firstThread.id).focus();
     await page.keyboard.press("Enter");
     await expect(page.locator(ID.titleMenu)).toBeVisible();
@@ -102,14 +104,14 @@ test.describe("the thread's menu, opened by keyboard", () => {
 
 test.describe("choosing from a menu or the card", () => {
   test("a row of the thread's menu gives the focus back to the menu's chevron", async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await chevronOf(page, site.firstThread.id).click();
     await page.locator(`${ID.titleMenu} [${DATA.menuKey}="${MENU_KEYS.copyLink}"]`).click();
     await expect(chevronOf(page, site.firstThread.id)).toBeFocused();
   });
 
   test("a row of that menu's submenu gives the focus back to the chevron too", async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await chevronOf(page, site.firstThread.id).click();
     await page.locator(`${ID.titleMenu} ${SUBMENU_ROW}`).click();
     await page.locator(`${ID.titleMenu} ${CLASS.submenu} ${MENU_ROW}`).first().click();
@@ -126,7 +128,7 @@ test.describe("choosing from a menu or the card", () => {
 
 test.describe("a word still being composed, as Japanese is typed", () => {
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
   });
 
   test("Enter or Escape on it doesn't end the renaming of a tab", async ({ page, site }) => {
@@ -258,18 +260,17 @@ test("two windows don't undo each other's chats or names", async ({ page, site, 
 });
 
 test("a refresh keeps the tab that's open, and the window named after it", async ({ page, site }) => {
-  const tab = `#${site.firstThread.id}`;
-  await page.goto(tab);
-  await expect(page.locator(`${tab}:target`)).toBeVisible();
+  await page.goto(site.firstThread.path);
+  await expect(openTab(page, site.firstThread.id)).toBeVisible();
   await page.reload();
-  await expect(page.locator(`${tab}:target`)).toBeVisible();
-  expect(new URL(page.url()).hash, "the address still names the tab").toBe(tab);
+  await expect(openTab(page, site.firstThread.id)).toBeVisible();
+  expect(new URL(page.url()).pathname, "the address is still the tab's").toBe(site.firstThread.path);
   await expect(page).toHaveTitle(windowTitle(site.firstThread.title, site));
 });
 
 test.describe("the account menu", () => {
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(CLASS.accountRow).click();
     await expect(page.locator(ID.accountMenu)).toBeVisible();
   });
@@ -294,7 +295,7 @@ test.describe("the account menu", () => {
     test.skip(site.languages.length !== 1, "the site isn't in exactly two languages");
     await expect(page.locator(`${ID.accountMenu} ${ATTRIBUTE.langLink}`)).toHaveAttribute(
       "href",
-      `${site.languageLink}#${site.firstThread.id}`,
+      tabPagePath(site.languageLink ?? "", site.firstThread.id),
     );
   });
 
@@ -305,7 +306,7 @@ test.describe("the account menu", () => {
     test.skip(site.languages.length < 2, "the site isn't in three languages or more");
     await page.locator(`${ID.accountMenu} ${SUBMENU_ROW}`).click();
     expect(await hrefsOf(page.locator(`${ID.accountMenu} ${CLASS.submenu} a`))).toEqual(
-      site.languages.map((language) => `${language.href}#${site.firstThread.id}`),
+      site.languages.map((language) => tabPagePath(language.href, site.firstThread.id)),
     );
   });
 });
@@ -316,7 +317,7 @@ test.describe("the account menu's clock, with the page's clock stopped", () => {
   test.beforeEach(async ({ page, site, visitorZone }) => {
     now = halfPast(AN_AFTERNOON_HOUR, visitorZone);
     await page.clock.setFixedTime(now);
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(CLASS.accountRow).click();
     await expect(page.locator(ID.accountMenu)).toBeVisible();
   });
@@ -344,14 +345,14 @@ test.describe("the account menu's languages, on a site in three or more", () => 
   test.beforeEach(async ({ page, site, baseURL, otherThread }) => {
     test.skip(!site.languages.length, "the site is in one language");
     // Another language beside the site's own, so the account menu has a submenu of them.
-    await serveHomeWithOneMoreLanguage(page, baseURL ?? "");
-    await page.goto(`#${site.firstThread.id}`);
+    await serveWithOneMoreLanguage(page, new URL(site.firstThread.path, baseURL).href);
+    await page.goto(site.firstThread.path);
     await page.locator(CLASS.accountRow).click();
     await openSubmenuByKeyboard(page);
     // Out of the menu while its submenu is open, and to another tab.
     await page.keyboard.press("Tab");
     await sidebarRow(page, otherThread.id).click();
-    await expect(page.locator(`#${otherThread.id}:target`)).toBeVisible();
+    await expect(openTab(page, otherThread.id)).toBeVisible();
     await page.locator(CLASS.accountRow).click();
   });
 
@@ -363,15 +364,15 @@ test.describe("the account menu's languages, on a site in three or more", () => 
     await openSubmenuByKeyboard(page);
     const hrefs = await hrefsOf(page.locator(`${ID.accountMenu} ${CLASS.submenu} a`));
     expect(hrefs.length, "the submenu lists more than one language").toBeGreaterThan(1);
-    expect(hrefs.filter((href) => !href?.endsWith(`#${otherThread.id}`))).toEqual([]);
+    expect(hrefs.filter((href) => !href?.endsWith(`/${otherThread.id}/`))).toEqual([]);
   });
 });
 
 test("the account menu's submenu of languages is as tall as its rows", async ({ page, site, baseURL }) => {
   test.skip(!site.languages.length, "the site is in one language");
   // Another language beside the site's own, so the account menu has a submenu of them.
-  await serveHomeWithOneMoreLanguage(page, baseURL ?? "");
-  await page.goto(`#${site.firstThread.id}`);
+  await serveWithOneMoreLanguage(page, new URL(site.firstThread.path, baseURL).href);
+  await page.goto(site.firstThread.path);
   await page.locator(CLASS.accountRow).click();
   await openSubmenuByKeyboard(page);
   const languages = page.locator(`${ID.accountMenu} ${CLASS.submenu}`);
@@ -390,7 +391,7 @@ test.describe('"Log out"', () => {
   const GOODBYE = `${CLASS.bye}[role="dialog"]`;
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(CLASS.accountRow).click();
     await page.locator(`${ID.accountMenu} ${ATTRIBUTE.logout}`).click();
     await expect(page.locator(GOODBYE)).toBeVisible();
@@ -437,21 +438,25 @@ async function expectNoChatIsLeft(page: Page): Promise<void> {
   await expect(page).not.toHaveURL(/#/);
 }
 
-// A link's hreflang and href, as the page writes them: hreflang="ja" and href="/ja/".
+// A link's hreflang, href and home page, as the page writes them: hreflang="ja", href="/ja/about/" and data-home="/ja/".
 const HREFLANG = /hreflang="[^"]*"/;
 const HREF = /href="[^"]*"/;
+const HOME = new RegExp(`${DATA.home}="[^"]*"`);
 
-/** From now on the main page (at `home`) is served with one more language
-    in its sidebar, "xx", after its first: with more than one other
-    language the account menu lists them in a submenu. */
-async function serveHomeWithOneMoreLanguage(page: Page, home: string): Promise<void> {
-  await page.route(home, async (route) => {
+/** From now on the main language's page at `url` is served with one more
+    language in its sidebar, "xx", after its first: with more than one
+    other language the account menu lists them in a submenu. */
+async function serveWithOneMoreLanguage(page: Page, url: string): Promise<void> {
+  await page.route(url, async (route) => {
     const response = await route.fetch();
     const html = await response.text();
     // The first link in the sidebar's list of languages, whole: <a …>…</a>.
     const start = html.indexOf(">", html.indexOf(`class="${PAGE_CLASSES.languageSwitch}"`)) + 1;
     const link = html.slice(start, html.indexOf("</a>", start) + "</a>".length);
-    const anotherLanguage = link.replace(HREFLANG, 'hreflang="xx"').replace(HREF, 'href="/xx/"');
+    const anotherLanguage = link
+      .replace(HREFLANG, 'hreflang="xx"')
+      .replace(HREF, 'href="/xx/"')
+      .replace(HOME, `${DATA.home}="/xx/"`);
     await route.fulfill({ response, body: html.replace(link, link + anotherLanguage) });
   });
 }

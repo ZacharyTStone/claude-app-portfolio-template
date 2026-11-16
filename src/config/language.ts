@@ -80,13 +80,14 @@ export type Language = {
     like: lowercase letters, digits and dashes ("about"). */
 export const ID_PATTERN = /^[a-z][a-z0-9-]*$/;
 
-/** A conversation: a tab of its own, at #id. */
+/** A conversation: a tab of its own, with a page of its own at /<id>/. */
 export type Thread = {
-  /** Its address (#about): ID_PATTERN. The sidebar, the panel, the question
-      card and links in the text name the thread by it. The page uses some
-      ids itself ("top", "main", "asked", anything starting "personal-",
-      "chat-", "group-" or "panel-", or ending "-title"): the build says so
-      if a thread takes one. */
+  /** Its page's address (/about/; /ja/about/ in another language):
+      ID_PATTERN. The sidebar, the panel, the question card and links in the
+      text (#about) name the thread by it. The page and the site use some
+      ids themselves ("top", "main", "asked", "assets", "ask", "blog", a
+      language's code, anything starting "personal-", "chat-", "group-" or
+      "panel-", or ending "-title"): the build says so if a thread takes one. */
   id: string;
   /** The tab's name, in the bar across its top and the window's title.
       Ask's model and llms.txt read the thread's answers under it. */

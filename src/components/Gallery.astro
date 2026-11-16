@@ -1,18 +1,18 @@
 ---
 import type { Picture as PictureBlock } from "../config/blocks.ts";
-import type { Strings } from "../config/strings.ts";
+import type { Page } from "../site/site.ts";
 import Picture from "./Picture.astro";
 
 interface Props {
   pictures: PictureBlock[];
-  /** The page's wording, for a picture's Play button. */
-  strings: Strings;
+  /** The page it's on. */
+  page: Page;
 }
-const { pictures, strings } = Astro.props;
+const { pictures, page } = Astro.props;
 ---
 
 <div class="gallery">
   {pictures.map((picture) => (
-    <Picture picture={picture} strings={strings} />
+    <Picture picture={picture} page={page} />
   ))}
 </div>

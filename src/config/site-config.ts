@@ -4,6 +4,7 @@
    threads) the build checks, and names the field (src/site/checks). */
 
 import type { Language } from "./language.ts";
+import type { Writing } from "./writing.ts";
 
 export type SiteConfig = {
   /** Where the site is: "https://example.com". Served under a path, as a
@@ -66,6 +67,11 @@ export type SiteConfig = {
       Each language then needs strings.viewerOpen and strings.viewerClose.
       Leave out for no viewer. */
   viewer?: Record<string, string>;
+  /** A Writing tab, listing your posts elsewhere: { qiita: "alex-example" }.
+      The build fetches them, and stops if it can't, so a new post shows
+      once the site is built again (docs/writing.md). Each language then
+      needs the writing* strings (English has them). Leave out for none. */
+  writing?: Writing;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every
       question with its answer, in the main language. */

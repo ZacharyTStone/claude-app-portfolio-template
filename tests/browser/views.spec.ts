@@ -1,14 +1,14 @@
 /* The site seen other ways: in its other languages, on a phone, without
    JavaScript and printed. */
 import type { Locator, Page } from "@playwright/test";
-import { SEPARATOR } from "../../src/app/constants.ts";
+import { SEPARATOR, tabPagePath } from "../../src/contracts/tab-pages.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
   ID_SELECTOR as ID,
 } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import { OPEN_CARD, OPEN_CHAT, OPEN_DRAWER, sidebarRow } from "./parts.ts";
+import { OPEN_CARD, OPEN_CHAT, OPEN_DRAWER, openTab, sidebarRow } from "./parts.ts";
 import { pickFirstTab } from "./visitor.ts";
 
 /** How long the page has for what it should do at once, in milliseconds:
@@ -32,7 +32,7 @@ test("each other language's page opens on the same tab, in its language", async 
   const tab = `#${site.firstThread.id}`;
   for (const { href, lang } of site.languages) {
     await test.step(`the ${lang} page`, async () => {
-      await page.goto(`${href}${tab}`);
+      await page.goto(tabPagePath(href, site.firstThread.id));
       await expect(page.locator("html")).toHaveAttribute("lang", lang);
       await expect(page.locator(`${tab} ${CLASS.thread} > ${CLASS.question}`).first()).toBeVisible();
       // Only how it starts: the site's name was read from the main page, and this one may write it another way.
@@ -46,7 +46,7 @@ test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${lastThreadOf(site.threads)}`);
+    await page.goto(site.pathOf(lastThreadOf(site.threads)));
   });
 
   test("a tab still opens, and the home screen doesn't show behind it", async ({ page, site }) => {
@@ -54,7 +54,7 @@ test.describe("without JavaScript", () => {
     await expect(page.locator(ID.home)).toBeHidden();
   });
 
-  test("Tab brings up no skip link: its link would close the tab", async ({ page }) => {
+  test("Tab brings up no skip link, which needs JavaScript", async ({ page }) => {
     await page.keyboard.press("Tab");
     await expect(page.locator(CLASS.skip)).toBeHidden();
   });
@@ -129,8 +129,8 @@ test.describe("on a phone", () => {
       await expect(card).toBeVisible();
       await chat.locator(CLASS.menuButton).click();
       await sidebarRow(page, site.firstThread.id).click();
-      await expect(page.locator(`#${site.firstThread.id}:target`)).toBeVisible();
-      // Once the page has caught up: the drawer closes on the hashchange.
+      await expect(openTab(page, site.firstThread.id)).toBeVisible();
+      // Once the page has caught up: the drawer closes as the address changes.
       await expect(page.locator(OPEN_DRAWER)).toHaveCount(0);
       await page.goBack();
       await expect(chat).toBeVisible();
@@ -144,7 +144,7 @@ test.describe("on a phone", () => {
     const screenWidth = page.viewportSize()?.width ?? 0;
     for (const tab of site.figureTabs) {
       await test.step(`in #${tab}`, async () => {
-        await page.goto(`#${tab}`);
+        await page.goto(site.pathOf(tab));
         const figures = page.locator(`#${tab} ${CLASS.figure}`);
         await expect(figures.first()).toBeVisible();
         expect(await figures.evaluateAll(wordsOutsideTheirFigure), "what's written past a figure's edge").toEqual([]);
@@ -157,7 +157,7 @@ test.describe("on a phone", () => {
   });
 
   test("Share shows only its icon, and keeps its name", async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     const share = page.locator(`#${site.firstThread.id} ${ATTRIBUTE.copyLink}:has(${CLASS.label})`);
     const label = share.locator(CLASS.label);
     const name = (await label.innerText()).trim();
@@ -172,7 +172,7 @@ test.describe("on a phone", () => {
 
   test.describe("the drawer", () => {
     test.beforeEach(async ({ page, site }) => {
-      await page.goto(`#${site.firstThread.id}`);
+      await page.goto(site.firstThread.path);
       await menuButtonOf(page, site.firstThread.id).click();
       await expect(page.locator(OPEN_DRAWER)).toBeVisible();
     });
@@ -195,7 +195,7 @@ test.describe("on a phone", () => {
 
     test("closes at once when a row opens its tab", async ({ page, otherThread }) => {
       await sidebarRow(page, otherThread.id).click();
-      await expect(page.locator(`#${otherThread.id}:target`)).toBeVisible();
+      await expect(openTab(page, otherThread.id)).toBeVisible();
       await expect(page.locator(OPEN_DRAWER)).toHaveCount(0, { timeout: AT_ONCE_MS });
     });
 

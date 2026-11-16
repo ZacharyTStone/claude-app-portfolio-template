@@ -39,6 +39,7 @@ type Wrangler = {
   migrations?: { new_sqlite_classes?: string[]; new_classes?: string[] }[];
   send_email?: { name?: string; destination_address?: string; allowed_destination_addresses?: string[] }[];
   vars?: Record<string, string>;
+  triggers?: { crons?: string[] };
   observability?: { enabled?: boolean; logs?: { invocation_logs?: boolean } };
 };
 
@@ -61,7 +62,7 @@ const asItIs = parse(text);
 function wranglerWithTheWorkerOn(): { wrangler: Wrangler; wasOff: boolean } | undefined {
   if (asItIs.main !== undefined) return { wrangler: asItIs, wasOff: false };
   const turnedOn = parse(text.replace(A_COMMENTED_LINE_OF_JSON, "$1$2"));
-  return turnedOn.main === undefined ? undefined : { wrangler: turnedOn, wasOff: true };
+  return turnedOn.ai === undefined ? undefined : { wrangler: turnedOn, wasOff: true };
 }
 
 const withTheWorkerOn = wranglerWithTheWorkerOn();
@@ -208,6 +209,15 @@ test("a site with the contact form on in site.config.ts has it on in wrangler.js
   if (!siteConfig.contactForm) return t.skip("site.config.ts has no contact form");
   const missing = Object.entries(partsTheFormNeeds(asItIs)).flatMap(([part, isThere]) => (isThere ? [] : [part]));
   assert.deepEqual(missing, [], "wrangler.jsonc needs these, as docs/contact-form.md says");
+});
+
+test("a cron trigger (the Writing tab's daily rebuild) has the Worker's script to run, and the site's files bound", (t) => {
+  if (!asItIs.triggers?.crons?.length) return t.skip("wrangler.jsonc has no cron trigger");
+  assert.ok(
+    existsSync(join(ROOT, asItIs.main ?? "")),
+    `a cron trigger runs the Worker's script, and ${asItIs.main} isn't one`,
+  );
+  assert.equal(asItIs.assets?.binding, BINDINGS.assets, "the Worker reaches the site's files by this binding");
 });
 
 test("the Worker's log is kept, without the line for each request that has the visitor's address", () => {

@@ -1,6 +1,6 @@
 /* Which characters each Japanese font needs, read from the built pages. Noto Sans JP gets every character the
-   Japanese page and 404.html show in Japanese; Noto Serif JP only those of what the stylesheet sets in the
-   serif. */
+   Japanese page and 404.html show in Japanese, but for what the build fetched; Noto Serif JP only those of what
+   the stylesheet sets in the serif. */
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
@@ -37,6 +37,11 @@ const SERIF_ELEMENT = new RegExp(
   `<(\\w+)\\b[^>]*\\bclass="(?:[^"]*\\s)?(?:${SERIF_CLASSES.join("|")})(?:\\s[^"]*)?"[^>]*>(.*?)</\\1>`,
   "gis",
 );
+// An element marked as made from what the build fetched, the same way: a post's card in the Writing tab, a
+// link, which holds no other. Its text is different at every build, so a font cut for it would be out of date
+// at the next one: the stylesheet sets it in the system's Japanese font (src/styles/japanese.css).
+// <a class="link-card" href="https://qiita.com/…" data-fetched>…</a>
+const FETCHED_ELEMENT = new RegExp(`<(\\w+)\\b[^>]*\\s${DATA.fetched}\\b[^>]*>.*?</\\1>`, "gis");
 const ANY_TAG = /<[^>]+>/g;
 const SCRIPT_ELEMENT = /<script\b.*?<\/script>/gis;
 // A block of data for the page's script, with the JSON in it:
@@ -91,8 +96,9 @@ function isJapanesePage(html: string): boolean {
 }
 
 /** Everything a page puts on screen: its body's text, the wording its data-* attributes hold for the browser
-    code to show, and the question card's data (a JSON block in the page). */
-function shownOn(html: string): string {
+    code to show, and the question card's data (a JSON block in the page). Not what the build fetched. */
+function shownOn(page: string): string {
+  const html = page.replace(FETCHED_ELEMENT, " ");
   const bodyStarts = html.search(/<body[\s>]/);
   if (bodyStarts < 0) throw new Error("A built page has no <body>: is the folder a built site?");
   const body = html.slice(bodyStarts);
@@ -117,10 +123,18 @@ function textOf(markup: string): string {
   return withNumberedCharacters(markup.replace(ANY_TAG, " "));
 }
 
-/** The text of every data-* attribute on a page, or of those whose name starts with `prefix`. */
+/** The data-* attributes whose text no font of the page's draws: the home screen's window title, which the
+    browser shows in its own. */
+const NOT_ON_THE_PAGE: readonly string[] = [DATA.homeTitle];
+
+/** The text of every data-* attribute on a page, or of those whose name starts with `prefix`, but for the ones
+    not shown on the page. */
 function dataAttributeText(html: string, prefix = "data-"): string {
-  const attribute = new RegExp(`\\b${prefix}[\\w-]*="([^"]*)"`, "g");
-  return Array.from(html.matchAll(attribute), ([, value = ""]) => withNumberedCharacters(value)).join(" ");
+  const attribute = new RegExp(`\\b(${prefix}[\\w-]*)="([^"]*)"`, "g");
+  return Array.from(html.matchAll(attribute))
+    .filter(([, name = ""]) => !NOT_ON_THE_PAGE.includes(name))
+    .map(([, , value = ""]) => withNumberedCharacters(value))
+    .join(" ");
 }
 
 /** Every string in a page's JSON data blocks, at any depth. */

@@ -56,7 +56,9 @@
 }
 
 :root:lang(ja) {
-  --sans: "Inter", "Noto Sans JP Subset", "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  /* The system's own Japanese sans fonts: after the cut-down one, for a character it lacks. */
+  --sans-japanese: "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", Meiryo, sans-serif;
+  --sans: "Inter", "Noto Sans JP Subset", var(--sans-japanese);
   --serif: "Source Serif 4", "Noto Serif JP Subset", "Hiragino Mincho ProN", "Yu Mincho", serif;
   --mono: "Geist Mono", "Noto Sans JP Subset", ui-monospace, Menlo, Consolas, monospace;
 }

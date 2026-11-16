@@ -10,7 +10,15 @@ import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import { COMES_INTO_VIEW, MOVING_PICTURE, OPEN_CHAT, PLAY_BUTTON, PLAYED_FIGURE, PLAYING_PICTURE } from "./parts.ts";
+import {
+  COMES_INTO_VIEW,
+  MOVING_PICTURE,
+  OPEN_CHAT,
+  PLAY_BUTTON,
+  PLAYED_FIGURE,
+  PLAYING_PICTURE,
+  sidebarRow,
+} from "./parts.ts";
 import type { MovingPicture, PlayedPicture, Site } from "./site.ts";
 import { askInNewChat } from "./visitor.ts";
 
@@ -36,8 +44,8 @@ const A_SHORT_WINDOW = { width: 1440, height: 420 };
 test.describe("a quote or a file card below a short window", () => {
   test.use({ viewport: A_SHORT_WINDOW });
 
-  test.beforeEach(async ({ page, comingIntoView }) => {
-    await page.goto(`#${comingIntoView.tab}`);
+  test.beforeEach(async ({ page, site, comingIntoView }) => {
+    await page.goto(site.pathOf(comingIntoView.tab));
   });
 
   test("waits: it isn't shown, and keeps its place in the page", async ({ page, comingIntoView }) => {
@@ -86,8 +94,8 @@ test.describe("a quote or a file card below a short window", () => {
 });
 
 test.describe("a picture a visitor plays", () => {
-  test.beforeEach(async ({ page, playedPicture }) => {
-    await page.goto(`#${playedPicture.tab}`);
+  test.beforeEach(async ({ page, site, playedPicture }) => {
+    await page.goto(site.pathOf(playedPicture.tab));
   });
 
   test("plays by itself once most of it is scrolled to, moving over its still, with a button that says Pause", async ({
@@ -122,7 +130,7 @@ test.describe("a picture a visitor plays", () => {
     const elsewhere = tabToLeaveFor(site, playedPicture);
     const figure = await scrollToItsTabs(page, playedPicture);
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
-    await page.goto(`#${elsewhere}`);
+    await sidebarRow(page, elsewhere).click();
     await expect(figure).not.toContainClass(PAGE_CLASSES.playing);
   });
 
@@ -275,7 +283,7 @@ test.describe("a picture a visitor plays, in a tab that isn't open yet", () => {
   }) => {
     await page.waitForTimeout(STILL_FOR_MS);
     await expect(page.locator(CLASS.moving), "nothing plays out of sight").toHaveCount(0);
-    await page.goto(`#${playedPicture.tab}`);
+    await sidebarRow(page, playedPicture.tab).click();
     const figure = await scrollToItsTabs(page, playedPicture);
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
   });
@@ -290,7 +298,7 @@ test.describe("a picture a visitor plays, in a tab that isn't open yet", () => {
     const button = itsFigure(page, playedPicture).locator(PLAY_BUTTON);
     const itsOwnTime = (await button.getAttribute(DATA.play)) ?? "";
     await playFor(button, A_MOMENT);
-    await page.goto(`#${playedPicture.tab}`);
+    await sidebarRow(page, playedPicture.tab).click();
     const figure = await scrollToItsTabs(page, playedPicture);
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
     await expect(figure.locator(CLASS.moving), "it has played through").toHaveCount(0);
@@ -302,8 +310,8 @@ test.describe("a picture a visitor plays, in a tab that isn't open yet", () => {
 });
 
 test.describe("a picture that moves all the time", () => {
-  test.beforeEach(async ({ page, movingPicture }) => {
-    await page.goto(`#${movingPicture.tab}`);
+  test.beforeEach(async ({ page, site, movingPicture }) => {
+    await page.goto(site.pathOf(movingPicture.tab));
   });
 
   test("is shown moving: its own file loads, and what it draws changes", async ({ page, movingPicture }) => {
@@ -383,8 +391,8 @@ async function afterItsTurn(page: Page, picture: PlayedPicture): Promise<Locator
 
 /** Goes to another tab, then back to a picture's, and scrolls to it. */
 async function leaveAndOpenAgain(page: Page, picture: PlayedPicture, elsewhere: string): Promise<void> {
-  await page.goto(`#${elsewhere}`);
-  await page.goto(`#${picture.tab}`);
+  await sidebarRow(page, elsewhere).click();
+  await sidebarRow(page, picture.tab).click();
   await scrollToItsTabs(page, picture);
 }
 

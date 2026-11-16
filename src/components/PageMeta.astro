@@ -1,31 +1,34 @@
 ---
+/* What a page's <head> says of it, for search engines and a link's preview: its title and description, its
+   address and its versions in the other languages, and the site's social card. Any kind of page has one, from
+   its PageHead (src/site/pages.ts). */
 import { site } from "../site/current.ts";
-import type { Page } from "../site/site.ts";
+import { alternatesOf, type PageHead } from "../site/pages.ts";
+import { makePage } from "../site/site.ts";
 import { structuredData } from "../site/structured-data.ts";
 
 interface Props {
-  page: Page;
+  head: PageHead;
 }
-const { page } = Astro.props;
-const { code: pageLanguage, language } = page;
-const { config, codes: languageCodes, main: mainLanguage } = site;
-const { meta } = language;
-const pageUrl = site.pageUrl(pageLanguage);
+const { head } = Astro.props;
+const { code: pageLanguage, title, description } = head;
+const { config } = site;
+const language = site.language(pageLanguage);
+const pageUrl = site.fileUrl(head.path);
 const socialImageUrl = site.fileUrl(config.social.image);
-const otherLanguages = languageCodes.filter((code) => code !== pageLanguage);
+const otherLanguages = Object.keys(head.versions).filter((code) => code !== pageLanguage);
 ---
 
-<title>{meta.title}</title>
-<meta name="description" content={meta.description} />
+<title>{title}</title>
+<meta name="description" content={description} />
 <link rel="canonical" href={pageUrl} />
-{languageCodes.map((code) => (
-  <link rel="alternate" hreflang={code} href={site.pageUrl(code)} />
+{alternatesOf(site, head).map(({ hreflang, href }) => (
+  <link rel="alternate" hreflang={hreflang} href={href} />
 ))}
-<link rel="alternate" hreflang="x-default" href={site.pageUrl(mainLanguage)} />
 
 <meta property="og:type" content="website" />
-<meta property="og:title" content={meta.title} />
-<meta property="og:description" content={meta.description} />
+<meta property="og:title" content={title} />
+<meta property="og:description" content={description} />
 <meta property="og:url" content={pageUrl} />
 <meta property="og:locale" content={language.locale} />
 {otherLanguages.map((code) => (
@@ -34,9 +37,9 @@ const otherLanguages = languageCodes.filter((code) => code !== pageLanguage);
 <meta property="og:image" content={socialImageUrl} />
 <meta property="og:image:width" content={String(config.social.width)} />
 <meta property="og:image:height" content={String(config.social.height)} />
-<meta property="og:image:alt" content={meta.imageAlt} />
+<meta property="og:image:alt" content={language.meta.imageAlt} />
 <meta name="twitter:card" content="summary_large_image" />
-<meta name="twitter:title" content={meta.title} />
-<meta name="twitter:description" content={meta.description} />
+<meta name="twitter:title" content={title} />
+<meta name="twitter:description" content={description} />
 <meta name="twitter:image" content={socialImageUrl} />
-<script type="application/ld+json" set:html={structuredData(site, page)} />
+<script type="application/ld+json" set:html={structuredData(site, makePage(site, pageLanguage))} />

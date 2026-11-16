@@ -79,9 +79,17 @@ and not in a name list.
 `src/app/main.ts` is `start()`, in named phases. A feature that needs
 several files gets a folder (`src/app/conversation/`,
 `src/app/question-card/`); one that fits a file is that file. A pure
-decision (the clock's arithmetic, a tab's name, how a reply from `/ask` is
-read, saved chats) is a module of its own with unit tests in `tests/app/`;
-the DOM, pacing and focus are held by the browser checks.
+decision (the clock's arithmetic, a tab's name, what an address names, how
+a reply from `/ask` is read, saved chats) is a module of its own with unit
+tests in `tests/app/`; the DOM, pacing and focus are held by the browser
+checks.
+
+Each tab has a page of its own (`src/site/pages.ts`), and the script moves
+between them in place: `src/app/address.ts` pushes a tab's address onto
+the history and follows the address however it changes, and
+`src/app/tabs.ts` shows the tab it names. Go to a tab with `openTab()`
+(`src/app/navigation.ts`), not by setting `location`, so what was to
+happen once it's open does.
 
 Saved chats keep their storage key, and their JSON only ever grows by
 optional fields: the golden chats in
@@ -115,6 +123,18 @@ To change a prompt, edit it, run
 `tests/worker/prompts/` with it. The diff is what a model will now be
 sent.
 
+## What the build fetches
+
+The Writing tab's posts are the one thing a build fetches
+(`src/integrations/writing.ts`, `src/site/writing/`), and no test reaches
+Qiita for them. A unit test passes `qiitaPosts()` a `fetch` of its own.
+A build the tests make is given `WRITING_FIXTURE`, the path of
+`tests/sample/qiita.json` (`tests/build/astro-build.ts`), and asks that
+file in place of Qiita; it answers for the sample's user alone, so it can
+stand in for no real site's posts. A new test that builds a site goes
+through `astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests)
+says the same for a site's owner.
+
 ## Adding a browser check
 
 The checks are Playwright tests, `tests/browser/*.spec.ts`.
@@ -135,20 +155,21 @@ says so.
   page or its console (a request the page's policy blocked is one).
 - **Look for what the site has, never for one site's content.** The
   `site` fixture (`tests/browser/site.ts`) has its threads
-  (`firstThread`, `secondThread`), `words`, `questions`, `languages` and
-  the rest, read from the built page.
+  (`firstThread`, `secondThread`, each with its page's `path`), `words`,
+  `questions`, `languages` and the rest, read from the built page; any
+  tab's page is `site.pathOf()` its id.
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`. A test that
-  asks for one is skipped, with the reason, on a site without it. For any
+  `contactForm`, `writingTab`. A test that asks for one is skipped, with
+  the reason, on a site without it. For any
   other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.
 - **Select by the page's names**: `CLASS_SELECTOR`, `ID_SELECTOR`,
   `ATTRIBUTE_SELECTOR` (`src/contracts/page-selectors.ts`), not by a class
   or an id typed out. Parts more than one spec looks for are in
-  `tests/browser/parts.ts` (`OPEN_CHAT`, `sentInto()`); what a visitor does
-  in more than one is in `tests/browser/visitor.ts` (`askIn()`,
+  `tests/browser/parts.ts` (`openTab()`, `OPEN_CHAT`, `sentInto()`); what a
+  visitor does in more than one is in `tests/browser/visitor.ts` (`askIn()`,
   `askInNewChat()`, `renameTab()`, `revisit()`).
 - **Stand in for `/ask` with the `ask` fixture**:
   `await ask.returns({ id: null })`, or a list of replies to give in turn;

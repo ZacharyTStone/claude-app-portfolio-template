@@ -7,18 +7,20 @@ import type { Panel } from "../config/language.ts";
 /** No thread can take one of these (src/site/checks), since a thread's id
     is its tab's. */
 export const PAGE_IDS = {
-  /** A link to #top closes the open tab: the home screen shows whenever
-      no tab is the address's target. */
+  /** The home screen, which shows while no tab is open. It's linked to by
+      its page's address ("/", "/ja/"); an old link to #top still opens it. */
   home: "top",
   /** A top bar's menu button links to #tabs, which opens the sidebar as a
       drawer on a phone, without JavaScript too. */
   sidebar: "tabs",
-  /** The <main> every tab is in: where "Skip to content" goes. */
+  /** The <main> every tab is in: where "Skip to content" goes, and where
+      the drawer's close button goes without JavaScript, which keeps the
+      open tab. */
   main: "main",
   panel: "details",
   greeting: "hello",
   /** The "Something else" tab. The browser code copies it for that reply,
-      and for each personal answer's tab. */
+      and for each chat's tab. It has no page of its own. */
   asked: "asked",
   /** The <script> that holds the question card's JSON. */
   questionCardData: "questions",
@@ -37,10 +39,10 @@ export const PAGE_IDS = {
   byeTitle: "bye-title",
 } as const;
 
-/** How the ids the browser code makes up start, and the ids of the
+/** How the ids of the tabs that aren't threads start, and those of the
     sidebar's groups and the panel's sections: no thread can take one. */
 export const ID_PREFIX = {
-  /** A personal answer's tab: "personal-food". */
+  /** A personal answer's tab, and its page's path: "personal-food". */
   personal: "personal-",
   /** A visitor's chat's tab: "chat-" and a number made from the time it
       was started. */

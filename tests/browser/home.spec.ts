@@ -11,9 +11,18 @@ import {
   ID_SELECTOR as ID,
 } from "../../src/contracts/page-selectors.ts";
 import { expect, NO_ANSWER, test } from "./fixtures.ts";
-import { CHAT_ROWS, EMAIL_LINK, OPEN_CHAT, PANEL_SECTIONS, sidebarRow, windowTitle, wordsTyped } from "./parts.ts";
+import {
+  CHAT_ROWS,
+  EMAIL_LINK,
+  OPEN_CHAT,
+  openTab,
+  PANEL_SECTIONS,
+  sidebarRow,
+  windowTitle,
+  wordsTyped,
+} from "./parts.ts";
 import { halfPast } from "./time.ts";
-import { renameTab, revisit } from "./visitor.ts";
+import { pasteIntoTheCard, renameTab, revisit } from "./visitor.ts";
 
 const HOME_BOX = `${ID.home} ${CLASS.homeAsk} input`;
 
@@ -57,7 +66,7 @@ test.describe("the home screen", () => {
   });
 
   test("is reached from a tab by the name at the top of the sidebar, with its box ready", async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(`${ID.sidebar} ${CLASS.wordmark}`).click();
     await expect(page.locator(HOME_BOX)).toBeFocused();
   });
@@ -123,21 +132,20 @@ test.describe("a question to start with, clicked on the home screen", () => {
 
 test("the skip link goes to the open tab, and leaves it open", async ({ page, site }) => {
   const tab = `#${site.firstThread.id}`;
-  await page.goto(tab);
-  await expect(page.locator(`${tab}:target`)).toBeVisible();
-  // Tab would start from the open tab, where the address points.
+  await page.goto(site.firstThread.path);
+  await expect(openTab(page, site.firstThread.id)).toBeVisible();
   await page.locator(CLASS.skip).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator(`${tab} :focus`)).toHaveCount(1);
-  expect(new URL(page.url()).hash, "the address still names the tab").toBe(tab);
-  await expect(page.locator(tab)).toBeVisible();
+  expect(new URL(page.url()).pathname, "the address is still the tab's").toBe(site.firstThread.path);
+  await expect(openTab(page, site.firstThread.id)).toBeVisible();
 });
 
 test.describe("a thread renamed", () => {
   const NEW_NAME = "A thread renamed";
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.secondThread.id}`);
+    await page.goto(site.secondThread.path);
     await renameTab(page, site.secondThread.id, NEW_NAME);
   });
 
@@ -148,7 +156,7 @@ test.describe("a thread renamed", () => {
   });
 
   test("keeps its new name on the next visit", async ({ page, site }) => {
-    await revisit(page, `#${site.secondThread.id}`);
+    await revisit(page, site.secondThread.path);
     await expect(page.locator(`#${site.secondThread.id} ${CLASS.titleText}`)).toHaveText(NEW_NAME);
   });
 
@@ -166,7 +174,7 @@ test.describe("copying a tab's link", () => {
   test.use({ permissions: ["clipboard-read", "clipboard-write"] });
 
   test.beforeEach(async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
   });
 
   test("Share copies the link, and says so for a moment", async ({ page, site, baseURL }) => {
@@ -175,7 +183,7 @@ test.describe("copying a tab's link", () => {
     const itsOwnName = (await share.textContent()) ?? "";
     await share.click();
     await expect(share).toHaveText(site.words.copied);
-    expect(await pasteIntoTheCard(page, tab)).toBe(new URL(tab, baseURL).href);
+    expect(await pasteIntoTheCard(page, tab)).toBe(new URL(site.firstThread.path, baseURL).href);
     await expect(share).toHaveText(itsOwnName, { timeout: SHARE_NAMED_AGAIN_WITHIN_MS });
   });
 
@@ -203,16 +211,4 @@ function answerNamed(page: Page, answerId: string): Locator {
   const place = parseAnswerId(answerId);
   if (!place) throw new Error(`"${answerId}" isn't an answer's id`);
   return page.locator(`[id="${place.tabId}"] ${CLASS.thread} > ${CLASS.answer}`).nth(place.answerNumber - 1);
-}
-
-/** Pastes the clipboard into the question card's box (the card opened from
-    the tab's composer), closes the card again, and says what was pasted. */
-async function pasteIntoTheCard(page: Page, tab: string): Promise<string> {
-  const cardBox = page.locator(`${ID.questionCard} input`);
-  await page.locator(`${tab} ${CLASS.composer}`).click();
-  await cardBox.focus();
-  await page.keyboard.press("ControlOrMeta+V");
-  const pasted = await cardBox.inputValue();
-  await page.keyboard.press("Escape");
-  return pasted;
 }

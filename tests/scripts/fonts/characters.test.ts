@@ -6,6 +6,7 @@ import {
   sansCharacters,
   serifCharacters,
 } from "../../../scripts/fonts/characters.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
 import { scratchFolders } from "../scratch-folders.ts";
 
 /** A page in Japanese with this in its body, as the build writes one. */
@@ -112,4 +113,20 @@ test("The 404 page comes with the Japanese page when the site has one", () => {
   const withOne = builtSite("404", { "index.html": japanesePage("家"), "404.html": englishPage("gone") });
   assert.equal(builtPagesIn(without)?.notFound, undefined);
   assert.equal(builtPagesIn(withOne)?.notFound, englishPage("gone"));
+});
+
+test("The sans doesn't need the home screen's window title, which the browser draws", () => {
+  assert.equal(sansOf(japanesePage("<p>本</p>", ` ${DATA.homeTitle}="題名 — 名前"`)), "本");
+});
+
+test("The sans doesn't need what the build fetched, which changes from one build to the next", () => {
+  const post = `<a class="link-card" href="https://qiita.com/sam/items/1" ${DATA.fetched}><span class="name">記事の題</span><span class="kind">2026/10/01 · 12 LGTM · 型</span></a>`;
+  const page = japanesePage(`<div class="answer"><p>新しい順に：</p>${post}${post}</div><p>本</p>`);
+  assert.equal(sansOf(page), "いしに新本順：");
+});
+
+test("The check passes on a Japanese page whatever its fetched posts say, once its own words are in the font", () => {
+  const withPosts = (title: string) =>
+    japanesePage(`<p>執筆</p><a href="https://qiita.com/sam/items/1" ${DATA.fetched}><span>${title}</span></a>`);
+  assert.equal(sansOf(withPosts("昨日の記事")), sansOf(withPosts("今日書いた別の記事")));
 });

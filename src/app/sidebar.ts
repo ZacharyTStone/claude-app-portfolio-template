@@ -3,14 +3,15 @@
    rows. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
-import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, ID_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
+import { go } from "./address.ts";
 import { SIZE } from "./constants.ts";
 import { byId, find, findAll, onClick } from "./lib/dom.ts";
 import { isFocusOn, stepFocus } from "./lib/focus.ts";
 import { MENU } from "./menu.ts";
 import { shell, sidebar } from "./page.ts";
 import { addSidebarResizer } from "./sidebar-resizer.ts";
-import { clearHash, currentTab } from "./tabs.ts";
+import { currentTab } from "./tabs.ts";
 
 const widerThanPhone = matchMedia(`(min-width: ${SIZE.wide}px)`);
 
@@ -51,17 +52,29 @@ export const isWide = (): boolean => widerThanPhone.matches;
 
 /** The address alone (#tabs) opens the drawer, as it does without
     JavaScript. */
-export const isAddressOnDrawer = (): boolean => sidebar.matches(":target");
+const isAddressOnDrawer = (): boolean => location.hash === ID_SELECTOR.sidebar;
 
-/** By its button (a class keeps the open tab where it is behind it), or by
-    the address. */
-export const isDrawerOpen = (): boolean => sidebar.classList.contains(PAGE_CLASSES.drawerOpen) || isAddressOnDrawer();
+/** By its button, or by the address: either way a class shows it, which
+    keeps the open tab where it is behind it. (Without JavaScript :target
+    does, which an address the script moves to leaves where it was.) */
+export const isDrawerOpen = (): boolean => sidebar.classList.contains(PAGE_CLASSES.drawerOpen);
 
-/** Closes the drawer however it was opened: an address that opened it is
-    cleared. */
-export function closeDrawer(): void {
+/** Closes the drawer however it was opened: an address that opened it gives
+    way to the open tab's. */
+function closeDrawer(): void {
   sidebar.classList.remove(PAGE_CLASSES.drawerOpen);
-  if (isAddressOnDrawer()) clearHash();
+  if (isAddressOnDrawer()) go(location.pathname + location.search);
+}
+
+/** The drawer follows the address: #tabs opens it, and any other closes it.
+    Says whether the address opened it. */
+export function drawerFollowsAddress(): boolean {
+  if (!isAddressOnDrawer()) {
+    closeDrawer();
+    return false;
+  }
+  sidebar.classList.add(PAGE_CLASSES.drawerOpen);
+  return true;
 }
 
 /** For a drawer closed from inside it: the focus, if it was in the drawer,

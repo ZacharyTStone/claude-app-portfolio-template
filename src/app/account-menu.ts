@@ -25,19 +25,16 @@ export function initAccountMenu(): void {
   asButton(accountRow, popupAttributes(PAGE_IDS.accountMenu));
 
   // The language row goes to the other language's page, at the tab that's
-  // open: its address is brought up to date each time the menu opens. With
-  // several other languages it's a submenu of them instead.
+  // open: tabs.ts keeps its address, and the sidebar's links', up to date.
+  // With several other languages it's a submenu of them instead.
   const languageLink = accountMenu.querySelector(ATTRIBUTE_SELECTOR.langLink);
-  const otherLanguagePage = languageLink?.getAttribute("href");
   const hasSeveralOtherLanguages = findAll(sidebar, OTHER_LANGUAGE_LINKS).length > 1;
   if (languageLink && hasSeveralOtherLanguages) replaceWithLanguageSubmenu(languageLink, accountMenu);
-  const linkThatFollowsTheTab = hasSeveralOtherLanguages ? null : languageLink;
 
   const clock = query(accountMenu, ATTRIBUTE_SELECTOR.clock);
   accountRow.addEventListener("click", () =>
     toggleMenu(accountMenu, accountRow, () => {
       if (clock) tellTime(clock);
-      linkThatFollowsTheTab?.setAttribute("href", `${otherLanguagePage}${location.hash}`);
     }),
   );
 
@@ -82,18 +79,18 @@ function wordingOf(clock: HTMLElement): ClockWording {
 function replaceWithLanguageSubmenu(languageLink: Element, accountMenu: HTMLElement): void {
   const row = menuRow(languageLink.firstChild?.textContent ?? "", { class: "icon i-globe" });
   languageLink.replaceWith(row);
-  withSubmenu(row, accountMenu, (popup) => popup.replaceChildren(...languageRows(location.hash)));
+  withSubmenu(row, accountMenu, (popup) => popup.replaceChildren(...languageRows()));
 }
 
-/** A row for each other language, opening the same tab there: `hash` is
-    the open tab's part of the address ("#about"). */
-function languageRows(hash: string): HTMLElement[] {
+/** A row for each other language, opening the same tab there, as the
+    sidebar's link to it does. */
+function languageRows(): HTMLElement[] {
   return findAll(sidebar, OTHER_LANGUAGE_LINKS).map((languageLink) => {
     const language = languageLink.getAttribute("hreflang") ?? "";
     // The language's name in itself, if the link carries it.
     const name = languageLink.getAttribute(DATA.languageName) ?? languageLink.textContent;
     return menuRow(name, {
-      href: `${languageLink.getAttribute("href")}${hash}`,
+      href: languageLink.getAttribute("href") ?? "",
       hreflang: language,
       lang: language,
     });

@@ -101,6 +101,28 @@ export const PAGE_STRING_NAMES = [
   "closePanelTitle",
 ] as const satisfies readonly (keyof PageStrings)[];
 
+/** The page's wording for the Writing tab, on a site with `writing`
+    (PART_STRINGS). */
+export type WritingStrings = {
+  /** The tab's name, in the sidebar's row for it and its top bar:
+      "Writing". */
+  writingTitle: string;
+  /** The visitor's question in it: "what have they written?". */
+  writingQuestion: string;
+  /** The line over the posts, newest first: "Posts, newest first:". */
+  writingIntro: string;
+  /** What the tab says while there are no posts: "Nothing posted yet." */
+  writingEmpty: string;
+};
+
+/** Every name in WritingStrings. */
+export const WRITING_STRING_NAMES = [
+  "writingTitle",
+  "writingQuestion",
+  "writingIntro",
+  "writingEmpty",
+] as const satisfies readonly (keyof WritingStrings)[];
+
 /** The wording the browser code shows, with the attribute on <html> that
     carries each to it. The last four are for the parts only some sites
     have (PART_STRINGS). */
@@ -177,19 +199,21 @@ type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
 export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as ScriptStringName[];
 
 /** The strings a site needs only when it has the part (the build says
-    which are missing): the script's, and the contact form's. */
+    which are missing): the script's, the contact form's, and the Writing
+    tab's own. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
   contactForm: CONTACT_FORM_STRING_NAMES,
-} as const satisfies Record<string, readonly (ScriptStringName | keyof ContactFormStrings)[]>;
+  writing: WRITING_STRING_NAMES,
+} as const satisfies Record<string, readonly (ScriptStringName | keyof ContactFormStrings | keyof WritingStrings)[]>;
 
 type OptionalScriptStringName = Extract<(typeof PART_STRINGS)[keyof typeof PART_STRINGS][number], ScriptStringName>;
 
-const OPTIONAL_SCRIPT_STRING_NAMES: readonly string[] = Object.values(PART_STRINGS).flat();
+const OPTIONAL_STRING_NAMES: readonly string[] = Object.values(PART_STRINGS).flat();
 
 export const REQUIRED_SCRIPT_STRING_NAMES = SCRIPT_STRING_NAMES.filter(
-  (name): name is Exclude<ScriptStringName, OptionalScriptStringName> => !OPTIONAL_SCRIPT_STRING_NAMES.includes(name),
+  (name): name is Exclude<ScriptStringName, OptionalScriptStringName> => !OPTIONAL_STRING_NAMES.includes(name),
 );
 
 /** The script's wording as it reads it from the page: an optional string
@@ -199,5 +223,6 @@ export type ScriptStrings = { -readonly [Name in keyof typeof SCRIPT_STRING_ATTR
 
 export type Strings = PageStrings &
   Partial<ContactFormStrings> &
+  Partial<WritingStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

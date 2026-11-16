@@ -1,12 +1,15 @@
 /* llms.txt: the site as plain text, for a model reading it on someone's
    behalf (a recruiter pasting the address into an assistant): who this is,
-   how to reach them, and every answer, in the words /ask reads (../plain-answers.ts). */
+   how to reach them, the posts the Writing tab lists, and every answer, in
+   the words /ask reads (../plain-answers.ts). */
 
 import type { AskAnswer } from "../../contracts/ask.ts";
 import type { SiteConfig } from "../../config/site-config.ts";
 import { plainAnswers } from "../plain-answers.ts";
 import { panelRows } from "../panel.ts";
+import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
+import { dayPosted, type Post } from "../writing/post.ts";
 
 /** Between two paragraphs or headings, as in Markdown. */
 const BLANK_LINE = "\n\n";
@@ -25,6 +28,8 @@ export function llmsTxt(site: Site): string {
     section("Pages", pageList(site)),
     // A site whose panel links nowhere has no Links section.
     ...(links.length ? [section("Links", links.join("\n"))] : []),
+    // So has a site with no posts in its Writing tab, or no Writing tab.
+    ...(site.posts.length ? [section("Writing", postList(site.posts))] : []),
     section("Contact", contactList(config.links)),
     section(
       "Questions and answers",
@@ -34,9 +39,27 @@ export function llmsTxt(site: Site): string {
   return `${parts.join(BLANK_LINE)}\n`;
 }
 
-/** "- [Portfolio (EN)](https://example.com/)", for each language. */
-const pageList = (site: Site): string =>
-  site.codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.pageUrl(code)})`).join("\n");
+/** "- [A post's title](https://qiita.com/…): 2026-10-01 · TypeScript, Astro",
+    for each post in the Writing tab, newest first. */
+const postList = (posts: Post[]): string =>
+  posts
+    .map((post) => {
+      const about = [dayPosted(post), post.tags.join(", ")].filter(Boolean).join(" · ");
+      return `- [${post.title.replace(/[[\]]/g, "\\$&")}](${post.url}): ${about}`;
+    })
+    .join("\n");
+
+/** "- [Portfolio (EN)](https://example.com/)" for each language, then
+    "- [About](https://example.com/about/)" for each of the main language's
+    tabs: the page that has its answers open. */
+function pageList(site: Site): string {
+  const { codes, main } = site;
+  const homePages = codes.map((code) => `- [Portfolio (${code.toUpperCase()})](${site.pageUrl(code)})`);
+  const tabPages = tabsWithPages(site.language(main)).map(
+    ({ id, title }) => `- [${title}](${site.fileUrl(tabPath(site, main, id))})`,
+  );
+  return [...homePages, ...tabPages].join("\n");
+}
 
 /** The details panel's links, but for the contact links, which have their
     own section. */
@@ -52,8 +75,10 @@ function panelLinks(site: Site): string[] {
 }
 
 /** A link as an address of its own, for a reader with no page to follow
-    "#about" or "/resume.pdf" from. */
+    "#about" or "/resume.pdf" from: a tab's is its page's. */
 function fullAddress(site: Site, href: string): string {
+  const tabPage = tabLinkPath(site, site.main, href);
+  if (tabPage) return site.fileUrl(tabPage);
   if (href.startsWith("#")) return site.pageUrl(site.main) + href;
   if (href.startsWith("/")) return site.fileUrl(href);
   return href;

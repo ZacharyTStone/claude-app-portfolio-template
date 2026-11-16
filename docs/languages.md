@@ -1,7 +1,9 @@
 # Languages and fonts
 
-The first language in `languages` is the site's main one, at `/`. Each
-other one is at `/<code>/`, with a switch in the sidebar.
+The first language in `languages` is the site's main one, at `/`, with
+each tab's page at `/<id>/`. Each other one is at `/<code>/`, its tabs'
+pages at `/<code>/<id>/`, with a switch in the sidebar that goes to the
+tab that's open in the other language.
 
 ## Adding a language
 
@@ -44,6 +46,10 @@ npm run build   # the fonts are cut from the built page
 npm run fonts   # downloads the pinned source fonts, and cuts them
 npm run build
 ```
+
+The posts a [Writing tab](writing.md#japanese-fonts) lists are left out:
+they change at every build, so the fonts aren't cut for them, the check
+doesn't ask for them, and they're set in the system's Japanese font.
 
 The fonts are cut in TypeScript (`scripts/fonts.ts`, `scripts/fonts/`),
 so this needs nothing but `npm ci`. `npm run fonts:check`, a step of

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { clockNote, hoursOwnerIsAhead, timeIn, type ClockWording, type TimeInZone } from "../../src/app/clock.ts";
-import { SEPARATOR } from "../../src/app/constants.ts";
+import { SEPARATOR } from "../../src/contracts/tab-pages.ts";
 
 const WORDING: ClockWording = {
   same: "Same time",

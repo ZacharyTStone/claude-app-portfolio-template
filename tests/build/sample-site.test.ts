@@ -1,7 +1,7 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
-   viewer and a picture that has a still; and the same site on a host that
-   reads no headers. */
+   viewer, a picture that has a still and a Writing tab; and the same site on
+   a host that reads no headers. */
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -10,12 +10,15 @@ import { ASK_INDEX_FILE, ASK_PATH } from "../../src/contracts/ask.ts";
 import { CONTACT_FIELDS, CONTACT_PATH } from "../../src/contracts/contact.ts";
 import { DATA, REDUCED_MOTION } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
+import { tabPagePath } from "../../src/contracts/tab-pages.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { HEADERS_FILE, headersFile, pagePolicy } from "../../src/site/files/headers-file.ts";
 import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
+import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
 import { folderForConfigs, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
+import { SAMPLE_QIITA, samplePosts } from "../sample/qiita.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
@@ -24,18 +27,22 @@ const folder = folderForConfigs();
 const BUILD_FOLDER = join(folder, "dist");
 const built = buildSample(BUILD_FOLDER);
 const sample = builtSite("the sample site", BUILD_FOLDER, sampleConfig);
-const sampleSite = makeSite(sampleConfig);
+const posts = await samplePosts();
+const sampleSite = makeSite(sampleConfig, posts);
 
 test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
-test("the sample site has a page for each of its two languages, and a 404 page", () => {
+test("the sample site has a home page for each of its two languages, a page for each of their tabs, and a 404 page", () => {
+  const tabPages = ["about/index.html", "work/index.html", "writing/index.html", "personal-fun/index.html"];
   assert.deepEqual(
     sample.pages.map(({ file }) => [file, sample.hasFile(file)]),
     [
       ["index.html", true],
       ["fr/index.html", true],
+      ...tabPages.map((file) => [file, true]),
+      ...tabPages.map((file) => [`fr/${file}`, true]),
       ["404.html", true],
     ],
   );
@@ -45,6 +52,21 @@ testBuiltSite(sample);
 
 test("the sample's host reads a _headers file, so the build writes the site's headers there", () => {
   assert.equal(sample.read(HEADERS_FILE), headersFile(sampleSite));
+});
+
+test("the sample has a Writing tab, and the build says its posts are the tests' fixture, not Qiita's", () => {
+  assert.match(
+    built.stdout,
+    new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_QIITA)}, not Qiita's`),
+  );
+});
+
+test("the sample's llms.txt lists its posts", () => {
+  const llms = sample.read("llms.txt");
+  assert.deepEqual(
+    posts.filter((post) => !llms.includes(`](${post.url}): `)),
+    [],
+  );
 });
 
 test("the sample has Ask on, so the build writes what /ask picks from", () => {
@@ -58,15 +80,32 @@ const tabIn = (html: string, id: string): string =>
   html.match(new RegExp(`<article class="${PAGE_CLASSES.tab}" id="${id}".*?</article>`, "s"))?.[0] ?? "";
 
 for (const { file, url } of sample.languagePages) {
-  test(`${file} has the contact form in its thread, posting to /contact under the site's path, and back to this page`, () => {
-    const tab = tabIn(sample.read(file), sampleConfig.contactForm?.tab ?? "");
+  test(`${file} has the contact form in its thread, posting to /contact under the site's path, and back to its tab's page`, () => {
+    const tabId = sampleConfig.contactForm?.tab ?? "";
+    const tab = tabIn(sample.read(file), tabId);
     const opening = `<form class="${PAGE_CLASSES.contactForm}" action="${sampleSite.link(CONTACT_PATH)}" method="post">`;
     assert.ok(tab.includes(opening), "the form, in its thread");
-    assert.ok(tab.includes(`name="${CONTACT_FIELDS.page}" value="${url.pathname}"`), "the page to come back to");
+    const backTo = tabPagePath(url.pathname, tabId);
+    assert.ok(tab.includes(`name="${CONTACT_FIELDS.page}" value="${backTo}"`), "the page to come back to");
   });
 
   test(`${file} says where /ask is, under the site's path`, () => {
     assert.ok(sample.read(file).includes(` ${DATA.ask}="${sampleSite.link(ASK_PATH)}"`));
+  });
+
+  test(`${file} lists the sample's public posts in its Writing tab, newest first, each a card marked as fetched`, () => {
+    const tab = sample.read(file).match(new RegExp(`<article class="tab" id="${WRITING_TAB}".*?</article>`, "s"))?.[0];
+    assert.ok(tab, "the page has the Writing tab");
+    const fetchedLinks = [...tab.matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g"))];
+    assert.deepEqual(
+      fetchedLinks.map(([, href]) => href),
+      posts.map((post) => post.url),
+    );
+  });
+
+  test(`${file} has a row in its sidebar for the Writing tab`, () => {
+    const itsPage = tabPagePath(url.pathname, WRITING_TAB);
+    assert.match(sample.read(file), new RegExp(`<a class="icon i-${WRITING_ICON}" href="${itsPage}">`));
   });
 
   test(`${file} marks the link the viewer opens with the address it shows`, () => {

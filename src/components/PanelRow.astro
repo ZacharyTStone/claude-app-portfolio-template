@@ -7,10 +7,13 @@ import Logo from "./Logo.astro";
 
 interface Props {
   row: PanelRow;
+  /** The language of the page it's on. */
+  code: string;
 }
-const { label, meta, icon, href } = Astro.props.row;
+const { row, code } = Astro.props;
+const { label, meta, icon, href } = row;
 const RowElement = href ? "a" : "span";
-const link = href ? linkAttributes(href, label) : {};
+const link = href ? linkAttributes(href, label, code) : {};
 ---
 
 <RowElement class={iconClass(icon)} {...link}>

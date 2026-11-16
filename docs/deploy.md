@@ -17,6 +17,26 @@ Two fields in `site.config.ts` say where the site is going:
 - Paths elsewhere in the config (`"/assets/og.png"`) are from the site's
   own root, wherever that is.
 
+## The pages
+
+Each language's home page is a folder's `index.html`, and so is each of
+its tabs' pages: `dist/index.html` and `dist/about/index.html` for the
+main language, `dist/ja/index.html` and `dist/ja/about/index.html` for
+another, served under the site's path if it has one. Every host here serves a folder's `index.html`
+at the folder's path with its slash (`/about/`), the address the pages
+link to and give as canonical. Asked for `/about`, Cloudflare, Netlify,
+GitHub Pages and most static servers send the visitor on to `/about/`, and
+Vercel serves the same page; the script then shows `/about/` all the same.
+A path with nothing there gets the 404 page.
+
+The build writes `_headers` for every path (`/*`), so on Cloudflare and
+Netlify the tabs' pages have the same headers as the home page, and on any
+host each page carries its own policy in `<meta>` tags. The build sets no
+caching of its own: a host caches every page as it caches the home page.
+`/ask`, which Ask's Worker answers, `/assets/` and a language's folder are
+paths no tab can take (the build refuses a thread with one of those ids),
+and nor is `/blog/`.
+
 ## Cloudflare (recommended)
 
 The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
@@ -33,6 +53,11 @@ Pages → Create → Import a repository**; it deploys on every push to
 ```sh
 npm run deploy   # runs npm run build, then uploads dist/
 ```
+
+With a [Writing tab](writing.md), each build fetches your posts first, and
+stops if it can't: a build that fails deploys nothing, so the site that's
+up stays as it was. [A rebuild each day](writing.md#a-rebuild-each-day)
+brings in what you've posted since, with a deploy hook and a cron trigger.
 
 `npm run deploy` runs one pinned version of Wrangler, Cloudflare's tool;
 `npm run wrangler -- dev` serves the site locally as Cloudflare would.

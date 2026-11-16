@@ -77,6 +77,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
       nameInProblem: "a picture with a still",
     },
     contactForm: { isOnTheSite: Boolean(site.config.contactForm), nameInProblem: "contactForm" },
+    writing: { isOnTheSite: Boolean(site.config.writing), nameInProblem: "writing" },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {
     const part = parts[partName];

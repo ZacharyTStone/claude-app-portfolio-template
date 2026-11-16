@@ -81,8 +81,8 @@ type Choice = {
 
 /** An answer that isn't in a thread. Each gets its own tab. */
 export type PersonalAnswer = {
-  /** ID_PATTERN, as a thread's: "food". Its tab is at #personal-food, and
-      /ask names its answer "personal-food.1". */
+  /** ID_PATTERN, as a thread's: "food". Its tab has a page of its own at
+      /personal-food/, and /ask names its answer "personal-food.1". */
   id: string;
   /** The question, as a visitor would type it: what the card lists it by,
       and the message its tab shows. */
