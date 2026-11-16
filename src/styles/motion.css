@@ -1,28 +1,28 @@
 /* What moves by itself, and only for a visitor who hasn't asked for less motion. */
 @media (prefers-reduced-motion: no-preference) {
-  .tab:target .thread > * {
+  .tab:is(.open, :target) .thread > * {
     animation: arrive 0.35s var(--ease) both;
   }
-  .tab:target .thread > :nth-child(2) {
+  .tab:is(.open, :target) .thread > :nth-child(2) {
     animation-delay: 0.08s;
   }
-  .tab:target .thread > :nth-child(3) {
+  .tab:is(.open, :target) .thread > :nth-child(3) {
     animation-delay: 0.16s;
   }
-  .tab:target .thread > :nth-child(4) {
+  .tab:is(.open, :target) .thread > :nth-child(4) {
     animation-delay: 0.24s;
   }
-  .tab:target .thread > :nth-child(5) {
+  .tab:is(.open, :target) .thread > :nth-child(5) {
     animation-delay: 0.32s;
   }
-  .tab:target .thread > :nth-child(6) {
+  .tab:is(.open, :target) .thread > :nth-child(6) {
     animation-delay: 0.4s;
   }
-  .tab:target .thread > :nth-child(n + 7) {
+  .tab:is(.open, :target) .thread > :nth-child(n + 7) {
     animation-delay: 0.48s;
   }
   /* Messages sent from the question card arrive as they're sent. */
-  .tab:target .thread > .sent {
+  .tab:is(.open, :target) .thread > .sent {
     animation-delay: 0s;
   }
   @keyframes arrive {
@@ -69,12 +69,12 @@
       background-position: 0 0;
     }
   }
-  .tab:target .bars .bar {
+  .tab:is(.open, :target) .bars .bar {
     transform-box: fill-box;
     transform-origin: 0 50%;
     animation: grow 0.7s 0.25s var(--ease) both;
   }
-  .tab:target .bars text {
+  .tab:is(.open, :target) .bars text {
     animation: show 0.3s 0.8s var(--ease) both;
   }
   @keyframes grow {
@@ -87,29 +87,29 @@
       opacity: 0;
     }
   }
-  .tab:target .flow li {
+  .tab:is(.open, :target) .flow li {
     animation: arrive 0.4s var(--ease) both;
   }
-  .tab:target .flow li::before {
+  .tab:is(.open, :target) .flow li::before {
     animation: show 0.3s var(--ease) both;
   }
-  .tab:target .flow li:nth-child(2),
-  .tab:target .flow li:nth-child(2)::before {
+  .tab:is(.open, :target) .flow li:nth-child(2),
+  .tab:is(.open, :target) .flow li:nth-child(2)::before {
     animation-delay: 0.3s;
   }
-  .tab:target .flow li:nth-child(3),
-  .tab:target .flow li:nth-child(3)::before {
+  .tab:is(.open, :target) .flow li:nth-child(3),
+  .tab:is(.open, :target) .flow li:nth-child(3)::before {
     animation-delay: 0.45s;
   }
-  .tab:target .flow li:nth-child(4),
-  .tab:target .flow li:nth-child(4)::before {
+  .tab:is(.open, :target) .flow li:nth-child(4),
+  .tab:is(.open, :target) .flow li:nth-child(4)::before {
     animation-delay: 0.6s;
   }
-  .tab:target .flow li:nth-child(5),
-  .tab:target .flow li:nth-child(5)::before {
+  .tab:is(.open, :target) .flow li:nth-child(5),
+  .tab:is(.open, :target) .flow li:nth-child(5)::before {
     animation-delay: 0.75s;
   }
-  .tab:target .flow li:first-child {
+  .tab:is(.open, :target) .flow li:first-child {
     animation-delay: 0.15s;
   }
   .viewer {

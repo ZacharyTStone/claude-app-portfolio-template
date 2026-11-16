@@ -46,7 +46,7 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
     person: { name: "Sam Sample", jobTitle: "Engineer" },
     home: {
       greeting: { default: "Hi", morning: "Morning", afternoon: "Afternoon", evening: "Evening", late: "Late" },
-      intro: `Sam builds things. Here's [the icon](${icon}).`,
+      intro: `Sam builds things: [the work](#work), and [the icon](${icon}).`,
       hint: "Pick a tab.",
       prompts: [{ q: "What does Sam do?", answer: "work.1" }],
     },

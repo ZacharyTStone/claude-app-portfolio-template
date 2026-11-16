@@ -61,8 +61,8 @@ call anything done, run `npm run verify`.
 | `site.config.ts` | Everything the site says, in every language (each site's own) |
 | `src/config/` | The config's types: a doc comment on every field, which an editor shows on hover; English wording's defaults |
 | `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, `/ask`'s wire format |
-| `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the config's checks (`checks/`), each file it writes (`files/`), the security headers |
-| `src/pages/`, `src/layouts/` | The routes (each language's page, 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
+| `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the pages and what each one's head says (`pages.ts`), the config's checks (`checks/`), each file it writes (`files/`), the security headers |
+| `src/pages/`, `src/layouts/` | The routes (`[...page].astro`: each language's home page and each tab's; 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
 | `src/components/` | The page's parts: `Name.astro`, its rules in `Name.css` beside it |
 | `src/integrations/` | Astro hooks: check the config before a build, write the host's files after |
 | `src/styles/` | Shared rules, and the rules for what the script makes; `app.css` lists every stylesheet in order |

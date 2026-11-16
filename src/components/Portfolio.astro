@@ -1,6 +1,7 @@
 ---
-/* One language's page. Every tab is in it, so it all works without JavaScript. The script gets its wording
-   as data-* attributes on <html>, and the question card as JSON. */
+/* One of a language's pages: its home screen, or one of its tabs open (src/site/pages.ts). Every tab is in
+   each, so it all works without JavaScript, and the script moves between them in place. The script gets its
+   wording as data-* attributes on <html>, and the question card as JSON. */
 import Document from "../layouts/Document.astro";
 import { ASK_PATH } from "../contracts/ask.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES } from "../config/strings.ts";
@@ -9,19 +10,22 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { site } from "../site/current.ts";
 import { scriptJson } from "../site/json.ts";
+import type { PortfolioPage } from "../site/pages.ts";
 import { makePage } from "../site/site.ts";
 import Asked from "./Asked.astro";
 import Home from "./Home.astro";
 import PageMeta from "./PageMeta.astro";
 import Panel from "./Panel.astro";
+import PersonalTab from "./PersonalTab.astro";
 import PrintHead from "./PrintHead.astro";
 import Sidebar from "./Sidebar.astro";
 import Thread from "./Thread.astro";
 
 interface Props {
-  code: string;
+  page: PortfolioPage;
 }
-const page = makePage(site, Astro.props.code);
+const { head, tab } = Astro.props.page;
+const page = makePage(site, head.code, tab);
 const { code, language } = page;
 const { strings } = language;
 
@@ -32,10 +36,13 @@ for (const key of SCRIPT_STRING_NAMES) {
   if (wording !== undefined) scriptAttributes[SCRIPT_STRING_ATTRIBUTES[key]] = wording;
 }
 if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
+// Where the script finds the language's tabs' pages, and what the home screen's window is called.
+scriptAttributes[DATA.home] = site.pagePath(code);
+scriptAttributes[DATA.homeTitle] = language.meta.title;
 ---
 
 <Document lang={code} dir={language.dir} preload={language.meta.preload} htmlAttributes={scriptAttributes}>
-  <PageMeta slot="head" page={page} />
+  <PageMeta slot="head" head={head} />
 
   <a class={PAGE_CLASSES.skip} href={`#${PAGE_IDS.main}`} data-js-only>
     {strings.skip}
@@ -50,6 +57,9 @@ if (site.config.ask) scriptAttributes[DATA.ask] = site.link(ASK_PATH);
         <Thread page={page} thread={thread} />
       ))}
       <Asked page={page} />
+      {language.questions.personal.map((answer) => (
+        <PersonalTab page={page} answer={answer} />
+      ))}
     </main>
     <Panel page={page} />
   </div>

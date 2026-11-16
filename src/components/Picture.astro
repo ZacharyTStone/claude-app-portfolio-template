@@ -1,20 +1,21 @@
 ---
 /* A played picture's button is a link to the moving file, which is where it goes without JavaScript; with
    it, src/app/play.ts plays the picture in place. */
-import type { Strings } from "../config/strings.ts";
 import type { Picture } from "../config/blocks.ts";
 import { DATA, REDUCED_MOTION } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
+import type { Page } from "../site/site.ts";
 import { linkAttributes } from "./attributes.ts";
 import { pictureMode } from "./picture.ts";
 
 interface Props {
   picture: Picture;
-  /** The page's wording, for a Play button's name. */
-  strings: Strings;
+  /** The page it's on: its language's links, and its wording for a Play button's name. */
+  page: Page;
 }
-const { picture, strings } = Astro.props;
+const { picture, page } = Astro.props;
+const { strings } = page.language;
 const { src, alt, width, height, caption, href, round } = picture;
 const mode = pictureMode(picture);
 const isPlayed = mode.kind === "played";
@@ -27,7 +28,7 @@ const image = {
   decoding: "async",
 } as const;
 const Link = href ? "a" : Fragment;
-const link = href ? linkAttributes(href, caption ?? alt) : {};
+const link = href ? linkAttributes(href, caption ?? alt, page.code) : {};
 const Stage = isPlayed ? "div" : Fragment;
 const stage = isPlayed ? { class: PAGE_CLASSES.stage } : {};
 ---

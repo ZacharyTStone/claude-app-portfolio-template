@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { hrefsIn } from "../../../src/config/markdown.ts";
 import { isSafeHref } from "../../../src/site/checks/formats.ts";
+import { statedStrings } from "../sample.ts";
 import { inBothLanguages, inEveryLanguage, problemsAfter, testEachProblem, type Change } from "./problems.ts";
 
 const NOT_A_SAFE_LINK = "which should be a web, mailto, #thread or relative address";
@@ -40,14 +41,19 @@ testEachProblem([
   },
   {
     wrong: "a link to a file on the site in text the script shows, which only follows #tab, web and mailto links",
-    change: inEveryLanguage(
-      (language) => (language.questions.personal = [{ id: "fun", q: "for fun?", a: ["My [resume](/resume.pdf)."] }]),
-    ),
+    change: inEveryLanguage((language) => (statedStrings(language).askLimited = "See my [resume](/resume.pdf).")),
     problems: inBothLanguages(
-      `a link in "My [resume](/resume.pdf)." goes to "/resume.pdf", but the script shows this text, and only follows #tab, web and mailto links`,
+      `a link in "See my [resume](/resume.pdf)." goes to "/resume.pdf", but the script shows this text, and only follows #tab, web and mailto links`,
     ),
   },
 ]);
+
+test("a personal answer can link to a file on the site: its tab is built into the page", () => {
+  const withAFileLink = inEveryLanguage(
+    (language) => (language.questions.personal = [{ id: "fun", q: "for fun?", a: ["My [resume](/resume.pdf)."] }]),
+  );
+  assert.deepEqual(problemsAfter(withAFileLink), []);
+});
 
 test("a link in the text can open the home screen or a personal answer's tab", () => {
   const withLinksToTabs: Change = (_, english) => {

@@ -1,12 +1,16 @@
 ---
-/* A line of the config's Markdown, as elements. Astro escapes its words, so no HTML gets through. */
+/* A line of the config's Markdown, as elements. Astro escapes its words, so no HTML gets through. A link to a
+   tab (#about) goes to its page in the page's language. */
 import { newTabAttributes } from "../contracts/links.ts";
 import { spans, type Span } from "../config/markdown.ts";
 import { site } from "../site/current.ts";
+import { pageLink } from "../site/pages.ts";
 
-/** A line as it's written, or the pieces inside bold, italic or a link, which this draws by using itself. */
-type Props = { text: string } | { spans: Span[] };
+/** A line as it's written, or the pieces inside bold, italic or a link, which this draws by using itself; and
+    the page's language. */
+type Props = ({ text: string } | { spans: Span[] }) & { code: string };
 
+const { code } = Astro.props;
 const pieces = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spans;
 ---
 
@@ -15,15 +19,15 @@ const pieces = "text" in Astro.props ? spans(Astro.props.text) : Astro.props.spa
   if (piece.type === "code") return <code>{piece.text}</code>;
   if (piece.type === "link") {
     return (
-      <a href={site.link(piece.href)} {...newTabAttributes(piece.href)}>
-        <Astro.self spans={piece.spans} />
+      <a href={pageLink(site, code, piece.href)} {...newTabAttributes(piece.href)}>
+        <Astro.self spans={piece.spans} code={code} />
       </a>
     );
   }
   const Emphasis = piece.type;
   return (
     <Emphasis>
-      <Astro.self spans={piece.spans} />
+      <Astro.self spans={piece.spans} code={code} />
     </Emphasis>
   );
 })}

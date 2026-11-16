@@ -85,8 +85,8 @@ function firstDifference(code: string, outline: Outline, main: string, mainOutli
 
 /** An answer's id ("work.2") has to name the same answer in every language:
     /ask replies with an id, which each language's page shows from its own
-    copy, and the account menu's link to another language keeps the open
-    tab's #id. */
+    copy, and a link to another language goes to the open tab's page
+    there. */
 const checkLanguagesMatch: SiteCheck = (site, problemUnless) => {
   const { codes, main } = site;
   const mainOutline = outlineOf(site.language(main));

@@ -13,7 +13,7 @@ import Topbar from "./Topbar.astro";
 interface Props {
   page: Page;
 }
-const { language } = Astro.props.page;
+const { code, language } = Astro.props.page;
 const { strings } = language;
 const { greeting, intro, hint, tagline, prompts = [] } = language.home;
 // The box asks what the question card asks, and its button is the card's.
@@ -32,7 +32,7 @@ const greetingsForScript = {
       {greeting.default}
     </h1>
     <p class={PAGE_CLASSES.intro}>
-      <Inline text={intro} />
+      <Inline text={intro} code={code} />
     </p>
     <div class={PAGE_CLASSES.homeAsk} data-js-only>
       <div class={PAGE_CLASSES.composer}>

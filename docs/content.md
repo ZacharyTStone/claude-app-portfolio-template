@@ -59,8 +59,26 @@ from 18:00 and `late` from 23:00.
 ## Threads
 
 A thread is one tab: an `id`, a `title` and `messages`, each a question
-(`q`) and its answer (`a`). The `id` is the tab's address (`#about`), and
-everything else names the thread by it.
+(`q`) and its answer (`a`). Everything else names the thread by its `id`,
+and the `id` is its page's address: each tab has a page of its own,
+`/about/` (and `/ja/about/` in another language), which is the whole site
+with that tab open. A link to it previews as that tab: its title is the
+tab's (`About · Your Name`), and its description the start of its first
+answer, or the page's own `meta.description` when that answer is all
+cards and figures. The home screen stays at `/`.
+
+Moving between tabs, the script stays on the page and changes the address
+as it goes, so Back and Forward step through the tabs; without JavaScript
+each row is a link to its tab's page. An address from before tabs had
+pages, `/#about`, still opens the tab (with JavaScript the address becomes
+`/about/`). A visitor's own chats are kept in their browser, so a chat's
+address stays a `#` on the home page.
+
+An `id` is lowercase letters, digits and dashes. It can't be a path the
+site has at its root already, and the build says so: a language's code
+(`ja`), `assets`, `ask`, `blog` (kept for a blog), or the name of a
+folder or a page in `public/` (a `cv.html` there takes `cv`, and a
+`cv.pdf` doesn't).
 
 To add a thread, add it to `threads`, then say where a visitor finds it:
 
@@ -69,7 +87,7 @@ To add a thread, add it to `threads`, then say where a visitor finds it:
 - if you like, a choice in `questions.topics`, a step in `panel.progress`,
   or a link in another answer: `[my talks](#talks)`.
 
-A thread no row names is still at its address, but nothing leads to it.
+A thread no row names still has its page, but nothing leads to it.
 
 To remove a thread, delete it and build: the build names every row,
 prompt and link that still points at it.
@@ -92,7 +110,9 @@ An answer is a list of blocks, shown top to bottom:
 
 Text is a little Markdown and never HTML: `**bold**`, `*italic*`, code
 between backticks, and `[a link](#about)`. A link goes to a thread
-(`#about`), a web address, `mailto:` or a file on the site.
+(`#about`, which the page makes a link to that tab's page in its own
+language), the home screen (`#top`), a web address, `mailto:` or a file on
+the site.
 
 An answer has an id, which the home screen's `prompts` and Ask name it
 by: `acme.2` is the second answer in the thread `acme`, and
@@ -117,9 +137,10 @@ Sidebar rows, panel rows and link cards name an icon: `about`, `skills`,
 `questions.topics` are the choices under every thread. A topic opens a
 thread (`tab`), or asks a second question (`ask`) and lists `choices`; four
 or fewer fit on a phone. `questions.personal` are answers that aren't in a
-thread: each gets a tab of its own, and the topic with `personal: true`
-lists them. One marked `hidden` stays out of the card, but a home prompt
-can name it and Ask can pick it.
+thread: each gets a tab of its own, with a page of its own as a thread's
+has (`/personal-coffee/` for the `id` `coffee`), and the topic with
+`personal: true` lists them. One marked `hidden` stays out of the card,
+but a home prompt can name it, Ask can pick it, and its page is there.
 
 A question a visitor types gets the `asked` reply, "Something else": how
 to reach you, with their question in an email and a message to copy.

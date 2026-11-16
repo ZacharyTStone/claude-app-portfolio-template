@@ -6,7 +6,7 @@ import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { personalTabId } from "../../src/contracts/page-ids.ts";
 import { CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
 import { expect, NO_ANSWER, test } from "./fixtures.ts";
-import { NEW_TAB, OPEN_CARD, OPEN_CHAT, sentInto, sidebarRow, wordsTyped } from "./parts.ts";
+import { NEW_TAB, OPEN_CARD, OPEN_CHAT, openTab, sentInto, sidebarRow, wordsTyped } from "./parts.ts";
 import { tabIdOf } from "./site.ts";
 import { askIn, askInNewChat, firstTabChoice, pickFirstTab } from "./visitor.ts";
 
@@ -16,7 +16,7 @@ const A_QUESTION_WITH_A_PATTERN_IN_IT = "Does he like natto? It costs $& here";
 test.describe("a question typed into one of the site's own tabs", () => {
   test.beforeEach(async ({ page, site, ask }) => {
     await ask.returns(NO_ANSWER);
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
   });
 
   test("is sent, and answered there", async ({ page, site }) => {
@@ -80,7 +80,7 @@ test.describe("questions sent one after another in a chat", () => {
     await expect.poll(() => kindOfEachMessage(page)).toEqual([QUESTION, ANSWER, QUESTION, ANSWER]);
     await askIn(page, chatId, "Third?");
     await sidebarRow(page, otherThread.id).click();
-    await expect(page.locator(`#${otherThread.id}:target`)).toBeVisible();
+    await expect(openTab(page, otherThread.id)).toBeVisible();
     await sidebarRow(page, chatId).click();
     await expect.poll(() => kindOfEachMessage(page)).toEqual([QUESTION, ANSWER, QUESTION, ANSWER, QUESTION, ANSWER]);
   });
@@ -88,7 +88,7 @@ test.describe("questions sent one after another in a chat", () => {
 
 test.describe("a choice from the card", () => {
   test("in one of the site's own tabs, opens its tab: nothing is sent, and the card closes", async ({ page, site }) => {
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(`#${site.firstThread.id} ${CLASS.composer}`).click();
     const choice = await firstTabChoice(page);
     const itsTab = tabIdOf(await choice.getAttribute("href"));
@@ -96,7 +96,7 @@ test.describe("a choice from the card", () => {
     expect(await clickAndCount(choice, `${CLASS.thread} > ${CLASS.sent}`), "what's sent anywhere, at the click").toBe(
       0,
     );
-    await expect(page.locator(`#${itsTab}:target`)).toBeVisible();
+    await expect(openTab(page, itsTab)).toBeVisible();
     await expect(page.locator(ID.questionCard)).toBeHidden();
   });
 
@@ -120,7 +120,7 @@ test.describe("personal answers", () => {
     test.skip(!personalTopic, "the question card has no personal topic");
     test.skip(!hiddenAnswers.length, "there are no hidden personal answers");
     test.skip(shownAnswers.length < 2, "the personal topic has fewer than two answers to list");
-    await page.goto(`#${site.firstThread.id}`);
+    await page.goto(site.firstThread.path);
     await page.locator(`#${site.firstThread.id} ${CLASS.composer}`).click();
     const card = page.locator(ID.questionCard);
     await card

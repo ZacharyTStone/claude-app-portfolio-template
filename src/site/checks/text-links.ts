@@ -52,12 +52,10 @@ const checkTextLinksOpenTabs: LanguageCheck = ({ language, threadIds, problemUnl
 };
 
 /** The script doesn't know the site's path, so in the text it shows itself
-    (the personal answers and its own wording) it leaves a link to a file on
-    the site ("/resume.pdf") as its words alone, and the visitor gets no
-    link. */
+    (its own wording) it leaves a link to a file on the site ("/resume.pdf")
+    as its words alone, and the visitor gets no link. */
 const checkScriptTextLinks: LanguageCheck = ({ language, problemUnless }) => {
-  const scriptWording = SCRIPT_STRING_NAMES.flatMap((key) => language.strings[key] ?? []);
-  const textTheScriptShows = [...everyStringIn(language.questions.personal), ...scriptWording];
+  const textTheScriptShows = SCRIPT_STRING_NAMES.flatMap((key) => language.strings[key] ?? []);
   for (const text of textTheScriptShows) {
     for (const href of hrefsIn(text)) {
       problemUnless(

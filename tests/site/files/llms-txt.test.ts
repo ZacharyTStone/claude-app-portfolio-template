@@ -58,3 +58,23 @@ test("llms.txt has no Links section for a site whose panel links nowhere", () =>
   for (const language of Object.values(withoutPanel.languages)) language.panel = {};
   assert.ok(!llmsTxt(makeSite(withoutPanel)).includes("## Links"));
 });
+
+test("llms.txt lists each language's home page, then the page of each of the main language's tabs", () => {
+  const site = "https://example.com/portfolio";
+  const pages = [
+    `- [Portfolio (EN)](${site}/)`,
+    `- [Portfolio (FR)](${site}/fr/)`,
+    `- [About](${site}/about/)`,
+    `- [Work](${site}/work/)`,
+    `- [for fun?](${site}/personal-fun/)`,
+  ];
+  assert.ok(llmsText.includes(`## Pages\n\n${pages.join("\n")}\n\n`));
+});
+
+test("a panel row that links to a tab is listed at the tab's page", () => {
+  const withALinkToATab = sampleConfig();
+  for (const language of Object.values(withALinkToATab.languages)) {
+    language.panel.outputs?.rows.push({ label: "My work", meta: "Tab", icon: "work", href: "#work" });
+  }
+  assert.ok(llmsTxt(makeSite(withALinkToATab)).includes("- [My work](https://example.com/portfolio/work/): Tab\n"));
+});

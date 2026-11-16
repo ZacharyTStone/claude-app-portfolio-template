@@ -24,7 +24,7 @@ const lastMessageIndex = thread.messages.length - 1;
     <>
       <p class={PAGE_CLASSES.question}>
         <span class={PAGE_CLASSES.srOnly}>{strings.question}</span>
-        <Inline text={message.q} />
+        <Inline text={message.q} code={page.code} />
       </p>
       {message.read && (
         <details class={PAGE_CLASSES.status}>
@@ -38,7 +38,7 @@ const lastMessageIndex = thread.messages.length - 1;
       )}
       <div class={PAGE_CLASSES.answer}>
         {message.a.map((block) => (
-          <Block block={block} strings={strings} />
+          <Block block={block} page={page} />
         ))}
         {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>

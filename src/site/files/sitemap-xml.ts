@@ -1,5 +1,6 @@
 /* sitemap.xml, with every page's hreflang pairs. */
 
+import { alternatesOf, portfolioPages, type PageHead } from "../pages.ts";
 import type { Site } from "../site.ts";
 
 /** At the site's root: robots.txt points crawlers at it, and the route that
@@ -11,21 +12,21 @@ export const SITEMAP_FILE = "sitemap.xml";
 const xmlSafe = (text: string): string =>
   text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
-/** Every language's page, each with a link to every one by language
-    (hreflang), and to the main one for any language the site doesn't have
-    (x-default). */
-export function sitemapXml(site: Site): string {
-  const { codes, main } = site;
-  const alternate = (hreflang: string, pageUrl: string) =>
-    `    <xhtml:link rel="alternate" hreflang="${xmlSafe(hreflang)}" href="${xmlSafe(pageUrl)}" />`;
-  // The same on every page: search engines want each page to list them all, itself included.
-  const alternates = [
-    ...codes.map((code) => alternate(code, site.pageUrl(code))),
-    alternate("x-default", site.pageUrl(main)),
-  ];
-  const pages = codes.map((code) =>
-    ["  <url>", `    <loc>${xmlSafe(site.pageUrl(code))}</loc>`, ...alternates, "  </url>"].join("\n"),
+/** One page, with a link to each of its versions by language (hreflang),
+    and to the main one's for any language the site doesn't have
+    (x-default). Search engines want each version to list them all, itself
+    included. */
+function pageEntry(site: Site, head: PageHead): string {
+  const alternates = alternatesOf(site, head).map(
+    ({ hreflang, href }) =>
+      `    <xhtml:link rel="alternate" hreflang="${xmlSafe(hreflang)}" href="${xmlSafe(href)}" />`,
   );
+  return ["  <url>", `    <loc>${xmlSafe(site.fileUrl(head.path))}</loc>`, ...alternates, "  </url>"].join("\n");
+}
+
+/** Every page: each language's home page, and a page for each of its tabs. */
+export function sitemapXml(site: Site): string {
+  const pages = portfolioPages(site).map(({ head }) => pageEntry(site, head));
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">

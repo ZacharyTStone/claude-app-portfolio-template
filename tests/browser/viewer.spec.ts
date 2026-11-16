@@ -28,9 +28,9 @@ const ALL_THE_FRAME_MAY_DO = "allow-scripts allow-same-origin allow-forms allow-
 const linkIn = (page: Page, { tab, shown }: ViewerLink): Locator =>
   page.locator(`#${tab} a[${DATA.viewerAddress}="${shown}"]`).first();
 
-test.beforeEach(async ({ page, viewerLink }) => {
+test.beforeEach(async ({ page, site, viewerLink }) => {
   await otherSitesReturnAPage(page, [viewerLink.href, viewerLink.shown]);
-  await page.goto(`#${viewerLink.tab}`);
+  await page.goto(site.pathOf(viewerLink.tab));
 });
 
 test.describe("a link the viewer lists, clicked", () => {

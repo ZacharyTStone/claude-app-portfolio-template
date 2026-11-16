@@ -10,9 +10,10 @@ into static HTML and CSS that work with JavaScript off, plus one small
 script for the chats, menus and question card. An answer can hold more
 than text: file cards, bars, flows, pictures, quotes, and diagrams that
 move. A link you choose, such as a resume in Google Docs, can open in a
-viewer beside the conversation instead of a new tab. An optional Worker on
-Cloudflare, Ask, answers typed questions from your own answers, and quotes
-the lines it answered from.
+viewer beside the conversation instead of a new tab. Each tab has a page
+of its own (`/about/`), so a link to one opens on it and previews as it.
+An optional Worker on Cloudflare, Ask, answers typed questions from your
+own answers, and quotes the lines it answered from.
 
 ## Quick start
 

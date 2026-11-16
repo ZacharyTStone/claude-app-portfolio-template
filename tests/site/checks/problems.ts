@@ -15,10 +15,17 @@ import { languageOf, sampleConfig } from "../sample.ts";
 
 const stylesheetIcons = iconsIn(readStylesheet(join(ROOT, STYLES_FOLDER)));
 
-/** What the checks find in a config: its problems, and their advice. */
-export const findingsIn = (config: SiteConfig): Findings => checkSite(makeSite(config), stylesheetIcons);
+/** What public/ has at its root, as the checks of the sample read it: the
+    same in every repo, whatever a site has put there of its own. */
+const PUBLIC_ROOT = ["assets"];
 
-export const problemsIn = (config: SiteConfig): string[] => findingsIn(config).problems;
+/** What the checks find in a config: its problems, and their advice.
+    `publicRoot` is what public/ has at its root. */
+export const findingsIn = (config: SiteConfig, publicRoot = PUBLIC_ROOT): Findings =>
+  checkSite(makeSite(config), stylesheetIcons, publicRoot);
+
+export const problemsIn = (config: SiteConfig, publicRoot?: string[]): string[] =>
+  findingsIn(config, publicRoot).problems;
 
 /** A change to the sample: to the config as a whole, or to its English
     alone (so the languages may no longer match). */

@@ -7,14 +7,16 @@ import Logo from "./Logo.astro";
 
 interface Props {
   link: LinkCard;
+  /** The language of the page it's on. */
+  code: string;
   /** data-* attributes for the link itself, for the script to read. */
   [attribute: `data-${string}`]: string;
 }
-const { link, ...dataAttributes } = Astro.props;
+const { link, code, ...dataAttributes } = Astro.props;
 const { name, kind, href, icon } = link;
 ---
 
-<a class={`link-card i-out ${PAGE_CLASSES.iconAfter}`} {...linkAttributes(href, name)} {...dataAttributes}>
+<a class={`link-card i-out ${PAGE_CLASSES.iconAfter}`} {...linkAttributes(href, name, code)} {...dataAttributes}>
   <span class:list={["tile", iconClass(icon)]} aria-hidden="true">
     <Logo icon={icon} />
   </span>

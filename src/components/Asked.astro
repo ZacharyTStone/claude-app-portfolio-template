@@ -52,12 +52,12 @@ const linkedinOffer =
   </p>
   <div class={PAGE_CLASSES.answer}>
     <p>
-      <Inline text={asked.answer} />
+      <Inline text={asked.answer} code={page.code} />
     </p>
-    <LinkCard link={mailLink} {...mailTemplate} />
+    <LinkCard link={mailLink} code={page.code} {...mailTemplate} />
     {linkedinOffer && (
       <>
-        <LinkCard link={linkedinOffer.link} />
+        <LinkCard link={linkedinOffer.link} code={page.code} />
         <div class={PAGE_CLASSES.draft} {...{ [DATA.messageDraft]: linkedinOffer.message.text }}>
           <p class="draft-head">
             {linkedinOffer.message.label}

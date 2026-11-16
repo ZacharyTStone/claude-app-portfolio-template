@@ -19,7 +19,7 @@ import {
   popupAttributes,
   togglePopup,
 } from "../popup.ts";
-import { isChat, rowFor } from "../tabs.ts";
+import { addressOf, isChat, rowFor } from "../tabs.ts";
 import { cardChoices, holdsTab, type CardChoice, type TabChoice, type TabOnPage, type TopicGroup } from "./choices.ts";
 import { questionCard } from "./data.ts";
 import { actionForKey, type CardKeyAction } from "./keys.ts";
@@ -124,7 +124,7 @@ function topicGroupButton(group: TopicGroup, parts: HTMLElement[]): HTMLElement 
     instead. */
 function tabChoiceLink(choice: TabChoice, parts: HTMLElement[]): HTMLElement {
   const isCardTab = choice.tabId === cardTab?.id;
-  const link = make("a", { href: `#${choice.tabId}`, "aria-current": isCardTab ? "page" : null }, ...parts);
+  const link = make("a", { href: addressOf(choice.tabId), "aria-current": isCardTab ? "page" : null }, ...parts);
   link.addEventListener("click", (event) => {
     if (!cardTab || !isChat(cardTab)) return closePopup();
     event.preventDefault();

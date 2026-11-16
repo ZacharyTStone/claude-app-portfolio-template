@@ -6,6 +6,7 @@ import {
   sansCharacters,
   serifCharacters,
 } from "../../../scripts/fonts/characters.ts";
+import { DATA } from "../../../src/contracts/page-attributes.ts";
 import { scratchFolders } from "../scratch-folders.ts";
 
 /** A page in Japanese with this in its body, as the build writes one. */
@@ -112,4 +113,8 @@ test("The 404 page comes with the Japanese page when the site has one", () => {
   const withOne = builtSite("404", { "index.html": japanesePage("家"), "404.html": englishPage("gone") });
   assert.equal(builtPagesIn(without)?.notFound, undefined);
   assert.equal(builtPagesIn(withOne)?.notFound, englishPage("gone"));
+});
+
+test("The sans doesn't need the home screen's window title, which the browser draws", () => {
+  assert.equal(sansOf(japanesePage("<p>本</p>", ` ${DATA.homeTitle}="題名 — 名前"`)), "本");
 });

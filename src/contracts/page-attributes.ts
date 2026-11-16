@@ -12,6 +12,14 @@ export const DATA = {
   /** On <html>: where /ask is, when Ask is on. A page without it sends no
       question anywhere. */
   ask: "data-ask",
+  /** On <html>: its language's home page, as the pages link to it ("/",
+      "/ja/"). Each of the language's tabs has its page under it
+      (tabPagePath). On a link to another language's page: that
+      language's, from which the script points the link at the open tab. */
+  home: "data-home",
+  /** On <html>: the home screen's window title, which a tab's page isn't
+      built with. */
+  homeTitle: "data-home-title",
   /** Around the home screen's greeting: the greeting for each part of the
       visitor's day, as data-greet-morning and so on. */
   greet: (part: GreetingPart) => `data-greet-${part}` as const,
@@ -45,7 +53,8 @@ export const DATA = {
   mood: (mood: ClockMood) => `data-mood-${mood}` as const,
   /** On each of the clock's times: your time zone, or LOCAL_ZONE. */
   zone: "data-zone",
-  /** No value: the account menu's link to the other language's page. */
+  /** No value: the account menu's link to the other language's page, at
+      the tab that's open. */
   langLink: "data-lang-link",
   /** No value: "Log out" in the account menu, which carries the next three
       for the goodbye it shows. */

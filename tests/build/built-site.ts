@@ -9,6 +9,7 @@ import { test } from "node:test";
 import { escapeRegExp } from "es-toolkit";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { isSafeHref } from "../../src/site/checks/formats.ts";
+import { portfolioPages } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { basePath } from "../../src/site/url.ts";
 
@@ -20,9 +21,11 @@ export type BuiltSite = {
   name: string;
   /** Where the site is: its address, with the path it's served under ("/", "/portfolio/"). */
   url: URL;
-  /** Each language's page, the main one's first. */
+  /** Each language's home page, the main one's first. */
   languagePages: ServedFile[];
-  /** Every page: each language's, and the 404 page. */
+  /** Each language's tabs' pages, and the tab each has open. */
+  tabPages: Array<ServedFile & { tab: string }>;
+  /** Every page: each language's home page, its tabs' pages, and the 404 page. */
   pages: ServedFile[];
   /** Whether the build has this file, by its path in the built folder. */
   hasFile: (file: string) => boolean;
@@ -34,15 +37,18 @@ const NOT_FOUND_PAGE = "404.html";
 
 /** The site that `config` builds into `folder`. */
 export function builtSite(name: string, folder: string, config: SiteConfig): BuiltSite {
-  const { codes, main } = makeSite(config);
+  const site = makeSite(config);
   const url = new URL(basePath(config.url), config.url);
   const served = (file: string): ServedFile => ({ file, url: new URL(file.replace(/index\.html$/, ""), url) });
-  const languagePages = codes.map((code) => served(code === main ? "index.html" : `${code}/index.html`));
+  const servedAt = (path: string): ServedFile => served(`${path.slice(1)}index.html`);
+  const languagePages = site.codes.map((code) => servedAt(site.home(code)));
+  const tabPages = portfolioPages(site).flatMap(({ head, tab }) => (tab ? [{ ...servedAt(head.path), tab }] : []));
   return {
     name,
     url,
     languagePages,
-    pages: [...languagePages, served(NOT_FOUND_PAGE)],
+    tabPages,
+    pages: [...languagePages, ...tabPages, served(NOT_FOUND_PAGE)],
     hasFile: (file) => existsSync(join(folder, file)) && statSync(join(folder, file)).isFile(),
     hasFolder: (file) => existsSync(join(folder, file)) && statSync(join(folder, file)).isDirectory(),
     read: (file) => readFileSync(join(folder, file), "utf8"),
@@ -166,9 +172,23 @@ function testEveryLanguageHasTheSameStructure(site: BuiltSite): void {
   if (!otherPages.length) {
     test(`${site.name}: every language's page has the same structure`, { skip: "the site is in one language" });
   }
-  for (const page of otherPages) {
-    test(`${site.name}: ${page.file} has the same structure as the main language's page`, () => {
+  for (const page of [...otherPages, ...site.tabPages]) {
+    test(`${site.name}: ${page.file} has the same structure as the main language's home page`, () => {
       assert.deepEqual(outlineOf(site.read(page.file)), outlineOf(site.read(mainPage.file)));
+    });
+  }
+}
+
+/** A tab's page is the whole app, with that tab open and no other: an
+    <article class="tab open" id="about"> for the page of "about". */
+function testEachTabPageHasItsTabOpen(site: BuiltSite): void {
+  test(`${site.name}: each home page has no tab open`, () => {
+    for (const { file } of site.languagePages) assert.doesNotMatch(site.read(file), /<article class="tab open"/, file);
+  });
+  for (const { file, tab } of site.tabPages) {
+    test(`${site.name}: ${file} has its tab, "${tab}", open and no other`, () => {
+      const openTabs = [...site.read(file).matchAll(/<article class="tab open" id="([^"]*)"/g)].map(([, id]) => id);
+      assert.deepEqual(openTabs, [tab]);
     });
   }
 }
@@ -223,6 +243,7 @@ function testLinksAndFiles(site: BuiltSite): void {
 /** The tests any built site has to pass. */
 export function testBuiltSite(site: BuiltSite): void {
   testEveryLanguageHasTheSameStructure(site);
+  testEachTabPageHasItsTabOpen(site);
   testNothingIsInline(site);
   testLinksAndFiles(site);
 }

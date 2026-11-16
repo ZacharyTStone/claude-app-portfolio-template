@@ -4,11 +4,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import ownConfig from "../../../site.config.ts";
 import { HOSTS } from "../../../src/config/site-config.ts";
+import { namesAtPublicRoot, ROOT } from "../../../src/site/repo.ts";
 import { languageOf, sampleConfig } from "../sample.ts";
 import { findingsIn, problemsIn } from "./problems.ts";
 
-test("this site's config has no problems", () => {
-  assert.deepEqual(problemsIn(ownConfig), []);
+test("this site's config has no problems, with what its public/ has", () => {
+  assert.deepEqual(problemsIn(ownConfig, namesAtPublicRoot(ROOT)), []);
 });
 
 for (const host of HOSTS) {

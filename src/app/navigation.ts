@@ -1,12 +1,14 @@
 /* Where a visitor goes: to a tab, to a new chat, home. Each is a change of
-   address (#about), which main.ts follows; what was to happen once there
-   waits until it has. */
+   address (/about/, /#chat-l2x8f, /), which main.ts follows; what was to
+   happen once there waits until it has. */
+import { go, isAt } from "./address.ts";
 import { emptyChatTab } from "./conversation/chats.ts";
 import type { Exchange } from "./conversation/exchange.ts";
 import { send } from "./conversation/send.ts";
+import { homePath } from "./page.ts";
 import { openCard, openCardLeavingFocus } from "./question-card/card.ts";
 import { closeDrawerAndReturnFocus, isDrawerOpen, isWide } from "./sidebar.ts";
-import { clearHash, currentTab, focusOpenTab, showOpenTab } from "./tabs.ts";
+import { addressOf, currentTab, focusOpenTab, showOpenTab } from "./tabs.ts";
 
 /** What's to run once a tab has opened, until it has. */
 let pendingOpen: { tab: HTMLElement; onceOpen: () => void } | null = null;
@@ -16,7 +18,7 @@ let pendingOpen: { tab: HTMLElement; onceOpen: () => void } | null = null;
 export function openTab(tab: HTMLElement, onceOpen?: () => void): void {
   if (tab === currentTab()) return onceOpen?.();
   pendingOpen = onceOpen ? { tab, onceOpen } : null;
-  location.hash = tab.id;
+  go(addressOf(tab.id));
 }
 
 /** Runs what openTab was asked to, if its tab is the one that has just
@@ -51,7 +53,7 @@ export function askInNewChat(exchange: Exchange): void {
 export function goHome(): void {
   if (!isWide()) return openNewChat();
   closeDrawerAndReturnFocus();
-  if (location.hash) clearHash();
+  if (!isAt(homePath)) return go(homePath);
   showOpenTab();
   focusOpenTab();
 }
@@ -67,5 +69,5 @@ export function startOnPhone(): void {
   pendingOpen = { tab: chatTab, onceOpen: () => openCardLeavingFocus(chatTab) };
   // In the home screen's place in the history: left there, the home screen
   // would open another chat each time Back reached it.
-  location.replace(`#${chatTab.id}`);
+  go(addressOf(chatTab.id), true);
 }

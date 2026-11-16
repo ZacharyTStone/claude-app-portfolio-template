@@ -324,7 +324,12 @@ export default {
               q: `can i see ${lower(me.first)}’s resume?`,
               // Listed in `viewer`, this link (and the panel's row for it)
               // would open beside the conversation, not in a new tab.
-              a: ["Sure:", { link: { name: "Resume", kind: "Document · PDF", href: me.resume, icon: "file" } }],
+              a: [
+                "Sure:",
+                { link: { name: "Resume", kind: "Document · PDF", href: me.resume, icon: "file" } },
+                // A link to a thread by its id goes to that tab's own page.
+                `Or start with the jobs on it: [${acme.company}](#acme) and [${globex.company}](#globex).`,
+              ],
             },
           ],
         },
@@ -372,7 +377,8 @@ export default {
           },
           { label: "How to reach them", tab: "contact" },
         ],
-        // Answers that aren't in a thread. Each gets a tab of its own.
+        // Answers that aren't in a thread. Each gets a tab of its own, with
+        // a page of its own: /personal-from/.
         personal: [
           {
             id: "from",

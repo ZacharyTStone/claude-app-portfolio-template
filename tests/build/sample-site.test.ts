@@ -28,12 +28,15 @@ test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
-test("the sample site has a page for each of its two languages, and a 404 page", () => {
+test("the sample site has a home page for each of its two languages, a page for each of their tabs, and a 404 page", () => {
+  const tabPages = ["about/index.html", "work/index.html", "personal-fun/index.html"];
   assert.deepEqual(
     sample.pages.map(({ file }) => [file, sample.hasFile(file)]),
     [
       ["index.html", true],
       ["fr/index.html", true],
+      ...tabPages.map((file) => [file, true]),
+      ...tabPages.map((file) => [`fr/${file}`, true]),
       ["404.html", true],
     ],
   );

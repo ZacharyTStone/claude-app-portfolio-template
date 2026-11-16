@@ -9,7 +9,7 @@ import { foldable } from "../folding.ts";
 import { clone, find, make } from "../lib/dom.ts";
 import { local } from "../lib/storage.ts";
 import { main, root, sidebar, siteName, tagline, words } from "../page.ts";
-import { copyTab, currentTab, focusOpenTab, showOpenTab, showTabName } from "../tabs.ts";
+import { addressOf, copyTab, currentTab, focusOpenTab, showOpenTab, showTabName } from "../tabs.ts";
 import { say } from "../toast.ts";
 import type { Exchange } from "./exchange.ts";
 import { messagesOf, questionOf } from "./messages.ts";
@@ -156,7 +156,7 @@ function whenMade(chat: Chat): string {
 function listChat(chat: Chat): void {
   chat.row = make(
     "a",
-    { href: `#${chat.tab.id}` },
+    { href: addressOf(chat.tab.id) },
     make("span", { class: PAGE_CLASSES.rowName }),
     make("span", { class: PAGE_CLASSES.rowHint }, whenMade(chat)),
   );

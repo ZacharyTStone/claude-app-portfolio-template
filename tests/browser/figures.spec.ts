@@ -9,7 +9,15 @@ import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import { COMES_INTO_VIEW, MOVING_PICTURE, OPEN_CHAT, PLAY_BUTTON, PLAYED_FIGURE, PLAYING_PICTURE } from "./parts.ts";
+import {
+  COMES_INTO_VIEW,
+  MOVING_PICTURE,
+  OPEN_CHAT,
+  PLAY_BUTTON,
+  PLAYED_FIGURE,
+  PLAYING_PICTURE,
+  sidebarRow,
+} from "./parts.ts";
 import type { MovingPicture, PlayedPicture } from "./site.ts";
 import { askInNewChat } from "./visitor.ts";
 
@@ -35,8 +43,8 @@ const A_SHORT_WINDOW = { width: 1440, height: 420 };
 test.describe("a quote or a file card below a short window", () => {
   test.use({ viewport: A_SHORT_WINDOW });
 
-  test.beforeEach(async ({ page, comingIntoView }) => {
-    await page.goto(`#${comingIntoView.tab}`);
+  test.beforeEach(async ({ page, site, comingIntoView }) => {
+    await page.goto(site.pathOf(comingIntoView.tab));
   });
 
   test("waits: it isn't shown, and keeps its place in the page", async ({ page, comingIntoView }) => {
@@ -85,8 +93,8 @@ test.describe("a quote or a file card below a short window", () => {
 });
 
 test.describe("a picture a visitor plays", () => {
-  test.beforeEach(async ({ page, playedPicture }) => {
-    await page.goto(`#${playedPicture.tab}`);
+  test.beforeEach(async ({ page, site, playedPicture }) => {
+    await page.goto(site.pathOf(playedPicture.tab));
   });
 
   test("rests as its still, dimmed, under a button that says Play", async ({ page, site, playedPicture }) => {
@@ -144,7 +152,7 @@ test.describe("a picture a visitor plays", () => {
     const figure = await scrollToItsTabs(page, playedPicture);
     await figure.locator(PLAY_BUTTON).click();
     await expect(figure.locator(PLAYING_PICTURE)).toBeVisible();
-    await page.goto(`#${elsewhere?.id}`);
+    await sidebarRow(page, elsewhere?.id ?? "").click();
     await expect(figure).not.toContainClass(PAGE_CLASSES.playing);
   });
 
@@ -202,8 +210,8 @@ test.describe("a picture a visitor plays", () => {
 });
 
 test.describe("a picture that moves all the time", () => {
-  test.beforeEach(async ({ page, movingPicture }) => {
-    await page.goto(`#${movingPicture.tab}`);
+  test.beforeEach(async ({ page, site, movingPicture }) => {
+    await page.goto(site.pathOf(movingPicture.tab));
   });
 
   test("is shown moving: its own file loads, and what it draws changes", async ({ page, movingPicture }) => {
