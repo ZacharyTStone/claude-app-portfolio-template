@@ -51,6 +51,33 @@ export type PageStrings = {
   closePanelTitle: string;
 };
 
+/** The contact form's wording (the config's contactForm), which the page
+    shows itself, so that it's there without JavaScript. Only a site with
+    the form needs it (PART_STRINGS). */
+export type ContactFormStrings = {
+  /** The label of the box for the visitor's address: "Your email". */
+  contactEmail: string;
+  /** The label of the box for their message: "Message". */
+  contactMessage: string;
+  /** The button that sends it: "Send". */
+  contactSend: string;
+  /** Under the form once the message has gone: "Sent, thanks. You’ll get
+      a reply by email." */
+  contactSent: string;
+  /** Under the form when it hasn't, with {email} where your address goes,
+      as a link: "That didn’t send. Try again later, or email {email}." */
+  contactFailed: string;
+};
+
+/** Every name in ContactFormStrings. */
+export const CONTACT_FORM_STRING_NAMES = [
+  "contactEmail",
+  "contactMessage",
+  "contactSend",
+  "contactSent",
+  "contactFailed",
+] as const satisfies readonly (keyof ContactFormStrings)[];
+
 /** Every name in PageStrings (tests/config/field-docs.test.ts holds the
     two together). */
 export const PAGE_STRING_NAMES = [
@@ -149,16 +176,17 @@ type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
 /** In the order the page carries them. */
 export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as ScriptStringName[];
 
-/** The script strings a site needs only when it has the part (the build
-    says which are missing). */
+/** The strings a site needs only when it has the part (the build says
+    which are missing): the script's, and the contact form's. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
-} as const satisfies Record<string, readonly ScriptStringName[]>;
+  contactForm: CONTACT_FORM_STRING_NAMES,
+} as const satisfies Record<string, readonly (ScriptStringName | keyof ContactFormStrings)[]>;
 
-type OptionalScriptStringName = (typeof PART_STRINGS)[keyof typeof PART_STRINGS][number];
+type OptionalScriptStringName = Extract<(typeof PART_STRINGS)[keyof typeof PART_STRINGS][number], ScriptStringName>;
 
-const OPTIONAL_SCRIPT_STRING_NAMES: readonly ScriptStringName[] = Object.values(PART_STRINGS).flat();
+const OPTIONAL_SCRIPT_STRING_NAMES: readonly string[] = Object.values(PART_STRINGS).flat();
 
 export const REQUIRED_SCRIPT_STRING_NAMES = SCRIPT_STRING_NAMES.filter(
   (name): name is Exclude<ScriptStringName, OptionalScriptStringName> => !OPTIONAL_SCRIPT_STRING_NAMES.includes(name),
@@ -170,5 +198,6 @@ export const REQUIRED_SCRIPT_STRING_NAMES = SCRIPT_STRING_NAMES.filter(
 export type ScriptStrings = { -readonly [Name in keyof typeof SCRIPT_STRING_ATTRIBUTES]: string };
 
 export type Strings = PageStrings &
+  Partial<ContactFormStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

@@ -71,6 +71,9 @@ To add a thread, add it to `threads`, then say where a visitor finds it:
 
 A thread no row names is still at its address, but nothing leads to it.
 
+A [contact form](contact-form.md), an email box, a message box and Send,
+can go under a thread's last answer: `contactForm` names the thread.
+
 To remove a thread, delete it and build: the build names every row,
 prompt and link that still points at it.
 

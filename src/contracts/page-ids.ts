@@ -22,6 +22,10 @@ export const PAGE_IDS = {
   asked: "asked",
   /** The <script> that holds the question card's JSON. */
   questionCardData: "questions",
+  /** The contact form's two notes (contracts/contact.ts): the Worker sends a
+      visitor without JavaScript back to one, and its tab shows it. */
+  contactSent: "message-sent",
+  contactFailed: "message-failed",
   accountMenu: "account-menu",
   /** No built page has the rest: the browser code makes them. A thread's
       menu, under the chevron beside its title. */

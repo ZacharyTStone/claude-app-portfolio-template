@@ -25,6 +25,7 @@ const PLACES_TO_FILL: Array<[name: keyof Strings, place: string]> = [
   ["askFromPersonal", "{tab}"],
   ["askLimited", "{limit}"],
   ["askLeft", "{n}"],
+  ["contactFailed", "{email}"],
 ];
 
 for (const [name, place] of PLACES_TO_FILL) {

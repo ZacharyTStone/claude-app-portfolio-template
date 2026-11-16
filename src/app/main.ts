@@ -5,6 +5,7 @@ import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, find, findAll, isComposing } from "./lib/dom.ts";
 import { initAccountMenu } from "./account-menu.ts";
 import { initCard, wireComposer } from "./question-card/card.ts";
+import { initContactForm } from "./contact-form.ts";
 import { dropEmptyChat, forgetChats, initChats, restoreChats } from "./conversation/chats.ts";
 import { foldable } from "./folding.ts";
 import { focusHome, greet, initHome } from "./home.ts";
@@ -72,6 +73,9 @@ function startFeatures(tabPattern: HTMLElement): void {
   initRevealOnScroll();
   initPlay();
   initPanel();
+  // Before the address is followed: it may name one of the form's notes,
+  // which this puts the address of the note's tab in place of.
+  initContactForm();
   handleLinksHere();
   addEventListener("keydown", closeTopmostOnEscape);
 }

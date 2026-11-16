@@ -112,6 +112,12 @@ const WRITTEN_BY_A_COMPONENT = {
   askedQuestion: "asked-question",
   draft: "draft",
   draftText: "draft-text",
+  /** The contact form; the line under Send where the browser code says
+      how it went; and the two notes that say it, which show without
+      JavaScript when the address names one. */
+  contactForm: "contact-form",
+  contactStatus: "contact-status",
+  contactNote: "contact-note",
 } as const;
 
 /** A key the components' classes already have doesn't compile here: the

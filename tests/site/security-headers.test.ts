@@ -57,6 +57,7 @@ test("HSTS asks to be preloaded when a site asks for that too", () => {
    added, Trusted Types or a directive dropped) fails here. */
 const OWN_FILES_ONLY = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'";
 const NO_BASE_NO_FORMS = "base-uri 'none'; form-action 'none'";
+const NO_BASE_OWN_FORM = "base-uri 'none'; form-action 'self'";
 const NEVER_FRAMED = "frame-ancestors 'none'";
 const TRUSTED_TYPES = "require-trusted-types-for 'script'; trusted-types 'none'";
 const VIEWER_FRAMES = "frame-src https://a.example.org https://docs.example.com";
@@ -77,6 +78,16 @@ const POLICIES = [
     site: "a site with a viewer",
     options: { ask: false, frames: frameOrigins(VIEWER) },
     policy: `${OWN_FILES_ONLY}; ${VIEWER_FRAMES}; ${NO_BASE_NO_FORMS}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
+  },
+  {
+    site: "a site with the contact form",
+    options: { ask: false, contactForm: true },
+    policy: `${OWN_FILES_ONLY}; connect-src 'self'; ${NO_BASE_OWN_FORM}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
+  },
+  {
+    site: "a site with Ask and the contact form",
+    options: { ask: true, contactForm: true },
+    policy: `${OWN_FILES_ONLY}; connect-src 'self'; ${NO_BASE_OWN_FORM}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
   },
   {
     site: "a site with Ask and a viewer",

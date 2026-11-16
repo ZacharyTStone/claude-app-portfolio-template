@@ -11,6 +11,7 @@ import {
   readSite,
   type Clock,
   type ComesIntoView,
+  type ContactForm,
   type MovingPicture,
   type PlayedPicture,
   type SidebarGroup,
@@ -55,6 +56,7 @@ type SiteParts = {
   playedPicture: PlayedPicture;
   movingPicture: MovingPicture;
   comingIntoView: ComesIntoView;
+  contactForm: ContactForm;
 };
 
 type PageErrors = {
@@ -158,6 +160,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   playedPicture: partOrSkip((site) => site.playedPictures[0], "the site has no picture a visitor plays"),
   movingPicture: partOrSkip((site) => site.movingPictures[0], "the site has no picture that moves all the time"),
   comingIntoView: partOrSkip((site) => site.comesIntoView, "no answer on the site has a quote or a file card"),
+  contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
 });
 
 // Chromium with a phone's screen, touch and user agent: the device's own

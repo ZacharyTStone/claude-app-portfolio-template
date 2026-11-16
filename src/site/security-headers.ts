@@ -9,6 +9,9 @@ import type { Hsts } from "../config/site-config.ts";
 export type PolicyOptions = {
   /** Ask is on: the page may send questions to /ask. */
   ask: boolean;
+  /** The contact form is on: the page may post it to /contact, as a form
+      and, with JavaScript, with fetch. */
+  contactForm?: boolean;
   /** The sites the viewer may show in a frame (frameOrigins), if any. */
   frames?: readonly string[];
 };
@@ -25,23 +28,30 @@ export function frameOrigins(viewer: Record<string, string> = {}): string[] {
 /** The Content-Security-Policy, directive by directive: only same-origin
     scripts, styles, images and fonts, nothing inline, and Trusted Types
     required, so no script can turn a string into markup. A site with a
-    viewer may also show pages from the sites its viewer names, in a frame.
+    viewer may also show pages from the sites its viewer names, in a frame;
+    one with the contact form may post a form, to itself.
 
     With `meta`, it's the policy for a page to carry in a <meta> tag: the
     same, less frame-ancestors, which browsers only take from a header. */
-export function contentSecurityPolicy({ ask, frames = [], meta = false }: PolicyOptions & { meta?: boolean }): string {
+export function contentSecurityPolicy({
+  ask,
+  contactForm = false,
+  frames = [],
+  meta = false,
+}: PolicyOptions & { meta?: boolean }): string {
   const directives = [
     "default-src 'none'",
     "script-src 'self'",
     "style-src 'self'",
     "img-src 'self'",
     "font-src 'self'",
-    // The page fetches only /ask, and only when Ask is on.
-    ...(ask ? ["connect-src 'self'"] : []),
+    // The page fetches only /ask and /contact, and only when each is on.
+    ...(ask || contactForm ? ["connect-src 'self'"] : []),
     // Frames only for the viewer, and only from the sites it names.
     ...(frames.length ? [`frame-src ${frames.join(" ")}`] : []),
     "base-uri 'none'",
-    "form-action 'none'",
+    // The one form a page may post is the contact form, to the site itself.
+    `form-action ${contactForm ? "'self'" : "'none'"}`,
     // Browsers ignore this one in a <meta> tag (and say so in the console).
     ...(meta ? [] : ["frame-ancestors 'none'"]),
     "require-trusted-types-for 'script'",
@@ -73,13 +83,12 @@ const PERMISSIONS_POLICY = "camera=(), microphone=(), geolocation=(), payment=()
 
 /** Every header, for every path, in the order they're written. */
 export function securityHeaders({
-  ask,
-  frames,
   hsts,
+  ...policy
 }: PolicyOptions & { hsts?: Hsts | undefined }): Array<[name: string, value: string]> {
   return [
     ["Strict-Transport-Security", strictTransportSecurity(hsts)],
-    ["Content-Security-Policy", contentSecurityPolicy({ ask, frames })],
+    ["Content-Security-Policy", contentSecurityPolicy(policy)],
     // A file is what its type says it is, never guessed from its contents.
     ["X-Content-Type-Options", "nosniff"],
     // No site shows these pages in a frame: for browsers that predate the

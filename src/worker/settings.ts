@@ -35,6 +35,13 @@ const numberAboveZero = <Variable extends string>(variable: Variable, fallback: 
   read: (written) => positiveNumber(written) ?? undefined,
 });
 
+/** An email address, or "" where none is set. */
+const address = <Variable extends string>(variable: Variable): Setting<Variable, string> => ({
+  variable,
+  default: "",
+  read: (written) => (/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(written) ? written : undefined),
+});
+
 /** Cloudflare's location hints for a Durable Object. */
 export const DURABLE_OBJECT_LOCATIONS: readonly DurableObjectLocationHint[] = [
   "wnam",
@@ -90,9 +97,22 @@ export const SETTINGS = {
   logQuestions: flag("ASK_LOG_QUESTIONS"),
   /** What visitors' addresses are hashed with, beside the day: a secret,
       where the site has set one. The hash keys a visitor's rate limit,
-      count and any block, so changing this starts everyone afresh, as
-      every midnight (UTC) does. */
+      count and any block, and their count of the contact form's messages,
+      so changing this starts everyone afresh, as every midnight (UTC)
+      does. */
   salt: text("ASK_SALT", "portfolio-ask:"),
+  /** The contact form's messages the whole site sends in a day (UTC). */
+  contactDailyLimit: numberAboveZero("CONTACT_DAILY_LIMIT", 20),
+  /** The messages one visitor (a hashed address) may send in a day. */
+  contactVisitorLimit: numberAboveZero("CONTACT_VISITOR_LIMIT", 3),
+  /** Where the form's emails go: your own address, the one the send_email
+      binding's destination_address locks it to. Without it, /contact sends
+      nothing. */
+  contactTo: address("CONTACT_TO"),
+  /** The address the form's emails come from, on a domain Email Routing is
+      on for. Left out (""), it's portfolio@ and the domain the form was
+      sent from, less a leading "www.". */
+  contactFrom: address("CONTACT_FROM"),
 };
 
 type Rows = typeof SETTINGS;
