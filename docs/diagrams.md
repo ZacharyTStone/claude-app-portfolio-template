@@ -99,16 +99,25 @@ and nothing else, and each name is documented in the module behind it, in
 
 ## How to draw one well
 
-- **A diagram waits to be played.** Motion beside text pulls the eye off
-  the text, so a picture that says how long it `plays` rests as its still,
-  dimmed, with a Play button; pressed, it moves for that long, and rests
-  again (`src/components/Picture.astro`, `src/app/play.ts`). Give `plays`
-  the moment the moving picture looks as the still does: a story's loop
-  is `loop.clears.from`. The build reads it from the picture's own file,
-  so the config says nothing about it. Without JavaScript the button is a
-  link to the moving file. A picture where little moves leaves `plays`
-  out and moves all the time: a marker that pulses on a map isn't worth a
-  press. A site with either needs `strings.play` and `strings.pause`.
+- **A diagram plays once, then waits to be played.** Motion beside text
+  pulls the eye off the text, so a picture that says how long it `plays`
+  rests as its still, dimmed, with a Play button. The first time most of
+  it is on screen it plays once by itself, for that long, so a visitor who
+  never presses Play still sees it move; from then on it moves only when
+  it's pressed, and rests again (`src/components/Picture.astro`,
+  `src/app/play.ts`). One plays at a time: a picture that comes on screen
+  while another plays waits its turn, and plays once that one has played
+  through or been scrolled past, if it's on screen still
+  (`src/app/play-turns.ts`). A press is the visitor's say: Pause stops a
+  picture for good, and starts no other. A visitor who has asked their
+  computer for less motion sees none play by itself, nor does a chat's
+  copy of an answer. Give `plays` the moment the moving picture looks as
+  the still does: a story's loop is `loop.clears.from`. The build reads it
+  from the picture's own file, so the config says nothing about it.
+  Without JavaScript the button is a link to the moving file, and nothing
+  plays by itself. A picture where little moves leaves `plays` out and
+  moves all the time: a marker that pulses on a map isn't worth a press. A
+  site with either needs `strings.play` and `strings.pause`.
 - **Move things, not words.** A dot along a line, a card up a list, a box
   that lights as something reaches it. Text that fades in a row at a time
   is a list: a `flow` or a paragraph says it better, and without motion.

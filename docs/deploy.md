@@ -40,7 +40,8 @@ and nor is `/blog/`.
 ## Cloudflare (recommended)
 
 The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
-the only host that runs [Ask](ask.md). Use an account on the free plan:
+the only host that runs [Ask](ask.md) and the
+[contact form](contact-form.md). Use an account on the free plan:
 there Cloudflare refuses what it would otherwise bill, so the site can
 never cost anything ([What Ask can cost](ask.md#what-ask-can-cost)).
 

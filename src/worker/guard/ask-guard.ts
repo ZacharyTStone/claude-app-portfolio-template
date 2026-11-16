@@ -1,13 +1,22 @@
 /* AskGuard: the day's (UTC) questions, the site's, each visitor's and each
    network's, the site's this hour, the Neurons the site's have cost and
-   may yet, and the visitors blocked. The site has one, and it handles one
-   request at a time, so the counts are exact. What it keeps of a visitor
-   is under a hash of their address that's another one tomorrow, and is
-   deleted when the day ends. */
+   may yet, and the visitors blocked; and the day's messages from the
+   contact form, the site's and each visitor's. The site has one, and it
+   handles one request at a time, so the counts are exact. What it keeps
+   of a visitor is under a hash of their address that's another one
+   tomorrow, and is deleted when the day ends. */
 import { chunk } from "es-toolkit";
 import * as v from "valibot";
 import { utcDay } from "../lib/time.ts";
-import { ASK_GUARD_REPLY, readAsked, sayTaken, type Asked, type DayLimits, type Taken } from "./wire.ts";
+import {
+  ASK_GUARD_REPLY,
+  readAsked,
+  sayTaken,
+  type Asked,
+  type DayLimits,
+  type MessageTaken,
+  type Taken,
+} from "./wire.ts";
 
 /** What it keeps. These keys are the deployed site's state, so they stay:
     - today: { day, used, neurons, unpaid }, the site's questions on that
@@ -17,8 +26,12 @@ import { ASK_GUARD_REPLY, readAsked, sayTaken, type Asked, type DayLimits, type 
     - dearest: the most Neurons one question has cost, on any day;
     - count + who: { day, asked }, one visitor's;
     - network + which: { day, asked }, one network's;
-    - block + who: when their block runs out (ms since 1970).
-    The last three are deleted when the day ends. */
+    - block + who: when their block runs out (ms since 1970);
+    - messages: { day, asked }, the contact form's messages the site sent
+      that day;
+    - message + who: { day, asked }, one visitor's.
+    What's kept under a visitor's or a network's hash is deleted when the
+    day ends. */
 export const ASK_GUARD_KEYS = {
   today: "today",
   hour: "hour",
@@ -26,6 +39,8 @@ export const ASK_GUARD_KEYS = {
   count: "count:",
   network: "network:",
   block: "block:",
+  messages: "messages",
+  message: "message:",
 } as const;
 
 /** storage.delete() takes at most this many keys at once. */
@@ -56,7 +71,8 @@ const HourCountSchema = v.object({
 type HourCount = v.InferOutput<typeof HourCountSchema>;
 
 /** Under `count:` and a visitor's hash, or `network:` and a network's: the
-    questions asked from there on one day. */
+    questions asked from there on one day. Under `messages`, or `message:`
+    and a visitor's hash: the contact form's messages sent from there. */
 const VisitorCountSchema = v.object({
   day: v.string(),
   asked: v.number(),
@@ -85,6 +101,7 @@ const isStillBlocked = (blockedUntil: unknown, now: number) => typeof blockedUnt
 const countKey = (visitorHash: string) => `${ASK_GUARD_KEYS.count}${visitorHash}`;
 const networkKey = (networkHash: string) => `${ASK_GUARD_KEYS.network}${networkHash}`;
 const blockKey = (visitorHash: string) => `${ASK_GUARD_KEYS.block}${visitorHash}`;
+const messageKey = (visitorHash: string) => `${ASK_GUARD_KEYS.message}${visitorHash}`;
 
 // "2026-01-31T14", in UTC.
 const hourOf = (now: number) => new Date(now).toISOString().slice(0, 13);
@@ -141,6 +158,8 @@ export class AskGuard implements DurableObject {
       case "spend":
         await this.spendNeurons(asked.neurons, now);
         return ASK_GUARD_REPLY.ok;
+      case "message":
+        return (await this.takeMessage(asked, now)).state;
     }
   }
 
@@ -165,6 +184,21 @@ export class AskGuard implements DurableObject {
     return { state: "ok", questionsLeft: left };
   }
 
+  // The site's day comes first, as a question's does: a visitor is told
+  // they've sent all they may only while the site still sends.
+  private async takeMessage(take: Extract<Asked, { ask: "message" }>, now: number): Promise<MessageTaken> {
+    const { visitorHash, limits } = take;
+    const day = utcDay(now);
+    const site = visitorCountOn(day, await this.storage.get(ASK_GUARD_KEYS.messages))?.asked ?? 0;
+    if (site >= limits.siteLimit) return { state: "spent" };
+    const sent = visitorCountOn(day, await this.storage.get(messageKey(visitorHash)))?.asked ?? 0;
+    if (sent >= limits.visitorLimit) return { state: "limited" };
+    await this.storage.put(ASK_GUARD_KEYS.messages, { day, asked: site + 1 } satisfies VisitorCount);
+    await this.storage.put(messageKey(visitorHash), { day, asked: sent + 1 } satisfies VisitorCount);
+    await this.forgetVisitorsAtEndOf(now);
+    return { state: "ok" };
+  }
+
   // Whenever something is kept under a visitor's hash, an alarm is set for
   // the day's end, if none is: nothing of a visitor's waits for the next
   // question to be deleted.
@@ -177,7 +211,8 @@ export class AskGuard implements DurableObject {
       so none of it could be found again. */
   async alarm(): Promise<void> {
     const keys: string[] = [];
-    for (const prefix of [ASK_GUARD_KEYS.count, ASK_GUARD_KEYS.network, ASK_GUARD_KEYS.block]) {
+    const kept = [ASK_GUARD_KEYS.count, ASK_GUARD_KEYS.network, ASK_GUARD_KEYS.block, ASK_GUARD_KEYS.message];
+    for (const prefix of kept) {
       keys.push(...(await this.storage.list({ prefix })).keys());
     }
     for (const some of chunk(keys, MAX_KEYS_PER_DELETE)) await this.storage.delete(some);

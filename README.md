@@ -13,7 +13,8 @@ move. A link you choose, such as a resume in Google Docs, can open in a
 viewer beside the conversation instead of a new tab. Each tab has a page
 of its own (`/about/`), so a link to one opens on it and previews as it.
 An optional Worker on Cloudflare, Ask, answers typed questions from your
-own answers, and quotes the lines it answered from.
+own answers, and quotes the lines it answered from; the same Worker can
+run a contact form that emails you, with JavaScript or without.
 
 ## Quick start
 
@@ -96,6 +97,7 @@ your config, README, pictures, diagrams or `src/styles/site.css`:
 | add a language, or cut the Japanese fonts | [Languages and fonts](docs/languages.md) |
 | draw a diagram that moves | [Diagrams](docs/diagrams.md) |
 | let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
+| let visitors email you from the site | [The contact form](docs/contact-form.md) |
 | know what protects the site and its visitors | [Security](docs/security.md) |
 | take the template's later changes | [Updating](docs/updating.md) |
 | change the code itself | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |

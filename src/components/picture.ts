@@ -18,7 +18,8 @@ export function secondsPlayed(src: string, root: string = process.cwd()): number
 }
 
 /** How a picture is shown. One with a `still` moves: if its file says how long it plays, it rests as the still
-    with a Play button; if not, it moves all the time, and the still is for a visitor who wants less motion. */
+    with a Play button (and plays once by itself, when it's first scrolled to); if not, it moves all the time,
+    and the still is for a visitor who wants less motion. */
 type PictureMode =
   { kind: "plain" } | { kind: "moving"; still: string } | { kind: "played"; still: string; seconds: number };
 

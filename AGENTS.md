@@ -4,7 +4,8 @@ A portfolio site laid out like the Claude app: a sidebar of tabs, each a
 short conversation about the site's owner, in one or more languages.
 Everything the site says is in `site.config.ts`. Astro builds it into
 static HTML and CSS that work without JavaScript; one small script adds
-polish, and an optional `/ask` Worker runs on Cloudflare.
+polish, and an optional Worker runs `/ask` and the contact form on
+Cloudflare.
 
 ## What you may change here
 
@@ -60,14 +61,14 @@ call anything done, run `npm run verify`.
 | --- | --- |
 | `site.config.ts` | Everything the site says, in every language (each site's own) |
 | `src/config/` | The config's types: a doc comment on every field, which an editor shows on hover; English wording's defaults |
-| `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, `/ask`'s wire format |
+| `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, the wire formats of `/ask` and `/contact` |
 | `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the pages and what each one's head says (`pages.ts`), the config's checks (`checks/`), each file it writes (`files/`), the security headers |
 | `src/pages/`, `src/layouts/` | The routes (`[...page].astro`: each language's home page and each tab's; 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
 | `src/components/` | The page's parts: `Name.astro`, its rules in `Name.css` beside it |
 | `src/integrations/` | Astro hooks: check the config before a build, write the host's files after |
 | `src/styles/` | Shared rules, and the rules for what the script makes; `app.css` lists every stylesheet in order |
 | `src/app/` | The browser code: `main.ts` starts it; a feature of several files is a folder |
-| `src/worker/` | `POST /ask`, the only server code; its settings are `src/worker/settings.ts` |
+| `src/worker/` | `POST /ask` and `POST /contact`, the only server code; its settings are `src/worker/settings.ts` |
 | `src/shared/config.ts` | Only the path an older site's config imports its types from |
 | `public/` | Files served as they are: favicons, the social card, pictures, icons, fonts |
 | `diagrams/` | Pictures that move, as code (each site's own) |
@@ -135,6 +136,7 @@ call anything done, run `npm run verify`.
 | add a language, or change Japanese text | `docs/languages.md` |
 | draw or change a diagram | `docs/diagrams.md` |
 | turn Ask on, or change its limits or its cost | `docs/ask.md` |
+| turn the contact form on, or change its limits | `docs/contact-form.md` |
 | change a header, the policy, or what a page loads | `docs/security.md` |
 | deploy, or change `host` or `url` | `docs/deploy.md` |
 | take the template's updates | `docs/updating.md` |

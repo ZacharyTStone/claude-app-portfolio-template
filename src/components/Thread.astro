@@ -1,8 +1,10 @@
 ---
 import type { Thread } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { site } from "../site/current.ts";
 import type { Page } from "../site/site.ts";
 import Block from "./Block.astro";
+import ContactForm from "./ContactForm.astro";
 import FileCard from "./FileCard.astro";
 import Inline from "./Inline.astro";
 import MessageActions from "./MessageActions.astro";
@@ -17,6 +19,8 @@ const { strings } = page.language;
 // "Read {file}": the words around the file's name.
 const [statusBeforeFile, statusAfterFile = ""] = strings.status.split("{file}");
 const lastMessageIndex = thread.messages.length - 1;
+// The contact form goes under the last answer of the thread the config names.
+const hasContactForm = site.config.contactForm?.tab === thread.id;
 ---
 
 <Tab page={page} id={thread.id} title={thread.title} pill={thread.pill}>
@@ -40,6 +44,7 @@ const lastMessageIndex = thread.messages.length - 1;
         {message.a.map((block) => (
           <Block block={block} page={page} />
         ))}
+        {messageIndex === lastMessageIndex && hasContactForm && <ContactForm page={page} />}
         {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>
     </>

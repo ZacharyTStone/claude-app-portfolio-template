@@ -1,10 +1,9 @@
 /* What came of a request to /ask, and what the visitor is told of it. The
    line the log gets is in log.ts. */
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
-import { HTTP_STATUS, json } from "../lib/http.ts";
+import { HTTP_STATUS, json, type Rejection } from "../lib/http.ts";
 import type { Picked } from "./pick.ts";
 import type { Reply } from "./reply.ts";
-import type { Rejection } from "./request.ts";
 import type { SaidToOwner } from "./to-owner.ts";
 
 /** A question the model was asked. */

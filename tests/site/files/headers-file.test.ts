@@ -11,8 +11,10 @@ import { sampleConfig } from "../sample.ts";
 const HOSTS_THAT_READ_A_HEADERS_FILE: Host[] = ["cloudflare", "netlify"];
 const HOSTS_THAT_READ_NONE = HOSTS.filter((host) => !HOSTS_THAT_READ_A_HEADERS_FILE.includes(host));
 
-/** The sample on `host`, with neither Ask nor a viewer: its policy allows nothing beyond the site's own files. */
-const plainSiteOn = (host: Host) => makeSite(sampleConfig({ host, ask: undefined, viewer: undefined }));
+/** The sample on `host`, with neither Ask, the contact form nor a viewer: its policy allows nothing beyond the
+    site's own files. */
+const plainSiteOn = (host: Host) =>
+  makeSite(sampleConfig({ host, ask: undefined, contactForm: undefined, viewer: undefined }));
 
 /** Written out, so that a change to a header fails here, not only in the function that writes it. */
 const PLAIN_SITES_HEADERS_FILE = [
@@ -58,4 +60,11 @@ test("a host's _headers file lets frames come from the viewer's site", () => {
 test("a page that carries its own policy lets frames come from the viewer's site", () => {
   const policy = pagePolicy(makeSite(sampleConfig({ viewer: VIEWER, host: "static" })));
   assert.ok(policy.includes(FRAMES_FROM_THE_VIEWERS_SITE));
+});
+
+test("a site with the contact form may post a form, to itself, and fetch from itself", () => {
+  const policy = pagePolicy(makeSite(sampleConfig({ ask: undefined, viewer: undefined })));
+  assert.equal(policy, contentSecurityPolicy({ ask: false, contactForm: true, meta: true }));
+  assert.match(policy, /(^|; )form-action 'self'(;|$)/);
+  assert.match(policy, /(^|; )connect-src 'self'(;|$)/);
 });
