@@ -467,6 +467,11 @@ export default function japanese(me: SampleFacts): Language {
       viewerClose: "閉じる",
       play: "再生",
       pause: "一時停止",
+      // With `writing` in site.config.ts: the Writing tab.
+      writingTitle: "執筆",
+      writingQuestion: `${ja.first}は何を書いているの？`,
+      writingIntro: "Qiitaに書いた記事です。新しい順に：",
+      writingEmpty: "まだ記事はありません。",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",

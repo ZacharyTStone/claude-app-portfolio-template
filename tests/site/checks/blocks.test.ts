@@ -87,6 +87,16 @@ testEachProblem([
     `the link card "A file" links to "java\nscript:alert(1)", ${NOT_A_SAFE_LINK}`,
   ),
   wrongBlock(
+    "a link card whose language is the name of one, not its code",
+    { link: { name: "A file", kind: "PDF", href: "/a.pdf", icon: "file", lang: "Japanese" } },
+    `the thread "work" has the link card "A file" in the language "Japanese", which should be a language code like "ja"`,
+  ),
+  wrongBlock(
+    "a link card whose language would break out of its attribute",
+    { link: { name: "A file", kind: "PDF", href: "/a.pdf", icon: "file", lang: `ja" onclick="alert(1)` } },
+    `the thread "work" has the link card "A file" in the language "ja" onclick="alert(1)", which should be a language code like "ja"`,
+  ),
+  wrongBlock(
     "bars without a title",
     { bars: { title: "", rows: twoBars } },
     `the thread "work" has bars without a title`,

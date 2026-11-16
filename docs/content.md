@@ -37,6 +37,7 @@ a fact.
 | The 404 page | `notFound` | `src/config/language.ts` |
 | Buttons, tooltips and what the script says | `strings` | `src/config/strings.ts` |
 | What an answer is made of | a message's `a` | `src/config/blocks.ts` |
+| The Writing tab: your posts on Qiita, fetched as the site builds | `writing` | `src/config/writing.ts` |
 
 Everything from `home` down belongs to one language: it is inside
 `languages.en`, and again inside each other language
@@ -131,6 +132,16 @@ you…?" for "Does Alex…?"); otherwise it is the question as they typed it,
 about you rather than to you, and for a visitor who has been blocked it is
 empty. So give it a line of its own ("A question from your portfolio:",
 then `{question}`) rather than a place in a sentence.
+
+## The Writing tab
+
+`writing: { qiita: "your-qiita-id" }` adds a tab that lists your posts on
+Qiita, newest first, each a link card to the post. The build fetches
+them, so the tab is as it was at the last build, and its row comes last of
+the sidebar's top rows unless you give it one of your own. Its id is
+`writing`, which no thread of yours can then have. [Writing](writing.md)
+has the rest: the wording a language needs for it, what happens when Qiita
+is down, and a rebuild each day that brings new posts in.
 
 ## The viewer
 

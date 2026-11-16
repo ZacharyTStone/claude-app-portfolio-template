@@ -1,7 +1,6 @@
 ---
-import type { Thread } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import type { Page } from "../site/site.ts";
+import type { Page, SiteThread } from "../site/site.ts";
 import Block from "./Block.astro";
 import FileCard from "./FileCard.astro";
 import Inline from "./Inline.astro";
@@ -10,7 +9,7 @@ import Tab from "./Tab.astro";
 
 interface Props {
   page: Page;
-  thread: Thread;
+  thread: SiteThread;
 }
 const { page, thread } = Astro.props;
 const { strings } = page.language;
@@ -38,7 +37,7 @@ const lastMessageIndex = thread.messages.length - 1;
       )}
       <div class={PAGE_CLASSES.answer}>
         {message.a.map((block) => (
-          <Block block={block} strings={strings} />
+          <Block block={block} strings={strings} fetched={thread.fetched} />
         ))}
         {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>

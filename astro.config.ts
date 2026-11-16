@@ -4,6 +4,7 @@
 import { defineConfig } from "astro/config";
 import { checkConfig } from "./src/integrations/check-config.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
+import { writingPosts } from "./src/integrations/writing.ts";
 import { loadSiteConfig } from "./src/site/load-site-config.ts";
 import { basePath } from "./src/site/url.ts";
 
@@ -34,6 +35,7 @@ export default defineConfig({
     // the config being built.
     resolve: { alias: [{ find: IMPORT_OF_SITE_CONFIG, replacement: filePath }] },
   },
-  integrations: [checkConfig(loaded), hostFiles(config)],
+  // The posts are fetched once the config is known to be right.
+  integrations: [checkConfig(loaded), writingPosts(loaded), hostFiles(config)],
   devToolbar: { enabled: false },
 });

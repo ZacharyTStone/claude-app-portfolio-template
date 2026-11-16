@@ -29,6 +29,7 @@ type Wrangler = {
   durable_objects?: { bindings?: { name?: string; class_name?: string }[] };
   migrations?: { new_sqlite_classes?: string[]; new_classes?: string[] }[];
   vars?: Record<string, string>;
+  triggers?: { crons?: string[] };
   observability?: { enabled?: boolean; logs?: { invocation_logs?: boolean } };
 };
 
@@ -44,13 +45,14 @@ const A_COMMENTED_LINE_OF_JSON = /^(\s*)\/\/ (\s*)(?=["}\]])/gm;
 
 /** wrangler.jsonc with Ask on: as the site has it, or as its instructions
     turn it on (`wasOff`). Undefined for a site whose file has no Ask in it
-    either way. */
+    either way. Ask is on with Workers AI bound: the Worker's script alone
+    may be there for the daily rebuild. */
 function wranglerWithAskOn(): { wrangler: Wrangler; wasOff: boolean } | undefined {
   const text = readFileSync(join(ROOT, "wrangler.jsonc"), "utf8");
   const asItIs = parse(text);
-  if (asItIs.main !== undefined) return { wrangler: asItIs, wasOff: false };
+  if (asItIs.ai !== undefined) return { wrangler: asItIs, wasOff: false };
   const turnedOn = parse(text.replace(A_COMMENTED_LINE_OF_JSON, "$1$2"));
-  return turnedOn.main === undefined ? undefined : { wrangler: turnedOn, wasOff: true };
+  return turnedOn.ai === undefined ? undefined : { wrangler: turnedOn, wasOff: true };
 }
 
 const withAskOn = wranglerWithAskOn();
@@ -109,6 +111,16 @@ test("a file with Ask still commented out turns it on with every other setting a
   if (!on) return;
   if (!on.wasOff) return t.skip("this site has Ask on, with settings of its own");
   assert.deepEqual(readSettings(on.wrangler.vars ?? {}), { ...readSettings({}), enabled: true });
+});
+
+test("a cron trigger (the Writing tab's daily rebuild) has the Worker's script to run, and the site's files bound", (t) => {
+  const asItIs = parse(readFileSync(join(ROOT, "wrangler.jsonc"), "utf8"));
+  if (!asItIs.triggers?.crons?.length) return t.skip("wrangler.jsonc has no cron trigger");
+  assert.ok(
+    existsSync(join(ROOT, asItIs.main ?? "")),
+    `a cron trigger runs the Worker's script, and ${asItIs.main} isn't one`,
+  );
+  assert.equal(asItIs.assets?.binding, BINDINGS.assets, "the Worker reaches the site's files by this binding");
 });
 
 test("the Worker's log is kept, without the line for each request that has the visitor's address", () => {

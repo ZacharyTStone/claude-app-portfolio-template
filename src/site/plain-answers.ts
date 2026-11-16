@@ -17,7 +17,10 @@ export function plainAnswers(site: Site, code: string): AskAnswer[] {
       title: thread.title,
       q: plainText(message.q),
       // The card its "Read …" line opens onto is part of the answer, and comes first.
-      text: joinLines([message.read ? cardText(message.read.card) : "", ...message.a.map(blockText)]),
+      text: joinLines([
+        message.read ? cardText(message.read.card) : "",
+        ...message.a.map(thread.fetched ? postLine : blockText),
+      ]),
     })),
   );
   const personalAnswers = questions.personal.map((personalAnswer): AskAnswer => ({
@@ -49,6 +52,12 @@ function blockText(block: Block): string {
   if ("images" in block) return joinLines(block.images.map((picture) => pictureLabel(picture.caption)));
   return labelled("link", block.link.name);
 }
+
+/** A block of the Writing tab's answer: a post's card is its title, a line
+    Ask may quote like any sentence, where another card is only a label. A
+    title is its author's own words, as the owner's answers are. */
+const postLine = (block: Block): string =>
+  typeof block === "object" && "link" in block ? block.link.name : blockText(block);
 
 /** "(picture: The home page)". */
 const pictureLabel = (caption = ""): string => (caption ? labelled("picture", caption) : "");

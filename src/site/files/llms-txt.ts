@@ -1,12 +1,14 @@
 /* llms.txt: the site as plain text, for a model reading it on someone's
    behalf (a recruiter pasting the address into an assistant): who this is,
-   how to reach them, and every answer, in the words /ask reads (../plain-answers.ts). */
+   how to reach them, the posts the Writing tab lists, and every answer, in
+   the words /ask reads (../plain-answers.ts). */
 
 import type { AskAnswer } from "../../contracts/ask.ts";
 import type { SiteConfig } from "../../config/site-config.ts";
 import { plainAnswers } from "../plain-answers.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
+import { dayPosted, type Post } from "../writing/post.ts";
 
 /** Between two paragraphs or headings, as in Markdown. */
 const BLANK_LINE = "\n\n";
@@ -25,6 +27,8 @@ export function llmsTxt(site: Site): string {
     section("Pages", pageList(site)),
     // A site whose panel links nowhere has no Links section.
     ...(links.length ? [section("Links", links.join("\n"))] : []),
+    // So has a site with no posts in its Writing tab, or no Writing tab.
+    ...(site.posts.length ? [section("Writing", postList(site.posts))] : []),
     section("Contact", contactList(config.links)),
     section(
       "Questions and answers",
@@ -33,6 +37,16 @@ export function llmsTxt(site: Site): string {
   ];
   return `${parts.join(BLANK_LINE)}\n`;
 }
+
+/** "- [A post's title](https://qiita.com/…): 2026-10-01 · TypeScript, Astro",
+    for each post in the Writing tab, newest first. */
+const postList = (posts: Post[]): string =>
+  posts
+    .map((post) => {
+      const about = [dayPosted(post), post.tags.join(", ")].filter(Boolean).join(" · ");
+      return `- [${post.title.replace(/[[\]]/g, "\\$&")}](${post.url}): ${about}`;
+    })
+    .join("\n");
 
 /** "- [Portfolio (EN)](https://example.com/)", for each language. */
 const pageList = (site: Site): string =>

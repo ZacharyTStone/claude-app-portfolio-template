@@ -42,6 +42,11 @@ in the code, see the security policy in the template's repository.
   can't navigate the page, is sent no referrer, and is thrown away when
   the viewer closes. A viewer address must be `https://` with a plain
   domain name as its host.
+- With a [Writing tab](writing.md), it's the build that asks Qiita for
+  your posts, not a visitor's browser: the pages still load nothing from
+  another site. What Qiita sends is checked before any of it reaches a
+  page, only what a card shows is kept, a card links to `qiita.com` and
+  nowhere else, and a title is text, never markup.
 - The build checks the config. It stops on a link that isn't a web, mailto,
   #tab or site address (so no `javascript:`; and `//host`, `\\host` and
   `/\host` are other sites, not the site's own), and on a value that doesn't
@@ -78,6 +83,11 @@ holds it.
 - **Its cost is capped**, per visitor, per day and in Neurons, and it
   fails closed: [What Ask can cost](ask.md#what-ask-can-cost). On Workers
   Free, Cloudflare refuses what it would otherwise bill.
+- **The daily rebuild's hook is a secret.** The address of the deploy
+  hook a Writing tab's rebuild POSTs to is a credential, since anyone with
+  it can start a build: it's kept as a secret (`DEPLOY_HOOK_URL`), never in
+  the repo, and the Worker logs neither it nor an error's message, which
+  could have it in it ([A rebuild each day](writing.md#a-rebuild-each-day)).
 - **Two rules are yours to set by hand** in the Cloudflare dashboard: a
   rate limit on `/ask`, and a block on requests the site has no use for
   ([Rules at the edge](ask.md#rules-at-the-edge)).

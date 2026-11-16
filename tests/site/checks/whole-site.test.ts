@@ -124,6 +124,20 @@ testEachProblem([
     problems: [`person.image should be a path on this site, like "/assets/portrait.webp"`],
   },
   {
+    wrong: "the Qiita user is its profile's whole address",
+    change: (sample) => (sample.writing = { qiita: "https://qiita.com/sam-sample" }),
+    problems: [
+      `writing.qiita should be a Qiita user id, as in your profile's address (qiita.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the Qiita user is written with an @",
+    change: (sample) => (sample.writing = { qiita: "@sam-sample" }),
+    problems: [
+      `writing.qiita should be a Qiita user id, as in your profile's address (qiita.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
     wrong: "the viewer lists a link the site doesn't have",
     change: (sample) => (sample.viewer = { "https://docs.example.com/d/other/edit": "https://docs.example.com/p" }),
     problems: [

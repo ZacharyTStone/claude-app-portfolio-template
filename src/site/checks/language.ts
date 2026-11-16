@@ -2,6 +2,7 @@
    answer, an icon, a file) and what its ids look like. */
 
 import { ID_PATTERN } from "../../config/language.ts";
+import { WRITING_TAB } from "../../config/writing.ts";
 import { personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
 import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, titleId } from "../../contracts/page-ids.ts";
 import { panelRows } from "../panel.ts";
@@ -68,6 +69,17 @@ const checkThreads: LanguageCheck = (checks) => {
     const answerBlocks = thread.messages.flatMap((message) => message.a);
     for (const block of answerBlocks) checkBlock(block, `the thread "${thread.id}"`, checks);
   }
+};
+
+/** With `writing`, the build adds the Writing tab to every page, at its own
+    fixed id: a thread of the config's own can't have that one too. */
+const checkWritingTabId: LanguageCheck = ({ site, code, problemUnless }) => {
+  if (!site.config.writing) return;
+  const ownThreads = site.config.languages[code]?.threads ?? [];
+  problemUnless(
+    !ownThreads.some((thread) => thread.id === WRITING_TAB),
+    `the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
+  );
 };
 
 /** A logo's badge isn't drawn in the sidebar, so a row there needs one of
@@ -137,6 +149,7 @@ export const PARTS_CHECKS: LanguageCheck[] = [
   checkPreloadedFonts,
   checkHomePrompts,
   checkThreads,
+  checkWritingTabId,
   checkSidebarRows,
   checkSidebarGroups,
   checkPanel,

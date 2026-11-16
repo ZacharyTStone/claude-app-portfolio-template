@@ -27,6 +27,9 @@ function buildOfAConfigWith(change: string, name: string) {
 
 const withADeadLink = buildOfAConfigWith(A_ROW_THAT_OPENS_NO_THREAD, "dead-link");
 const withATypeError = buildOfAConfigWith(A_MISSPELT_SETTING, "type-error");
+// The tests' stand-in for Qiita has the sample's user alone: for any other,
+// it answers as Qiita does for an id it hasn't got.
+const withPostsItCantFetch = buildOfAConfigWith('config.writing = { qiita: "someone-else" };', "no-posts");
 
 test("a build stops at a problem the config's checks find, and names it under the config's file", () => {
   assert.equal(withADeadLink.status, 1);
@@ -39,9 +42,20 @@ test("a build stops at a type error in the config, with the compiler's words and
   assert.match(withATypeError.said, NO_SUCH_SETTING);
 });
 
+test("a build stops when the Writing tab's posts can't be fetched, and says why and what to do", () => {
+  assert.equal(withPostsItCantFetch.status, 1);
+  assert.ok(
+    withPostsItCantFetch.said.includes(
+      "The Writing tab's posts couldn't be fetched, so the build stops, and a host keeps the site it has: Qiita has no user by that id (not_found), at https://qiita.com/api/v2/users/someone-else/items?page=1&per_page=100. Build again once Qiita answers, or remove writing from the config to build without the tab (docs/writing.md).",
+    ),
+    withPostsItCantFetch.said,
+  );
+});
+
 for (const [build, kind] of [
   [withADeadLink, "a problem"],
   [withATypeError, "a type error"],
+  [withPostsItCantFetch, "posts it can't fetch"],
 ] as const) {
   test(`a build that stops at ${kind} builds nothing`, () => {
     assert.ok(!build.built);

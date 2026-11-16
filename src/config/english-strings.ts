@@ -50,6 +50,10 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   viewerClose: "Close",
   play: "Play",
   pause: "Pause",
+  writingTitle: "Writing",
+  writingQuestion: "what have they written?",
+  writingIntro: "Posts, newest first:",
+  writingEmpty: "Nothing posted yet.",
 };
 
 /** Whether a language's page falls back on ENGLISH_STRINGS: "en", "en-GB". */

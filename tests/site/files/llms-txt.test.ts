@@ -5,10 +5,14 @@ import { llmsTxt } from "../../../src/site/files/llms-txt.ts";
 import { FAVICONS } from "../../../src/site/icons.ts";
 import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite } from "../../../src/site/site.ts";
+import { samplePosts } from "../../sample/qiita.ts";
 import { sampleConfig } from "../sample.ts";
 
+/** The sample's posts in its Writing tab, as its build has them. */
+const posts = await samplePosts();
+
 /** The sample with Ask on, on the one host that runs it. */
-const withAsk = makeSite(sampleConfig({ host: "cloudflare", ask: { role: "an engineer" } }));
+const withAsk = makeSite(sampleConfig({ host: "cloudflare", ask: { role: "an engineer" } }), posts);
 const llmsText = llmsTxt(withAsk);
 const answers = plainAnswers(withAsk, "en");
 
@@ -50,11 +54,35 @@ test("a contact link is only under Contact, though the panel has it too", () => 
 });
 
 test("llms.txt is the same whether Ask is on or off", () => {
-  assert.equal(llmsTxt(makeSite(sampleConfig({ host: "static", ask: undefined }))), llmsText);
+  assert.equal(llmsTxt(makeSite(sampleConfig({ host: "static", ask: undefined }), posts)), llmsText);
 });
 
 test("llms.txt has no Links section for a site whose panel links nowhere", () => {
   const withoutPanel = sampleConfig();
   for (const language of Object.values(withoutPanel.languages)) language.panel = {};
   assert.ok(!llmsTxt(makeSite(withoutPanel)).includes("## Links"));
+});
+
+test("llms.txt lists the Writing tab's posts, newest first, each by its title with its address, day and tags", () => {
+  assert.ok(
+    llmsText.includes(
+      [
+        "\n## Writing\n",
+        "- [Astroで静的サイトを組み立てる](https://qiita.com/sam-sample/items/c0ffee0000000000c0f1): 2026-10-01 · Astro, TypeScript",
+        "- [Testing a static site in Playwright](https://qiita.com/sam-sample/items/c0ffee0000000000c0f3): 2026-06-15 · Playwright\n",
+      ].join("\n"),
+    ),
+  );
+});
+
+test("a post's title can't end the link it's written in", () => {
+  const [first] = posts;
+  assert.ok(first);
+  const bracketed = llmsTxt(makeSite(sampleConfig(), [{ ...first, title: "Arrays [] and ](links)" }]));
+  assert.ok(bracketed.includes(`- [Arrays \\[\\] and \\](links)](${first.url}): `));
+});
+
+test("llms.txt has no Writing section for a site with no posts, or no Writing tab", () => {
+  assert.ok(!llmsTxt(makeSite(sampleConfig(), [])).includes("\n## Writing\n"));
+  assert.ok(!llmsTxt(makeSite(sampleConfig({ writing: undefined }), posts)).includes("\n## Writing\n"));
 });

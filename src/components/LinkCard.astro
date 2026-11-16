@@ -11,7 +11,7 @@ interface Props {
   [attribute: `data-${string}`]: string;
 }
 const { link, ...dataAttributes } = Astro.props;
-const { name, kind, href, icon } = link;
+const { name, kind, href, icon, lang } = link;
 ---
 
 <a class={`link-card i-out ${PAGE_CLASSES.iconAfter}`} {...linkAttributes(href, name)} {...dataAttributes}>
@@ -19,7 +19,9 @@ const { name, kind, href, icon } = link;
     <Logo icon={icon} />
   </span>
   <span>
-    <span class="name">{name}</span>
+    <span class="name" lang={lang}>
+      {name}
+    </span>
     <span class="kind">{kind}</span>
   </span>
 </a>

@@ -110,6 +110,18 @@ To change a prompt, edit it, run
 `tests/worker/prompts/` with it. The diff is what a model will now be
 sent.
 
+## What the build fetches
+
+The Writing tab's posts are the one thing a build fetches
+(`src/integrations/writing.ts`, `src/site/writing/`), and no test reaches
+Qiita for them. A unit test passes `qiitaPosts()` a `fetch` of its own.
+A build the tests make is given `WRITING_FIXTURE`, the path of
+`tests/sample/qiita.json` (`tests/build/astro-build.ts`), and asks that
+file in place of Qiita; it answers for the sample's user alone, so it can
+stand in for no real site's posts. A new test that builds a site goes
+through `astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests)
+says the same for a site's owner.
+
 ## Adding a browser check
 
 The checks are Playwright tests, `tests/browser/*.spec.ts`.
@@ -134,8 +146,9 @@ says so.
   the rest, read from the built page.
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
-  `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`. A test that
-  asks for one is skipped, with the reason, on a site without it. For any
+  `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
+  `writingTab`. A test that asks for one is skipped, with the reason, on a
+  site without it. For any
   other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.
 - **Select by the page's names**: `CLASS_SELECTOR`, `ID_SELECTOR`,

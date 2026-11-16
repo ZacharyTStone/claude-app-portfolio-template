@@ -57,6 +57,14 @@ export default {
   // file on the site itself. With the resume in Google Docs, it would be
   // the line below. See "The viewer" in docs/content.md.
   // viewer: { [me.resume]: "https://docs.google.com/document/d/YOUR-DOC-ID/preview" },
+  // Writing (optional): a Writing tab after Contact, listing your posts on
+  // Qiita, newest first, each linking to Qiita. The build fetches them, and
+  // stops if it can't, so a site that's up stays as it was. The sample has
+  // none, because it has no posts anywhere: a copy of this file would ask
+  // Qiita for someone else's. With your own Qiita user id, it's the line
+  // below. docs/writing.md has it all, and a rebuild each day that brings
+  // new posts in.
+  // writing: { qiita: "your-qiita-id" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
     about: `${me.name} is a senior software engineer at ${acme.company}, working on the web app its customers use every day. Before that, ${me.first} built sites and apps for clients at ${globex.company}, an agency, and on the side made ${me.project.name}, an offline-first notes app.`,

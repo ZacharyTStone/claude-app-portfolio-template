@@ -96,20 +96,34 @@
   // },
   // ---- End of Ask -----------------------------------------------------------
 
+  // ---- The daily rebuild (optional) -----------------------------------------
+  // With `writing` in site.config.ts, the Writing tab lists your posts as
+  // they were when the site was last built. To build it again each day,
+  // make a deploy hook for main in the Cloudflare dashboard (Workers & Pages,
+  // this Worker, Settings, Builds, Deploy Hooks), give the Worker its address
+  // as a secret (`npm run wrangler -- secret put DEPLOY_HOOK_URL`), and
+  // uncomment the line below. Every day at 21:17 UTC the Worker POSTs to the
+  // hook, and Workers Builds builds the site and deploys it. The Worker
+  // script has to be there for that: with Ask off, uncomment the Ask block's
+  // line with "main" in it, and the line with "binding" in "assets" below.
+  // docs/writing.md has the steps, and what happens when Qiita is down.
+  // "triggers": { "crons": ["17 21 * * *"] },
+
   "assets": {
     "directory": "dist",
-    // Ask: the Worker reaches the files through this binding, and runs
-    // first for /ask (otherwise only for paths with no file).
+    // Ask, or the daily rebuild: the Worker reaches the files through this
+    // binding. With Ask it runs first for /ask (otherwise only for paths
+    // with no file).
     // "binding": "ASSETS",
     // "run_worker_first": ["/ask"],
     // Serve /404.html for paths that don't exist.
-    "not_found_handling": "404-page"
+    "not_found_handling": "404-page",
   },
   "observability": {
     "enabled": true,
     // Without the line Cloudflare writes for each request: it has the
     // request's headers, and the visitor's address is one of them. What
     // /ask logs itself is kept, and never has the address.
-    "logs": { "invocation_logs": false }
-  }
+    "logs": { "invocation_logs": false },
+  },
 }

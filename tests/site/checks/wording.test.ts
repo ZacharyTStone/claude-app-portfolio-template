@@ -2,7 +2,12 @@
    problem's wording, and what's allowed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES, type Strings } from "../../../src/config/strings.ts";
+import {
+  PAGE_STRING_NAMES,
+  REQUIRED_SCRIPT_STRING_NAMES,
+  WRITING_STRING_NAMES,
+  type Strings,
+} from "../../../src/config/strings.ts";
 import { languageOf, sampleConfig, sampleInEnglishOnly, statedStrings } from "../sample.ts";
 import {
   inBothLanguages,
@@ -65,7 +70,8 @@ testEachProblem([
     problems: [`fr: strings.credit is missing: ${ONLY_ENGLISH_HAS_ITS_OWN}`],
   },
   {
-    wrong: "a language other than English with no strings at all, on a site with a viewer and a picture that moves",
+    wrong:
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves and a Writing tab",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -75,11 +81,17 @@ testEachProblem([
       "fr: strings.viewerClose is missing (viewer needs it)",
       "fr: strings.play is missing (a picture with a still needs it)",
       "fr: strings.pause is missing (a picture with a still needs it)",
+      ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
     ],
+  },
+  {
+    wrong: "a Writing tab without its question, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).writingQuestion),
+    problems: ["fr: strings.writingQuestion is missing (writing needs it)"],
   },
 ]);
 
-test("a language in English needs no strings: it has English's own, for the viewer and a picture that moves too", () => {
+test("a language in English needs no strings: it has English's own, for the viewer, a picture that moves and the Writing tab too", () => {
   assert.deepEqual(
     problemsAfter((_, english) => delete english.strings),
     [],
@@ -90,6 +102,12 @@ test("a site in one language needs no language row", () => {
   const inEnglishOnly = sampleInEnglishOnly();
   delete inEnglishOnly.languages.en?.account.language;
   assert.deepEqual(problemsIn(inEnglishOnly), []);
+});
+
+test("a site without a Writing tab needs no words for one", () => {
+  const withoutWriting = sampleConfig({ writing: undefined });
+  for (const name of WRITING_STRING_NAMES) delete statedStrings(languageOf(withoutWriting, "fr"))[name];
+  assert.deepEqual(problemsIn(withoutWriting), []);
 });
 
 test("a site without a LinkedIn profile needs no words for one", () => {

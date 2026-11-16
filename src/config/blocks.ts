@@ -100,6 +100,10 @@ export type LinkCard = {
   /** One of the .i-* classes in src/styles by its name ("file"), or
       "github" or "linkedin", which are drawn as lettered badges. */
   icon: string;
+  /** The language the name is in, where it isn't the page's: "ja" for a
+      Japanese title on an English page, so it's drawn and read as
+      Japanese. Leave out for the page's own. */
+  lang?: string;
 };
 
 /** A before and an after, or one version beside the next, from one

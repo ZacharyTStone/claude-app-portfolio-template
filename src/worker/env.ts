@@ -11,4 +11,8 @@ export type Env = Variables & {
   ASK_LIMIT?: RateLimit;
   /** AskGuard: the daily counts, and blocks. Without it, /ask picks nothing. */
   ASK_GUARD?: DurableObjectNamespace;
+  /** A secret: the address of a Workers Builds deploy hook for the site's
+      branch, which the cron trigger POSTs to for the daily rebuild
+      (rebuild.ts). Without it, the trigger does nothing. */
+  DEPLOY_HOOK_URL?: string;
 };

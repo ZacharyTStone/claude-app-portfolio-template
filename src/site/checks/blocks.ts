@@ -4,7 +4,7 @@
 
 import { FIGURE_LIMITS, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
-import { isPathOnSite, isPixelCount } from "./formats.ts";
+import { isLanguageCode, isPathOnSite, isPixelCount } from "./formats.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 
 /** `where` starts each problem with the place the block is in: `the thread
@@ -12,7 +12,7 @@ import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 export function checkBlock(block: Block, where: string, checks: LanguageChecks): void {
   for (const picture of picturesIn(block)) checkPicture(picture, where, checks);
   if (isTextBlock(block)) return;
-  if ("link" in block) checkLinkCard(block.link, checks);
+  if ("link" in block) checkLinkCard(block.link, where, checks);
   if ("bars" in block) checkBars(block.bars, where, checks);
   if ("flow" in block) checkFlow(block.flow, where, checks);
   if ("heading" in block) checkHeading(block.heading, where, checks);
@@ -42,9 +42,15 @@ function checkPicture(
   if (href != null) checkLinkIsSafe(href, `the picture "${src}"`);
 }
 
-function checkLinkCard({ name, icon, href }: LinkCard, { checkIsIconOrLogo, checkLinkIsSafe }: LanguageChecks): void {
-  checkIsIconOrLogo(icon, `the link card "${name}"`);
-  checkLinkIsSafe(href, `the link card "${name}"`);
+/** Its `lang` is written into an attribute, as the language its name is
+    drawn and read in. */
+function checkLinkCard({ name, icon, href, lang }: LinkCard, where: string, checks: LanguageChecks): void {
+  checks.checkIsIconOrLogo(icon, `the link card "${name}"`);
+  checks.checkLinkIsSafe(href, `the link card "${name}"`);
+  checks.problemUnless(
+    lang == null || isLanguageCode(lang),
+    `${where} has the link card "${name}" in the language "${lang}", which should be a language code like "ja"`,
+  );
 }
 
 /** One of FIGURE_LIMITS. */

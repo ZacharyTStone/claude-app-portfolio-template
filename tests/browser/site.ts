@@ -7,6 +7,7 @@ import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClockWording } from "../../src/app/clock.ts";
 import type { Prompt } from "../../src/config/home.ts";
 import { CLOCK_MOODS, type ClockMood } from "../../src/config/language.ts";
+import { WRITING_TAB } from "../../src/config/writing.ts";
 import type { PersonalAnswer, QuestionCard, Topic } from "../../src/config/question-card.ts";
 import { SCRIPT_STRING_ATTRIBUTES, SCRIPT_STRING_NAMES, type ScriptStrings } from "../../src/config/strings.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
@@ -56,6 +57,19 @@ export type ViewerLink = {
   shown: string;
   /** What the viewer calls it. */
   title: string;
+};
+
+/** The Writing tab, made from the posts the build fetched: its thread,
+    and each post's card, in the page's order. */
+export type WritingTab = Thread & {
+  posts: Array<{
+    /** Where the card links: the post's page. */
+    href: string;
+    /** The card's text: its title, then the day, its LGTMs and its tags. */
+    text: string;
+    /** The language its title is marked as being in, if it's marked. */
+    lang: string | null;
+  }>;
 };
 
 /** The tab with the most quotes and file cards in it, and the answer its
@@ -147,6 +161,8 @@ export type Site = {
   movingPictures: MovingPicture[];
   playedPictures: PlayedPicture[];
   comesIntoView: ComesIntoView | null;
+  /** The Writing tab, on a site with `writing`. */
+  writing: WritingTab | null;
 };
 
 /** The tab a link on the page opens: "about" for href="#about". */
@@ -195,6 +211,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     movingPictures: await readMovingPictures(page),
     playedPictures: await readPlayedPictures(page),
     comesIntoView: await readComesIntoView(page),
+    writing: await readWriting(page, await readBuiltThreads(page)),
   };
   await context.close();
   return site;
@@ -250,6 +267,19 @@ async function readBuiltThreads(page: Page): Promise<Thread[]> {
     { thread: CLASS.thread, question: CLASS.question, srOnly: CLASS.srOnly },
   );
   return tabs.filter((tab) => tab.questions.length);
+}
+
+async function readWriting(page: Page, threadsBuilt: Thread[]): Promise<WritingTab | null> {
+  const thread = threadsBuilt.find((each) => each.id === WRITING_TAB);
+  if (!thread) return null;
+  const posts = await page.locator(`#${WRITING_TAB} ${ATTRIBUTE.fetched}`).evaluateAll((cards) =>
+    cards.map((card) => ({
+      href: card.getAttribute("href") ?? "",
+      text: (card.textContent ?? "").trim(),
+      lang: card.querySelector("[lang]")?.getAttribute("lang") ?? null,
+    })),
+  );
+  return { ...thread, posts };
 }
 
 async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {

@@ -1,6 +1,8 @@
 ---
 import type { Strings } from "../config/strings.ts";
 import type { Block, BlockByKind } from "../config/blocks.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { flag } from "./attributes.ts";
 import Bars from "./Bars.astro";
 import FileCard from "./FileCard.astro";
 import Flow from "./Flow.astro";
@@ -15,8 +17,10 @@ interface Props {
   block: Block;
   /** The page's wording, for a picture's Play button. */
   strings: Strings;
+  /** In the Writing tab: a link card is a post the build fetched. */
+  fetched?: boolean;
 }
-const { block, strings } = Astro.props;
+const { block, strings, fetched } = Astro.props;
 
 const byKind: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
 const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = byKind;
@@ -39,7 +43,7 @@ kindsNotDrawn satisfies Record<string, never>;
   </ul>
 )}
 {card && <FileCard card={card} />}
-{link && <LinkCard link={link} />}
+{link && <LinkCard link={link} {...(fetched ? flag(DATA.fetched) : {})} />}
 {bars && <Bars bars={bars} />}
 {flow && <Flow flow={flow} />}
 {image && <Picture picture={image} strings={strings} />}

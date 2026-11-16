@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Topic } from "../../../src/config/question-card.ts";
+import { WRITING_TAB } from "../../../src/config/writing.ts";
 import { inBothLanguages, inEveryLanguage, problemsAfter, testEachProblem, type Change } from "./problems.ts";
 
 /** Something that would end the attribute it's written into, and start another. */
@@ -170,11 +171,38 @@ testEachProblem([
     problems: inBothLanguages("two personal answers have the same id"),
   },
   {
+    wrong: "a thread of the site's own with the Writing tab's id",
+    change: inEveryLanguage((language) => language.threads.push(threadWithId(WRITING_TAB))),
+    problems: [
+      "en: two threads have the same id",
+      `en: the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
+      "fr: two threads have the same id",
+      `fr: the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
+    ],
+  },
+  {
     wrong: "an upgrade row that opens no thread",
     change: (_, english) => (english.account.upgrade.tab = "nowhere"),
     problems: [`en: the account menu's upgrade row ${NOT_A_THREAD}`],
   },
 ]);
+
+test("without writing, a thread of the site's own can have the id the Writing tab would", () => {
+  const withoutWriting: Change = (sample) => {
+    delete sample.writing;
+    inEveryLanguage((language) => language.threads.push(threadWithId(WRITING_TAB)))(sample, sample.languages.en!);
+  };
+  assert.deepEqual(problemsAfter(withoutWriting), []);
+});
+
+test("a row, a topic and a question to start with can open the Writing tab, and get its answer", () => {
+  const openingIt = inEveryLanguage((language) => {
+    language.sidebar.groups[0]?.tabs.push({ tab: WRITING_TAB, title: "Posts", subtitle: "On Qiita" });
+    language.questions.topics.push({ label: "Their writing", tab: WRITING_TAB });
+    language.home.prompts = [{ q: "Does Sam write?", answer: `${WRITING_TAB}.1` }];
+  });
+  assert.deepEqual(problemsAfter(openingIt), []);
+});
 
 test("a question to start with can get a personal answer", () => {
   const withAPersonalPrompt = inEveryLanguage((language) => {

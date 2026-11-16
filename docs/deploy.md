@@ -33,6 +33,11 @@ Pages → Create → Import a repository**; it deploys on every push to
 npm run deploy   # runs npm run build, then uploads dist/
 ```
 
+With a [Writing tab](writing.md), each build fetches your posts first, and
+stops if it can't: a build that fails deploys nothing, so the site that's
+up stays as it was. [A rebuild each day](writing.md#a-rebuild-each-day)
+brings in what you've posted since, with a deploy hook and a cron trigger.
+
 `npm run deploy` runs one pinned version of Wrangler, Cloudflare's tool;
 `npm run wrangler -- dev` serves the site locally as Cloudflare would.
 With a custom domain, set `"workers_dev": false` in `wrangler.jsonc`, so

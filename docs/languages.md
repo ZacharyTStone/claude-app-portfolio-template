@@ -45,6 +45,10 @@ npm run fonts   # downloads the pinned source fonts, and cuts them
 npm run build
 ```
 
+The posts a [Writing tab](writing.md#japanese-fonts) lists are left out:
+they change at every build, so the fonts aren't cut for them, the check
+doesn't ask for them, and they're set in the system's Japanese font.
+
 The fonts are cut in TypeScript (`scripts/fonts.ts`, `scripts/fonts/`),
 so this needs nothing but `npm ci`. `npm run fonts:check`, a step of
 `npm run verify`, fails while the built page uses a character the fonts

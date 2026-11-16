@@ -72,6 +72,11 @@ export const DATA = {
   /** On a played picture's Play button: how many seconds it plays, as the
       picture's own file says. */
   play: "data-play",
+  /** No value: a post's card in the Writing tab, made from what the build
+      fetched, which changes from one build to the next. The Japanese fonts
+      aren't cut for what's in it (scripts/fonts): it's set in the system's
+      Japanese font instead (src/styles/japanese.css). */
+  fetched: "data-fetched",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */
