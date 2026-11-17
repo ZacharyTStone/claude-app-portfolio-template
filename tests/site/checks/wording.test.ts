@@ -113,7 +113,21 @@ testEachProblem([
     change: inFrench((french) => delete statedStrings(french).writingQuestion),
     problems: ["fr: strings.writingQuestion is missing (writing needs it)"],
   },
+  {
+    wrong: "a Writing tab there before the first post, without what it says then, in a language other than English",
+    change: (sample) => {
+      sample.writing = { qiita: "sam-sample", showWhenEmpty: true };
+      delete statedStrings(languageOf(sample, "fr")).writingEmpty;
+    },
+    problems: ["fr: strings.writingEmpty is missing (writing.showWhenEmpty needs it)"],
+  },
 ]);
+
+test("a Writing tab that comes with the first post needs no words for when there's none", () => {
+  const withoutTheLine = sampleConfig();
+  delete statedStrings(languageOf(withoutTheLine, "fr")).writingEmpty;
+  assert.deepEqual(problemsIn(withoutTheLine), []);
+});
 
 test("a language in English needs no strings: it has English's own, for the viewer, a picture that moves and the Writing tab too", () => {
   assert.deepEqual(

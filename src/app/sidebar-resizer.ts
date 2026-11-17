@@ -1,6 +1,9 @@
 /* The sidebar's edge resizes it: dragged (a blue line shows on hover),
    moved with the arrow keys, or double-clicked to go back to the
-   stylesheet's width. The width is remembered per browser. */
+   stylesheet's width. The width is remembered per browser. It works from
+   the keyboard and has a name, so it's in the sidebar's landmark, last:
+   the stylesheet places it on the sidebar's edge, outside what the
+   sidebar scrolls. */
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { make } from "./lib/dom.ts";
@@ -27,9 +30,9 @@ const resizer = make("div", {
   "aria-valuemin": String(SIDEBAR_WIDTH.narrowest),
 });
 
-/** Puts the edge beside the sidebar, at the width this browser remembers. */
+/** Puts the edge in the sidebar, at the width this browser remembers. */
 export function addSidebarResizer(): void {
-  sidebar.after(resizer);
+  sidebar.append(resizer);
   restoreWidth();
   // The window leaves the sidebar another width as it changes.
   addEventListener("resize", restoreWidth);

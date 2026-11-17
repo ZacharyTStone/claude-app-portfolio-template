@@ -10,9 +10,15 @@ import { SAMPLE_CONFIG } from "./as-a-file.ts";
 const SAMPLE_PUBLIC = fileURLToPath(new URL("public", import.meta.url));
 
 /** Builds the sample into `outputFolder`: `astro build` on its config (or
-    on a test's own version of it, at `configPath`), then its pictures. */
-export function buildSample(outputFolder: string, configPath = SAMPLE_CONFIG): SpawnSyncReturns<string> {
-  const built = astroBuild(configPath, outputFolder);
+    on a test's own version of it, at `configPath`), then its pictures. Its
+    posts are tests/sample/qiita.json's, unless `qiitaFixture` names
+    another stand-in for Qiita. */
+export function buildSample(
+  outputFolder: string,
+  configPath = SAMPLE_CONFIG,
+  qiitaFixture?: string,
+): SpawnSyncReturns<string> {
+  const built = astroBuild(configPath, outputFolder, qiitaFixture);
   if (built.status === 0) cpSync(SAMPLE_PUBLIC, outputFolder, { recursive: true });
   return built;
 }

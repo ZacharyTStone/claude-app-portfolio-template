@@ -1,7 +1,7 @@
 /* Each tab's own page: opened with its tab open, with JavaScript or without;
    gone to in place, with Back and Forward between tabs; an old #id address;
    the language switch; and the address Share copies. */
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { personalTabId } from "../../src/contracts/page-ids.ts";
 import {
@@ -21,6 +21,9 @@ const markThePage = (page: Page): Promise<void> =>
 
 const expectTheSamePage = (page: Page): Promise<void> => expect(page.locator("body[data-loaded-once]")).toHaveCount(1);
 
+/** The headings shown at the top level: the open tab's title, or the home screen's greeting. */
+const topHeadings = (page: Page): Locator => page.getByRole("heading", { level: 1 });
+
 test.describe("without JavaScript", () => {
   test.use({ javaScriptEnabled: false });
 
@@ -34,6 +37,12 @@ test.describe("without JavaScript", () => {
     await expect(page.locator(`${OPEN_TAB}:visible`)).toHaveCount(1);
     await expect(sidebarRow(page, site.secondThread.id)).toHaveAttribute("aria-current", "page");
     await expect(page).toHaveTitle(windowTitle(site.secondThread.title, site));
+  });
+
+  test("a tab's page has one heading at its top level, the tab's title", async ({ page, site }) => {
+    await page.goto(site.secondThread.path);
+    await expect(topHeadings(page)).toHaveCount(1);
+    await expect(topHeadings(page)).toHaveText(site.secondThread.title);
   });
 
   test("a row is a link to its tab's page", async ({ page, site, baseURL, otherThread }) => {
@@ -103,6 +112,17 @@ test.describe("a row clicked", () => {
     await expect(openTab(page, otherThread.id)).toBeVisible();
     await expect(page).toHaveTitle(windowTitle(otherThread.title, site));
     await expectTheSamePage(page);
+  });
+
+  test("and another: the page has one heading at its top level, the open tab's title", async ({
+    page,
+    site,
+    otherThread,
+  }) => {
+    await expect(topHeadings(page)).toHaveText(site.firstThread.title);
+    await sidebarRow(page, otherThread.id).click();
+    await expect(topHeadings(page)).toHaveCount(1);
+    await expect(topHeadings(page)).toHaveText(otherThread.title);
   });
 
   test("and then the name at the top of the sidebar: the home page, in place", async ({ page, baseURL }) => {

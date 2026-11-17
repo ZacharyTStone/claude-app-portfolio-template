@@ -8,11 +8,18 @@ import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { byId, find } from "./lib/dom.ts";
 
-/** It carries the page's language, the script's wording and where /ask is. */
+/** It carries the page's language, and the class that says the script runs. */
 export const root = document.documentElement;
 
+/** It carries the script's wording, where /ask is and the language's home
+    page: kept off <html>, so that <meta charset> is near the top. */
+const pageData = document.body;
+
 function readScriptStrings(): ScriptStrings {
-  const wording = SCRIPT_STRING_NAMES.map((name) => [name, root.getAttribute(SCRIPT_STRING_ATTRIBUTES[name]) ?? ""]);
+  const wording = SCRIPT_STRING_NAMES.map((name) => [
+    name,
+    pageData.getAttribute(SCRIPT_STRING_ATTRIBUTES[name]) ?? "",
+  ]);
   // Object.fromEntries forgets which keys it was given.
   return Object.fromEntries(wording) as ScriptStrings;
 }
@@ -22,14 +29,14 @@ function readScriptStrings(): ScriptStrings {
 export const words = readScriptStrings();
 
 /** Where a typed question goes (/ask), or "" when Ask is off. */
-export const askUrl = root.getAttribute(DATA.ask) ?? "";
+export const askUrl = pageData.getAttribute(DATA.ask) ?? "";
 
 /** The page's language's home page ("/", "/ja/"): its tabs' pages are under
     it. */
-export const homePath = root.getAttribute(DATA.home) ?? "/";
+export const homePath = pageData.getAttribute(DATA.home) ?? "/";
 
 /** The home screen's window title, whichever page this is. */
-export const homeTitle = root.getAttribute(DATA.homeTitle) ?? document.title;
+export const homeTitle = pageData.getAttribute(DATA.homeTitle) ?? document.title;
 
 export const sidebar = byId(PAGE_IDS.sidebar);
 /** Around the sidebar, the open tab and the panel. */

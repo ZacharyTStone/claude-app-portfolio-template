@@ -4,7 +4,13 @@ import { existsSync, mkdtempSync, readdirSync, rmSync, writeFileSync } from "nod
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { after, test } from "node:test";
-import { NOTO_SANS_JP, NOTO_SERIF_JP, sourceFont, type SourceFont } from "../../../scripts/fonts/source.ts";
+import {
+  NOTO_SANS_JP,
+  NOTO_SERIF_JP,
+  SOURCE_SERIF_4,
+  sourceFont,
+  type SourceFont,
+} from "../../../scripts/fonts/source.ts";
 
 const SCRATCH = mkdtempSync(join(tmpdir(), "font-source-test-"));
 after(() => rmSync(SCRATCH, { recursive: true, force: true }));
@@ -60,6 +66,7 @@ test("A font's address names a commit of Google's fonts, never a branch, with it
   );
 });
 
-test("Each of the site's two source fonts says which file it has to be", () => {
-  for (const font of [NOTO_SANS_JP, NOTO_SERIF_JP]) assert.match(font.sha256, /^[0-9a-f]{64}$/, font.path);
+test("Each of the site's source fonts says which file it has to be", () => {
+  for (const font of [SOURCE_SERIF_4, NOTO_SANS_JP, NOTO_SERIF_JP])
+    assert.match(font.sha256, /^[0-9a-f]{64}$/, font.path);
 });

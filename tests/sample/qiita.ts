@@ -9,6 +9,10 @@ import { qiitaPosts } from "../../src/site/writing/qiita.ts";
 /** The fixture's file, as a path. */
 export const SAMPLE_QIITA = fileURLToPath(new URL("qiita.json", import.meta.url));
 
+/** The same user before their first post (qiita-no-posts.json): Qiita
+    answers with an empty list. */
+export const SAMPLE_QIITA_WITH_NO_POSTS = fileURLToPath(new URL("qiita-no-posts.json", import.meta.url));
+
 export const sampleFixture = () => readFixture(SAMPLE_QIITA);
 
 /** The sample's posts, as a build makes them of the fixture: the public

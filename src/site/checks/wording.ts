@@ -80,6 +80,10 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
     contactForm: { isOnTheSite: Boolean(site.config.contactForm), nameInProblem: "contactForm" },
     askForm: { isOnTheSite: formForQuestions(site.config) !== undefined, nameInProblem: "ask with contactForm" },
     writing: { isOnTheSite: Boolean(site.config.writing), nameInProblem: "writing" },
+    emptyWriting: {
+      isOnTheSite: Boolean(site.config.writing?.showWhenEmpty),
+      nameInProblem: "writing.showWhenEmpty",
+    },
     activity: { isOnTheSite: Boolean(site.config.activity), nameInProblem: "activity" },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {

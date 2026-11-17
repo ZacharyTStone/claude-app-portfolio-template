@@ -164,11 +164,12 @@ then `{question}`) rather than a place in a sentence.
 
 `writing: { qiita: "your-qiita-id" }` adds a tab that lists your posts on
 Qiita, newest first, each a link card to the post. The build fetches
-them, so the tab is as it was at the last build, and its row comes last of
-the sidebar's top rows unless you give it one of your own. Its id is
-`writing`, which no thread of yours can then have. [Writing](writing.md)
-has the rest: the wording a language needs for it, what happens when Qiita
-is down, and a rebuild each day that brings new posts in.
+them, so the tab is as it was at the last build, and it comes with your
+first post. Its row comes last of the sidebar's top rows unless you give
+it one of your own. Its id is `writing`, which no thread of yours can then
+have. [Writing](writing.md) has the rest: the wording a language needs
+for it, the tab before your first post, what happens when Qiita is down,
+and a rebuild each day that brings new posts in.
 
 ## GitHub activity
 

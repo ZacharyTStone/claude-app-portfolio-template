@@ -8,10 +8,12 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { escapeRegExp } from "es-toolkit";
 import type { SiteConfig } from "../../src/config/site-config.ts";
+import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
 import { isSafeHref } from "../../src/site/checks/formats.ts";
 import { portfolioPages } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { basePath } from "../../src/site/url.ts";
+import type { Post } from "../../src/site/writing/post.ts";
 
 /** A built file, and where it's served. */
 type ServedFile = { file: string; url: URL };
@@ -35,9 +37,10 @@ export type BuiltSite = {
 
 const NOT_FOUND_PAGE = "404.html";
 
-/** The site that `config` builds into `folder`. */
-export function builtSite(name: string, folder: string, config: SiteConfig): BuiltSite {
-  const site = makeSite(config);
+/** The site that `config` builds into `folder`, with the Writing tab's
+    `posts`, if it has any, as the build fetched them. */
+export function builtSite(name: string, folder: string, config: SiteConfig, posts: Post[] = []): BuiltSite {
+  const site = makeSite(config, posts);
   const url = new URL(basePath(config.url), config.url);
   const served = (file: string): ServedFile => ({ file, url: new URL(file.replace(/index\.html$/, ""), url) });
   const servedAt = (path: string): ServedFile => served(`${path.slice(1)}index.html`);
@@ -194,6 +197,48 @@ function testEachTabPageHasItsTabOpen(site: BuiltSite): void {
   }
 }
 
+/** The parts of a page that show one at a time: the home screen, and each tab. */
+const VIEW = new RegExp(`<section\\b[^>]*\\sid="${PAGE_IDS.home}".*?</section>|<article\\b.*?</article>`, "gs");
+const TOP_HEADING = /<h1\b/g;
+
+const topHeadingsIn = (html: string): number => html.match(TOP_HEADING)?.length ?? 0;
+
+/** The page has one <h1> whichever part of it shows, opened however: the
+    home screen's greeting, or the open tab's title. */
+function testEachPartHasOneTopHeading(site: BuiltSite): void {
+  for (const { file } of [...site.languagePages, ...site.tabPages]) {
+    test(`${site.name}: ${file} has one <h1> in its home screen and in each tab, and none elsewhere`, () => {
+      const html = site.read(file);
+      const views = html.match(VIEW) ?? [];
+      assert.ok(views.length > 1, "the page has its home screen and its tabs");
+      assert.deepEqual(
+        views.map(topHeadingsIn),
+        views.map(() => 1),
+      );
+      assert.equal(topHeadingsIn(html), views.length);
+    });
+  }
+  test(`${site.name}: ${NOT_FOUND_PAGE} has one <h1>`, () => {
+    assert.equal(topHeadingsIn(site.read(NOT_FOUND_PAGE)), 1);
+  });
+}
+
+/** How far into a page a browser looks for its <meta charset> when the
+    host's Content-Type names none, in bytes (the HTML standard's prescan). */
+const CHARSET_PRESCAN_BYTES = 1024;
+
+function testEachPageSaysItsCharsetEarly(site: BuiltSite): void {
+  test(`${site.name}: every page has its <meta charset> in its first ${CHARSET_PRESCAN_BYTES} bytes`, () => {
+    const tooLate = site.pages
+      .map(({ file }) => file)
+      .filter((file) => {
+        const start = Buffer.from(site.read(file)).subarray(0, CHARSET_PRESCAN_BYTES).toString("latin1");
+        return !start.includes('<meta charset="utf-8">');
+      });
+    assert.deepEqual(tooLate, []);
+  });
+}
+
 function testNothingIsInline(site: BuiltSite): void {
   for (const { file } of site.pages) {
     test(`${site.name}: ${file} has no inline script but its two data blocks`, () => {
@@ -245,6 +290,8 @@ function testLinksAndFiles(site: BuiltSite): void {
 export function testBuiltSite(site: BuiltSite): void {
   testEveryLanguageHasTheSameStructure(site);
   testEachTabPageHasItsTabOpen(site);
+  testEachPartHasOneTopHeading(site);
+  testEachPageSaysItsCharsetEarly(site);
   testNothingIsInline(site);
   testLinksAndFiles(site);
 }

@@ -173,12 +173,9 @@ testEachProblem([
   {
     wrong: "a thread of the site's own with the Writing tab's id",
     change: inEveryLanguage((language) => language.threads.push(threadWithId(WRITING_TAB))),
-    problems: [
-      "en: two threads have the same id",
-      `en: the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
-      "fr: two threads have the same id",
-      `fr: the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
-    ],
+    problems: inBothLanguages(
+      `the thread id "${WRITING_TAB}" is the Writing tab's, which writing adds to every page: give that thread another id`,
+    ),
   },
   {
     wrong: "an upgrade row that opens no thread",
@@ -195,13 +192,34 @@ test("without writing, a thread of the site's own can have the id the Writing ta
   assert.deepEqual(problemsAfter(withoutWriting), []);
 });
 
-test("a row, a topic and a question to start with can open the Writing tab, and get its answer", () => {
-  const openingIt = inEveryLanguage((language) => {
-    language.sidebar.groups[0]?.tabs.push({ tab: WRITING_TAB, title: "Posts", subtitle: "On Qiita" });
-    language.questions.topics.push({ label: "Their writing", tab: WRITING_TAB });
-    language.home.prompts = [{ q: "Does Sam write?", answer: `${WRITING_TAB}.1` }];
-  });
-  assert.deepEqual(problemsAfter(openingIt), []);
+/** A row, a topic, a question to start with and a link in an answer, each opening the Writing tab. */
+const openingTheWritingTab = inEveryLanguage((language) => {
+  language.sidebar.groups[0]?.tabs.push({ tab: WRITING_TAB, title: "Posts", subtitle: "On Qiita" });
+  language.questions.topics.push({ label: "Their writing", tab: WRITING_TAB });
+  language.home.prompts = [{ q: "Does Sam write?", answer: `${WRITING_TAB}.1` }];
+  language.threads[0]?.messages[0]?.a.push(`[What Sam writes](#${WRITING_TAB}).`);
+});
+
+test("on a site whose Writing tab is there before the first post, anything can open it, and get its answer", () => {
+  const alwaysThere: Change = (sample, english) => {
+    sample.writing = { qiita: "sam-sample", showWhenEmpty: true };
+    openingTheWritingTab(sample, english);
+  };
+  assert.deepEqual(problemsAfter(alwaysThere), []);
+});
+
+test("on a site whose Writing tab comes with the first post, nothing of the config's can open it", () => {
+  const notThereYet = `the Writing tab, which is there only once there's a post: set writing.showWhenEmpty to have it there before`;
+  const inEachLanguage = [
+    `the home prompt "Does Sam write?" gets the answer "${WRITING_TAB}.1", in ${notThereYet}`,
+    `the sidebar's "Posts" points at #${WRITING_TAB}, ${notThereYet}`,
+    `the question card's "Their writing" points at #${WRITING_TAB}, ${notThereYet}`,
+    `a link in the text points at #${WRITING_TAB}, ${notThereYet}`,
+  ];
+  assert.deepEqual(
+    problemsAfter(openingTheWritingTab),
+    ["en", "fr"].flatMap((code) => inEachLanguage.map((problem) => `${code}: ${problem}`)),
+  );
 });
 
 test("a question to start with can get a personal answer", () => {

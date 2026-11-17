@@ -8,7 +8,7 @@ import { hrefsIn } from "../../config/markdown.ts";
 import { SCRIPT_STRING_NAMES } from "../../config/strings.ts";
 import { browserFollows } from "../../contracts/links.ts";
 import { PAGE_IDS, personalTabId } from "../../contracts/page-ids.ts";
-import type { LanguageCheck } from "./reporting.ts";
+import { whyNotThere, type LanguageCheck } from "./reporting.ts";
 
 /** Every string in a value, however deep: an object's values and a list's
     items, in order. */
@@ -41,12 +41,12 @@ export const tabsLinkedFromTheText = (language: Language): string[] =>
 
 /** A link to "#something" opens a tab: a thread, a personal answer's tab,
     or the home screen. */
-const checkTextLinksOpenTabs: LanguageCheck = ({ language, threadIds, problemUnless }) => {
+const checkTextLinksOpenTabs: LanguageCheck = ({ site, language, threadIds, problemUnless }) => {
   const personalTabIds = language.questions.personal.map((personalAnswer) => personalTabId(personalAnswer.id));
   for (const tabId of tabsLinkedFromTheText(language)) {
     problemUnless(
       threadIds.has(tabId) || tabId === PAGE_IDS.home || personalTabIds.includes(tabId),
-      `a link in the text points at #${tabId}, which isn't a thread`,
+      `a link in the text points at #${tabId}, ${whyNotThere(site, tabId)}`,
     );
   }
 };

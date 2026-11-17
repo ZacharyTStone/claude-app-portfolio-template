@@ -1,3 +1,6 @@
+/* The sidebar's edge. It's in the sidebar, but placed against the shell,
+   the nearest box with a position, so the sidebar's scrolling neither
+   moves it nor cuts it off where it overhangs the sidebar. */
 .resizer {
   position: absolute;
   top: 0;

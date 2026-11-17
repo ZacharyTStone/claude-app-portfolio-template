@@ -79,9 +79,10 @@ export function builtPagesIn(outputFolder: string): BuiltPages | undefined {
   return { japanese, notFound: existsSync(notFoundPage) ? readFileSync(notFoundPage, "utf8") : undefined };
 }
 
-/** What Noto Sans JP needs, in order: all that the Japanese page shows, and the 404 page's Japanese. */
-export function sansCharacters({ japanese, notFound }: BuiltPages): string[] {
-  return inOrder(charactersNeedingAFont(`${shownOn(japanese)} ${japaneseOnNotFoundPage(notFound)}`));
+/** What Noto Sans JP needs, in order: all that the Japanese page shows, the 404 page's Japanese, and
+    `notShownYet`, wording the page will show once a later build has something for it to show. */
+export function sansCharacters({ japanese, notFound }: BuiltPages, notShownYet = ""): string[] {
+  return inOrder(charactersNeedingAFont(`${shownOn(japanese)} ${japaneseOnNotFoundPage(notFound)} ${notShownYet}`));
 }
 
 /** What Noto Serif JP needs, in order: the text of the serif's elements on the Japanese page, and on 404.html

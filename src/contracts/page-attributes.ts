@@ -10,15 +10,15 @@ import { PAGE_IDS } from "./page-ids.ts";
     is. One with no value only marks its element for the browser code to
     find: a component writes it with `flag` (src/components/attributes.ts). */
 export const DATA = {
-  /** On <html>: where /ask is, when Ask is on. A page without it sends no
+  /** On <body>: where /ask is, when Ask is on. A page without it sends no
       question anywhere. */
   ask: "data-ask",
-  /** On <html>: its language's home page, as the pages link to it ("/",
+  /** On <body>: its language's home page, as the pages link to it ("/",
       "/ja/"). Each of the language's tabs has its page under it
       (tabPagePath). On a link to another language's page: that
       language's, from which the script points the link at the open tab. */
   home: "data-home",
-  /** On <html>: the home screen's window title, which a tab's page isn't
+  /** On <body>: the home screen's window title, which a tab's page isn't
       built with. */
   homeTitle: "data-home-title",
   /** Around the home screen's greeting: the greeting for each part of the

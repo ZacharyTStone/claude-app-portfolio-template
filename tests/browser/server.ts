@@ -26,13 +26,13 @@ const UNKNOWN_CONTENT_TYPE = "application/octet-stream";
 
 const NOT_FOUND_PAGE = "404.html";
 
-// A page's opening tag, attributes and all: <html lang="en" data-ask="/ask">.
-const HTML_TAG = /<html\b[^>]*>/;
+// A page's <body> tag, attributes and all: <body data-ask="/ask" …>.
+const BODY_TAG = /<body\b[^>]*>/;
 
 /** Whether a built page has Ask on, so its policy lets it connect to /ask. */
 function hasAsk(html: string): boolean {
-  const htmlTag = html.match(HTML_TAG)?.[0] ?? "";
-  return new RegExp(`\\s${DATA.ask}=`).test(htmlTag);
+  const bodyTag = html.match(BODY_TAG)?.[0] ?? "";
+  return new RegExp(`\\s${DATA.ask}=`).test(bodyTag);
 }
 
 /** The file or folder a path on the site names, or null for one that

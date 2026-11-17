@@ -1,6 +1,7 @@
 /* What the config's checks find, how a check reports a problem, and what
    every check of one language is handed. */
 
+import { WRITING_TAB } from "../../config/writing.ts";
 import { LOGO_NAMES } from "../icons.ts";
 import type { Site, SiteLanguage } from "../site.ts";
 import { isSafeHref } from "./formats.ts";
@@ -43,6 +44,14 @@ export type LanguageChecks = {
 
 export type LanguageCheck = (checks: LanguageChecks) => void;
 
+/** Why a tab something points at isn't there, after its id: the Writing
+    tab, which the checks see as it is before the first post, needs the
+    config to ask for it; any other isn't a thread. */
+export const whyNotThere = (site: Site, tabId: string): string =>
+  tabId === WRITING_TAB && site.config.writing
+    ? "the Writing tab, which is there only once there's a post: set writing.showWhenEmpty to have it there before"
+    : "which isn't a thread";
+
 /** What the checks of the language `code` are handed. `stylesheetIcons` are
     the icons the styles have (iconsIn). */
 export function languageChecks(
@@ -65,7 +74,7 @@ export function languageChecks(
     checkIsThread: (threadId, whatPointsAtIt) =>
       problemInThisLanguageUnless(
         threadIds.has(threadId),
-        `${whatPointsAtIt} points at #${threadId}, which isn't a thread`,
+        `${whatPointsAtIt} points at #${threadId}, ${whyNotThere(site, threadId)}`,
       ),
     checkIsIcon: (iconName, whatHasIt) =>
       problemInThisLanguageUnless(stylesheetIcons.has(iconName), noSuchIcon(iconName, whatHasIt)),

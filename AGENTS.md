@@ -40,15 +40,16 @@ call anything done, run `npm run verify`.
 | `npm run typecheck` | `astro check` for the components, then `tsc` for the browser code, the Worker and the tests |
 | `npm test` | Builds, then runs the unit tests (`tests/**/*.test.ts`); some read `dist/`, some build `tests/sample` |
 | `npm run lint:html` | Validates every built page |
-| `npm run fonts:check` | The Japanese fonts have every character the built Japanese page uses |
+| `npm run fonts:check` | The cut-down fonts have every character they need: the Latin serif its set, the Japanese fonts what the built Japanese page uses |
 | `npm run test:browser` | The built pages in Chromium, with the real security headers, on the site and on the sample |
 | `npm run build` | Type-checks `site.config.ts`, checks what a type can't, then builds `dist/` |
 | `npm run diagrams` | Writes each diagram in `diagrams/` as SVG files in `public/assets/` |
 | `npm run deploy` | Deploys to Cloudflare with one pinned Wrangler (`npm run wrangler` for its other commands) |
 | `npm run update-template` | In a site: replaces the shared files with the template's latest |
 
-- `npm run lint:html`, `npm run fonts:check` and `npm run test:browser`
-  read `dist/` and say so when there is none: run `npm run build` first.
+- `npm run lint:html`, `npm run fonts:check` (on a site with a Japanese
+  page) and `npm run test:browser` read `dist/` and say so when there is
+  none: run `npm run build` first.
 - The browser checks need Chromium, once: `npx playwright install chromium`
   (CI adds `--with-deps`). Run one file with
   `npx playwright test viewer.spec`.
@@ -120,8 +121,9 @@ call anything done, run `npm run verify`.
   models are told and what is checked in a reply are a safety property:
   change them only as `docs/changing-the-code.md` says.
 - **Nothing built is committed**, but for two things a script writes into
-  `public/`: the Japanese font subsets (`npm run fonts`) and the diagrams'
-  SVG files (`npm run diagrams`). A test fails while either is out of date.
+  `public/`: the cut-down fonts (`npm run fonts`: the Latin serif, shared,
+  and a site's Japanese subsets) and the diagrams' SVG files
+  (`npm run diagrams`). A check fails while either is out of date.
 - **The update runs on Node alone.** `scripts/template.ts` and
   `scripts/update-template.ts` import only `node:` modules and each other.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,

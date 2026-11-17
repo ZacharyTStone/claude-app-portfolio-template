@@ -45,7 +45,7 @@ and the rules every change keeps to.
   form's is (`ContactFormStrings` and `CONTACT_FORM_STRING_NAMES`).
 - Wording the script shows is a key of `SCRIPT_STRING_ATTRIBUTES` in the
   same file, with its `data-*` attribute as the value and its doc comment
-  over it. The page carries it on `<html>`, and the script reads it as
+  over it. The page carries it on `<body>`, and the script reads it as
   `words` (`src/app/page.ts`).
 - Wording for a part only some sites have is also listed under its part in
   `PART_STRINGS`; the config's checks ask for it only on a site with the
@@ -136,7 +136,9 @@ tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
 (`tests/build/astro-build.ts`), and asks those files in place of Qiita
 and GitHub; each answers for the sample's user alone, so it can stand in
 for no real site's. A new test that builds a site goes through
-`astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests) and
+`astroBuild()` too; one of a site before its first post gives it
+`tests/sample/qiita-no-posts.json` in place of `qiita.json`.
+[Writing](writing.md#without-qiita-in-the-tests) and
 [GitHub activity](github-activity.md#without-github-in-the-tests) say the
 same for a site's owner.
 
@@ -151,7 +153,7 @@ says so.
 
 - **Run less than everything while you work.**
   `npx playwright test viewer.spec` runs one file, `-g "words from its
-  name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
+name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
   watch, and `--repeat-each=5` looks for a race. A failure leaves a
   screenshot in `test-results/`.
 - **Import `test` and `expect` from `tests/browser/fixtures.ts`**, not

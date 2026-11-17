@@ -3,12 +3,13 @@
 
 import { ID_PATTERN } from "../../config/language.ts";
 import { WRITING_TAB } from "../../config/writing.ts";
-import { personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
+import { parseAnswerId, personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
 import { CHATS_GROUP, ID_PREFIXES, PAGE_IDS, titleId } from "../../contracts/page-ids.ts";
 import { panelRows } from "../panel.ts";
+import type { Site } from "../site.ts";
 import { checkBlock } from "./blocks.ts";
 import { isLocale, isPathOnSite } from "./formats.ts";
-import type { LanguageCheck } from "./reporting.ts";
+import { whyNotThere, type LanguageCheck } from "./reporting.ts";
 
 /** An id ends up in an element's id and after a # in an address. */
 const looksLikeAnId = (id: string): boolean => ID_PATTERN.test(id);
@@ -27,7 +28,15 @@ const checkPreloadedFonts: LanguageCheck = ({ language, problemUnless }) => {
   }
 };
 
-const checkHomePrompts: LanguageCheck = ({ language, problemUnless }) => {
+/** Why a home prompt's answer isn't one: an answer in the Writing tab is
+    there only once the tab is (whyNotThere). */
+function whyNotAnAnswer(site: Site, answerId: string): string {
+  const tabId = parseAnswerId(answerId)?.tabId ?? "";
+  if (tabId === WRITING_TAB && site.config.writing) return `in ${whyNotThere(site, tabId)}`;
+  return `which isn't one: a thread's nth answer is "<thread>.<n>", and a personal answer "${personalAnswerId("<id>")}"`;
+}
+
+const checkHomePrompts: LanguageCheck = ({ site, language, problemUnless }) => {
   const answerIds = new Set([
     ...language.threads.flatMap((thread) =>
       thread.messages.map((_, messageIndex) => threadAnswerId(thread.id, messageIndex + 1)),
@@ -37,7 +46,7 @@ const checkHomePrompts: LanguageCheck = ({ language, problemUnless }) => {
   for (const prompt of language.home.prompts ?? []) {
     problemUnless(
       answerIds.has(prompt.answer),
-      `the home prompt "${prompt.q}" gets the answer "${prompt.answer}", which isn't one: a thread's nth answer is "<thread>.<n>", and a personal answer "${personalAnswerId("<id>")}"`,
+      `the home prompt "${prompt.q}" gets the answer "${prompt.answer}", ${whyNotAnAnswer(site, prompt.answer)}`,
     );
   }
 };

@@ -3,7 +3,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { sitemapXml } from "../../../src/site/files/sitemap-xml.ts";
 import { makeSite } from "../../../src/site/site.ts";
+import { samplePosts } from "../../sample/qiita.ts";
 import { sampleConfig, sampleInEnglishOnly } from "../sample.ts";
+
+const posts = await samplePosts();
 
 /** A page's <url>, with its versions by language and the main one's for any other. */
 const entry = (loc: string, en: string, fr: string): string =>
@@ -24,7 +27,7 @@ test("sitemap.xml has each language's pages, the home page and each tab's, each 
     ...frPages.map((fr, nth) => entry(fr, enPages[nth] ?? "", fr)),
   ];
   assert.equal(
-    sitemapXml(makeSite(sampleConfig())),
+    sitemapXml(makeSite(sampleConfig(), posts)),
     `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
         xmlns:xhtml="http://www.w3.org/1999/xhtml">
@@ -53,4 +56,8 @@ test("what XML reads as markup in an address is written as an entity", () => {
     '<xhtml:link rel="alternate" hreflang="en" href="https://example.com/a&amp;b/" />',
     '<xhtml:link rel="alternate" hreflang="x-default" href="https://example.com/a&amp;b/" />',
   ]);
+});
+
+test("before the first post, sitemap.xml has no Writing tab's page", () => {
+  assert.doesNotMatch(sitemapXml(makeSite(sampleConfig(), [])), /\/writing\//);
 });

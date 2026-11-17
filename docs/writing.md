@@ -12,6 +12,11 @@ last build. A post you write today shows once the site is built again: on
 your next push, or, on Cloudflare, by itself within a day
 ([A rebuild each day](#a-rebuild-each-day)).
 
+The tab comes with your first post. Until then the site has no Writing
+tab: no row in the sidebar, no page at `/writing/`, nothing in the
+sitemap, `llms.txt` or [Ask](ask.md), and a visitor finds nothing that
+leads nowhere ([Before your first post](#before-your-first-post)).
+
 ## Turning it on
 
 1. In `site.config.ts`, add your Qiita user id, as your profile's address
@@ -23,13 +28,13 @@ your next push, or, on Cloudflare, by itself within a day
 
 2. A page in English has the tab's wording already. A page in any other
    language states it in its `strings`: `writingTitle` (the tab's name),
-   `writingQuestion` (the visitor's question in it), `writingIntro` (the
-   line over the posts) and `writingEmpty` (what it says with none).
-   `examples/ja.ts` has them in Japanese, and the build names one that's
-   missing.
+   `writingQuestion` (the visitor's question in it) and `writingIntro` (the
+   line over the posts). `examples/ja.ts` has them in Japanese, and the
+   build names one that's missing.
 3. `npm run build`, or `npm run dev`. The build prints how many posts it
    found, and the tab has a page of its own at `/writing/` (`/ja/writing/`
-   on a Japanese page).
+   on a Japanese page). With none yet, it says so, and that the site has
+   no Writing tab until the first.
 
 ## Where it is
 
@@ -39,9 +44,37 @@ your next push, or, on Cloudflare, by itself within a day
   `tab: "writing"`: the build then adds none.
 - Anything that opens a thread can open it: a topic in the question card,
   a step in the panel, a link in an answer (`[what I write](#writing)`). A
-  home prompt can name its answer, `writing.1`.
+  home prompt can name its answer, `writing.1`. Each of these needs the
+  tab to be there before your first post too, so it needs `showWhenEmpty`
+  ([Before your first post](#before-your-first-post)): without it, the
+  build stops and says so, as it does for a link to a thread you don't
+  have.
 - `writing` is its id, so a thread of yours can't have that one too: the
   build stops and says so.
+
+## Before your first post
+
+A site with `writing` and no public posts on Qiita yet is built without
+the tab, as if it had no `writing`, and the build says so. The tab, its
+row, its page and its answer come with the first build after your first
+post: with [a rebuild each day](#a-rebuild-each-day), by themselves. A
+page someone kept from
+when you had posts (if you take them all down) gets the 404 page, and a
+chat a visitor kept that was answered from the tab answers "Something
+else", as it does for any answer the site no longer has.
+
+To have the tab there before the first post, saying so, set
+`showWhenEmpty`:
+
+```ts
+writing: { qiita: "alex-example", showWhenEmpty: true },
+```
+
+It then says `writingEmpty` ("Nothing posted yet."), which a page in a
+language other than English states in its `strings` too. It's what lets
+the rest of the config open the tab ([Where it is](#where-it-is)), since
+the config's checks can't know whether you'll have posts at the next
+build, and nothing of yours should lead to a tab that isn't there.
 
 ## What the build fetches
 
@@ -79,9 +112,9 @@ So nothing needs doing: the next day's rebuild tries again, and so does
 a push. If the id was wrong, the build said so: put it right. To build
 without the tab, remove `writing`.
 
-The dev server says so too, and serves on, with the tab saying there are
-no posts. It fetches once, as it starts: start it again to see a post
-you've just written.
+The dev server says so too, and serves on, as it would with no posts:
+without the tab, or with it empty if you set `showWhenEmpty`. It fetches
+once, as it starts: start it again to see a post you've just written.
 
 ## A rebuild each day
 
@@ -144,7 +177,11 @@ and `npm run fonts:check` doesn't ask for them: each post's card is marked
 those. The stylesheet sets them in the system's Japanese font instead
 (`src/styles/japanese.css`), which every system that shows Japanese has.
 A page in another language shows a Japanese title in the system's font
-too. The tab's own wording is yours, and is cut for as the rest is.
+too. The tab's own wording is yours, and is cut for as the rest is, even
+before your first post, while the page doesn't show it: `npm run fonts`
+takes it from the config, and `npm run fonts:check` asks for it, so the
+build that brings the tab, a daily rebuild with no one at hand perhaps,
+needn't cut the fonts again.
 
 ## Ask and llms.txt
 
@@ -158,7 +195,8 @@ many posts make each question cost more
 ([What Ask can cost](ask.md#what-ask-can-cost)).
 
 llms.txt has a Writing section listing each post by its title, with its
-address, day and tags, and the tab's answer among the questions.
+address, day and tags, and the tab's answer among the questions. Before
+your first post there's neither, nor anything for Ask to answer from.
 
 ## Without Qiita, in the tests
 
@@ -174,6 +212,10 @@ in for a real site's. To build the sample as the tests do:
 ```sh
 SITE_CONFIG=tests/sample/site.config.ts WRITING_FIXTURE=tests/sample/qiita.json npm run build
 ```
+
+`tests/sample/qiita-no-posts.json` is the same user before their first
+post, and `tests/build/sample-site.test.ts` builds the sample with it too:
+no Writing tab, and nothing on the site that points at one.
 
 The template's own `site.config.ts` has `writing` commented out, as it
 has Ask: a copy starts as that file, and would otherwise ask Qiita for

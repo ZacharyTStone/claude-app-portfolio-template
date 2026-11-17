@@ -2,7 +2,9 @@
 /* What every page starts with, the 404 page too: the first lines of the
    <head>, the icons, the fonts loaded up front and the stylesheet. The
    page's own <head> lines go in the "head" slot, and its <body> in the
-   default one. */
+   default one. <meta charset> comes first after <html lang dir>, well
+   inside the first 1024 bytes, where a browser looks for it when the host
+   sends no charset: what the page hands the script goes on <body>. */
 import "../styles/app.css";
 import { REFERRER_POLICY } from "../site/security-headers.ts";
 import { site } from "../site/current.ts";
@@ -16,17 +18,17 @@ interface Props {
   dir?: string;
   /** Fonts the page loads up front: paths on the site. */
   preload: string[];
-  /** Attributes for <html>: what the page hands the script. */
-  htmlAttributes?: Record<string, string>;
+  /** Attributes for <body>: what the page hands the script. */
+  bodyAttributes?: Record<string, string>;
 }
-const { lang, dir = "ltr", preload, htmlAttributes = {} } = Astro.props;
+const { lang, dir = "ltr", preload, bodyAttributes = {} } = Astro.props;
 // Every page carries the policy itself, ahead of everything it covers, and
 // the referrer policy: a host that sends them as headers enforces both.
 const policyForMetaTag = pagePolicy(site);
 ---
 
 <!doctype html>
-<html lang={lang} dir={dir} {...htmlAttributes}>
+<html lang={lang} dir={dir}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -42,7 +44,7 @@ const policyForMetaTag = pagePolicy(site);
       <link rel="preload" href={site.link(fontPath)} as="font" type="font/woff2" crossorigin />
     ))}
   </head>
-  <body>
+  <body {...bodyAttributes}>
     <slot />
   </body>
 </html>
