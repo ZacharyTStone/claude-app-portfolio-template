@@ -68,6 +68,14 @@ async function pickTab(page: Page, site: Site, tabId: string): Promise<void> {
   await choice.click();
 }
 
+/** Opens the question card from a tab's composer, and picks its choice for
+    a thread. */
+export async function pickTabIn(page: Page, site: Site, tab: string, tabId: string): Promise<void> {
+  await page.locator(`${tab} ${CLASS.composer}`).click();
+  await page.locator(OPEN_CARD).waitFor();
+  await pickTab(page, site, tabId);
+}
+
 /** Opens a new chat from the sidebar, and picks the question card's choice
     for a thread, which sends the thread's answers into it. */
 export async function pickInNewChat(page: Page, site: Site, tabId: string): Promise<void> {

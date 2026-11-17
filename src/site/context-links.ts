@@ -2,22 +2,23 @@
    whose panel.context has `fromAnswers`: what each tab's answers link to,
    as rows, the way the Claude app lists a conversation's sources. A tab's
    list is what its questions and answers link to, each address once, in
-   the order the tab first links to it; the home screen's is every one on
-   the site. Only what a visitor can open is listed: a web address, or a
-   file on the site. A link to one of the site's own pages (#about, /about/)
+   the order the tab first links to it. A chat lists the rows of the tabs
+   its answers are from (src/app/panel-context.ts), and the home screen
+   none. Only what a visitor can open is listed: a web address, or a file
+   on the site. A link to one of the site's own pages (#about, /about/)
    and mailto: are left out, and so is a link one of the config's own rows
    has, which stays that row. The Writing tab's posts are left out too: its
-   answer is that list already, fetched, not the config's. */
+   answer is that list already, fetched, not the config's. llms.txt lists
+   every link on the site the same way (linksOfTheSite). */
 
 import { isTextBlock, picturesIn, type Block } from "../config/blocks.ts";
 import type { PanelRow } from "../config/language.ts";
 import { linksIn } from "../config/markdown.ts";
-import { PAGE_IDS, personalTabId } from "../contracts/page-ids.ts";
+import { personalTabId } from "../contracts/page-ids.ts";
 import type { Site, SiteLanguage } from "./site.ts";
 import { basePath, shortUrl } from "./url.ts";
 
-/** A list of the Context: the tab whose links it is (its id), or
-    PAGE_IDS.home for the home screen's. */
+/** A list of the Context: the tab whose links it is (its id). */
 export type GatheredList = { of: string; rows: PanelRow[] };
 
 /** A link where an answer has it: its href as the config writes it, and
@@ -135,22 +136,27 @@ function rowsOf(site: Site, links: FoundLink[], ownRows: PanelRow[]): PanelRow[]
   return [...linksTo.values()].map((listed) => rowOf(site, listed.address, listed.links));
 }
 
-/** A language's lists for its Context: the home screen's first, then each
-    tab's that has a link to list. None for a language whose panel.context
-    hasn't `fromAnswers`. */
+/** A language's lists for its Context: each tab's that has a link to
+    list. None for a language whose panel.context hasn't `fromAnswers`. */
 export function contextLists(site: Site, code: string): GatheredList[] {
   const language = site.language(code);
   const context = language.panel.context;
   if (!context?.fromAnswers) return [];
-  const tabs = linksOfEachTab(language);
+  const lists = linksOfEachTab(language).map((tab) => ({ of: tab.tab, rows: rowsOf(site, tab.links, context.rows) }));
+  return lists.filter((list) => list.rows.length > 0);
+}
+
+/** Every link on a language's pages, as rows, as a tab's are: the home
+    screen's intro, each tab, then "Something else". None for a language
+    whose panel.context hasn't `fromAnswers`. */
+export function linksOfTheSite(site: Site, code: string): PanelRow[] {
+  const language = site.language(code);
+  const context = language.panel.context;
+  if (!context?.fromAnswers) return [];
   const everywhere = [
     ...linksInBlock(language.home.intro),
-    ...tabs.flatMap((tab) => tab.links),
+    ...linksOfEachTab(language).flatMap((tab) => tab.links),
     ...linksInBlock(language.asked.answer),
   ];
-  const lists = [
-    { of: PAGE_IDS.home, rows: rowsOf(site, everywhere, context.rows) },
-    ...tabs.map((tab) => ({ of: tab.tab, rows: rowsOf(site, tab.links, context.rows) })),
-  ];
-  return lists.filter((list) => list.rows.length > 0);
+  return rowsOf(site, everywhere, context.rows);
 }

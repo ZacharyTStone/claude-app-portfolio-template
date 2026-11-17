@@ -9,11 +9,13 @@ import { foldable } from "../folding.ts";
 import { clone, find, make } from "../lib/dom.ts";
 import { local } from "../lib/storage.ts";
 import { main, root, sidebar, siteName, tagline, words } from "../page.ts";
+import { listContextOf } from "../panel-context.ts";
 import { watchForTurnsIn } from "../play.ts";
 import { addressOf, copyTab, currentTab, focusOpenTab, showOpenTab, showTabName } from "../tabs.ts";
 import { say } from "../toast.ts";
-import type { Exchange } from "./exchange.ts";
+import { tabsAnsweredFrom, type Exchange } from "./exchange.ts";
 import { messagesOf, questionOf } from "./messages.ts";
+import { isOnPage } from "./page-answers.ts";
 import { readExchange, readSavedChats, toSaved, withChat, withoutChat, type SavedChat } from "./saved-chats.ts";
 
 /** localStorage: the chats of each language, under this and the language. */
@@ -183,12 +185,26 @@ function showChat(chat: Chat): void {
   watchForTurnsIn(messages);
 }
 
+/** The panel's Context, while the chat is open, lists the links of the
+    tabs its answers are from (panel-context.ts). */
+function listLinksOf(chat: Chat): void {
+  listContextOf(chat.tab.id, tabsAnsweredFrom(chat.sources.map(readExchange), isOnPage));
+}
+
+/** A reply has come in a chat: the panel's Context lists its links too.
+    Nothing, for a tab that isn't a chat. */
+export function listLinksOfChat(tab: HTMLElement): void {
+  const chat = chatOf(tab);
+  if (chat) listLinksOf(chat);
+}
+
 /** The chats saved in this browser, back in the sidebar, newest at the top. */
 export function restoreChats(): void {
   for (const saved of readChats().sort((one, other) => one.created - other.created)) {
     const chat = makeChat(saved);
     listChat(chat);
     showChat(chat);
+    listLinksOf(chat);
   }
 }
 
@@ -241,6 +257,7 @@ export function deleteChat(tab: HTMLElement): void {
   if (emptyChat === chat) emptyChat = null;
   unlistChat(chat);
   forgetChat(chat);
+  listContextOf(tab.id, []);
   // Focus was in what's gone: the tab, or its row's "…".
   if (tab === currentTab()) theSetup().goHome();
   else {

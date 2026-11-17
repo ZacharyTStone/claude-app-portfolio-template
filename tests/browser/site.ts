@@ -102,8 +102,7 @@ export type GitHubActivity = {
     list the page has, the home screen's first, and the config's own rows. */
 export type GatheredContext = {
   lists: Array<{
-    /** Its DATA.contextOf: the tab whose links it is, or the home
-        screen's id. */
+    /** Its DATA.contextOf: the tab whose links it is. */
     of: string;
     /** Where each of its rows links, as the page has it. */
     hrefs: string[];

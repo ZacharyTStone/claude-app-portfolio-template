@@ -1,13 +1,13 @@
 /* The panel's Context gathered from the answers (src/site/context-links.ts):
    which links each tab's list has, in what order, under what label and
-   icon, and which it leaves out. The sample is served under a path, at
+   icon, and which it leaves out; and every link on the site, for
+   llms.txt. The sample is served under a path, at
    https://example.com/portfolio/. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { Block } from "../../src/config/blocks.ts";
 import type { Language, PanelRow } from "../../src/config/language.ts";
-import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
-import { contextLists } from "../../src/site/context-links.ts";
+import { contextLists, linksOfTheSite } from "../../src/site/context-links.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { samplePosts } from "../sample/qiita.ts";
 import { languageOf, sampleInEnglishOnly } from "./sample.ts";
@@ -141,7 +141,7 @@ test("a link one of Context's own rows has stays that row, however it's written,
   assert.deepEqual(hrefsOf(rowsOf(site, "links")), ["https://blog.example.com/"]);
 });
 
-test("the home screen lists every link on the site, once each, in the page's order: its intro, each tab, then Something else", () => {
+test("each tab has a list of its own links, and none is the home screen's; every link on the site is listed once, in the page's order: its intro, each tab, then Something else", () => {
   const config = sampleInEnglishOnly();
   const english: Language = languageOf(config, "en");
   english.home.intro = "Hi, see [the blog](https://blog.example.com/).";
@@ -160,25 +160,22 @@ test("the home screen lists every link on the site, once each, in the page's ord
   english.questions.personal = [{ id: "fun", q: "fun?", a: ["[C](https://c.example.com/)"] }];
   english.asked.answer = "[D](https://d.example.com/) or [email](mailto:sam@example.com).";
   english.panel.context = { title: "Context", fromAnswers: true, rows: [] };
-  const lists = contextLists(makeSite(config), "en");
+  const site = makeSite(config);
   assert.deepEqual(
-    lists.map((list) => [list.of, hrefsOf(list.rows)]),
+    contextLists(site, "en").map((list) => [list.of, hrefsOf(list.rows)]),
     [
-      [
-        PAGE_IDS.home,
-        [
-          "https://blog.example.com/",
-          "https://a.example.com/",
-          "https://b.example.com/",
-          "https://c.example.com/",
-          "https://d.example.com/",
-        ],
-      ],
       ["one", ["https://a.example.com/", "https://blog.example.com/"]],
       ["two", ["https://b.example.com/", "https://a.example.com/"]],
       ["personal-fun", ["https://c.example.com/"]],
     ],
   );
+  assert.deepEqual(hrefsOf(linksOfTheSite(site, "en")), [
+    "https://blog.example.com/",
+    "https://a.example.com/",
+    "https://b.example.com/",
+    "https://c.example.com/",
+    "https://d.example.com/",
+  ]);
 });
 
 test("a tab that links nowhere has no list of its own", () => {
@@ -201,6 +198,8 @@ test("a language whose Context doesn't ask for them has no lists, nor one with n
   assert.ok(context);
   english.panel.context = { title: context.title, rows: context.rows };
   assert.deepEqual(contextLists(makeSite(config), "en"), []);
+  assert.deepEqual(linksOfTheSite(makeSite(config), "en"), []);
   english.panel = {};
   assert.deepEqual(contextLists(makeSite(config), "en"), []);
+  assert.deepEqual(linksOfTheSite(makeSite(config), "en"), []);
 });
