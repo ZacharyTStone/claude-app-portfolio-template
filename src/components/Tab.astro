@@ -1,7 +1,8 @@
 ---
 /* An <article> that shows while it's the open tab: the one a page is built with open (PAGE_CLASSES.open), and with
    JavaScript off one an old address's #id names (:target). The script copies the "Something else" tab for each
-   chat. */
+   chat. Its title is an <h1>, as the home screen's greeting is: only one of them shows at a time, so whichever
+   is open, and however it was opened, the page has one <h1>, and the headings in an answer are under it. */
 import type { Pill } from "../config/language.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -24,9 +25,9 @@ const isOpen = page.tab === id;
 
 <article class:list={[PAGE_CLASSES.tab, { [PAGE_CLASSES.open]: isOpen }]} id={id} aria-labelledby={titleId(id)}>
   <Topbar strings={strings}>
-    <h2 class={`${PAGE_CLASSES.title} ${PAGE_CLASSES.iconAfter}`} id={titleId(id)}>
+    <h1 class={`${PAGE_CLASSES.title} ${PAGE_CLASSES.iconAfter}`} id={titleId(id)}>
       {title}
-    </h2>
+    </h1>
     {pill && (
       <span class="pill">
         {pill.live && <span class="live" />}

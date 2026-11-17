@@ -25,7 +25,7 @@
     .account-row,
     .figure,
     .prompts,
-    .answer h3
+    .answer h2
   ) {
   font-feature-settings: "palt";
 }

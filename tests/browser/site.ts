@@ -322,9 +322,9 @@ async function readBuiltThreads(page: Page): Promise<Array<Omit<Thread, "path">>
             answers.push("");
           } else if (answers.length) answers[answers.length - 1] += text;
         }
-        return { id: tab.id, title: (tab.querySelector("h2")?.textContent ?? "").trim(), questions, answers };
+        return { id: tab.id, title: (tab.querySelector(selector.title)?.textContent ?? "").trim(), questions, answers };
       }),
-    { thread: CLASS.thread, question: CLASS.question, srOnly: CLASS.srOnly },
+    { thread: CLASS.thread, question: CLASS.question, srOnly: CLASS.srOnly, title: CLASS.title },
   );
   return tabs.filter((tab) => tab.questions.length);
 }

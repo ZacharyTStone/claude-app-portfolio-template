@@ -5,6 +5,7 @@ import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { parseAnswerId } from "../../src/contracts/ask.ts";
 import { DATA, MENU_KEYS } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
+import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -48,6 +49,12 @@ test.describe("the home screen", () => {
       await expect(page.locator(ID.greeting)).toHaveText(greeting ?? "");
     });
   }
+
+  test("has one heading at its top level, the greeting", async ({ page }) => {
+    await page.goto("./");
+    await expect(page.getByRole("heading", { level: 1 })).toHaveCount(1);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveId(PAGE_IDS.greeting);
+  });
 
   test("has one line under the greeting", async ({ page }) => {
     await page.goto("./");

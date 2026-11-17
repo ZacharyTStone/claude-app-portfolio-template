@@ -103,7 +103,7 @@
     break-inside: avoid;
   }
   .question,
-  .answer h3 {
+  .answer h2 {
     break-after: avoid;
   }
 }
