@@ -58,10 +58,12 @@ follow-ups sends what it kept: a question with no id is sent alone.
 
 No good fit, or Ask over its limits, and the reply is "Something else".
 There the visitor's question goes into the email and the message the page
-offers. One more small call says it to you ("Do you…?" for "Does
-Alex…?"), and its wording is used only if the Worker finds it the same
-question, give or take who it is about; otherwise the question goes in as
-it was typed.
+offers, and on a site with the
+[contact form](contact-form.md#a-question-ask-cant-answer), into the
+form, which the reply's first link opens. One more small call
+says it to you ("Do you…?" for "Does Alex…?"), and its wording is used
+only if the Worker finds it the same question, give or take who it is
+about; otherwise the question goes in as it was typed.
 
 ### What isn't checked
 

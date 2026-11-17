@@ -78,6 +78,18 @@ export const CONTACT_FORM_STRING_NAMES = [
   "contactFailed",
 ] as const satisfies readonly (keyof ContactFormStrings)[];
 
+/** The page's wording for sending the contact form a question Ask has no
+    answer for, on a site with both `ask` and `contactForm` (PART_STRINGS). */
+export type AskFormStrings = {
+  /** In the reply to such a question, the link that opens the form's tab
+      with the question in its message box: "Send it with the contact
+      form". */
+  askForm: string;
+};
+
+/** Every name in AskFormStrings. */
+export const ASK_FORM_STRING_NAMES = ["askForm"] as const satisfies readonly (keyof AskFormStrings)[];
+
 /** Every name in PageStrings (tests/config/field-docs.test.ts holds the
     two together). */
 export const PAGE_STRING_NAMES = [
@@ -210,17 +222,21 @@ type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
 export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as ScriptStringName[];
 
 /** The strings a site needs only when it has the part (the build says
-    which are missing): the script's, the contact form's, the Writing
-    tab's and the panel's GitHub activity's own. */
+    which are missing): the script's, the contact form's (and its link
+    from Ask's reply), the Writing tab's and the panel's GitHub activity's
+    own. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
   contactForm: CONTACT_FORM_STRING_NAMES,
+  askForm: ASK_FORM_STRING_NAMES,
   writing: WRITING_STRING_NAMES,
   activity: ACTIVITY_STRING_NAMES,
 } as const satisfies Record<
   string,
-  readonly (ScriptStringName | keyof ContactFormStrings | keyof WritingStrings | keyof ActivityStrings)[]
+  readonly (
+    ScriptStringName | keyof ContactFormStrings | keyof AskFormStrings | keyof WritingStrings | keyof ActivityStrings
+  )[]
 >;
 
 type OptionalScriptStringName = Extract<(typeof PART_STRINGS)[keyof typeof PART_STRINGS][number], ScriptStringName>;
@@ -238,6 +254,7 @@ export type ScriptStrings = { -readonly [Name in keyof typeof SCRIPT_STRING_ATTR
 
 export type Strings = PageStrings &
   Partial<ContactFormStrings> &
+  Partial<AskFormStrings> &
   Partial<WritingStrings> &
   Partial<ActivityStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &

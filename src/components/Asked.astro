@@ -7,7 +7,7 @@ import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { site } from "../site/current.ts";
-import type { Page } from "../site/site.ts";
+import { formForQuestions, type Page } from "../site/site.ts";
 import { shortUrl } from "../site/url.ts";
 import { flag } from "./attributes.ts";
 import Inline from "./Inline.astro";
@@ -29,6 +29,19 @@ const mailLink: LinkCardBlock = {
   icon: "contact",
 };
 const mailTemplate = { [DATA.emailBody]: asked.email, [DATA.emailSubject]: asked.subject };
+
+// On a site with Ask and the contact form: a link to the form's tab, which the script fills the form from. Its
+// second line is the tab's name, as the email's is the address it goes to.
+const formTab = formForQuestions(site.config);
+const formLink: LinkCardBlock | undefined =
+  formTab && strings.askForm
+    ? {
+        name: strings.askForm,
+        kind: page.language.threads.find((thread) => thread.id === formTab)?.title ?? formTab,
+        href: `#${formTab}`,
+        icon: "pen",
+      }
+    : undefined;
 
 // Offered only when the config has all three: the profile, the link's name and the message.
 const linkedinOffer =
@@ -54,6 +67,7 @@ const linkedinOffer =
     <p>
       <Inline text={asked.answer} code={page.code} />
     </p>
+    {formLink && <LinkCard link={formLink} code={page.code} {...{ [DATA.formQuestion]: asked.q }} />}
     <LinkCard link={mailLink} code={page.code} {...mailTemplate} />
     {linkedinOffer && (
       <>

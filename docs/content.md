@@ -149,7 +149,9 @@ but a home prompt can name it, Ask can pick it, and its page is there.
 
 A question a visitor types gets the `asked` reply, "Something else": how
 to reach you, with their question in an email and a message to copy.
-With [Ask](ask.md) on, it gets an answer first where the site has one.
+With [Ask](ask.md) on, it gets an answer first where the site has one,
+and with the [contact form](contact-form.md#a-question-ask-cant-answer)
+too, the reply's first link takes the question to the form.
 
 In `asked.email` and `asked.message.text`, `{question}` is what the
 visitor asked. On an English page with Ask on it is said to you ("Do

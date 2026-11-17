@@ -28,6 +28,33 @@ but Cloudflare's own. A new site starts without it.
   locked to your address, so the form can't be made to email anyone
   else.
 
+## A question Ask can't answer
+
+On a site with [Ask](ask.md) on too, the "Something else" reply to a
+question Ask has no answer for starts with a link to the form: "Send it
+with the contact form" (`strings.askForm`), with the form's tab's name
+under it.
+
+- **A plain click** opens the form's tab in place, puts the question in
+  the message box, as it was said to you where Ask said it ("Do you…?"),
+  otherwise as it was typed, and puts the cursor in the email box, the one
+  left to fill. Nothing is sent until the visitor presses Send.
+- **What the visitor had typed in the box stays.** The question goes
+  after it, in a paragraph of its own, unless the box has it already, or
+  it would take the message past its 2,000 characters.
+- **A modifier-click** (a new tab) opens the form's tab's page, empty: the
+  question isn't put in its address. Ask needs JavaScript, so without it
+  there is no reply to have the link.
+- **A blocked visitor** gets no link, as they get no message to copy:
+  nothing they typed is shown back.
+- **The email and LinkedIn stay**, after the form: your `asked.answer`
+  may name them, and some visitors would rather not give a form their
+  address.
+
+On a site without Ask, or without the form, "Something else" is as it
+was. Ask's log line is the same either way: it says whether the question
+was said to you (`toOwner`), and the form is the page's to offer.
+
 ## Turning it on
 
 It needs `host: "cloudflare"`, where its Worker runs, and a domain of
@@ -41,9 +68,9 @@ your own on Cloudflare.
 
    An English page has the form's words already. A page in another
    language states them in its `strings`: `contactEmail`,
-   `contactMessage`, `contactSend`, `contactSent` and `contactFailed`
-   (`examples/ja.ts` has them in Japanese), and the build names one that's
-   missing. With a Japanese page, cut its fonts again
+   `contactMessage`, `contactSend`, `contactSent` and `contactFailed`,
+   and with Ask on, `askForm` (`examples/ja.ts` has them in Japanese), and
+   the build names one that's missing. With a Japanese page, cut its fonts again
    ([Languages and fonts](languages.md#japanese-fonts)).
 
 2. **In `wrangler.jsonc`**, uncomment the Worker's block, the two lines
