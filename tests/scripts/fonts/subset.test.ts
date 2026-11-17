@@ -14,8 +14,12 @@ const faceOf = async (font: Buffer): Promise<Face> => new Face(new Blob(await fo
 
 /** A pair Inter kerns, and digits, which it has other features for (tabular figures, fractions). */
 const ASKED_FOR = ["A", "V", "1", "2"];
-const aRangeOfWeights = await cutFont(inter, ASKED_FOR, { min: 300, max: 700 });
-const oneWeight = await cutFont(inter, ASKED_FOR, 400);
+const KERNING_ONLY = ["kern"];
+const aRangeOfWeights = await cutFont(inter, ASKED_FOR, {
+  axes: { wght: { min: 300, max: 700 } },
+  features: KERNING_ONLY,
+});
+const oneWeight = await cutFont(inter, ASKED_FOR, { axes: { wght: 400 }, features: KERNING_ONLY });
 
 test("The characters a font has are read from its file", async () => {
   const has = await charactersIn(inter);
@@ -31,7 +35,10 @@ test("A cut font is smaller than the font it's cut from", () => {
 });
 
 test("The same cut is the same file, byte for byte", async () => {
-  assert.deepEqual(await cutFont(inter, ASKED_FOR, { min: 300, max: 700 }), aRangeOfWeights);
+  assert.deepEqual(
+    await cutFont(inter, ASKED_FOR, { axes: { wght: { min: 300, max: 700 } }, features: KERNING_ONLY }),
+    aRangeOfWeights,
+  );
 });
 
 test("A font cut to a range of weights is variable over that range", async () => {
@@ -43,7 +50,7 @@ test("A font cut to one weight isn't variable", async () => {
   assert.deepEqual((await faceOf(oneWeight)).getAxisInfos(), {});
 });
 
-test("A cut keeps kerning, and none of the features the site doesn't turn on", async () => {
+test("A cut keeps the features asked for, and no others", async () => {
   const face = await faceOf(aRangeOfWeights);
   const features = [...face.getTableFeatureTags("GPOS"), ...face.getTableFeatureTags("GSUB")];
   assert.deepEqual(new Set(features), new Set(["kern"]));

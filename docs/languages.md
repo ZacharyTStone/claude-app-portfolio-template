@@ -57,11 +57,30 @@ so this needs nothing but `npm ci`. `npm run fonts:check`, a step of
 lack; it reads `dist/`, and says so when there is no build. A site with
 no Japanese page needs none of this.
 
+## The serif
+
+Source Serif 4 sets a few large titles: the greeting, the name atop the
+sidebar, a chat's name, the clocks. It's cut down too, but to a fixed set
+of characters rather than to what the pages use, since a greeting, a name
+or the time can change at any build: Basic Latin, Latin-1 (é, ñ, ß, ø…),
+Œ œ ı, and the spaces, dashes, quotes and signs Western European text
+uses, as `scripts/fonts/latin.ts` lists them. `src/styles/fonts.css` gives
+it the same set as its `unicode-range`, so a browser never asks it for a
+character it hasn't. It's cut to weights from 400 up and sizes from 20px
+up: a lighter or smaller serif of your own in `src/styles/site.css` is
+drawn at 400 or as at 20px.
+
+The file is the same on every site, so it's shared, and an update brings
+it: a site never cuts it. `npm run fonts` cuts it again all the same, to
+the same file, and `npm run fonts:check` fails if it lacks a character of
+its set.
+
 ## Letters the bundled fonts lack
 
 The bundled Latin fonts (Inter, Source Serif 4, Geist Mono) cover Western
-European letters only. Other letters (ł, ş, Greek, Cyrillic, Arabic…) show
-in the visitor's system font, which works but looks different. To ship a
-font for them, put its `.woff2` file in `public/assets/` and an
-`@font-face` for it in `src/styles/site.css`, which is yours and loads
-last.
+European letters only ([The serif](#the-serif) has the serif's set). Other
+letters (ł, ş, Greek, Cyrillic, Arabic…), and in the serif an accent typed
+on its own after its letter, show in the visitor's system font, which
+works but looks different. To ship a font for them, put its `.woff2` file
+in `public/assets/` and an `@font-face` for it in `src/styles/site.css`,
+which is yours and loads last.

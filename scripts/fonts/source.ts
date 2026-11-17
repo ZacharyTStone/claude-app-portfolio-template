@@ -18,6 +18,10 @@ export const NOTO_SERIF_JP: SourceFont = {
   path: "ofl/notoserifjp/NotoSerifJP[wght].ttf",
   sha256: "2fd527ba12b6a44ec30d796d633360da0aeba6c5d4af1304ce12bb4dc15a7dfc",
 };
+export const SOURCE_SERIF_4: SourceFont = {
+  path: "ofl/sourceserif4/SourceSerif4[opsz,wght].ttf",
+  sha256: "97b2d4da6e3cb494b5a1e66ae176914d852ccabef49e0c02c0df25f3e39aca0b",
+};
 
 const addressOf = ({ path }: SourceFont): string =>
   `https://raw.githubusercontent.com/google/fonts/${GOOGLE_FONTS_COMMIT}/${path.split("/").map(encodeURIComponent).join("/")}`;
@@ -27,8 +31,8 @@ const sha256Of = (file: Buffer): string => createHash("sha256").update(file).dig
 /** How a source font is got: where a downloaded one is kept for next time, and what downloads one. */
 export type Fetching = { cacheFolder: string; download: (address: string) => Promise<Buffer> };
 
-/** The source font: the kept copy if there's a sound one, or else downloaded, checked and kept. The two fonts
-    are 23 MB between them, so a rebuild doesn't download them again while the kept copies last. */
+/** The source font: the kept copy if there's a sound one, or else downloaded, checked and kept. The Japanese
+    fonts are 23 MB between them, so a rebuild doesn't download them again while the kept copies last. */
 export async function sourceFont(source: SourceFont, { cacheFolder, download }: Fetching): Promise<Buffer> {
   const kept = join(cacheFolder, `${source.sha256}.ttf`);
   if (existsSync(kept)) {
