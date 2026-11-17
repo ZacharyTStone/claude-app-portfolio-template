@@ -28,6 +28,8 @@ export type Reply =
 /** A question, and what the picker chose for it. */
 export type Asked = {
   question: string;
+  /** The visitor's questions before it in the chat, oldest first. */
+  earlier: readonly string[];
   answer: AskAnswer;
   /** As the model gave them: nothing has checked them yet. */
   lineNumbers: unknown;
@@ -54,10 +56,11 @@ const quotedOrNone = (made: Pick<Made, "written">, quoted: Quoted): Reply =>
 
 type ChoicesIn<Lang> = Choices & { lang: Lang };
 
-function writingFrom({ question, answer }: Asked, lines: Line[], choices: ChoicesIn<Writing["lang"]>): Writing {
+function writingFrom(asked: Asked, lines: Line[], choices: ChoicesIn<Writing["lang"]>): Writing {
+  const { question, earlier, answer } = asked;
   const { name, role, lang } = choices;
   const { title, q } = answer;
-  return { question, lang, lines: joinLines(lines), title, q, name, role, owner: ownerNames(choices) };
+  return { question, earlier, lang, lines: joinLines(lines), title, q, name, role, owner: ownerNames(choices) };
 }
 
 // None when the reply only repeats its lines (they'd be shown twice), or

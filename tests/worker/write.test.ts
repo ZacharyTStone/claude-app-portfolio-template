@@ -13,6 +13,7 @@ import { eachRow } from "./rows.ts";
 
 const WRITING: Writing = {
   question: "Does Alex know Svelte?",
+  earlier: [],
   lang: "en",
   lines: "frontend: React, Next.js, Svelte / SvelteKit, Tailwind CSS",
   title: "Skills",

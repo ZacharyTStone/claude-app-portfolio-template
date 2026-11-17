@@ -1,7 +1,7 @@
 /* Sending into a thread: the visitor's message, the "thinking" line, then
    the reply, a message at a time. In the portfolio's own threads that lasts
    until another tab is opened; in a chat it's kept (chats.ts). */
-import type { AskResponse } from "../../contracts/ask.ts";
+import type { AskResponse, AskTurn } from "../../contracts/ask.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
 import { SIZE } from "../constants.ts";
@@ -10,8 +10,9 @@ import { pause, scrollToTop } from "../lib/motion.ts";
 import { askUrl, words } from "../page.ts";
 import { isChat } from "../tabs.ts";
 import { ask } from "./ask.ts";
-import { addToChat, showChat, updateInChat } from "./chats.ts";
+import { addToChat, sentInChat, showChat, updateInChat } from "./chats.ts";
 import { isUnasked, outcomeOf, withOutcome, type Exchange, type TypedQuestion } from "./exchange.ts";
+import { lastTurns, turnOf } from "./follow-up.ts";
 import {
   addUnderReply,
   questionBubble,
@@ -20,7 +21,7 @@ import {
   replyMessages,
   showQuestionIn,
 } from "./messages.ts";
-import { isOnPage } from "./page-answers.ts";
+import { answersReadIn, firstQuestionOf, isOnPage } from "./page-answers.ts";
 import { thinkingLine } from "./thinking.ts";
 
 /** The least a reply takes, "thinking", before it comes. */
@@ -36,6 +37,10 @@ type Delivery = {
   scroller: HTMLElement;
   questionBubble: HTMLElement;
   thinkingLine: HTMLElement;
+  /** The exchange, with what /ask said of it once it has. */
+  exchange: Exchange;
+  /** What came before it in its chat or tab, for /ask. */
+  earlier: AskTurn[];
   /** Where the exchange is kept in its chat; null in one of the site's own tabs. */
   placeInChat: number | null;
   /** Null until the reply has come. */
@@ -54,6 +59,26 @@ type Delivery = {
 /** The delivery whose reply is still going in, if there is one. */
 let current: Delivery | null = null;
 
+/** The site's own tab that's open, once a question is sent into it: its
+    answers down to the one being read then, and what's been sent into it
+    since. A chat keeps its own (chats.ts). */
+let openTab: { tab: HTMLElement; answersRead: AskTurn[]; sent: Delivery[] } | null = null;
+
+const turnIn = (exchange: Exchange) => turnOf(exchange, firstQuestionOf);
+
+/** The turns before a question sent into `tab` now: in a chat, what was
+    sent in it; in one of the site's own tabs, its answers down to the one
+    being read, then what was sent into it. */
+function earlierIn(tab: HTMLElement): AskTurn[] {
+  const inChat = sentInChat(tab);
+  if (inChat) return lastTurns(inChat.map(turnIn));
+  if (isChat(tab)) return [];
+  // What's sent goes in below the tab's own answers, so the one being read
+  // is the one the first question was asked over.
+  if (openTab?.tab !== tab) openTab = { tab, answersRead: answersReadIn(tab), sent: [] };
+  return lastTurns([...openTab.answersRead, ...openTab.sent.map(({ exchange }) => turnIn(exchange))]);
+}
+
 function markSent(message: Element): Element {
   message.classList.add(PAGE_CLASSES.sent);
   return message;
@@ -66,14 +91,18 @@ function add(delivery: Delivery, message: Element): void {
   delivery.isFollowingQuestion = !reachedTheTop;
 }
 
-/** Puts the question and the "thinking" line in the thread, in place of a
-    new chat's "who this is". */
-function begin(tab: HTMLElement, exchange: Exchange, placeInChat: number | null): Delivery {
+/** Keeps the exchange with its chat, if it's sent in one, and puts the
+    question and the "thinking" line in the thread, in place of a new
+    chat's "who this is". */
+function begin(tab: HTMLElement, exchange: Exchange, earlier: AskTurn[]): Delivery {
+  const placeInChat = isChat(tab) ? addToChat(tab, exchange) : null;
   const thread = find(tab, CLASS_SELECTOR.thread);
   thread.querySelector(`:scope > ${CLASS_SELECTOR.chatHello}`)?.remove();
   const delivery: Delivery = {
     tab,
     thread,
+    exchange,
+    earlier,
     scroller: find(tab, CLASS_SELECTOR.scroll),
     questionBubble: questionBubble(exchange),
     thinkingLine: thinkingLine(),
@@ -105,6 +134,7 @@ function hurry(delivery: Delivery): void {
     inappropriate is removed) and kept with its chat, so it's asked once. */
 function keepOutcome(delivery: Delivery, asked: TypedQuestion, response: AskResponse | null): TypedQuestion {
   const answered = withOutcome(asked, outcomeOf(response, isOnPage), words.askRemoved);
+  delivery.exchange = answered;
   showQuestionIn(delivery.questionBubble, answered);
   if (delivery.placeInChat !== null) updateInChat(delivery.tab, delivery.placeInChat, answered);
   return answered;
@@ -114,7 +144,7 @@ function keepOutcome(delivery: Delivery, asked: TypedQuestion, response: AskResp
     for a question not asked yet, what /ask says of it. */
 async function replyOnceItComes(delivery: Delivery, exchange: Exchange): Promise<Element[]> {
   const toAsk = askUrl && isUnasked(exchange) ? exchange : null;
-  const [, response] = await Promise.all([pause(THINKING_MS), toAsk ? ask(toAsk.question) : null]);
+  const [, response] = await Promise.all([pause(THINKING_MS), toAsk ? ask(toAsk.question, delivery.earlier) : null]);
   const messages = replyMessages(toAsk ? keepOutcome(delivery, toAsk, response) : exchange);
   const questionsLeft = response?.left;
   if (questionsLeft !== undefined) addUnderReply(messages, questionsLeftNote(questionsLeft));
@@ -140,8 +170,10 @@ async function showOneByOne(delivery: Delivery, messages: Element[]): Promise<vo
 export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> {
   if (questionOf(exchange) === null) return;
   if (current) hurry(current);
-  const placeInChat = isChat(tab) ? addToChat(tab, exchange) : null;
-  const delivery = begin(tab, exchange, placeInChat);
+  // Before it's kept with its chat, which would make it one of its own
+  // earlier turns.
+  const delivery = begin(tab, exchange, earlierIn(tab));
+  if (openTab?.tab === tab) openTab.sent.push(delivery);
   current = delivery;
   const messages = await replyOnceItComes(delivery, exchange);
   if (delivery.isHurried) return delivery.thinkingLine.replaceWith(...messages.map(markSent));
@@ -153,5 +185,6 @@ export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> 
 export function resetThreads(): void {
   if (current) current.isStopped = true;
   current = null;
+  openTab = null;
   for (const message of document.querySelectorAll(SENT_INTO_THE_SITES_OWN_THREADS)) message.remove();
 }

@@ -62,7 +62,9 @@ function judge(modelReply: unknown, writing: Writing): Judged {
   if (ONLY_NONE.test(text)) return { why: "none" };
   const isTooLong = ranOutOfRoom(modelReply) || text.length > MAX_WRITTEN_LENGTH || !isReplyText(text);
   if (isTooLong) return { failure: { why: "long" }, text };
-  const checked = checkReply(text, writing, writing.question, writing.lang);
+  // What every question the visitor typed in the chat names, the earlier
+  // ones' too, is theirs: none of it is a source.
+  const checked = checkReply(text, writing, [...writing.earlier, writing.question], writing.lang);
   if (checked.reply !== undefined) return { reply: checked.reply };
   return { failure: { why: "words", unsourced: checked.unsourced }, text };
 }

@@ -25,7 +25,8 @@ answered from.
    (`src/worker`) checks the names, numbers and addresses in it
    (`src/worker/ask/checks/grounded.ts`). Each has to be in the lines it
    was written from, their tab's name, your site's own question or your
-   name, and never only in what the visitor typed. The check also refuses
+   name, and never only in what the visitor typed, then or earlier in the
+   chat. The check also refuses
    a reply with a character no reader can see, or a letter from a script
    the page's language doesn't use. Any word with a dot (`t.me/x`,
    `Site.com/cv`) is an address the lines must have whole, and a
@@ -38,6 +39,22 @@ answered from.
    it, then a link to the tab they're in. Lines of more than 800
    characters together are too long to quote: the reply then has only the
    link.
+
+### Follow-ups
+
+A question asked in a chat comes with the one or two before it, so "and
+at Globex?" or "how long was that?" is read as the visitor means it. The
+page sends each earlier question with the id of the answer it was shown
+(in a tab of your site, its answers down to the one being read), never
+the reply's text, and the Worker reads that answer from your site's own
+`ask.json` (`src/worker/ask/earlier.ts`). The picker is told the earlier
+questions as the visitor's messages, and the answers they were shown in
+your words; the reply's writer is told the earlier questions too. Nothing
+else changes: a pick still has to cover the question as it was typed, and
+the reply's names and numbers still have to be in the lines it was written
+from. A name only an earlier question has is the visitor's, as it is in
+the question, and a reply with it is thrown away. A chat saved before
+follow-ups sends what it kept: a question with no id is sent alone.
 
 No good fit, or Ask over its limits, and the reply is "Something else".
 There the visitor's question goes into the email and the message the page
@@ -56,6 +73,10 @@ design. Keeping to what the lines say is only the model's instruction
 wrongly: "No" where the lines mean yes. That is why the page
 quotes the lines under every reply: what your site itself says is beside
 what the model made of it.
+
+A follow-up that names nothing ("how long?") is covered by any answer, so
+which answer it gets rests on how the picker reads the questions before
+it; what the reply may say is checked all the same.
 
 The check reads English and Japanese. On a page in another language no
 reply is written, and the lines are quoted.
@@ -117,6 +138,10 @@ and run the eval (`tests/ask-eval.ts`) against your site:
 ```sh
 node tests/ask-eval.ts https://your-site.example
 ```
+
+A follow-up there has `earlier` too, the turns before it as the page
+sends them: `[{ "question": "What has Alex shipped at Acme?", "id":
+"acme.2" }]`.
 
 It prints each reply the model wrote with the lines it was written from,
 to read one against the other. The questions that should be blocked run

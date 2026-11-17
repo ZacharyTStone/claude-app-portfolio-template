@@ -2,6 +2,7 @@
    line the log gets is in log.ts. */
 import type { AskAnswer, AskResponse } from "../../contracts/ask.ts";
 import { HTTP_STATUS, json, type Rejection } from "../lib/http.ts";
+import type { EarlierTurn } from "./earlier.ts";
 import type { Picked } from "./pick.ts";
 import type { Reply } from "./reply.ts";
 import type { SaidToOwner } from "./to-owner.ts";
@@ -9,6 +10,8 @@ import type { SaidToOwner } from "./to-owner.ts";
 /** A question the model was asked. */
 type Asked = {
   question: string;
+  /** The turns before it in its chat or tab, oldest first. */
+  earlier: readonly EarlierTurn[];
   picked: Picked;
   /** What its model calls cost, in Neurons. */
   neurons: number;

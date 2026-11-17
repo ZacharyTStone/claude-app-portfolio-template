@@ -5,7 +5,7 @@
    before it shows. */
 import type { Locator, Page } from "@playwright/test";
 import { plainText } from "../../src/config/markdown.ts";
-import { personalAnswerId, threadAnswerId, type AskRequest } from "../../src/contracts/ask.ts";
+import { parseAnswerId, personalAnswerId, threadAnswerId, type AskRequest } from "../../src/contracts/ask.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { personalTabId } from "../../src/contracts/page-ids.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
@@ -53,10 +53,83 @@ test.describe("a question typed into a tab, when /ask picks an answer", () => {
     await expect(sent.emailLinks).toHaveCount(0);
   });
 
-  test("goes to /ask as it was typed, with the page's language", async ({ site, ask }) => {
+  test("goes to /ask as it was typed, with the page's language and the tab's answers it was read down to", async ({
+    site,
+    ask,
+  }) => {
     await expect.poll(() => ask.requests.length).toBe(1);
     expect(ask.requests[0]?.method()).toBe("POST");
-    expect(ask.requests[0]?.postDataJSON()).toEqual({ question: QUESTION, lang: site.lang } satisfies AskRequest);
+    const sent = ask.requests[0]?.postDataJSON() as AskRequest;
+    expect(sent).toMatchObject({ question: QUESTION, lang: site.lang });
+    expect(sent.earlier?.length, "the answer being read, at least").toBeGreaterThan(0);
+    for (const turn of sent.earlier ?? []) {
+      const answerNumber = parseAnswerId(turn.id ?? "")?.answerNumber ?? 0;
+      expect(turn).toEqual({
+        question: site.firstThread.questions[answerNumber - 1],
+        id: threadAnswerId(site.firstThread.id, answerNumber),
+      });
+    }
+  });
+});
+
+test.describe("a follow-up", () => {
+  const FIRST = "What's one thing you'd say first?";
+  const THEN = "And how long did that take?";
+
+  test("in a chat goes to /ask with the question before it and the answer /ask picked for it", async ({
+    page,
+    site,
+    ask,
+  }) => {
+    const picked = threadAnswerId(site.secondThread.id, 1);
+    await ask.returns([{ id: picked }, { id: null }]);
+    await page.goto("./");
+    await askInNewChat(page, FIRST);
+    await expect(page.locator(`${OPEN_CHAT} ${CLASS.from}`)).toBeVisible();
+    await askIn(page, (await page.locator(OPEN_CHAT).getAttribute("id")) ?? "", THEN);
+    await expect.poll(() => ask.requests.length).toBe(2);
+    expect(ask.requests[0]?.postDataJSON()).toEqual({ question: FIRST, lang: site.lang } satisfies AskRequest);
+    expect(ask.requests[1]?.postDataJSON()).toEqual({
+      question: THEN,
+      lang: site.lang,
+      earlier: [{ question: FIRST, id: picked }],
+    } satisfies AskRequest);
+  });
+
+  test("in a chat kept from an earlier visit goes with what the chat kept", async ({ page, site, ask }) => {
+    const picked = threadAnswerId(site.secondThread.id, 1);
+    await ask.returns([{ id: picked }, { id: null }]);
+    await page.goto("./");
+    await askInNewChat(page, FIRST);
+    await expect(page.locator(`${OPEN_CHAT} ${CLASS.from}`)).toBeVisible();
+    await revisit(page, "./");
+    await firstChatRow(page).click();
+    await askIn(page, (await page.locator(OPEN_CHAT).getAttribute("id")) ?? "", THEN);
+    await expect.poll(() => ask.requests.length).toBe(2);
+    expect((ask.requests[1]?.postDataJSON() as AskRequest).earlier).toEqual([{ question: FIRST, id: picked }]);
+  });
+
+  test("in a tab scrolled to its end goes with the tab's last answer, and then with the question asked there", async ({
+    page,
+    site,
+    ask,
+  }) => {
+    await ask.returns([{ id: null }, { id: null }]);
+    await page.goto(site.firstThread.path);
+    const scroller = page.locator(`#${site.firstThread.id} ${CLASS.scroll}`);
+    await scroller.evaluate((element) => element.scrollTo({ top: element.scrollHeight, behavior: "instant" }));
+    await askIn(page, site.firstThread.id, FIRST);
+    await expect.poll(() => ask.requests.length).toBe(1);
+    const lastNumber = site.firstThread.questions.length;
+    const lastAnswer = {
+      question: site.firstThread.questions[lastNumber - 1],
+      id: threadAnswerId(site.firstThread.id, lastNumber),
+    };
+    expect((ask.requests[0]?.postDataJSON() as AskRequest).earlier?.at(-1)).toEqual(lastAnswer);
+    await expect(sentInto(page, site.firstThread.id).emailLinks).toHaveCount(1);
+    await askIn(page, site.firstThread.id, THEN);
+    await expect.poll(() => ask.requests.length).toBe(2);
+    expect((ask.requests[1]?.postDataJSON() as AskRequest).earlier).toEqual([lastAnswer, { question: FIRST }]);
   });
 });
 

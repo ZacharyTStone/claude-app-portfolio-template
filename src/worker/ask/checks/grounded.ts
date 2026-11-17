@@ -26,7 +26,8 @@ export const isCheckedLanguage = (lang: string): lang is CheckedLanguage => Obje
 
 /** What a reply's names, numbers and addresses may come from: the lines
     it's written from, their tab's name, the site's own question over them,
-    and the owner's names. What the visitor typed is never one of them. */
+    and the owner's names. What the visitor typed, now or earlier in the
+    chat, is never one of them. */
 export type Sources = { lines: string; title: string; q: string; owner: string };
 
 /** The reply as it may be shown; or, when it may not be, what it claims
@@ -44,13 +45,20 @@ function isSourced(claim: Claim, vocabulary: Vocabulary): boolean {
 }
 
 /** `written`, as it may be shown: every name, number and address in it has
-    to be in `sources`. `question` is what the visitor typed, and `lang` the
-    language the reply is in. */
-export function checkReply(written: string, sources: Sources, question: string, lang: CheckedLanguage): CheckedReply {
+    to be in `sources`. `asked` is what the visitor typed: the question, and
+    any they asked before it in the chat. Nothing in any of them is a
+    source, and what they name is read as a name wherever the reply has it.
+    `lang` is the language the reply is in. */
+export function checkReply(
+  written: string,
+  sources: Sources,
+  asked: readonly string[],
+  lang: CheckedLanguage,
+): CheckedReply {
   const vocabulary = vocabularyOf(sources.lines, sources.title, sources.q, sources.owner);
   const claims = claimsIn(withPlainCharacters(written), {
     ...READS[lang],
-    namedInQuestion: new Set(namedIn(question, sources.owner)),
+    namedInQuestion: new Set(asked.flatMap((question) => namedIn(question, sources.owner))),
   });
   const unsourced = [...new Set(claims.filter((claim) => !isSourced(claim, vocabulary)).map((claim) => claim.text))];
   return unsourced.length ? { unsourced } : { reply: written };

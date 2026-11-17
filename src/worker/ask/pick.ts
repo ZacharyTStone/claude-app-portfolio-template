@@ -1,7 +1,8 @@
-/* The pick: a small model gets the visitor's question and every answer on
-   the site (prompts/pick.ts), and calls its tool with what it makes of the
-   question (its thinking, which no visitor sees), then an answer's id,
-   "none" or "inappropriate", and the numbers of the lines that answer it. */
+/* The pick: a small model gets the visitor's question, the turns before it
+   in its chat (earlier.ts) and every answer on the site (prompts/pick.ts),
+   and calls its tool with what it makes of the question (its thinking,
+   which no visitor sees), then an answer's id, "none" or "inappropriate",
+   and the numbers of the lines that answer it. */
 import { escapeRegExp } from "es-toolkit";
 import { isString } from "../../contracts/guards.ts";
 import { get } from "../lib/shape.ts";
@@ -9,7 +10,7 @@ import type { Choices } from "./answers.ts";
 import { NO_TOKENS, type Tokens } from "./cost.ts";
 import { hasReasoningOff, reasoningOptionsOf } from "./known-models.ts";
 import { callModel, ranOutOfRoom, rawTextIn, toolCallArguments } from "./model.ts";
-import { INAPPROPRIATE, PICK_TOOL_NAME, pickPrompt } from "./prompts/pick.ts";
+import { INAPPROPRIATE, PICK_TOOL_NAME, pickPrompt, type Asking } from "./prompts/pick.ts";
 
 /** The most the picker may write: its tool call, with the sentence or two
     of thinking the call starts with, and any reasoning of the model's own.
@@ -57,10 +58,10 @@ export type ToolCall = {
 };
 
 /** Rejects when Workers AI can't run the model. */
-export async function pick(ai: Ai, model: string, question: string, choices: Choices): Promise<Picked> {
+export async function pick(ai: Ai, model: string, asking: Asking, choices: Choices): Promise<Picked> {
   const offeredIds = choices.answers.map((answer) => answer.id);
   if (!offeredIds.length) return { id: null, tokens: NO_TOKENS };
-  const prompt = pickPrompt(choices, question);
+  const prompt = pickPrompt(choices, asking);
   const maxTokens = hasReasoningOff(model) ? MAX_PLAIN_PICK_TOKENS : MAX_PICK_TOKENS;
   const { modelReply, tokens } = await callModel(ai, model, {
     input: {
