@@ -438,8 +438,6 @@ export default function japanese(me: SampleFacts): Language {
       panelToggleTitle: "詳細",
       credit: "デザインはClaudeアプリを参考にしています。Anthropicとは関係ありません。",
       share: "共有",
-      copyTab: "このタブのリンクをコピー",
-      copyTitle: "リンクをコピー",
       question: "質問：",
       followUpPlaceholder: "続けて質問する…",
       model: "ポートフォリオ",

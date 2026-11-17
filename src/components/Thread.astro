@@ -6,7 +6,6 @@ import Block from "./Block.astro";
 import ContactForm from "./ContactForm.astro";
 import FileCard from "./FileCard.astro";
 import Inline from "./Inline.astro";
-import MessageActions from "./MessageActions.astro";
 import Tab from "./Tab.astro";
 
 interface Props {
@@ -44,7 +43,6 @@ const hasContactForm = site.config.contactForm?.tab === thread.id;
           <Block block={block} page={page} fetched={thread.fetched} />
         ))}
         {messageIndex === lastMessageIndex && hasContactForm && <ContactForm page={page} />}
-        {messageIndex === lastMessageIndex && <MessageActions strings={strings} />}
       </div>
     </>
   ))}
