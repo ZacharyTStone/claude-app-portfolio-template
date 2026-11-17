@@ -108,10 +108,14 @@ and nothing else, and each name is documented in the module behind it, in
   `src/app/play.ts`). One plays at a time: a picture that comes on screen
   while another plays waits its turn, and plays once that one has played
   through or been scrolled past, if it's on screen still
-  (`src/app/play-turns.ts`). A press is the visitor's say: Pause stops a
-  picture for good, and starts no other. A visitor who has asked their
-  computer for less motion sees none play by itself, nor does a chat's
-  copy of an answer. Give `plays` the moment the moving picture looks as
+  (`src/app/play-turns.ts`). A chat's copy of an answer, as a reply goes
+  in, a chosen thread's answers are copied in or a saved chat comes back,
+  has a turn of its own the same way: the first time most of it is on
+  screen, once in a visit to the page, whatever the picture in its tab has
+  done, and that one's turn stays its own too. A press is the visitor's
+  say: Pause stops a picture for good, and starts no other. A visitor who
+  has asked their computer for less motion sees none play by itself.
+  Give `plays` the moment the moving picture looks as
   the still does: a story's loop is `loop.clears.from`. The build reads it
   from the picture's own file, so the config says nothing about it.
   Without JavaScript the button is a link to the moving file, and nothing

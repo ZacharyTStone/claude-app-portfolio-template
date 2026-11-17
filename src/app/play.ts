@@ -1,14 +1,15 @@
 /* A picture a visitor plays rests as its still with a Play button over it
    (Picture.astro); without the script the button is a link to the picture
-   as it moves. With it, each of the page's own plays once by itself, the
-   first time most of it is on screen, so that a visitor who never presses
-   Play sees it move; after that it rests until it's pressed, and little
-   moves beside the text (play-turns.ts says which plays when). None plays
-   by itself for a visitor who has asked for less motion. Playing, the
-   moving file is put over the still until it has played through, is
-   pressed again, another picture is played, or it leaves the screen. A
-   chat's copy of an answer plays when it's pressed, and starts at rest
-   (restStill). */
+   as it moves. With it, each plays once by itself, the first time most of
+   it is on screen, so that a visitor who never presses Play sees it move;
+   after that it rests until it's pressed, and little moves beside the text
+   (play-turns.ts says which plays when). That's the page's own, and each
+   copy a chat shows of one: the copy starts at rest (restStill), and has
+   a turn of its own from when it goes into the page (watchForTurnsIn).
+   None plays by itself for a visitor who has asked for less motion.
+   Playing, the moving file is put over the still until it has played
+   through, is pressed again, another picture is played, or it leaves the
+   screen. */
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../contracts/page-selectors.ts";
@@ -33,8 +34,8 @@ let playing: Playing | null = null;
 /** Stops the picture that's playing when it leaves the screen. */
 let outOfSight: IntersectionObserver | null = null;
 
-/** Sees each of the page's own pictures come on screen, until it has had
-    its turn to play by itself. */
+/** Sees each picture come on screen, the page's own and a chat's, until it
+    has had its turn to play by itself. */
 let onScreen: IntersectionObserver | null = null;
 
 const turns = takingTurns<HTMLElement>();
@@ -78,12 +79,17 @@ export function initPlay(): void {
   });
 }
 
+/** The played pictures in an element, or the element, if it's one. */
+const playedFiguresIn = (element: Element): HTMLElement[] =>
+  element instanceof HTMLElement && element.matches(CLASS_SELECTOR.playedFigure)
+    ? [element]
+    : findAll(element, CLASS_SELECTOR.playedFigure);
+
 /** A copy of something in the page, with every picture in it at rest: the
-    copy of one that was playing isn't. Nothing watches a copy come on
-    screen, so it plays only when it's pressed. */
+    copy of one that was playing isn't. It has its turn to play by itself
+    once it's in the page (watchForTurnsIn). */
 export function restStill(copy: Element): void {
-  const figures = copy.matches(CLASS_SELECTOR.playedFigure) ? [copy] : findAll(copy, CLASS_SELECTOR.playedFigure);
-  for (const figure of figures) {
+  for (const figure of playedFiguresIn(copy)) {
     figure.classList.remove(PAGE_CLASSES.playing);
     for (const moving of findAll(figure, CLASS_SELECTOR.moving)) moving.remove();
     const button = figure.querySelector(PART_SELECTOR.playButton);
@@ -174,12 +180,26 @@ function stopOutOfSight(entries: IntersectionObserverEntry[]): void {
   if (latest && !latest.isIntersecting) stopByItself();
 }
 
-/** The page's own pictures, as the script starts (a chat's copies come
-    later), each watched without its caption. One in a tab that isn't open
-    has no size, so it comes on screen only once its tab is opened. */
+/** The page's own pictures, as the script starts, each watched without
+    its caption. One in a tab that isn't open has no size, so it comes on
+    screen only once its tab is opened. */
 function watchForTurns(): void {
   onScreen = new IntersectionObserver(seeWhatsOnScreen, { threshold: SHARES_TO_TELL });
-  for (const figure of findAll(document, CLASS_SELECTOR.playedFigure)) onScreen.observe(stageOf(figure));
+  watchForTurnsIn([document.body]);
+}
+
+/** Messages a chat has just put in the page (a reply as it goes in, a
+    chosen thread's answers, a saved chat shown again): from now on each
+    played picture in them is watched, and has its turn, as the page's own
+    do. The turn is the copy's own: its playing spends none of the picture
+    it was copied from, nor the reverse. The browser first says how much is
+    on screen once it has laid the messages out, with the still's room kept
+    by its width and height whether or not it has loaded, and again each
+    time a tenth more or less of it is, so one still being scrolled to as
+    the reply goes in is seen once it's there. */
+export function watchForTurnsIn(messages: Element[]): void {
+  if (!onScreen) return;
+  for (const figure of messages.flatMap(playedFiguresIn)) onScreen.observe(stageOf(figure));
 }
 
 /** Says how much of each picture is on screen, and plays the one whose

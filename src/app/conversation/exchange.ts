@@ -1,6 +1,7 @@
 /* One thing sent into a thread, and what came of it: a thread chosen in the
    question card, or a question typed in. It needs no page. */
-import type { AskResponse } from "../../contracts/ask.ts";
+import { parseAnswerId, type AskResponse } from "../../contracts/ask.ts";
+import { onceEach } from "../lib/lists.ts";
 
 /** What came of a question typed in. */
 export type Outcome =
@@ -95,3 +96,22 @@ export function questionForOwner({ question, outcome }: TypedQuestion): string {
   if (outcome.kind === "blocked") return "";
   return outcome.kind === "unanswered" && outcome.toOwner ? outcome.toOwner : question;
 }
+
+/** The tab an exchange's reply is from: the chosen thread's, or the tab of
+    the site's answer it got, word for word or as /ask's reply. Null for a
+    reply that's none of the site's answers ("Something else", the day's
+    limit), and for an answer the page hasn't (`isOnPage` says). */
+export function tabAnsweredFrom(exchange: Exchange, isOnPage: (answerId: string) => boolean): string | null {
+  if (exchange.kind === "thread") return exchange.tabId;
+  const { outcome } = exchange;
+  if (outcome.kind !== "answered" && outcome.kind !== "replied") return null;
+  return isOnPage(outcome.answerId) ? (parseAnswerId(outcome.answerId)?.tabId ?? null) : null;
+}
+
+/** The tabs a chat's replies are from, each once, in the order the chat
+    comes to them: what the panel's Context lists the links of. */
+export const tabsAnsweredFrom = (exchanges: Exchange[], isOnPage: (answerId: string) => boolean): string[] =>
+  onceEach(
+    exchanges.flatMap((exchange) => tabAnsweredFrom(exchange, isOnPage) ?? []),
+    (tabId) => tabId,
+  );

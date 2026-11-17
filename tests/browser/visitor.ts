@@ -2,7 +2,7 @@
 import type { Locator, Page } from "@playwright/test";
 import { CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
 import { NEW_TAB, OPEN_CARD } from "./parts.ts";
-import { tabIdOf } from "./site.ts";
+import { tabIdOf, type Site } from "./site.ts";
 
 /** A new visit to `url`: a fresh page load, but not a refresh, which ends
     the visit's chats. */
@@ -38,6 +38,50 @@ export async function pickFirstTab(page: Page): Promise<string> {
   const tabId = tabIdOf(await choice.getAttribute("href"));
   await choice.click();
   return tabId;
+}
+
+/** The topic of the question card that lists a thread among its choices,
+    if one does: a topic that is the thread itself is a choice at the card's
+    first step. */
+const topicListing = (site: Site, tabId: string) =>
+  site.questions.topics.find((topic) => topic.choices?.some((choice) => choice.tab === tabId));
+
+/** Whether the question card has a choice for a thread: one of its topics,
+    or one a topic lists. */
+export const isInTheCard = (site: Site, tabId: string): boolean =>
+  site.questions.topics.some((topic) => topic.tab === tabId) || topicListing(site, tabId) !== undefined;
+
+/** Picks the question card's choice for a thread, with the card open: at
+    its first step, or under the topic that lists it (a topic left with
+    one choice is that choice, at the first step). In a chat, that sends
+    the thread's answers into it. */
+async function pickTab(page: Page, site: Site, tabId: string): Promise<void> {
+  const options = page.locator(`${ID.questionCard} ${CLASS.options}`);
+  const choice = options.locator(`a[href="${site.pathOf(tabId)}"]`);
+  const topic = topicListing(site, tabId);
+  if (topic && !(await choice.count())) {
+    await options
+      .locator("button")
+      .filter({ has: page.locator(CLASS.optionLabel).getByText(topic.label, { exact: true }) })
+      .click();
+  }
+  await choice.click();
+}
+
+/** Opens the question card from a tab's composer, and picks its choice for
+    a thread. */
+export async function pickTabIn(page: Page, site: Site, tab: string, tabId: string): Promise<void> {
+  await page.locator(`${tab} ${CLASS.composer}`).click();
+  await page.locator(OPEN_CARD).waitFor();
+  await pickTab(page, site, tabId);
+}
+
+/** Opens a new chat from the sidebar, and picks the question card's choice
+    for a thread, which sends the thread's answers into it. */
+export async function pickInNewChat(page: Page, site: Site, tabId: string): Promise<void> {
+  await page.locator(NEW_TAB).click();
+  await page.locator(OPEN_CARD).waitFor();
+  await pickTab(page, site, tabId);
 }
 
 /** Types a question into a tab's composer, and sends it. */

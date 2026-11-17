@@ -48,7 +48,8 @@ export const ACTIVITY_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${p
 /** The panel's Context, the config's section. */
 export const CONTEXT_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${panelId("context")}"]`;
 /** Its lists gathered from the answers, one for each tab that links
-    anywhere, and the home screen's; and the list of its own rows. */
+    anywhere and, made by the script, one for each chat whose answers do;
+    and the list of its own rows. */
 export const GATHERED_LISTS = `${CONTEXT_IN_THE_PANEL} ${CLASS.panelRows}${ATTRIBUTE.contextOf}`;
 export const OWN_CONTEXT_ROWS = `${CONTEXT_IN_THE_PANEL} ${CLASS.panelRows}:not(${ATTRIBUTE.contextOf}) > li > *`;
 

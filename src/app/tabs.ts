@@ -122,8 +122,9 @@ function pointLanguageLinksAt(tabId: string | null): void {
 
 /** Brings the page into step with the open tab: it shows, its row is the
     sidebar's current one (in a folded group, the group unfolds), the links
-    to the other languages go to it, the panel's Context lists its links,
-    and the window is titled with its name. */
+    to the other languages go to it, the panel's Context lists its links
+    (a chat's, those of its answers), and the window is titled with its
+    name. */
 export function showOpenTab(): void {
   const tab = currentTab();
   markOpen(tab);
@@ -131,9 +132,8 @@ export function showOpenTab(): void {
   markCurrentRow(ownRow ?? rowStandingInFor(tab));
   const groupList = ownRow?.closest("ul");
   if (groupList?.hidden) unfold(groupList);
-  const tabId = idWithAPage(tab);
-  pointLanguageLinksAt(tabId);
-  showContextOf(tabId);
+  pointLanguageLinksAt(idWithAPage(tab));
+  showContextOf(tab?.id ?? null);
   setWindowTitle(tab ? headingOf(tab).textContent : null);
 }
 
