@@ -30,8 +30,8 @@ const folder = folderForConfigs();
 
 const BUILD_FOLDER = join(folder, "dist");
 const built = buildSample(BUILD_FOLDER);
-const sample = builtSite("the sample site", BUILD_FOLDER, sampleConfig);
 const posts = await samplePosts();
+const sample = builtSite("the sample site", BUILD_FOLDER, sampleConfig, posts);
 const repos = await sampleRepos();
 const sampleSite = makeSite(sampleConfig, posts, repos);
 
@@ -169,7 +169,7 @@ const staticConfigPath = join(folder, "static-host.config.ts");
 writeSampleConfig(staticConfigPath, ON_A_STATIC_HOST);
 const STATIC_BUILD_FOLDER = join(folder, "static-host-dist");
 const builtForAStaticHost = buildSample(STATIC_BUILD_FOLDER, staticConfigPath);
-const staticSample = builtSite("the sample on a host that reads no headers", STATIC_BUILD_FOLDER, onAStaticHost);
+const staticSample = builtSite("the sample on a host that reads no headers", STATIC_BUILD_FOLDER, onAStaticHost, posts);
 const policy = pagePolicy(makeSite(onAStaticHost));
 
 /** The tags in a page's <head>, in order, as written. */

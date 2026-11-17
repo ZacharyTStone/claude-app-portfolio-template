@@ -136,7 +136,9 @@ tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
 (`tests/build/astro-build.ts`), and asks those files in place of Qiita
 and GitHub; each answers for the sample's user alone, so it can stand in
 for no real site's. A new test that builds a site goes through
-`astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests) and
+`astroBuild()` too; one of a site before its first post gives it
+`tests/sample/qiita-no-posts.json` in place of `qiita.json`.
+[Writing](writing.md#without-qiita-in-the-tests) and
 [GitHub activity](github-activity.md#without-github-in-the-tests) say the
 same for a site's owner.
 

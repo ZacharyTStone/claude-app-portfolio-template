@@ -13,10 +13,11 @@ import {
   type PageHead,
 } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
+import { samplePosts } from "../sample/qiita.ts";
 import { languageOf, sampleConfig } from "./sample.ts";
 
 const config = sampleConfig();
-const site = makeSite(config);
+const site = makeSite(config, await samplePosts());
 const pages = portfolioPages(site);
 const english = languageOf(config, "en");
 
@@ -41,6 +42,14 @@ test("each language has its home page, then a page for each thread and each pers
       ["/fr/writing/", "writing"],
       ["/fr/personal-fun/", "personal-fun"],
     ],
+  );
+});
+
+test("before the first post, there's no Writing tab, so no page for it", () => {
+  const paths = portfolioPages(makeSite(config, [])).map(({ head }) => head.path);
+  assert.deepEqual(
+    paths.filter((path) => path.includes("writing")),
+    [],
   );
 });
 

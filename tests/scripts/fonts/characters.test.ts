@@ -21,6 +21,10 @@ test("A language code is Japanese with or without a region, and not when it only
   assert.deepEqual(["ja", "ja-JP", "JA", "jam", "en"].map(isJapaneseLanguage), [true, true, true, false, false]);
 });
 
+test("The sans needs wording the page doesn't show yet, as it's given, with what the page does show", () => {
+  assert.equal(sansCharacters({ japanese: japanesePage("<p>本</p>") }, "執筆 本").join(""), "執本筆");
+});
+
 test("The sans needs every character after ASCII in the page's body, each once and in order", () => {
   assert.equal(sansOf(japanesePage("<p>メモ、Notes と メモ</p>")), "、とメモ");
 });

@@ -13,6 +13,7 @@ import { isSafeHref } from "../../src/site/checks/formats.ts";
 import { portfolioPages } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { basePath } from "../../src/site/url.ts";
+import type { Post } from "../../src/site/writing/post.ts";
 
 /** A built file, and where it's served. */
 type ServedFile = { file: string; url: URL };
@@ -36,9 +37,10 @@ export type BuiltSite = {
 
 const NOT_FOUND_PAGE = "404.html";
 
-/** The site that `config` builds into `folder`. */
-export function builtSite(name: string, folder: string, config: SiteConfig): BuiltSite {
-  const site = makeSite(config);
+/** The site that `config` builds into `folder`, with the Writing tab's
+    `posts`, if it has any, as the build fetched them. */
+export function builtSite(name: string, folder: string, config: SiteConfig, posts: Post[] = []): BuiltSite {
+  const site = makeSite(config, posts);
   const url = new URL(basePath(config.url), config.url);
   const served = (file: string): ServedFile => ({ file, url: new URL(file.replace(/index\.html$/, ""), url) });
   const servedAt = (path: string): ServedFile => served(`${path.slice(1)}index.html`);

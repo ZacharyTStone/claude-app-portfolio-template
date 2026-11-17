@@ -26,7 +26,7 @@ export type SiteThread = Thread & {
 
 /** A language as the pages read it: the config's, with every string a page
     says, so nothing built from it meets one that's left out, and with the
-    Writing tab on a site with `writing`. */
+    Writing tab on a site with `writing` that has it (hasWritingTab). */
 export type SiteLanguage = Omit<Language, "strings" | "threads"> & { strings: Strings; threads: SiteThread[] };
 
 export type Site = {
@@ -97,14 +97,23 @@ function withWritingTab(code: string, language: SiteLanguage, posts: Post[]): Si
     "/\example.com", which a browser reads as another site. */
 const isPathFromSiteRoot = (href: string): boolean => href.startsWith("/") && !readsAsAnotherSite(href);
 
+/** Whether the site has the Writing tab: with `writing`, once there's a
+    post, or before then if the config asks for it. */
+const hasWritingTab = ({ writing }: SiteConfig, posts: Post[]): boolean =>
+  Boolean(writing && (posts.length > 0 || writing.showWhenEmpty));
+
 /** Throws if the config has no languages. `posts` are the Writing tab's, as
     the build fetched them (src/site/writing): a site with `writing` and
-    none has the tab, saying there are none. `repos` are the panel's GitHub
-    activity's (src/site/activity), and a site with none has no section. */
+    none has no tab, unless its config asks for it, and then the tab says
+    there are none. The config's checks see the site with none, so nothing
+    of the config's can open a tab that may not be there. `repos` are the
+    panel's GitHub activity's (src/site/activity), and a site with none has
+    no section. */
 export function makeSite(config: SiteConfig, posts: Post[] = [], repos: Repo[] = []): Site {
+  const withTheTab = hasWritingTab(config, posts);
   const asThePagesReadIt = (code: string, language: Language): SiteLanguage => {
     const withStrings = withEveryString(code, language);
-    return config.writing ? withWritingTab(code, withStrings, posts) : withStrings;
+    return withTheTab ? withWritingTab(code, withStrings, posts) : withStrings;
   };
   const languages = new Map(
     Object.entries(config.languages).map(([code, language]) => [code, asThePagesReadIt(code, language)]),

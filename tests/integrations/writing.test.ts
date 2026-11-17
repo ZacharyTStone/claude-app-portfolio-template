@@ -4,11 +4,12 @@
 import assert from "node:assert/strict";
 import { relative } from "node:path";
 import { test } from "node:test";
+import type { Writing } from "../../src/config/writing.ts";
 import { fetchPosts, qiitaFetch } from "../../src/integrations/writing.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { WRITING_FIXTURE } from "../../src/site/writing/fixture.ts";
 import { qiitaItemsAddress } from "../../src/site/writing/qiita.ts";
-import { SAMPLE_QIITA, sampleFixture } from "../sample/qiita.ts";
+import { SAMPLE_QIITA, SAMPLE_QIITA_WITH_NO_POSTS, sampleFixture } from "../sample/qiita.ts";
 
 /** A logger that keeps what it's told. */
 function logger() {
@@ -39,22 +40,46 @@ test("with WRITING_FIXTURE, the file it names stands in for Qiita, and the build
   ]);
 });
 
+/** The sample's own `writing`, unless a test gives another. */
+const sampleWriting = (writing: Partial<Writing> = {}): Writing => ({ qiita: sampleFixture().user, ...writing });
+
 test("the posts fetched are said, by how many and whose", async () => {
   const { said, log } = logger();
-  const posts = await fetchPosts(sampleFixture().user, () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log), log);
+  const posts = await fetchPosts(sampleWriting(), () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log), log);
   assert.ok(Array.isArray(posts));
   assert.equal(said.at(-1), `info: the Writing tab lists ${posts.length} posts by ${sampleFixture().user} on Qiita`);
 });
 
+test("with no posts yet, what's said is that the site has no Writing tab until the first", async () => {
+  const { said, log } = logger();
+  const fromNoPosts = () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA_WITH_NO_POSTS }, log);
+  assert.deepEqual(await fetchPosts(sampleWriting(), fromNoPosts, log), []);
+  assert.equal(
+    said.at(-1),
+    `info: ${sampleFixture().user} has no public posts on Qiita yet, so the site has no Writing tab until the first`,
+  );
+});
+
+test("with no posts yet, on a site whose tab shows even then, what's said is that the tab says so", async () => {
+  const { said, log } = logger();
+  const fromNoPosts = () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA_WITH_NO_POSTS }, log);
+  await fetchPosts(sampleWriting({ showWhenEmpty: true }), fromNoPosts, log);
+  assert.equal(
+    said.at(-1),
+    `info: ${sampleFixture().user} has no public posts on Qiita yet, and the Writing tab says so (writing.showWhenEmpty)`,
+  );
+});
+
 test("posts that can't be fetched are none, and why is what's said instead", async () => {
   const { said, log } = logger();
-  const why = await fetchPosts("someone-else", () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log), log);
+  const someoneElse = sampleWriting({ qiita: "someone-else" });
+  const why = await fetchPosts(someoneElse, () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log), log);
   assert.equal(why, `Qiita has no user by that id (not_found), at ${qiitaItemsAddress("someone-else", 1, 100)}`);
   assert.ok(!said.some((line) => line.startsWith("info:")));
 });
 
 test("a fixture that isn't there is a failure like any other, not a crash", async () => {
   const { log } = logger();
-  const why = await fetchPosts("sam-sample", () => qiitaFetch({ [WRITING_FIXTURE]: "no/such/file.json" }, log), log);
+  const why = await fetchPosts(sampleWriting(), () => qiitaFetch({ [WRITING_FIXTURE]: "no/such/file.json" }, log), log);
   assert.match(String(why), /ENOENT/);
 });

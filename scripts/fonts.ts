@@ -11,7 +11,9 @@ import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { parseArgs } from "node:util";
 import config from "../site.config.ts";
+import { ACTIVITY_STRING_NAMES, EMPTY_WRITING_STRING_NAMES, WRITING_STRING_NAMES } from "../src/config/strings.ts";
 import { OUTPUT, ROOT } from "../src/site/repo.ts";
+import { makeSite } from "../src/site/site.ts";
 import {
   builtPagesIn,
   isJapaneseLanguage,
@@ -66,7 +68,7 @@ function japaneseFonts(): CutFont[] {
       file: `${FONTS_FOLDER}/noto-sans-jp.woff2`,
       source: NOTO_SANS_JP,
       cut: { axes: { wght: { min: 300, max: 900 } }, features: JAPANESE_FEATURES },
-      characters: sansCharacters(pages),
+      characters: sansCharacters(pages, wordingNotShownYet()),
       charactersAre: "used by the Japanese text",
     },
     {
@@ -77,6 +79,19 @@ function japaneseFonts(): CutFont[] {
       charactersAre: "used by the Japanese in the serif",
     },
   ];
+}
+
+/** The Japanese wording of the parts a build leaves out while they have nothing to show: the Writing tab
+    before the first post, the panel's GitHub activity before the first repo. A later build shows them, a daily
+    rebuild without anyone at hand among them, so the fonts are cut for them now, and the check asks for them. */
+function wordingNotShownYet(): string {
+  const site = makeSite(config);
+  const names = [
+    ...(site.config.writing ? [...WRITING_STRING_NAMES, ...EMPTY_WRITING_STRING_NAMES] : []),
+    ...(site.config.activity ? ACTIVITY_STRING_NAMES : []),
+  ];
+  const japaneseCodes = site.codes.filter(isJapaneseLanguage);
+  return japaneseCodes.flatMap((code) => names.map((name) => site.language(code).strings[name] ?? "")).join(" ");
 }
 
 function builtJapanesePages(): BuiltPages {

@@ -107,9 +107,21 @@ test("a title with no kana isn't marked: it could be in English, or in Chinese",
   }
 });
 
-test("with no posts, the tab says there are none", () => {
-  const withNone = makeSite(sampleConfig(), []).language("en");
+test("with no posts, there's no Writing tab, no row for it and no posts", () => {
+  const withNone = makeSite(sampleConfig(), []);
+  assert.deepEqual(withNone.posts, []);
+  for (const code of withNone.codes) {
+    const { threads, sidebar } = withNone.language(code);
+    assert.ok(!threads.some((thread) => thread.id === WRITING_TAB));
+    assert.ok(!sidebar.nav.some((row) => row.tab === WRITING_TAB));
+  }
+});
+
+test("with no posts, on a site whose tab is there before the first, the tab says there are none", () => {
+  const config = sampleConfig({ writing: { qiita: "sam-sample", showWhenEmpty: true } });
+  const withNone = makeSite(config, []).language("en");
   assert.deepEqual(writingTabOf(withNone).messages[0]?.a, [ENGLISH_STRINGS.writingEmpty]);
+  assert.equal(withNone.sidebar.nav.at(-1)?.tab, WRITING_TAB);
 });
 
 test("the sidebar's top rows end with the Writing tab's, by its title and icon", () => {
