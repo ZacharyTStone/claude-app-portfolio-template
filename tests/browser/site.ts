@@ -24,7 +24,9 @@ import {
 import {
   ACTIVITY_IN_THE_PANEL,
   COMES_INTO_VIEW,
+  GATHERED_LISTS,
   MOVING_PICTURE,
+  OWN_CONTEXT_ROWS,
   PANEL_SECTIONS,
   PLAY_BUTTON,
   PLAYED_FIGURE,
@@ -94,6 +96,20 @@ export type GitHubActivity = {
     /** The row's text: the repo's name, then the day it was pushed to. */
     text: string;
   }>;
+};
+
+/** The panel's Context, on a site that gathers it from the answers: each
+    list the page has, the home screen's first, and the config's own rows. */
+export type GatheredContext = {
+  lists: Array<{
+    /** Its DATA.contextOf: the tab whose links it is, or the home
+        screen's id. */
+    of: string;
+    /** Where each of its rows links, as the page has it. */
+    hrefs: string[];
+  }>;
+  /** The text of each of Context's own rows. */
+  ownRows: string[];
 };
 
 /** The tab with the most quotes and file cards in it, and the answer its
@@ -208,6 +224,8 @@ export type Site = {
   /** The panel's GitHub activity, on a site with `activity` and public
       pushes lately. */
   activity: GitHubActivity | null;
+  /** The panel's Context, on a site whose Context gathers links. */
+  context: GatheredContext | null;
 };
 
 /** The tab a link on the page opens: "about" for href="/about/" (or for
@@ -271,6 +289,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
       (await readBuiltThreads(page)).map((thread) => ({ ...thread, path: pathOf(thread.id) })),
     ),
     activity: await readActivity(page),
+    context: await readGatheredContext(page),
   };
   await context.close();
   return site;
@@ -351,6 +370,20 @@ async function readActivity(page: Page): Promise<GitHubActivity | null> {
       rows.map((row) => ({ href: row.getAttribute("href") ?? "", text: (row.textContent ?? "").trim() })),
     );
   return { title: ((await section.locator("h2").textContent()) ?? "").trim(), repos };
+}
+
+async function readGatheredContext(page: Page): Promise<GatheredContext | null> {
+  const lists = await page.locator(GATHERED_LISTS).evaluateAll(
+    (elements, attribute) =>
+      elements.map((list) => ({
+        of: list.getAttribute(attribute) ?? "",
+        hrefs: [...list.querySelectorAll("a")].map((link) => link.getAttribute("href") ?? ""),
+      })),
+    DATA.contextOf,
+  );
+  if (!lists.length) return null;
+  const ownRows = await page.locator(OWN_CONTEXT_ROWS).evaluateAll((rows) => rows.map((row) => row.textContent ?? ""));
+  return { lists, ownRows };
 }
 
 async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {

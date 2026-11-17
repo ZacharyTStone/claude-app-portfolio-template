@@ -49,10 +49,18 @@ const wordsOf = (pieces: Span[]): string =>
     })
     .join("");
 
-export const hrefsIn = (text: Markdown): string[] => hrefsOf(spans(text));
+/** A link in the text: where it goes, and its words as plain text. */
+export type TextLink = { href: string; text: string };
 
-const hrefsOf = (pieces: Span[]): string[] =>
+/** linksIn("See [**my** work](#work)") is [{ href: "#work", text: "my work" }]:
+    each link in the order it starts, one inside another's label after it. */
+export const linksIn = (text: Markdown): TextLink[] => linksOf(spans(text));
+
+const linksOf = (pieces: Span[]): TextLink[] =>
   pieces.flatMap((piece) => {
     if (typeof piece === "string" || piece.type === "code") return [];
-    return piece.type === "link" ? [piece.href, ...hrefsOf(piece.spans)] : hrefsOf(piece.spans);
+    const inside = linksOf(piece.spans);
+    return piece.type === "link" ? [{ href: piece.href, text: wordsOf(piece.spans) }, ...inside] : inside;
   });
+
+export const hrefsIn = (text: Markdown): string[] => linksIn(text).map((link) => link.href);

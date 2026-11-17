@@ -130,3 +130,25 @@ test("llms.txt has no GitHub section for a site with no public pushes lately, or
   assert.ok(!llmsTxt(makeSite(sampleConfig(), posts, [])).includes(heading));
   assert.ok(!llmsTxt(makeSite(sampleConfig({ activity: undefined }), posts, await sampleRepos())).includes(heading));
 });
+
+test("llms.txt's Links are the panel's as its home screen lists them: the outputs, the links Context gathers, its rows, each once", () => {
+  const start = llmsText.indexOf("## Links\n\n");
+  const links = llmsText.slice(start, llmsText.indexOf("\n\n## ", start)).split("\n").slice(2);
+  assert.deepEqual(links, [
+    `- [The icon](https://example.com/portfolio${FAVICONS.appleTouch}): Image`,
+    "- [the blog](https://blog.example.com/): blog.example.com",
+    "- [Sam's notes](https://docs.example.com/d/notes/edit): docs.example.com",
+    "- [pictures.example.com/sam](https://pictures.example.com/sam)",
+    "- [a list](https://a-very-long-subdomain-for-a-reading-list.example.com/lists/sam-sample-reading-list-for-2026): a-very-long-subdomain-for-a-reading-list.example.com",
+  ]);
+});
+
+test("a panel with no Outputs still has Links: what Context gathers, then its own rows', but for the contact links", () => {
+  const withoutOutputs = sampleConfig();
+  for (const language of Object.values(withoutOutputs.languages)) delete language.panel.outputs;
+  const text = llmsTxt(makeSite(withoutOutputs, posts));
+  const start = text.indexOf("## Links\n\n");
+  const links = text.slice(start, text.indexOf("\n\n## ", start)).split("\n").slice(2);
+  assert.equal(links[0], `- [The icon](https://example.com/portfolio${FAVICONS.appleTouch}): example.com`);
+  assert.equal(links.length, 5);
+});

@@ -387,6 +387,7 @@ export default function japanese(me: SampleFacts): Language {
       },
       context: {
         title: "つながり",
+        fromAnswers: true,
         rows: [
           { label: "GitHub", meta: "リンク", icon: "github", href: me.github },
           { label: "LinkedIn", meta: "リンク", icon: "linkedin", href: me.linkedin },

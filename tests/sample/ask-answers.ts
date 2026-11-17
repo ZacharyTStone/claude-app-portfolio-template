@@ -7,7 +7,12 @@ import type { AskAnswer } from "../../src/contracts/ask.ts";
     Workers types), so they read this, and ask-answers.test.ts holds it to
     what the build writes. */
 export const SAMPLE_ANSWERS: AskAnswer[] = [
-  { id: "about.1", title: "About", q: "who is sam?", text: "Sam is an engineer.\nOne\nTwo" },
+  {
+    id: "about.1",
+    title: "About",
+    q: "who is sam?",
+    text: "Sam is an engineer.\nOne\nTwo\nSam writes at the blog, and is on GitHub.",
+  },
   {
     id: "work.1",
     title: "Work",
@@ -19,6 +24,7 @@ export const SAMPLE_ANSWERS: AskAnswer[] = [
       "Time to load: Before 1.04 s, After 385 ms (63% faster)",
       "The pipeline: Draft (by hand) → Publish",
       "(link: Sam's notes)",
+      "(link: Sam on LinkedIn)",
       "(picture: Sam's icon.)",
       "(picture: Sam's icon, as if it moved.)",
       "“Sam got it done.” (A coworker)",
@@ -32,5 +38,5 @@ export const SAMPLE_ANSWERS: AskAnswer[] = [
     // The public posts in qiita.json, newest first: each title is a line.
     text: ["Posts, newest first:", "Astroで静的サイトを組み立てる", "Testing a static site in Playwright"].join("\n"),
   },
-  { id: "personal-fun.1", title: "for fun?", q: "for fun?", text: "Reading." },
+  { id: "personal-fun.1", title: "for fun?", q: "for fun?", text: "Reading.\nMostly the blog, and a list." },
 ];
