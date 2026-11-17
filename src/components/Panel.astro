@@ -1,6 +1,6 @@
 ---
 import { ACTIVITY_SECTION } from "../config/activity.ts";
-import { contextListFor, DATA } from "../contracts/page-attributes.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { activityRows } from "../site/activity/rows.ts";
@@ -24,9 +24,8 @@ const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
   return section ? [{ name, title: section.title, rows: section.rows }] : [];
 });
 // With panel.context.fromAnswers, the links the answers use, a list for each tab, above Context's own rows. The
-// page shows its open tab's (the home screen's on the home page), and the script the one for each tab it opens.
+// page shows its open tab's (none on the home page), and the script the one for each tab it opens.
 const gatheredLists = contextLists(site, code);
-const listShown = contextListFor(tab);
 // The GitHub activity the build fetched, after the config's own sections:
 // none on a site without `activity`, or with no recent public pushes.
 const { activity, timezone } = site.config;
@@ -64,7 +63,7 @@ const activityRowsHere = activity ? activityRows(site.repos, activity.github, co
     <PanelSection name={section.name} title={section.title}>
       {section.name === "context" &&
         gatheredLists.map((list) => (
-          <ul class={PAGE_CLASSES.panelRows} {...{ [DATA.contextOf]: list.of }} hidden={list.of !== listShown}>
+          <ul class={PAGE_CLASSES.panelRows} {...{ [DATA.contextOf]: list.of }} hidden={list.of !== tab}>
             {list.rows.map((row) => (
               <li>
                 <PanelRow row={row} code={code} />

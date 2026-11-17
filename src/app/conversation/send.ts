@@ -11,7 +11,7 @@ import { askUrl, words } from "../page.ts";
 import { watchForTurnsIn } from "../play.ts";
 import { isChat } from "../tabs.ts";
 import { ask } from "./ask.ts";
-import { addToChat, sentInChat, updateInChat } from "./chats.ts";
+import { addToChat, listLinksOfChat, sentInChat, updateInChat } from "./chats.ts";
 import { isUnasked, outcomeOf, withOutcome, type Exchange, type TypedQuestion } from "./exchange.ts";
 import { lastTurns, turnOf } from "./follow-up.ts";
 import {
@@ -191,6 +191,7 @@ export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> 
   if (openTab?.tab === tab) openTab.sent.push(delivery);
   current = delivery;
   const messages = await replyOnceItComes(delivery, exchange);
+  listLinksOfChat(tab);
   if (delivery.isHurried) {
     delivery.thinkingLine.replaceWith(...messages.map(markSent));
     return watchForTurnsIn(messages);

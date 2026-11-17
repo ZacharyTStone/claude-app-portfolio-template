@@ -8,8 +8,7 @@ import type { AskAnswer } from "../../contracts/ask.ts";
 import type { PanelRow } from "../../config/language.ts";
 import type { SiteConfig } from "../../config/site-config.ts";
 import { plainAnswers } from "../plain-answers.ts";
-import { PAGE_IDS } from "../../contracts/page-ids.ts";
-import { contextLists } from "../context-links.ts";
+import { linksOfTheSite } from "../context-links.ts";
 import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
 import { dayPosted, type Post } from "../writing/post.ts";
@@ -79,12 +78,11 @@ function pageList(site: Site): string {
   return [...homePages, ...tabPages].join("\n");
 }
 
-/** The details panel's rows as its home screen lists them: the outputs,
-    the links Context gathers from the answers, then Context's own rows. */
+/** The details panel's rows, and every link Context would gather from the
+    answers: the outputs, the links on the site, then Context's own rows. */
 function panelRowsAtHome(site: Site): PanelRow[] {
   const { outputs, context } = site.language(site.main).panel;
-  const gathered = contextLists(site, site.main).find((list) => list.of === PAGE_IDS.home)?.rows ?? [];
-  return [...(outputs?.rows ?? []), ...gathered, ...(context?.rows ?? [])];
+  return [...(outputs?.rows ?? []), ...linksOfTheSite(site, site.main), ...(context?.rows ?? [])];
 }
 
 /** The details panel's links, each once, but for the contact links, which

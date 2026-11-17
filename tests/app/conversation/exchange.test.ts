@@ -1,6 +1,6 @@
 /* src/app/conversation/exchange.ts: what a reply from /ask comes to for the
-   question it answers, and what goes to the owner of a question with no
-   answer. */
+   question it answers, what goes to the owner of a question with no
+   answer, and which tabs a chat's answers are from. */
 
 import assert from "node:assert/strict";
 import { test } from "node:test";
@@ -11,6 +11,8 @@ import {
   outcomeOf,
   questionForOwner,
   questionWithAnswer,
+  tabAnsweredFrom,
+  tabsAnsweredFrom,
   threadChoice,
   typedQuestion,
   withOutcome,
@@ -145,3 +147,43 @@ for (const [what, { outcome, goesToOwner }] of Object.entries(FOR_THE_OWNER)) {
     assert.equal(questionForOwner(withThisOutcome(outcome)), goesToOwner);
   });
 }
+
+const FROM_A_TAB: Record<string, { outcome: Outcome; tab: string | null }> = {
+  "the site's answer": { outcome: { kind: "answered", answerId: "work.2" }, tab: "work" },
+  "a personal answer": { outcome: { kind: "answered", answerId: "personal-food.1" }, tab: "personal-food" },
+  "/ask's reply from an answer": {
+    outcome: { kind: "replied", answerId: "work.2", replyText: REPLY, citedLines: CITED },
+    tab: "work",
+  },
+  "no answer": { outcome: { kind: "unanswered" }, tab: null },
+  "nothing asked yet": { outcome: { kind: "unasked" }, tab: null },
+  "a blocked question": { outcome: { kind: "blocked", isRemoved: false }, tab: null },
+  "the day's limit": { outcome: { kind: "limited", limit: 3 }, tab: null },
+};
+
+for (const [what, { outcome, tab }] of Object.entries(FROM_A_TAB)) {
+  test(`a question that got ${what} is answered from ${tab ?? "no tab"}`, () => {
+    assert.equal(tabAnsweredFrom(withThisOutcome(outcome), everyAnswerIsOnThePage), tab);
+  });
+}
+
+test("a thread chosen in the card is answered from its tab", () => {
+  assert.equal(tabAnsweredFrom(threadChoice("work"), noAnswerIsOnThePage), "work");
+});
+
+test("an answer the page hasn't is from no tab", () => {
+  assert.equal(tabAnsweredFrom(questionWithAnswer("Rust?", "work.9"), noAnswerIsOnThePage), null);
+});
+
+test("a chat's answers are from each tab once, in the order the chat comes to them, and none from what wasn't answered", () => {
+  const chat = [
+    questionWithAnswer("Rust?", "work.2"),
+    typedQuestion("Anything else?"),
+    threadChoice("about"),
+    withThisOutcome({ kind: "replied", answerId: "work.1", replyText: REPLY, citedLines: [] }),
+    questionWithAnswer("Food?", "personal-food.1"),
+    threadChoice("about"),
+  ];
+  assert.deepEqual(tabsAnsweredFrom(chat, everyAnswerIsOnThePage), ["work", "about", "personal-food"]);
+  assert.deepEqual(tabsAnsweredFrom([], everyAnswerIsOnThePage), []);
+});

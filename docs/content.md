@@ -193,8 +193,15 @@ context: { title: "Context", fromAnswers: true, rows: [ … ] },
 
 - On a tab, it's what that tab's questions and answers link to: link
   cards, links in the text, pictures with an `href`. Each address once, in
-  the order the tab first links to it. On the home screen, in a chat and
-  in "Something else", it's every one on the site.
+  the order the tab first links to it.
+- In a chat, it's the lists of the tabs its answers are from, one after
+  another in the order the chat comes to them, each address once, with
+  the rows as each tab's list has them. A chosen thread is its tab, and a
+  question answered with one of your answers (as it is, or as Ask's reply)
+  is that answer's tab. It grows as each reply comes in, and a chat saved
+  in the browser lists its own again when it comes back.
+- The home screen, "Something else", and a chat with nothing yet from a
+  tab that links anywhere, list your own rows alone.
 - Only what a visitor can open is listed: a web address, or a file on the
   site (`/assets/resume.pdf`). A link to one of the site's own pages
   (`#about`, `/about/`), `mailto:` and the Writing tab's posts are left
@@ -209,12 +216,13 @@ context: { title: "Context", fromAnswers: true, rows: [ … ] },
 - A link one of your own rows has stays that row, so your own rows come
   last and stay put. A row without an `href` stays where you put it. A
   link the viewer lists opens there from the panel too.
-- Each tab's page is built with its own list showing, so it's right
-  without JavaScript; with it, the panel shows each tab's as you move
-  between them. Every page carries every tab's list, a few hundred bytes
-  for each link.
-- llms.txt's Links section lists the home screen's links too, after your
-  Outputs.
+- Each tab's page is built with its own list showing, and the home page
+  with none, so it's right without JavaScript (where there are no chats);
+  with it, the panel shows each tab's as you move between them. Every page
+  carries every tab's list, a few hundred bytes for each link, and a
+  chat's is made from those.
+- llms.txt's Links section lists every link on the site too, the same
+  way, after your Outputs.
 
 Without `fromAnswers`, Context is your rows alone, as it always was.
 "Log out" shows only your own rows' links, either way.
