@@ -1,7 +1,7 @@
 /* Each language's `strings`: the page's own wording. A page in English
    has each already (english-strings.ts); any other language states them.
    The page shows some itself (PageStrings). The browser code shows the
-   rest, which each page carries to it as data-* attributes on <html>, so
+   rest, which each page carries to it as data-* attributes on <body>, so
    one script serves every language (SCRIPT_STRING_ATTRIBUTES). */
 
 export type PageStrings = {
@@ -134,7 +134,7 @@ export type ActivityStrings = {
 /** Every name in ActivityStrings. */
 export const ACTIVITY_STRING_NAMES = ["activityTitle"] as const satisfies readonly (keyof ActivityStrings)[];
 
-/** The wording the browser code shows, with the attribute on <html> that
+/** The wording the browser code shows, with the attribute on <body> that
     carries each to it. The last four are for the parts only some sites
     have (PART_STRINGS). */
 export const SCRIPT_STRING_ATTRIBUTES = {

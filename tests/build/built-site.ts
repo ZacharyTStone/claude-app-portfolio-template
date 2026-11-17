@@ -220,6 +220,22 @@ function testEachPartHasOneTopHeading(site: BuiltSite): void {
   });
 }
 
+/** How far into a page a browser looks for its <meta charset> when the
+    host's Content-Type names none, in bytes (the HTML standard's prescan). */
+const CHARSET_PRESCAN_BYTES = 1024;
+
+function testEachPageSaysItsCharsetEarly(site: BuiltSite): void {
+  test(`${site.name}: every page has its <meta charset> in its first ${CHARSET_PRESCAN_BYTES} bytes`, () => {
+    const tooLate = site.pages
+      .map(({ file }) => file)
+      .filter((file) => {
+        const start = Buffer.from(site.read(file)).subarray(0, CHARSET_PRESCAN_BYTES).toString("latin1");
+        return !start.includes('<meta charset="utf-8">');
+      });
+    assert.deepEqual(tooLate, []);
+  });
+}
+
 function testNothingIsInline(site: BuiltSite): void {
   for (const { file } of site.pages) {
     test(`${site.name}: ${file} has no inline script but its two data blocks`, () => {
@@ -272,6 +288,7 @@ export function testBuiltSite(site: BuiltSite): void {
   testEveryLanguageHasTheSameStructure(site);
   testEachTabPageHasItsTabOpen(site);
   testEachPartHasOneTopHeading(site);
+  testEachPageSaysItsCharsetEarly(site);
   testNothingIsInline(site);
   testLinksAndFiles(site);
 }

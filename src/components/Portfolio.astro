@@ -1,7 +1,7 @@
 ---
 /* One of a language's pages: its home screen, or one of its tabs open (src/site/pages.ts). Every tab is in
    each, so it all works without JavaScript, and the script moves between them in place. The script gets its
-   wording as data-* attributes on <html>, and the question card as JSON. */
+   wording as data-* attributes on <body>, and the question card as JSON. */
 import Document from "../layouts/Document.astro";
 import { ASK_PATH } from "../contracts/ask.ts";
 import { SCRIPT_STRING_NAMES, SCRIPT_STRING_ATTRIBUTES } from "../config/strings.ts";
@@ -41,7 +41,7 @@ scriptAttributes[DATA.home] = site.pagePath(code);
 scriptAttributes[DATA.homeTitle] = language.meta.title;
 ---
 
-<Document lang={code} dir={language.dir} preload={language.meta.preload} htmlAttributes={scriptAttributes}>
+<Document lang={code} dir={language.dir} preload={language.meta.preload} bodyAttributes={scriptAttributes}>
   <PageMeta slot="head" head={head} />
 
   <a class={PAGE_CLASSES.skip} href={`#${PAGE_IDS.main}`} data-js-only>

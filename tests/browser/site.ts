@@ -228,13 +228,13 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
   const page = await context.newPage();
   await page.goto(home);
 
-  const homePath = (await page.locator("html").getAttribute(DATA.home)) ?? "";
+  const homePath = (await page.locator("body").getAttribute(DATA.home)) ?? "";
   const pathOf = (tabId: string) => tabPagePath(homePath, tabId);
   const threads = await readThreads(page, pathOf);
   const [firstThread] = threads;
   if (!firstThread) throw new Error("The page's sidebar lists no threads");
   const questions = await readQuestionCard(page);
-  const ask = await page.locator("html").getAttribute(DATA.ask);
+  const ask = await page.locator("body").getAttribute(DATA.ask);
 
   const site: Site = {
     lang: (await page.locator("html").getAttribute("lang")) ?? "",
@@ -288,8 +288,8 @@ const attributeOfEach = (found: Locator, name: string): Promise<string[]> =>
   found.evaluateAll((elements, attribute) => elements.map((element) => element.getAttribute(attribute) ?? ""), name);
 
 async function readScriptWords(page: Page): Promise<ScriptStrings> {
-  const wordsOnThePage = await page.locator("html").evaluate(
-    (html, attributes) => attributes.map((attribute) => html.getAttribute(attribute) ?? ""),
+  const wordsOnThePage = await page.locator("body").evaluate(
+    (body, attributes) => attributes.map((attribute) => body.getAttribute(attribute) ?? ""),
     SCRIPT_STRING_NAMES.map((name) => SCRIPT_STRING_ATTRIBUTES[name]),
   );
   return Object.fromEntries(SCRIPT_STRING_NAMES.map((name, nth) => [name, wordsOnThePage[nth] ?? ""])) as ScriptStrings;
