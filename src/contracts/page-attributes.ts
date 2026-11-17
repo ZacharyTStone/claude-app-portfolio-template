@@ -84,8 +84,8 @@ export const DATA = {
   /** On each of the contact form's two notes: which it is, a ContactNote
       ("sent" or "failed"), for the browser code to say under Send. */
   contactNote: "data-note",
-  /** No value: a post's card in the Writing tab, made from what the build
-      fetched, which changes from one build to the next. The Japanese fonts
+  /** No value: a post's card in the Writing tab, or a repo's row in the
+      panel's GitHub activity, made from what the build fetched, which changes from one build to the next. The Japanese fonts
       aren't cut for what's in it (scripts/fonts): it's set in the system's
       Japanese font instead (src/styles/japanese.css). */
   fetched: "data-fetched",

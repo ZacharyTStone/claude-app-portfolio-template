@@ -100,6 +100,7 @@ your config, README, pictures, diagrams or `src/styles/site.css`:
 | let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
 | let visitors email you from the site | [The contact form](docs/contact-form.md) |
 | list your posts on Qiita in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
+| show your recent public GitHub repos in the panel | [GitHub activity](docs/github-activity.md) |
 | know what protects the site and its visitors | [Security](docs/security.md) |
 | take the template's later changes | [Updating](docs/updating.md) |
 | change the code itself | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |

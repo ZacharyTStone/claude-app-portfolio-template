@@ -48,6 +48,11 @@ in the code, see the security policy in the template's repository.
   another site. What Qiita sends is checked before any of it reaches a
   page, only what a card shows is kept, a card links to `qiita.com` and
   nowhere else, and a title is text, never markup.
+- With [GitHub activity](github-activity.md), it's the build too that asks
+  GitHub, for public events only. What GitHub sends is checked, only a
+  repo's name and a day are kept, a row links to `github.com` and nowhere
+  else, and a name is text. A `GITHUB_TOKEN` the build is given is sent to
+  GitHub's API alone, and never reaches a page or a log.
 - The build checks the config. It stops on a link that isn't a web, mailto,
   #tab or site address (so no `javascript:`; and `//host`, `\\host` and
   `/\host` are other sites, not the site's own), and on a value that doesn't

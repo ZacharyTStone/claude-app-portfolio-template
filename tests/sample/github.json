@@ -1,0 +1,266 @@
+{
+  "user": "sam-sample",
+  "events": [
+    {
+      "id": "40000000001",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 101,
+        "name": "sam-sample/notes",
+        "url": "https://api.github.com/repos/sam-sample/notes"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-11-12T23:30:00Z"
+    },
+    {
+      "id": "40000000002",
+      "type": "WatchEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 102,
+        "name": "someone/big-library",
+        "url": "https://api.github.com/repos/someone/big-library"
+      },
+      "payload": {
+        "action": "started"
+      },
+      "public": true,
+      "created_at": "2026-11-12T10:00:00Z"
+    },
+    {
+      "id": "40000000003",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 103,
+        "name": "sam-sample/notes",
+        "url": "https://api.github.com/repos/sam-sample/notes"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-11-11T09:00:00Z"
+    },
+    {
+      "id": "40000000004",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 104,
+        "name": "sam-sample/hidden-work",
+        "url": "https://api.github.com/repos/sam-sample/hidden-work"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": false,
+      "created_at": "2026-11-10T09:00:00Z"
+    },
+    {
+      "id": "40000000005",
+      "type": "PullRequestEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 105,
+        "name": "sample-org/shared-tool",
+        "url": "https://api.github.com/repos/sample-org/shared-tool"
+      },
+      "payload": {
+        "action": "opened",
+        "number": 7
+      },
+      "public": true,
+      "created_at": "2026-11-09T12:00:00Z"
+    },
+    {
+      "id": "40000000006",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 106,
+        "name": "sample-org/shared-tool",
+        "url": "https://api.github.com/repos/sample-org/shared-tool"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/fix-typo",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-11-08T15:45:00Z"
+    },
+    {
+      "id": "40000000007",
+      "type": "CreateEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 107,
+        "name": "sam-sample/dotfiles",
+        "url": "https://api.github.com/repos/sam-sample/dotfiles"
+      },
+      "payload": {
+        "ref": null,
+        "ref_type": "repository"
+      },
+      "public": true,
+      "created_at": "2026-11-01T08:00:00Z"
+    },
+    {
+      "id": "40000000008",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 108,
+        "name": "sam-sample/dotfiles",
+        "url": "https://api.github.com/repos/sam-sample/dotfiles"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-10-30T20:00:00Z"
+    },
+    {
+      "id": "40000000009",
+      "type": "IssuesEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 109,
+        "name": "sam-sample/notes",
+        "url": "https://api.github.com/repos/sam-sample/notes"
+      },
+      "payload": {
+        "action": "opened"
+      },
+      "public": true,
+      "created_at": "2026-10-20T08:00:00Z"
+    },
+    {
+      "id": "40000000010",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 110,
+        "name": "sam-sample/site",
+        "url": "https://api.github.com/repos/sam-sample/site"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-10-15T07:00:00Z"
+    },
+    {
+      "id": "40000000011",
+      "type": "PushEvent",
+      "actor": {
+        "id": 1,
+        "login": "sam-sample",
+        "display_login": "sam-sample",
+        "url": "https://api.github.com/users/sam-sample",
+        "avatar_url": "https://avatars.githubusercontent.com/u/1?"
+      },
+      "repo": {
+        "id": 111,
+        "name": "sam-sample/old-game",
+        "url": "https://api.github.com/repos/sam-sample/old-game"
+      },
+      "payload": {
+        "repository_id": 1,
+        "push_id": 1,
+        "ref": "refs/heads/main",
+        "head": "c0ffee",
+        "before": "beef00"
+      },
+      "public": true,
+      "created_at": "2026-09-01T07:00:00Z"
+    }
+  ]
+}

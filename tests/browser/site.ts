@@ -21,7 +21,14 @@ import {
   ID_SELECTOR as ID,
   PART_SELECTOR as PART,
 } from "../../src/contracts/page-selectors.ts";
-import { COMES_INTO_VIEW, MOVING_PICTURE, PANEL_SECTIONS, PLAY_BUTTON, PLAYED_FIGURE } from "./parts.ts";
+import {
+  ACTIVITY_IN_THE_PANEL,
+  COMES_INTO_VIEW,
+  MOVING_PICTURE,
+  PANEL_SECTIONS,
+  PLAY_BUTTON,
+  PLAYED_FIGURE,
+} from "./parts.ts";
 
 /** One of the site's threads: a tab of questions, each with its answer. */
 export type Thread = {
@@ -74,6 +81,18 @@ export type WritingTab = Thread & {
     text: string;
     /** The language its title is marked as being in, if it's marked. */
     lang: string | null;
+  }>;
+};
+
+/** The panel's GitHub activity, made from the repos the build fetched: its
+    heading, and each repo's row, in the page's order. */
+export type GitHubActivity = {
+  title: string;
+  repos: Array<{
+    /** Where the row links: the repo's page on GitHub. */
+    href: string;
+    /** The row's text: the repo's name, then the day it was pushed to. */
+    text: string;
   }>;
 };
 
@@ -186,6 +205,9 @@ export type Site = {
   contactForm: ContactForm | null;
   /** The Writing tab, on a site with `writing`. */
   writing: WritingTab | null;
+  /** The panel's GitHub activity, on a site with `activity` and public
+      pushes lately. */
+  activity: GitHubActivity | null;
 };
 
 /** The tab a link on the page opens: "about" for href="/about/" (or for
@@ -248,6 +270,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
       page,
       (await readBuiltThreads(page)).map((thread) => ({ ...thread, path: pathOf(thread.id) })),
     ),
+    activity: await readActivity(page),
   };
   await context.close();
   return site;
@@ -317,6 +340,17 @@ async function readWriting(page: Page, threadsBuilt: Thread[]): Promise<WritingT
     })),
   );
   return { ...thread, posts };
+}
+
+async function readActivity(page: Page): Promise<GitHubActivity | null> {
+  const section = page.locator(ACTIVITY_IN_THE_PANEL);
+  if (!(await section.count())) return null;
+  const repos = await section
+    .locator(ATTRIBUTE.fetched)
+    .evaluateAll((rows) =>
+      rows.map((row) => ({ href: row.getAttribute("href") ?? "", text: (row.textContent ?? "").trim() })),
+    );
+  return { title: ((await section.locator("h2").textContent()) ?? "").trim(), repos };
 }
 
 async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {

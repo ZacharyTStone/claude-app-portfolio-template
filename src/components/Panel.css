@@ -126,3 +126,8 @@
   color: var(--text-2);
   white-space: nowrap;
 }
+/* A repo's name, fetched (the GitHub activity), can be one long word: it
+   breaks anywhere rather than push the day out of the panel. */
+.panel-rows [data-fetched] {
+  overflow-wrap: anywhere;
+}

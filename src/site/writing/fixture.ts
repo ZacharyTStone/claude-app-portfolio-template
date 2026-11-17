@@ -6,7 +6,8 @@
    file's made-up posts can't stand in for a real site's own. */
 import { readFileSync } from "node:fs";
 import * as v from "valibot";
-import { qiitaItemsAddress, type Fetch } from "./qiita.ts";
+import type { Fetch } from "../fetching.ts";
+import { qiitaItemsAddress } from "./qiita.ts";
 
 /** The environment variable that names the fixture's file, from the repo's
     root: "tests/sample/qiita.json". */

@@ -3,9 +3,10 @@
    each way it can fail. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import type { Fetch } from "../../../src/site/fetching.ts";
 import { fixtureFetch } from "../../../src/site/writing/fixture.ts";
 import type { Post } from "../../../src/site/writing/post.ts";
-import { qiitaItemsAddress, qiitaPosts, type Fetch } from "../../../src/site/writing/qiita.ts";
+import { qiitaItemsAddress, qiitaPosts } from "../../../src/site/writing/qiita.ts";
 import { sampleFixture, samplePosts } from "../../sample/qiita.ts";
 
 const USER = "sam-sample";

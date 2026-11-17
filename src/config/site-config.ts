@@ -3,6 +3,7 @@
    What types can't say (a `tab` names a thread, every language has the same
    threads) the build checks, and names the field (src/site/checks). */
 
+import type { Activity } from "./activity.ts";
 import type { Language } from "./language.ts";
 import type { Writing } from "./writing.ts";
 
@@ -72,6 +73,12 @@ export type SiteConfig = {
       once the site is built again (docs/writing.md). Each language then
       needs the writing* strings (English has them). Leave out for none. */
   writing?: Writing;
+  /** Your recent public activity, in a section of the details panel: the
+      public repos you pushed to most recently, each with the day:
+      { github: "alex-example" }. The build fetches it, and stops if it
+      can't (docs/github-activity.md). Each language then needs
+      strings.activityTitle (English has it). Leave out for none. */
+  activity?: Activity;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every
       question with its answer, in the main language. */

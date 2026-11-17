@@ -12,6 +12,7 @@ import {
   type Clock,
   type ComesIntoView,
   type ContactForm,
+  type GitHubActivity,
   type MovingPicture,
   type PlayedPicture,
   type SidebarGroup,
@@ -59,6 +60,7 @@ type SiteParts = {
   comingIntoView: ComesIntoView;
   contactForm: ContactForm;
   writingTab: WritingTab;
+  githubActivity: GitHubActivity;
 };
 
 type PageErrors = {
@@ -164,6 +166,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   comingIntoView: partOrSkip((site) => site.comesIntoView, "no answer on the site has a quote or a file card"),
   contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
   writingTab: partOrSkip((site) => site.writing, "the site has no Writing tab"),
+  githubActivity: partOrSkip((site) => site.activity, "the site has no GitHub activity in its panel"),
 });
 
 // Chromium with a phone's screen, touch and user agent: the device's own

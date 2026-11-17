@@ -125,15 +125,20 @@ sent.
 
 ## What the build fetches
 
-The Writing tab's posts are the one thing a build fetches
-(`src/integrations/writing.ts`, `src/site/writing/`), and no test reaches
-Qiita for them. A unit test passes `qiitaPosts()` a `fetch` of its own.
-A build the tests make is given `WRITING_FIXTURE`, the path of
-`tests/sample/qiita.json` (`tests/build/astro-build.ts`), and asks that
-file in place of Qiita; it answers for the sample's user alone, so it can
-stand in for no real site's posts. A new test that builds a site goes
-through `astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests)
-says the same for a site's owner.
+A build fetches two things: the Writing tab's posts
+(`src/integrations/writing.ts`, `src/site/writing/`) and the panel's
+GitHub activity (`src/integrations/activity.ts`, `src/site/activity/`).
+What their requests share, the time limit and the one more try, is
+`src/site/fetching.ts`. No test reaches Qiita or GitHub. A unit test
+passes `qiitaPosts()` or `recentRepos()` a `fetch` of its own. A build the
+tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
+`tests/sample/qiita.json` and `tests/sample/github.json`
+(`tests/build/astro-build.ts`), and asks those files in place of Qiita
+and GitHub; each answers for the sample's user alone, so it can stand in
+for no real site's. A new test that builds a site goes through
+`astroBuild()` too. [Writing](writing.md#without-qiita-in-the-tests) and
+[GitHub activity](github-activity.md#without-github-in-the-tests) say the
+same for a site's owner.
 
 ## Adding a browser check
 
@@ -161,7 +166,7 @@ says so.
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`, `writingTab`. A test that asks for one is skipped, with
+  `contactForm`, `writingTab`, `githubActivity`. A test that asks for one is skipped, with
   the reason, on a site without it. For any
   other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.

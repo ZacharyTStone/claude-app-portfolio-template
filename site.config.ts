@@ -70,6 +70,14 @@ export default {
   // below. docs/writing.md has it all, and a rebuild each day that brings
   // new posts in.
   // writing: { qiita: "your-qiita-id" },
+  // GitHub activity (optional): a quiet section at the foot of the details
+  // panel, "Recent public repos", listing the public repos you pushed to
+  // most recently, each with the day. The build fetches it from GitHub's
+  // public events, and stops if it can't. Only public work is read: your
+  // private repos never show. Commented out for the same reason as
+  // `writing`. With your own GitHub user name, it's the line below.
+  // docs/github-activity.md has it all.
+  // activity: { github: "your-github-name" },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
     about: `${me.name} is a senior software engineer at ${acme.company}, working on the web app its customers use every day. Before that, ${me.first} built sites and apps for clients at ${globex.company}, an agency, and on the side made ${me.project.name}, an offline-first notes app.`,
