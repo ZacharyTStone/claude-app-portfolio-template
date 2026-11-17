@@ -4,7 +4,6 @@ import type { Locator, Page } from "@playwright/test";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { parseAnswerId } from "../../src/contracts/ask.ts";
 import { DATA, MENU_KEYS } from "../../src/contracts/page-attributes.ts";
-import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -185,14 +184,6 @@ test.describe("copying a tab's link", () => {
     await expect(share).toHaveText(site.words.copied);
     expect(await pasteIntoTheCard(page, tab)).toBe(new URL(site.firstThread.path, baseURL).href);
     await expect(share).toHaveText(itsOwnName, { timeout: SHARE_NAMED_AGAIN_WITHIN_MS });
-  });
-
-  test("the icon under an answer says it copied", async ({ page, site }) => {
-    const icon = page.locator(`#${site.firstThread.id} ${CLASS.messageActions} ${ATTRIBUTE.copyLink}`).first();
-    test.skip((await icon.count()) === 0, "the thread has no icons under its answers");
-    await icon.click();
-    await expect(icon).toContainClass(PAGE_CLASSES.done);
-    await expect(icon).toHaveAttribute("title", site.words.copied);
   });
 
   test('"Copy link" in the thread\'s menu says it copied', async ({ page, site }) => {

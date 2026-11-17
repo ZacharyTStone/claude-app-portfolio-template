@@ -68,7 +68,6 @@ export function answersReadIn(tab: HTMLElement): AskTurn[] {
     picture in it playing. */
 function copyMessage(message: Element): Element {
   const copy = clone(message);
-  copy.querySelectorAll(CLASS_SELECTOR.messageActions).forEach((actions) => actions.remove());
   copy.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
   showWhole(copy);
   restStill(copy);

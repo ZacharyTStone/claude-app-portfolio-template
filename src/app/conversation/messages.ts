@@ -96,7 +96,6 @@ const OFFERS_OF_A_MESSAGE = `${CLASS_SELECTOR.draft}, ${ATTRIBUTE_SELECTOR.formQ
     and an email to write themselves: nothing they typed is shown back. */
 function somethingElse(asked: TypedQuestion): Element[] {
   const message = clone(find(askedTab, CLASS_SELECTOR.answer));
-  message.querySelector(CLASS_SELECTOR.messageActions)?.remove();
   const question = questionForOwner(asked);
   addressEmail(message, question);
   if (asked.outcome.kind === "blocked") {

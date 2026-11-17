@@ -15,8 +15,6 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   panelToggleTitle: "Details",
   credit: "Design inspired by the Claude app. Not affiliated with Anthropic.",
   share: "Share",
-  copyTab: "Copy link to this tab",
-  copyTitle: "Copy link",
   question: "Question: ",
   followUpPlaceholder: "Ask a follow-up…",
   model: "Portfolio",

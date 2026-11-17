@@ -39,7 +39,3 @@
 .bye-back:hover {
   background: rgb(255 255 255 / 0.18);
 }
-.icon-button.done {
-  --icon: url("/assets/icons/check.svg");
-  color: var(--green);
-}

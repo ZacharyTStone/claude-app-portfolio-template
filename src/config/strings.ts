@@ -26,11 +26,6 @@ export type PageStrings = {
   credit: string;
   /** A tab's share button: "Share". */
   share: string;
-  /** The copy icon under a thread's last answer, for screen readers: "Copy
-      link to this tab". */
-  copyTab: string;
-  /** That icon's tooltip: "Copy link". */
-  copyTitle: string;
   /** Said to screen readers before each question: "Question: ". */
   question: string;
   /** What the composer under every tab says: "Ask a follow-up…". */
@@ -102,8 +97,6 @@ export const PAGE_STRING_NAMES = [
   "panelToggleTitle",
   "credit",
   "share",
-  "copyTab",
-  "copyTitle",
   "question",
   "followUpPlaceholder",
   "model",
