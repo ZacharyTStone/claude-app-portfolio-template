@@ -9,6 +9,7 @@ import { foldable } from "../folding.ts";
 import { clone, find, make } from "../lib/dom.ts";
 import { local } from "../lib/storage.ts";
 import { main, root, sidebar, siteName, tagline, words } from "../page.ts";
+import { watchForTurnsIn } from "../play.ts";
 import { addressOf, copyTab, currentTab, focusOpenTab, showOpenTab, showTabName } from "../tabs.ts";
 import { say } from "../toast.ts";
 import type { Exchange } from "./exchange.ts";
@@ -174,13 +175,12 @@ function unlistChat(chat: Chat): void {
   list.remove();
 }
 
-/** Everything sent in a chat, shown at once. Nothing, for a tab that isn't
-    a chat or a chat that's been deleted. */
-export function showChat(tab: HTMLElement): void {
-  const chat = chatOf(tab);
-  if (!chat) return;
+/** Everything sent in a chat, shown at once, each picture in it with its
+    turn to play by itself still to come. */
+function showChat(chat: Chat): void {
   const messages = chat.sources.flatMap((saved) => messagesOf(readExchange(saved)));
-  find(tab, CLASS_SELECTOR.thread).replaceChildren(...messages);
+  find(chat.tab, CLASS_SELECTOR.thread).replaceChildren(...messages);
+  watchForTurnsIn(messages);
 }
 
 /** The chats saved in this browser, back in the sidebar, newest at the top. */
@@ -188,7 +188,7 @@ export function restoreChats(): void {
   for (const saved of readChats().sort((one, other) => one.created - other.created)) {
     const chat = makeChat(saved);
     listChat(chat);
-    showChat(chat.tab);
+    showChat(chat);
   }
 }
 

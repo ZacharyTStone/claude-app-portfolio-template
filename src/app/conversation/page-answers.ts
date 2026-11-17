@@ -65,7 +65,9 @@ export function answersReadIn(tab: HTMLElement): AskTurn[] {
 
 /** A message to show again elsewhere: without its buttons or the ids the
     page already has, with nothing in it waiting to be scrolled to, and no
-    picture in it playing. */
+    picture in it playing. A picture in it is a copy with a turn of its
+    own to play by itself, from when the copy goes into the page (send.ts,
+    chats.ts), whatever the picture it was copied from has done. */
 function copyMessage(message: Element): Element {
   const copy = clone(message);
   copy.querySelectorAll("[id]").forEach((element) => element.removeAttribute("id"));
