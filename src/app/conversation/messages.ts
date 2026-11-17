@@ -82,7 +82,6 @@ function addressEmail(message: Element, question: string): void {
     back. */
 function somethingElse(asked: TypedQuestion): Element[] {
   const message = clone(find(askedTab, CLASS_SELECTOR.answer));
-  message.querySelector(CLASS_SELECTOR.messageActions)?.remove();
   const question = questionForOwner(asked);
   addressEmail(message, question);
   const draft = message.querySelector(CLASS_SELECTOR.draft);

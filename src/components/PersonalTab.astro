@@ -6,7 +6,6 @@ import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { personalTabId } from "../contracts/page-ids.ts";
 import type { Page } from "../site/site.ts";
 import Inline from "./Inline.astro";
-import MessageActions from "./MessageActions.astro";
 import { answerLine, isEmojiList } from "./personal-answer.ts";
 import Tab from "./Tab.astro";
 
@@ -46,6 +45,5 @@ const { strings } = language;
         </ul>
       );
     })}
-    <MessageActions strings={strings} />
   </div>
 </Tab>

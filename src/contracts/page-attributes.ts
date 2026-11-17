@@ -33,8 +33,8 @@ export const DATA = {
   /** No value: each button that shows or hides the details panel, the
       panel's own close button among them. */
   panelToggle: "data-panel-toggle",
-  /** No value: the share button in a tab's top bar, and the copy icon
-      under an answer. Both copy the tab's address. */
+  /** No value: the share button in a tab's top bar, which copies the
+      tab's address. */
   copyLink: "data-copy-link",
   /** On a language's link in the sidebar: the language's name, in itself. */
   languageName: "data-name",

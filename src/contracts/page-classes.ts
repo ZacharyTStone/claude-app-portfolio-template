@@ -44,8 +44,6 @@ const WRITTEN_BY_A_COMPONENT = {
   answer: "answer",
   /** A thread's "Read …" line, which opens onto the file it read. */
   status: "status",
-  /** The buttons under a thread's last answer. */
-  messageActions: "message-actions",
   /** The link under every tab that opens the question card, and the box
       around the home screen's input. */
   composer: "composer",
@@ -180,8 +178,6 @@ const ADDED_BY_THE_SCRIPT = {
   submenu: "submenu",
   below: "below",
   above: "above",
-  /** A copy icon that copied. */
-  done: "done",
   /** The toast, and the toast while it shows. */
   toast: "toast",
   show: "show",
