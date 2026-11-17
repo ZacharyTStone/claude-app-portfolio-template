@@ -34,15 +34,20 @@ test.beforeEach(async ({ page, site, viewerLink }) => {
   await page.goto(site.pathOf(viewerLink.tab));
 });
 
-test("the same link in the panel's Context opens in the viewer too, under the same name", async ({
+test("the same link in the panel's Context opens in the viewer too, under the name its row gives", async ({
   page,
   viewerLink,
   gatheredContext: _onASiteWithIt,
 }) => {
-  await page.locator(`${CONTEXT_IN_THE_PANEL} a[${DATA.viewerAddress}="${viewerLink.shown}"]:visible`).click();
+  // The row's name can be another link's to the same page (a link card's,
+  // where the first link was a picture), so the viewer is named as the row is.
+  const row = page.locator(`${CONTEXT_IN_THE_PANEL} a[${DATA.viewerAddress}="${viewerLink.shown}"]:visible`);
+  const rowsName = (await row.getAttribute(DATA.viewerTitle)) ?? "";
+  expect(rowsName, "the row names the page it opens").not.toBe("");
+  await row.click();
   const viewer = page.locator(OPEN_VIEWER);
   await expect(viewer.locator("iframe")).toHaveAttribute("src", viewerLink.shown);
-  await expect(viewer.locator(CLASS.viewerTitle)).toHaveText(viewerLink.title);
+  await expect(viewer.locator(CLASS.viewerTitle)).toHaveText(rowsName);
 });
 
 test.describe("a link the viewer lists, clicked", () => {
