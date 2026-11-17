@@ -75,6 +75,10 @@ test.describe("the sidebar, beside an open tab", () => {
     await expect(page.locator(ATTRIBUTE.sideToggle)).toBeFocused();
   });
 
+  test("has its edge in it, a separator named for what it does", async ({ page, site }) => {
+    await expect(page.locator(ID.sidebar).getByRole("separator", { name: site.words.resize })).toBeVisible();
+  });
+
   test("a click on its edge, with no drag, leaves the default width", async ({ page, site }) => {
     await page.locator(CLASS.resizer).click();
     await revisit(page, site.firstThread.path);
