@@ -27,6 +27,7 @@ const cardsIn = (language: SiteLanguage): LinkCard[] =>
   );
 
 const post: Post = {
+  id: "c0ffee0000000000c0f1",
   title: "Astroで静的サイトを組み立てる",
   url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f1",
   posted: "2026-10-01T09:30:00+09:00",

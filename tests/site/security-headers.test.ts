@@ -59,8 +59,12 @@ const OWN_FILES_ONLY = "default-src 'none'; script-src 'self'; style-src 'self';
 const NO_BASE_NO_FORMS = "base-uri 'none'; form-action 'none'";
 const NO_BASE_OWN_FORM = "base-uri 'none'; form-action 'self'";
 const NEVER_FRAMED = "frame-ancestors 'none'";
+const FRAMED_BY_ITSELF_ALONE = "frame-ancestors 'self'";
+const A_PAGES_FRAME_ANCESTORS = /frame-ancestors '(?:none|self)'; /;
 const TRUSTED_TYPES = "require-trusted-types-for 'script'; trusted-types 'none'";
 const VIEWER_FRAMES = "frame-src https://a.example.org https://docs.example.com";
+const OWN_FRAMES = "frame-src 'self'";
+const OWN_AND_VIEWER_FRAMES = "frame-src 'self' https://a.example.org https://docs.example.com";
 const PLAIN_POLICY = `${OWN_FILES_ONLY}; ${NO_BASE_NO_FORMS}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`;
 
 const POLICIES = [
@@ -94,6 +98,16 @@ const POLICIES = [
     options: { ask: true, frames: frameOrigins(VIEWER) },
     policy: `${OWN_FILES_ONLY}; connect-src 'self'; ${VIEWER_FRAMES}; ${NO_BASE_NO_FORMS}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
   },
+  {
+    site: "a site whose viewer shows its own pages of its posts",
+    options: { ask: false, ownFrames: true },
+    policy: `${OWN_FILES_ONLY}; ${OWN_FRAMES}; ${NO_BASE_NO_FORMS}; ${FRAMED_BY_ITSELF_ALONE}; ${TRUSTED_TYPES}`,
+  },
+  {
+    site: "a site whose viewer shows its own pages of its posts and other sites' pages",
+    options: { ask: false, ownFrames: true, frames: frameOrigins(VIEWER) },
+    policy: `${OWN_FILES_ONLY}; ${OWN_AND_VIEWER_FRAMES}; ${NO_BASE_NO_FORMS}; ${FRAMED_BY_ITSELF_ALONE}; ${TRUSTED_TYPES}`,
+  },
 ];
 
 for (const { site, options, policy } of POLICIES) {
@@ -102,7 +116,8 @@ for (const { site, options, policy } of POLICIES) {
   });
 
   test(`${site} puts the same policy in its pages, less frame-ancestors`, () => {
-    assert.equal(contentSecurityPolicy({ ...options, meta: true }), policy.replace(`${NEVER_FRAMED}; `, ""));
+    assert.match(policy, A_PAGES_FRAME_ANCESTORS);
+    assert.equal(contentSecurityPolicy({ ...options, meta: true }), policy.replace(A_PAGES_FRAME_ANCESTORS, ""));
   });
 }
 
@@ -116,4 +131,11 @@ test("every path gets exactly these headers, in this order", () => {
     ["Permissions-Policy", "camera=(), microphone=(), geolocation=(), payment=(), usb=(), browsing-topics=()"],
     ["Cross-Origin-Opener-Policy", "same-origin"],
   ]);
+});
+
+test("no site but itself frames a page of a site whose viewer shows its own pages, and no site at all any other's", () => {
+  const framedBy = (ownFrames: boolean): string | undefined =>
+    Object.fromEntries(securityHeaders({ ask: false, ownFrames }))["X-Frame-Options"];
+  assert.equal(framedBy(true), "SAMEORIGIN");
+  assert.equal(framedBy(false), "DENY");
 });

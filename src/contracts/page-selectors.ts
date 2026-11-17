@@ -30,8 +30,11 @@ export const PART_SELECTOR = {
   threadQuestion: `${CLASS_SELECTOR.thread} > ${CLASS_SELECTOR.question}`,
   /** In the account menu's clock: the time that's the owner's. */
   ownerZone: `${ATTRIBUTE_SELECTOR.zone}:not([${DATA.zone}="${LOCAL_ZONE}"])`,
-  /** A link that opens in the viewer. */
+  /** A link that opens in the viewer, at an address the config's `viewer`
+      gives. */
   viewerLink: `a${ATTRIBUTE_SELECTOR.viewerAddress}`,
+  /** A link to a post that opens in the viewer, at the post's own page. */
+  postLink: `a${ATTRIBUTE_SELECTOR.viewerPost}`,
   /** What comes in as it's scrolled to: a quote, a file card. */
   comesIntoView: `${CLASS_SELECTOR.quote}, ${CLASS_SELECTOR.fileCard}`,
   /** A played picture's Play button. */

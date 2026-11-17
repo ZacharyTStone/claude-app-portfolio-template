@@ -1,0 +1,17 @@
+---
+/* A post's own page, on a site whose viewer shows its posts (src/site/writing/post-pages.ts): under the Writing
+   tab's page, by the post's id, as this file's folder has it. A route with a parameter can write no page at
+   all, which any other site needs of this one. */
+import PostPage from "../../components/PostPage.astro";
+import { site } from "../../site/current.ts";
+import { postPages, type PostPage as Page } from "../../site/writing/post-pages.ts";
+
+export const getStaticPaths = () =>
+  postPages(site).map((page) => ({ params: { post: page.post.id }, props: { page } }));
+
+interface Props {
+  page: Page;
+}
+---
+
+<PostPage page={Astro.props.page} />

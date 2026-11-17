@@ -1,10 +1,12 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
-   viewer, a picture that has a still, a Writing tab and GitHub activity in
-   the panel; the same site on a host that reads no headers; and the same
-   site before its first post. The builds share Astro's working folder, so
+   viewer, a picture that has a still, a Writing tab whose posts each have
+   a page of the site's own for the viewer, and GitHub activity in the
+   panel; the same site on a host that reads no headers; and the same site
+   before its first post. The builds share Astro's working folder, so
    they're made one after another, in this file. */
 import assert from "node:assert/strict";
+import { spawnSync } from "node:child_process";
 import { join } from "node:path";
 import { test } from "node:test";
 import { escapeRegExp } from "es-toolkit";
@@ -19,7 +21,10 @@ import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.t
 import { makeSite } from "../../src/site/site.ts";
 import { panelId } from "../../src/contracts/page-ids.ts";
 import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
-import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
+import { WRITING_ICON, WRITING_PLACE, WRITING_TAB } from "../../src/config/writing.ts";
+import { ROOT } from "../../src/site/repo.ts";
+import { postPages } from "../../src/site/writing/post-pages.ts";
+import { dayPosted } from "../../src/site/writing/post.ts";
 import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
@@ -40,7 +45,7 @@ test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
-test("the sample site has a home page for each of its two languages, a page for each of their tabs, and a 404 page", () => {
+test("the sample site has a home page for each of its two languages, a page for each of their tabs, a page for each post, and a 404 page", () => {
   const tabPages = ["about/index.html", "work/index.html", "writing/index.html", "personal-fun/index.html"];
   assert.deepEqual(
     sample.pages.map(({ file }) => [file, sample.hasFile(file)]),
@@ -49,6 +54,7 @@ test("the sample site has a home page for each of its two languages, a page for 
       ["fr/index.html", true],
       ...tabPages.map((file) => [file, true]),
       ...tabPages.map((file) => [`fr/${file}`, true]),
+      ...posts.map((post) => [`writing/${post.id}/index.html`, true]),
       ["404.html", true],
     ],
   );
@@ -138,6 +144,16 @@ for (const { file, url } of sample.languagePages) {
     );
   });
 
+  test(`${file} marks each post's card with the post's own page, for the viewer to frame, under the post's title`, () => {
+    const html = sample.read(file);
+    for (const { post, path } of postPages(sampleSite)) {
+      const card = html.match(new RegExp(`<a [^>]*href="${escapeRegExp(post.url)}"[^>]*>`))?.[0] ?? "";
+      assert.ok(card.includes(` ${DATA.viewerPost}="${sampleSite.link(path)}"`), card);
+      assert.ok(card.includes(` ${DATA.viewerTitle}="${post.title}"`), card);
+      assert.ok(!card.includes(` ${DATA.viewerAddress}=`), "its page is the site's own, not one a `viewer` gives");
+    }
+  });
+
   test(`${file} has a row in its sidebar for the Writing tab`, () => {
     const itsPage = tabPagePath(url.pathname, WRITING_TAB);
     assert.match(sample.read(file), new RegExp(`<a class="icon i-${WRITING_ICON}" href="${itsPage}">`));
@@ -205,8 +221,76 @@ function testPagesCarryThePolicy(built: BuiltSite, expectedPolicy: string): void
 testPagesCarryThePolicy(sample, pagePolicy(sampleSite));
 testPagesCarryThePolicy(staticSample, policy);
 
-test("the policy a page carries lets frames come from the viewer's site and no other", () => {
-  assert.match(policy, new RegExp(`(^|; )frame-src ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
+test("the policy a page carries lets frames come from the site itself, for its posts' pages, and the viewer's site, and no other", () => {
+  assert.match(policy, new RegExp(`(^|; )frame-src 'self' ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
+});
+
+/** Each post's own page, as built. */
+const postPagesBuilt = postPages(sampleSite).map((page) => ({
+  ...page,
+  file: `${page.path.slice(1)}index.html`,
+  html: sample.read(`${page.path.slice(1)}index.html`),
+}));
+
+test("the sample's posts each have a page of the site's own, one in Japanese and one in the main language", () => {
+  assert.deepEqual(
+    postPagesBuilt.map(({ html }) => html.match(/<html lang="([^"]*)"/)?.[1]),
+    postPagesBuilt.map(({ lang }) => lang),
+  );
+  assert.deepEqual(postPagesBuilt.map(({ lang }) => lang).sort(), [sampleSite.main, "ja"].sort());
+});
+
+for (const { post, file, html } of postPagesBuilt) {
+  test(`${file} is headed by the post's title, with the day it was posted and a link to it on ${WRITING_PLACE}`, () => {
+    assert.ok(html.includes(`<h1>${post.title}</h1>`));
+    assert.ok(html.includes(`<time datetime="${post.posted}">${dayPosted(post)}</time>`));
+    assert.match(
+      html,
+      new RegExp(
+        `<a [^>]*href="${escapeRegExp(post.url)}" target="_blank" rel="noopener noreferrer">${WRITING_PLACE}</a>`,
+      ),
+    );
+  });
+
+  test(`${file} names the post on ${WRITING_PLACE} as its canonical address, and is marked as made from what was fetched`, () => {
+    assert.ok(html.includes(`<link rel="canonical" href="${post.url}">`));
+    assert.match(html, new RegExp(`<body ${DATA.fetched}>`));
+  });
+
+  test(`${file} has no script, and links only to web addresses, each in a new tab that's told nothing`, () => {
+    assert.doesNotMatch(html, /<script\b/);
+    const links = [...html.matchAll(/<a\b[^>]*>/g)].map(([tag]) => tag);
+    assert.ok(links.length);
+    assert.deepEqual(
+      links.filter((tag) => !/ href="https?:\/\/[^"]+" target="_blank" rel="noopener noreferrer">$/.test(tag)),
+      [],
+    );
+  });
+}
+
+/** What the sample's first post writes as HTML, and as code about HTML. */
+const A_POSTS_OWN_MARKUP = /<script>|<details|<summary|<img\b|<b>/;
+const A_POSTS_CODE_AS_TEXT = "&lt;script&gt;alert(";
+
+test("no markup of a post's reaches its page: its HTML is left out, and the code it shows is text", () => {
+  const written = posts.find((post) => A_POSTS_OWN_MARKUP.test(post.body ?? ""));
+  assert.ok(written, "a post of the sample's has HTML in it");
+  const page = postPagesBuilt.find(({ post }) => post === written);
+  assert.ok(page, "that post has a page");
+  assert.doesNotMatch(page.html, A_POSTS_OWN_MARKUP);
+  assert.ok(page.html.includes(A_POSTS_CODE_AS_TEXT), "the code it shows is there, as text");
+});
+
+const HTML_VALIDATE = join(ROOT, "node_modules/html-validate/bin/html-validate.mjs");
+const HTML_RULES = join(ROOT, ".htmlvalidate.json");
+
+test("each post's page is valid HTML, as `npm run lint:html` holds a site's own pages to", () => {
+  const files = postPagesBuilt.map(({ file }) => join(BUILD_FOLDER, file));
+  assert.ok(files.length);
+  const validated = spawnSync(process.execPath, [HTML_VALIDATE, "--config", HTML_RULES, ...files], {
+    encoding: "utf8",
+  });
+  assert.equal(validated.status, 0, validated.stdout || validated.stderr);
 });
 
 /** The sample before its first post on Qiita (tests/sample/qiita-no-posts.json): it has no Writing tab, and

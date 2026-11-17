@@ -12,15 +12,19 @@ in the code, see the security policy in the template's repository.
   on, and there is no `<base>`, and no form post but the contact form's,
   to the site itself. No other site can show the pages in a frame,
   and the pages show none themselves, unless you set `viewer`: then
-  `frame-src` names the sites the viewer shows, and no other.
+  `frame-src` names the sites the viewer shows, and no other. With
+  `writing.viewer`, the viewer shows the site's own pages of your posts:
+  `frame-src` then has `'self'` too, and the pages let the site itself
+  show them in a frame (`frame-ancestors 'self'`), and still no other.
 - Trusted Types is required with no policy, so the script can't turn a
   string into markup. It builds elements, and shows a reply from `/ask` as
   text.
 - The other headers are in `src/site/security-headers.ts`: HTTPS only for
   two years (HSTS; subdomains and preloading if you ask for them with
-  `hsts`); `nosniff`; `X-Frame-Options: DENY`; a referrer policy that gives
-  another site the origin at most; a Permissions-Policy that turns off the
-  camera, microphone, location, payments, USB and ad topics; and
+  `hsts`); `nosniff`; `X-Frame-Options: DENY` (`SAMEORIGIN` with
+  `writing.viewer`); a referrer policy that gives another site the origin
+  at most; a Permissions-Policy that turns off the camera, microphone,
+  location, payments, USB and ad topics; and
   `Cross-Origin-Opener-Policy: same-origin`.
 - Every page carries its Content-Security-Policy and referrer policy in
   `<meta>` tags, whatever `host` the config names, so a site deployed
@@ -42,12 +46,20 @@ in the code, see the security policy in the template's repository.
   from the sites `viewer` names and no other; the frame is sandboxed so it
   can't navigate the page, is sent no referrer, and is thrown away when
   the viewer closes. A viewer address must be `https://` with a plain
-  domain name as its host.
+  domain name as its host. A post's own page
+  ([Writing](writing.md#reading-a-post-on-the-site)) is the site's, not
+  another's: its frame may load the site's stylesheet and fonts and open
+  a link in a new tab, and it may run no script, so nothing in the frame
+  can reach the page around it.
 - With a [Writing tab](writing.md), it's the build that asks Qiita for
   your posts, not a visitor's browser: the pages still load nothing from
   another site. What Qiita sends is checked before any of it reaches a
   page, only what a card shows is kept, a card links to `qiita.com` and
-  nowhere else, and a title is text, never markup.
+  nowhere else, and a title is text, never markup. With `writing.viewer`
+  a post's text is kept too, and read from its Markdown into the parts of
+  a page, never as HTML: no markup in a post reaches a page, a link in it
+  goes to a web address or is just its words, and a picture is a link,
+  so the page loads nothing from another site either.
 - With [GitHub activity](github-activity.md), it's the build too that asks
   GitHub, for public events only. What GitHub sends is checked, only a
   repo's name and a day are kept, a row links to `github.com` and nowhere

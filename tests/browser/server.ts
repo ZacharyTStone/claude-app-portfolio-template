@@ -80,7 +80,12 @@ export async function serve(config: SiteConfig, builtFolder: string): Promise<Se
   const root = resolve(builtFolder);
   const base = basePath(config.url);
   const ask = hasAsk(readFileSync(join(root, "index.html"), "utf8"));
-  const policy = { ask, contactForm: Boolean(config.contactForm), frames: frameOrigins(config.viewer) };
+  const policy = {
+    ask,
+    contactForm: Boolean(config.contactForm),
+    frames: frameOrigins(config.viewer),
+    ownFrames: Boolean(config.writing?.viewer),
+  };
   const headers = Object.fromEntries(securityHeaders({ ...policy, hsts: config.hsts }));
 
   const send = (response: ServerResponse, answer: Answer) => {

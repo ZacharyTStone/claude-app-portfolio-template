@@ -167,9 +167,11 @@ Qiita, newest first, each a link card to the post. The build fetches
 them, so the tab is as it was at the last build, and it comes with your
 first post. Its row comes last of the sidebar's top rows unless you give
 it one of your own. Its id is `writing`, which no thread of yours can then
-have. [Writing](writing.md) has the rest: the wording a language needs
-for it, the tab before your first post, what happens when Qiita is down,
-and a rebuild each day that brings new posts in.
+have. With `viewer: true` beside your id, a post opens in the viewer, as
+a page of the site's own. [Writing](writing.md) has the rest: the wording
+a language needs for it, a post in the viewer, the tab before your first
+post, what happens when Qiita is down, and a rebuild each day that brings
+new posts in.
 
 ## GitHub activity
 
@@ -243,7 +245,10 @@ of the details panel has it, then the address the frame shows. A Google
 Doc, Sheet or Slides deck that anyone with the link can view is shown at
 its address ending `/preview`. Not every site lets itself be shown in a
 frame (GitHub and LinkedIn don't, and neither does a file on your own
-site): open the viewer once and look.
+site): open the viewer once and look. Qiita doesn't either, so for your
+posts there the viewer shows a page of the site's own instead: that's
+`viewer: true` in `writing`, not an entry here
+([Reading a post on the site](writing.md#reading-a-post-on-the-site)).
 
 The build refuses an address that isn't `https://` with a plain domain
 name as its host, one on the site itself, and a link that nothing links

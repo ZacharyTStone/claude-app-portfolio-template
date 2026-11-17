@@ -67,8 +67,10 @@ export default {
   // stops if it can't, so a site that's up stays as it was. The sample has
   // none, because it has no posts anywhere: a copy of this file would ask
   // Qiita for someone else's. With your own Qiita user id, it's the line
-  // below. docs/writing.md has it all, and a rebuild each day that brings
-  // new posts in.
+  // below. With viewer: true beside the id, a post opens beside the
+  // conversation, as a page of the site's own, in place of a new tab.
+  // docs/writing.md has it all, and a rebuild each day that brings new
+  // posts in.
   // writing: { qiita: "your-qiita-id" },
   // GitHub activity (optional): a quiet section at the foot of the details
   // panel, "Recent public repos", listing the public repos you pushed to

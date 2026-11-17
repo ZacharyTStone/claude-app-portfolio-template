@@ -83,8 +83,16 @@ export type WritingTab = Thread & {
     text: string;
     /** The language its title is marked as being in, if it's marked. */
     lang: string | null;
+    /** The post's own page on the site, which the viewer frames for it, on
+        a site whose viewer shows its posts. */
+    page: string | null;
+    /** What the viewer calls it: the post's title. */
+    title: string | null;
   }>;
 };
+
+/** A post whose card opens it in the viewer, as the site's own page of it. */
+export type PostInViewer = { href: string; page: string; title: string };
 
 /** The panel's GitHub activity, made from the repos the build fetched: its
     heading, and each repo's row, in the page's order. */
@@ -350,12 +358,16 @@ async function readBuiltThreads(page: Page): Promise<Array<Omit<Thread, "path">>
 async function readWriting(page: Page, threadsBuilt: Thread[]): Promise<WritingTab | null> {
   const thread = threadsBuilt.find((each) => each.id === WRITING_TAB);
   if (!thread) return null;
-  const posts = await page.locator(`#${WRITING_TAB} ${ATTRIBUTE.fetched}`).evaluateAll((cards) =>
-    cards.map((card) => ({
-      href: card.getAttribute("href") ?? "",
-      text: (card.textContent ?? "").trim(),
-      lang: card.querySelector("[lang]")?.getAttribute("lang") ?? null,
-    })),
+  const posts = await page.locator(`#${WRITING_TAB} ${ATTRIBUTE.fetched}`).evaluateAll(
+    (cards, attribute) =>
+      cards.map((card) => ({
+        href: card.getAttribute("href") ?? "",
+        text: (card.textContent ?? "").trim(),
+        lang: card.querySelector("[lang]")?.getAttribute("lang") ?? null,
+        page: card.getAttribute(attribute.page),
+        title: card.getAttribute(attribute.title),
+      })),
+    { page: DATA.viewerPost, title: DATA.viewerTitle },
   );
   return { ...thread, posts };
 }

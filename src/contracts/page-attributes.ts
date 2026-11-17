@@ -83,6 +83,10 @@ export const DATA = {
       what the viewer calls it. */
   viewerAddress: "data-view",
   viewerTitle: "data-view-title",
+  /** On a link to a post, on a site whose viewer shows its posts: the
+      post's own page on this site, which the viewer frames in place of the
+      address a config's `viewer` gives. It has data-view-title too. */
+  viewerPost: "data-view-post",
   /** On a played picture's Play button: how many seconds it plays, as the
       picture's own file says. */
   play: "data-play",
@@ -95,10 +99,11 @@ export const DATA = {
       the tabs its answers are from, and shows the one for each tab it
       opens. The home screen has none. */
   contextOf: "data-context-of",
-  /** No value: a post's card in the Writing tab, or a repo's row in the
-      panel's GitHub activity, made from what the build fetched, which changes from one build to the next. The Japanese fonts
-      aren't cut for what's in it (scripts/fonts): it's set in the system's
-      Japanese font instead (src/styles/japanese.css). */
+  /** No value: a post's card in the Writing tab, a repo's row in the
+      panel's GitHub activity, or the <body> of a post's own page, made from
+      what the build fetched, which changes from one build to the next. The
+      Japanese fonts aren't cut for what's in it (scripts/fonts): it's set
+      in the system's Japanese font instead (src/styles/japanese.css). */
   fetched: "data-fetched",
 } as const;
 

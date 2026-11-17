@@ -1,0 +1,43 @@
+---
+/* A post's own page (src/site/writing/post-pages.ts), which the viewer frames: the post's title, the day it was
+   posted and a link to it where it was posted, then its text. All of it is what the build fetched, so it's
+   marked as that, and set in the system's Japanese font where it's Japanese. Its canonical address is the
+   post's own, where it was posted: this page is the site's copy for a visitor to read here. It has no script. */
+import { WRITING_PLACE } from "../config/writing.ts";
+import { newTabAttributes } from "../contracts/links.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import Document from "../layouts/Document.astro";
+import { site } from "../site/current.ts";
+import type { PostPage } from "../site/writing/post-pages.ts";
+import { dayPosted } from "../site/writing/post.ts";
+import { flag } from "./attributes.ts";
+import PostBlock from "./PostBlock.astro";
+
+interface Props {
+  page: PostPage;
+}
+const { post, lang, blocks } = Astro.props.page;
+const mainLanguage = site.language(site.main);
+// The post's words go the way its own language is written: the main language's, if that's what it's marked as.
+const dir = lang === site.main ? mainLanguage.dir : undefined;
+---
+
+<Document lang={lang} dir={dir} preload={mainLanguage.meta.preload} bodyAttributes={flag(DATA.fetched)}>
+  <Fragment slot="head">
+    <title>{post.title}</title>
+    <link rel="canonical" href={post.url} />
+  </Fragment>
+  <main class={PAGE_CLASSES.post}>
+    <h1>{post.title}</h1>
+    <p class={PAGE_CLASSES.postSource}>
+      <time datetime={post.posted}>{dayPosted(post)}</time>
+      <a class={`i-out ${PAGE_CLASSES.iconAfter}`} href={post.url} {...newTabAttributes(post.url)}>
+        {WRITING_PLACE}
+      </a>
+    </p>
+    {blocks.map((block) => (
+      <PostBlock block={block} />
+    ))}
+  </main>
+</Document>

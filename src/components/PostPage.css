@@ -1,0 +1,139 @@
+/* A post's own page, which the viewer frames: one column of the post's text, which scrolls. The page is what the
+   build fetched, so a part of it that names a font does so on the element itself: var(--sans) and var(--mono)
+   are then the ones the page's <body> gives what was fetched (japanese.css). */
+.post {
+  display: grid;
+  grid-template-columns: minmax(0, 680px);
+  /* Each part as tall as what's in it: a part that scrolls sideways (code, a table) would otherwise give its
+     height up to the page's, which is the screen's. */
+  grid-auto-rows: max-content;
+  justify-content: center;
+  align-content: start;
+  gap: 14px;
+  height: 100%;
+  padding: 28px var(--gutter) 56px;
+  overflow-y: auto;
+  overflow-wrap: anywhere;
+}
+.post h1 {
+  font: 600 24px/32px var(--sans);
+  letter-spacing: -0.01em;
+}
+.post-source {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 12px;
+  margin-bottom: 6px;
+  color: var(--text-2);
+  font: 400 13px/20px var(--sans);
+}
+.post-source a {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+}
+.post-source a::after {
+  width: 14px;
+  height: 14px;
+}
+.post :is(h2, h3, h4, h5, h6) {
+  margin: 10px 0 0;
+  font: 600 19px/26px var(--sans);
+}
+.post :is(h3, h4, h5, h6) {
+  font-size: 17px;
+}
+.post :is(h4, h5, h6) {
+  font-size: 15px;
+  line-height: 24px;
+}
+.post strong {
+  font-weight: 600;
+}
+.post del {
+  color: var(--text-2);
+}
+.post a {
+  text-decoration: underline;
+  text-decoration-color: var(--text-3);
+  text-underline-offset: 3px;
+}
+.post a:hover {
+  text-decoration-color: var(--text);
+}
+.post :is(ul, ol) {
+  display: grid;
+  gap: 6px;
+  padding-left: 22px;
+  list-style: disc;
+}
+.post ol {
+  list-style: decimal;
+}
+.post li > * + * {
+  margin-top: 6px;
+}
+.post li::marker {
+  color: var(--text-2);
+}
+.post-file {
+  margin-bottom: -8px;
+  color: var(--text-2);
+  font: 400 12.5px/18px var(--mono);
+}
+.post pre {
+  margin: 0;
+  padding: 12px 14px;
+  overflow-x: auto;
+  border-radius: 10px;
+  background: var(--code-bg);
+  box-shadow: inset 0 0 0 1px var(--line);
+  font: 400 13px/20px var(--mono);
+  overflow-wrap: normal;
+}
+.post pre code {
+  padding: 0;
+  background: none;
+  font: inherit;
+}
+.post blockquote {
+  display: grid;
+  gap: 10px;
+  margin: 0;
+  padding: 2px 0 2px 14px;
+  border-left: 2px solid var(--line);
+  color: var(--text-2);
+}
+.post-note {
+  display: grid;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  background: var(--bubble);
+  box-shadow: inset 0 0 0 1px var(--line);
+}
+.post-table {
+  overflow-x: auto;
+}
+.post table {
+  border-collapse: collapse;
+  font-size: 14.5px;
+  overflow-wrap: normal;
+}
+.post :is(th, td) {
+  padding: 6px 12px 6px 0;
+  border-bottom: 1px solid var(--line);
+  text-align: left;
+  vertical-align: top;
+}
+.post th {
+  color: var(--text-2);
+  font-weight: 500;
+}
+.post hr {
+  width: 100%;
+  margin: 6px 0;
+  border: 0;
+  border-top: 1px solid var(--line);
+}

@@ -5,7 +5,9 @@ public posts on Qiita, newest first, each a card that links to the post,
 with the day it was posted, its LGTMs and its tags. Every language's page
 has the same tab, in its own wording around one list of posts, each as you
 wrote it, in whatever language. Without `writing` there is no tab, nothing
-is fetched, and the site is as it was.
+is fetched, and the site is as it was. With `viewer: true` a post opens
+beside the conversation instead of in a new tab, as a page of the site's
+own ([Reading a post on the site](#reading-a-post-on-the-site)).
 
 The build fetches the posts, so the tab lists them as they were at the
 last build. A post you write today shows once the site is built again: on
@@ -52,6 +54,54 @@ leads nowhere ([Before your first post](#before-your-first-post)).
 - `writing` is its id, so a thread of yours can't have that one too: the
   build stops and says so.
 
+## Reading a post on the site
+
+A post's card opens the post on Qiita, in a new tab. To have it open
+beside the conversation instead (over the whole screen on a phone), in the
+site's viewer, as a document does ([The viewer](content.md#the-viewer)):
+
+```ts
+writing: { qiita: "alex-example", viewer: true },
+```
+
+Qiita lets no other site show its pages in a frame, so the viewer can't
+show the post itself. The build keeps each post's text instead, as you
+wrote it, and makes a page of the site's own of it, at
+`/writing/<the post's id>/`: its title, the day you posted it, a link to
+the post on Qiita, then its text. The viewer shows that page in its frame,
+and its "Open in a new tab" goes to the post on Qiita, as the card itself
+does with JavaScript off or a modifier key held. The build says how many
+posts it found, "each with a page of its own for the viewer".
+
+- **It's one page for every language**: it has your words, and none of
+  the site's. It's marked as Japanese if it has kana in it, and as the
+  main language's otherwise.
+- **Its text is read from your Markdown, never as HTML**
+  (`src/site/writing/body.ts`). It shows headings, paragraphs and the line
+  breaks in them, lists, boxes to tick, code under its file's name,
+  quotes, Qiita's notes (`:::note`), tables, rules, footnotes, bold,
+  italics, struck-out words and links to web addresses. HTML in a post is
+  left out, but for a picture written as `<img>`. A link to anything but
+  a web address is just its words. Mathematics and an embedded card show
+  as the text you typed.
+- **A picture is a link to it**, called by its description, since the
+  pages load nothing from another site: it opens in a new tab. A post
+  that leans on its pictures reads better on Qiita, one click away.
+- **It names the post on Qiita as its canonical address**, so a search
+  engine takes the one on Qiita for the original, and it's in neither the
+  sitemap nor llms.txt.
+- **It's as the post was at the last build**, as the tab is: an edit on
+  Qiita shows once the site is built again.
+- **Each language needs the viewer's two strings**, `viewerOpen` and
+  `viewerClose`. English has them, and the build names one that's missing.
+- **It changes what the site's policy allows**: the pages may show the
+  site's own pages in a frame, and be shown in one by the site itself and
+  by no other ([Security](security.md)). If your site says nothing can
+  show its pages in a frame, make that sentence true again.
+
+Ask and llms.txt read a post's title, as they do without `viewer`, and
+nothing of its text.
+
 ## Before your first post
 
 A site with `writing` and no public posts on Qiita yet is built without
@@ -91,8 +141,10 @@ What comes back is checked before any of it reaches a page
 (`src/site/writing/qiita.ts`). An answer that isn't a list of posts as
 Qiita's API sends one, or a post that links anywhere but `qiita.com`,
 stops the build. A post shared by link only (private, on Qiita) is left
-out. Of each post only its title, its address, when it was posted, its
-LGTMs and its tags are kept: never its body.
+out. Of each post only its id, its title, its address, when it was posted,
+its LGTMs and its tags are kept. Its text is kept only with `viewer: true`
+([Reading a post on the site](#reading-a-post-on-the-site)), as the
+Markdown you wrote: never Qiita's own HTML of it.
 
 The day on a card is the day you posted it by your own clock, in the
 page's language ("Oct 1, 2026" on an English page, "2026/10/01" on a
@@ -176,6 +228,8 @@ and `npm run fonts:check` doesn't ask for them: each post's card is marked
 `data-fetched`, and `scripts/fonts/characters.ts` leaves out what's in
 those. The stylesheet sets them in the system's Japanese font instead
 (`src/styles/japanese.css`), which every system that shows Japanese has.
+A post's own page is all fetched text, so the whole of it is marked and
+set the same way.
 A page in another language shows a Japanese title in the system's font
 too. The tab's own wording is yours, and is cut for as the rest is, even
 before your first post, while the page doesn't show it: `npm run fonts`
@@ -207,7 +261,9 @@ would answer for the sample's made-up user, and the build asks that file
 in place of Qiita (`src/site/writing/fixture.ts`), saying so as it starts.
 It answers for that user alone: any other id gets the 404 Qiita gives an
 id it doesn't have, and the build stops, so the file's posts can't stand
-in for a real site's. To build the sample as the tests do:
+in for a real site's. The sample has `viewer: true`, and its first post
+has every kind of Markdown a page shows and some it leaves out, so the
+tests hold each post's own page too. To build the sample as the tests do:
 
 ```sh
 SITE_CONFIG=tests/sample/site.config.ts WRITING_FIXTURE=tests/sample/qiita.json npm run build

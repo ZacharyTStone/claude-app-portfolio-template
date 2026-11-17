@@ -202,6 +202,11 @@ const ADDED_BY_THE_SCRIPT = {
   viewerFrame: "viewer-frame",
   viewing: "viewing",
   viewerLoading: "viewer-loading",
+  /** A post's own page, which the viewer frames: the page's one column,
+      and under its title the line with the day it was posted and the link
+      to it where it was posted. */
+  post: "post",
+  postSource: "post-source",
   /** A quote or a file card that comes in when it's scrolled to: while
       it's out of sight; once it has come in; and, when several come into
       view together, how far behind the first each one is. */
