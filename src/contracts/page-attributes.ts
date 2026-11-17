@@ -74,6 +74,11 @@ export const DATA = {
   messageDraft: "data-draft",
   /** No value: that message's copy button. */
   copyDraft: "data-copy-draft",
+  /** In "Something else", on a site with Ask and the contact form, on the
+      link to the form's tab: the question it puts in the form's message
+      box (the config's asked.q, until the browser code puts the visitor's
+      in). It is also how the browser code finds the link. */
+  formQuestion: "data-form-question",
   /** On a link that opens in the viewer: the address its frame shows, and
       what the viewer calls it. */
   viewerAddress: "data-view",

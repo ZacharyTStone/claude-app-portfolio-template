@@ -27,6 +27,7 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   contactSend: "Send",
   contactSent: "Sent, thanks. You’ll get a reply by email.",
   contactFailed: "That didn’t send. Try again later, or email {email}.",
+  askForm: "Send it with the contact form",
   copied: "Copied",
   copyFailed: "Couldn’t copy",
   menuCopy: "Copy link",

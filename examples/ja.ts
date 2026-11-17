@@ -450,6 +450,7 @@ export default function japanese(me: SampleFacts): Language {
       contactSend: "送信",
       contactSent: "送信しました。ありがとうございます。返信はメールでお送りします。",
       contactFailed: "送信できませんでした。時間をおいてもう一度お試しいただくか、{email}までメールでご連絡ください。",
+      askForm: "お問い合わせフォームで送る",
       copied: "コピーしました",
       copyFailed: "コピーできませんでした",
       menuCopy: "リンクをコピー",

@@ -55,8 +55,9 @@ export type SiteConfig = {
   /** A form under a thread's last answer that emails you a visitor's
       message: their email, the message, and Send. Its Worker (src/worker)
       sends it to the address wrangler.jsonc names (docs/contact-form.md).
-      Each language then needs the strings that start "contact". Leave out
-      for no form. It needs host "cloudflare". */
+      Each language then needs the strings that start "contact", and with
+      Ask on, strings.askForm. Leave out for no form. It needs host
+      "cloudflare". */
   contactForm?: {
     /** The id of the thread it's under: "contact". */
     tab: string;
