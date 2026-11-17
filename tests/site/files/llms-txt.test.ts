@@ -5,6 +5,7 @@ import { llmsTxt } from "../../../src/site/files/llms-txt.ts";
 import { FAVICONS } from "../../../src/site/icons.ts";
 import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite } from "../../../src/site/site.ts";
+import { sampleRepos } from "../../sample/github.ts";
 import { samplePosts } from "../../sample/qiita.ts";
 import { sampleConfig } from "../sample.ts";
 
@@ -106,4 +107,26 @@ test("a post's title can't end the link it's written in", () => {
 test("llms.txt has no Writing section for a site with no posts, or no Writing tab", () => {
   assert.ok(!llmsTxt(makeSite(sampleConfig(), [])).includes("\n## Writing\n"));
   assert.ok(!llmsTxt(makeSite(sampleConfig({ writing: undefined }), posts)).includes("\n## Writing\n"));
+});
+
+test("llms.txt lists the public repos the panel's GitHub activity lists, the latest first, saying they're only the public ones", async () => {
+  const repos = await sampleRepos();
+  const withActivity = llmsTxt(makeSite(sampleConfig(), posts, repos));
+  assert.ok(
+    withActivity.includes(
+      [
+        "\n## Recent public activity on GitHub\n",
+        `The public repos ${sampleConfig().name} pushed to most recently, as of the site's last build. Private work isn't shown.\n`,
+        "- [sam-sample/notes](https://github.com/sam-sample/notes): last pushed 2026-11-12 (UTC)",
+        "- [sample-org/shared-tool](https://github.com/sample-org/shared-tool): last pushed 2026-11-08 (UTC)",
+      ].join("\n"),
+    ),
+  );
+  assert.equal(repos.filter((repo) => !withActivity.includes(`- [${repo.name}](${repo.url}): `)).length, 0);
+});
+
+test("llms.txt has no GitHub section for a site with no public pushes lately, or no `activity`", async () => {
+  const heading = "\n## Recent public activity on GitHub\n";
+  assert.ok(!llmsTxt(makeSite(sampleConfig(), posts, [])).includes(heading));
+  assert.ok(!llmsTxt(makeSite(sampleConfig({ activity: undefined }), posts, await sampleRepos())).includes(heading));
 });

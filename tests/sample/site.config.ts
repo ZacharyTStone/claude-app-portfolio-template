@@ -2,8 +2,9 @@
    show, for the tests to check and to build (build.ts): it's served under
    a path, in two languages, with Ask on, the contact form, a link that
    opens in the viewer, one of each kind of figure, a picture that moves
-   all the time, and a Writing tab of posts on Qiita, which the tests'
-   builds are given from qiita.json: no test reaches Qiita.
+   all the time, a Writing tab of posts on Qiita, and its recent public
+   activity on GitHub in the panel, which the tests' builds are given from
+   qiita.json and github.json: no test reaches Qiita or GitHub.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -164,6 +165,8 @@ const config: SiteConfig = {
   viewer: { [notes.href]: notes.inFrame },
   // Its posts are made up: the tests' builds read them from qiita.json.
   writing: { qiita: "sam-sample" },
+  // So is its activity on GitHub, read from github.json.
+  activity: { github: "sam-sample" },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.
   languages: { en: sampleLanguage("EN", "en_US"), fr: sampleLanguage("FR", "fr_FR", stringsMarked("fr")) },

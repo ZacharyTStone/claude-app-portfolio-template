@@ -1,6 +1,7 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
-   viewer, a picture that has a still and a Writing tab; and the same site on
+   viewer, a picture that has a still, a Writing tab and GitHub activity in
+   the panel; and the same site on
    a host that reads no headers. */
 import assert from "node:assert/strict";
 import { join } from "node:path";
@@ -15,9 +16,12 @@ import type { SiteConfig } from "../../src/config/site-config.ts";
 import { HEADERS_FILE, headersFile, pagePolicy } from "../../src/site/files/headers-file.ts";
 import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
+import { panelId } from "../../src/contracts/page-ids.ts";
+import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
 import { folderForConfigs, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
+import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
 import { SAMPLE_QIITA, samplePosts } from "../sample/qiita.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
@@ -28,7 +32,8 @@ const BUILD_FOLDER = join(folder, "dist");
 const built = buildSample(BUILD_FOLDER);
 const sample = builtSite("the sample site", BUILD_FOLDER, sampleConfig);
 const posts = await samplePosts();
-const sampleSite = makeSite(sampleConfig, posts);
+const repos = await sampleRepos();
+const sampleSite = makeSite(sampleConfig, posts, repos);
 
 test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
@@ -58,6 +63,21 @@ test("the sample has a Writing tab, and the build says its posts are the tests' 
   assert.match(
     built.stdout,
     new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_QIITA)}, not Qiita's`),
+  );
+});
+
+test("the sample has GitHub activity, and the build says its repos are the tests' fixture, not GitHub's", () => {
+  assert.match(
+    built.stdout,
+    new RegExp(`the panel's GitHub activity is the fixture ${escapeRegExp(SAMPLE_GITHUB)}, not GitHub's`),
+  );
+});
+
+test("the sample's llms.txt lists its public repos", () => {
+  const llms = sample.read("llms.txt");
+  assert.deepEqual(
+    repos.filter((repo) => !llms.includes(`- [${repo.name}](${repo.url}): `)),
+    [],
   );
 });
 
@@ -100,6 +120,20 @@ for (const { file, url } of sample.languagePages) {
     assert.deepEqual(
       fetchedLinks.map(([, href]) => href),
       posts.map((post) => post.url),
+    );
+  });
+
+  test(`${file} lists the sample's recent public repos last in its panel, each a row marked as fetched`, () => {
+    const html = sample.read(file);
+    const sections = [...html.matchAll(/<section aria-labelledby="([^"]+)"/g)].map(([, id]) => id);
+    assert.equal(sections.at(-1), panelId(ACTIVITY_SECTION));
+    const section = html.match(new RegExp(`<section aria-labelledby="${panelId(ACTIVITY_SECTION)}".*?</section>`, "s"));
+    const fetchedLinks = [
+      ...(section?.[0] ?? "").matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g")),
+    ];
+    assert.deepEqual(
+      fetchedLinks.map(([, href]) => href),
+      repos.map((repo) => repo.url),
     );
   });
 

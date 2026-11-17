@@ -123,6 +123,17 @@ export const WRITING_STRING_NAMES = [
   "writingEmpty",
 ] as const satisfies readonly (keyof WritingStrings)[];
 
+/** The page's wording for the panel's GitHub activity, on a site with
+    `activity` (PART_STRINGS). */
+export type ActivityStrings = {
+  /** The heading of the panel's section, which says the repos are only
+      the public ones: "Recent public repos". */
+  activityTitle: string;
+};
+
+/** Every name in ActivityStrings. */
+export const ACTIVITY_STRING_NAMES = ["activityTitle"] as const satisfies readonly (keyof ActivityStrings)[];
+
 /** The wording the browser code shows, with the attribute on <html> that
     carries each to it. The last four are for the parts only some sites
     have (PART_STRINGS). */
@@ -199,14 +210,18 @@ type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
 export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as ScriptStringName[];
 
 /** The strings a site needs only when it has the part (the build says
-    which are missing): the script's, the contact form's, and the Writing
-    tab's own. */
+    which are missing): the script's, the contact form's, the Writing
+    tab's and the panel's GitHub activity's own. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
   contactForm: CONTACT_FORM_STRING_NAMES,
   writing: WRITING_STRING_NAMES,
-} as const satisfies Record<string, readonly (ScriptStringName | keyof ContactFormStrings | keyof WritingStrings)[]>;
+  activity: ACTIVITY_STRING_NAMES,
+} as const satisfies Record<
+  string,
+  readonly (ScriptStringName | keyof ContactFormStrings | keyof WritingStrings | keyof ActivityStrings)[]
+>;
 
 type OptionalScriptStringName = Extract<(typeof PART_STRINGS)[keyof typeof PART_STRINGS][number], ScriptStringName>;
 
@@ -224,5 +239,6 @@ export type ScriptStrings = { -readonly [Name in keyof typeof SCRIPT_STRING_ATTR
 export type Strings = PageStrings &
   Partial<ContactFormStrings> &
   Partial<WritingStrings> &
+  Partial<ActivityStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

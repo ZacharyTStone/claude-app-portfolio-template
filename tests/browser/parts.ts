@@ -2,7 +2,8 @@
    the page's own names (src/contracts/page-selectors.ts). */
 import type { Locator, Page } from "@playwright/test";
 import { SEPARATOR } from "../../src/contracts/tab-pages.ts";
-import { CHATS_GROUP, groupId, ID_PREFIX } from "../../src/contracts/page-ids.ts";
+import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
+import { CHATS_GROUP, groupId, ID_PREFIX, panelId } from "../../src/contracts/page-ids.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
   CLASS_SELECTOR as CLASS,
@@ -41,6 +42,8 @@ export const EMAIL_LINK = ATTRIBUTE.emailBody;
 
 /** The details panel's sections, in the order the page has them. */
 export const PANEL_SECTIONS = `${ID.panel} > section`;
+/** The panel's GitHub activity, the section the build adds after the config's. */
+export const ACTIVITY_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${panelId(ACTIVITY_SECTION)}"]`;
 
 /** A tab's row in the sidebar: its first, as a thread can be among the
     rows at the top and in a group too. A thread's row links to its page,

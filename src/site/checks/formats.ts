@@ -64,6 +64,11 @@ export const isPixelCount = (size: unknown): boolean => typeof size === "number"
     profile's whole address. */
 export const isQiitaUserId = looksLike(/^[A-Za-z0-9_-]+$/);
 
+/** "alex-example": a GitHub user name, letters, digits and single inner
+    hyphens, up to 39 of them, as the address of its profile has it. Not
+    "@alex-example", and not the profile's whole address. */
+export const isGitHubUserName = looksLike(/^(?=.{1,39}$)[A-Za-z0-9]+(-[A-Za-z0-9]+)*$/);
+
 /** Whether the account menu's clock can tell the time in `zone`: it uses
     this constructor (src/app), which throws for a zone it doesn't know
     ("Tokyo", for "Asia/Tokyo"). */
