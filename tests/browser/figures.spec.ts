@@ -1,10 +1,12 @@
 /* What moves in an answer. A picture a visitor plays rests as its still,
    plays once by itself when it's scrolled to, and from then on when its
    button is pressed: it moves where it is, under the page's real security
-   headers, and rests again. A picture that moves all the time does, and a
-   visitor who has asked for less motion is shown its still instead, and
-   none plays by itself for them. A quote or a file card that's out of
-   sight waits, and comes in once it's scrolled to. */
+   headers, and rests again. A chat's copy of one has a turn of its own,
+   whether the chat is new or saved from an earlier visit. A picture that
+   moves all the time does, and a visitor who has asked for less motion is
+   shown its still instead, and none plays by itself for them. A quote or a
+   file card that's out of sight waits, and comes in once it's scrolled
+   to. */
 import type { Locator, Page } from "@playwright/test";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
@@ -12,6 +14,7 @@ import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
 import {
   COMES_INTO_VIEW,
+  firstChatRow,
   MOVING_PICTURE,
   OPEN_CHAT,
   PLAY_BUTTON,
@@ -20,7 +23,7 @@ import {
   sidebarRow,
 } from "./parts.ts";
 import type { MovingPicture, PlayedPicture, Site } from "./site.ts";
-import { askInNewChat } from "./visitor.ts";
+import { askInNewChat, isInTheCard, pickInNewChat, revisit } from "./visitor.ts";
 
 /** How long to watch a picture for something in it to move. Every diagram
     has something moving within a second or two of any moment. */
@@ -184,36 +187,6 @@ test.describe("a picture a visitor plays", () => {
     });
   });
 
-  test("in a chat's copy of its answer, doesn't play by itself: scrolled to, it rests", async ({
-    page,
-    site,
-    ask,
-    playedPicture,
-  }) => {
-    test.skip(!site.ask, "Ask is off");
-    await ask.returns({ id: playedPicture.answer });
-    await page.goto("./");
-    await askInNewChat(page, "How did it go?");
-    const copy = await scrollToPlayed(page, OPEN_CHAT, 0);
-    await expectToStayAtRest(page, copy);
-  });
-
-  test("plays in a chat's copy of its answer when pressed, as the one picture playing", async ({
-    page,
-    site,
-    ask,
-    playedPicture,
-  }) => {
-    test.skip(!site.ask, "Ask is off");
-    await ask.returns({ id: playedPicture.answer });
-    await page.goto("./");
-    await askInNewChat(page, "How did it go?");
-    const copy = await scrollToPlayed(page, OPEN_CHAT, 0);
-    await copy.locator(PLAY_BUTTON).click();
-    await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
-    await expect(page.locator(CLASS.playing), "it's the one picture playing").toHaveCount(1);
-  });
-
   test.describe("on a phone", () => {
     test.use(A_PHONE);
 
@@ -268,6 +241,97 @@ test.describe("a picture a visitor plays", () => {
       expect(await fileShown(still)).toBe(playedPicture.still);
       await expect(still, "there's no playing it here, so it isn't dimmed").toHaveCSS("opacity", "1");
       await expect(figure.locator(PLAY_BUTTON)).toHaveAttribute("href", playedPicture.moving);
+    });
+  });
+});
+
+test.describe("a picture a visitor plays, copied into a chat with its thread", () => {
+  test.beforeEach(async ({ page, site, playedPicture }) => {
+    test.skip(!isInTheCard(site, playedPicture.tab), "the question card has no choice for the picture's thread");
+    await page.goto("./");
+  });
+
+  test("plays by itself once most of it is scrolled to, as the one picture playing", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    await pickInNewChat(page, site, playedPicture.tab);
+    const copy = await scrollToTheCopy(page, playedPicture);
+    await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
+    await expect(copy.locator(PLAY_BUTTON)).toHaveText(site.words.pause);
+    await expect(page.locator(CLASS.playing), "it's the one picture playing").toHaveCount(1);
+  });
+
+  test("has a turn of its own once the picture in its tab has played by itself", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    await sidebarRow(page, playedPicture.tab).click();
+    const figure = await scrollToItsTabs(page, playedPicture);
+    await expect(figure.locator(PLAYING_PICTURE), "it plays in its tab").toBeVisible();
+    await pickInNewChat(page, site, playedPicture.tab);
+    const copy = await scrollToTheCopy(page, playedPicture);
+    await expect(copy.locator(PLAYING_PICTURE), "and then in the chat").toBeVisible();
+  });
+
+  test("leaves the picture in its tab a turn of its own, having played by itself", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    await pickInNewChat(page, site, playedPicture.tab);
+    const copy = await scrollToTheCopy(page, playedPicture);
+    await expect(copy.locator(PLAYING_PICTURE), "it plays in the chat").toBeVisible();
+    await sidebarRow(page, playedPicture.tab).click();
+    const figure = await scrollToItsTabs(page, playedPicture);
+    await expect(figure.locator(PLAYING_PICTURE), "and then in its tab").toBeVisible();
+  });
+
+  test("paused as it plays by itself, plays again when pressed, as the one picture playing", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    await pickInNewChat(page, site, playedPicture.tab);
+    const copy = await scrollToTheCopy(page, playedPicture);
+    await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
+    await copy.locator(PLAY_BUTTON).click();
+    await expect(copy.locator(CLASS.moving)).toHaveCount(0);
+    await copy.locator(PLAY_BUTTON).click();
+    await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
+    await expect(page.locator(CLASS.playing), "it's the one picture playing").toHaveCount(1);
+  });
+
+  test("in a chat saved on an earlier visit, plays by itself once the chat is opened and it's scrolled to, and not before", async ({
+    page,
+    site,
+    playedPicture,
+  }) => {
+    await pickInNewChat(page, site, playedPicture.tab);
+    await expect(page.locator(`${OPEN_CHAT} ${PLAYED_FIGURE}`).nth(playedPicture.index)).toBeAttached();
+    await revisit(page, "./");
+    await expect(firstChatRow(page)).toBeVisible();
+    await page.waitForTimeout(STILL_FOR_MS);
+    await expect(page.locator(CLASS.moving), "nothing plays as the chat comes back").toHaveCount(0);
+    await firstChatRow(page).click();
+    const copy = await scrollToTheCopy(page, playedPicture);
+    await expect(copy.locator(PLAYING_PICTURE)).toBeVisible();
+  });
+
+  test.describe("with motion reduced", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("doesn't play by itself: scrolled to, it rests under a button that says Play", async ({
+      page,
+      site,
+      playedPicture,
+    }) => {
+      await pickInNewChat(page, site, playedPicture.tab);
+      const copy = await scrollToTheCopy(page, playedPicture);
+      await expectToStayAtRest(page, copy);
+      await expect(copy.locator(PLAY_BUTTON)).toHaveText(site.words.play);
     });
   });
 });
@@ -370,6 +434,13 @@ async function scrollToPlayed(page: Page, within: string, index: number): Promis
 /** The figure of a site's played picture, in its own tab. */
 const scrollToItsTabs = (page: Page, { tab, index }: PlayedPicture): Promise<Locator> =>
   scrollToPlayed(page, `#${tab}`, index);
+
+/** The copy of a site's played picture in the open chat, which has its
+    thread's answers, scrolled to once the reply is all in. */
+async function scrollToTheCopy(page: Page, { index }: PlayedPicture): Promise<Locator> {
+  await expect(page.locator(`${OPEN_CHAT} ${CLASS.thinking}`), "the reply has come").toHaveCount(0);
+  return scrollToPlayed(page, OPEN_CHAT, index);
+}
 
 /** The figure of a site's played picture, where it is: in its tab, open or
     not. */

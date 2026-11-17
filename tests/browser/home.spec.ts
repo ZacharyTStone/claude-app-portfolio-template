@@ -17,6 +17,7 @@ import {
   OPEN_CHAT,
   openTab,
   PANEL_SECTIONS,
+  PLAY_BUTTON,
   sidebarRow,
   windowTitle,
   wordsTyped,
@@ -200,9 +201,19 @@ test.describe("copying a tab's link", () => {
   });
 });
 
-/** An element's text as it reads, whatever the markup did to its spaces. */
+/** An element's text as it reads, whatever the markup did to its spaces,
+    without a Play button's word: that says whether a picture is playing,
+    and one in a chat's reply plays by itself once it's on screen. */
 const textAsRead = async (element: Locator): Promise<string> =>
-  ((await element.textContent()) ?? "").replace(/\s+/g, " ").trim();
+  (
+    await element.evaluate((shown, button) => {
+      const copy = shown.cloneNode(true) as Element;
+      for (const word of copy.querySelectorAll(button)) word.remove();
+      return copy.textContent;
+    }, PLAY_BUTTON)
+  )
+    .replace(/\s+/g, " ")
+    .trim();
 
 /** The answer an id names ("work.2"), where its own tab has it. */
 function answerNamed(page: Page, answerId: string): Locator {

@@ -8,9 +8,10 @@ import { SIZE } from "../constants.ts";
 import { find } from "../lib/dom.ts";
 import { pause, scrollToTop } from "../lib/motion.ts";
 import { askUrl, words } from "../page.ts";
+import { watchForTurnsIn } from "../play.ts";
 import { isChat } from "../tabs.ts";
 import { ask } from "./ask.ts";
-import { addToChat, sentInChat, showChat, updateInChat } from "./chats.ts";
+import { addToChat, sentInChat, updateInChat } from "./chats.ts";
 import { isUnasked, outcomeOf, withOutcome, type Exchange, type TypedQuestion } from "./exchange.ts";
 import { lastTurns, turnOf } from "./follow-up.ts";
 import {
@@ -84,8 +85,15 @@ function markSent(message: Element): Element {
   return message;
 }
 
+/** Puts messages at the end of a thread, where a picture in them has its
+    turn to play by itself (play.ts). */
+function putIn(thread: HTMLElement, messages: Element[]): void {
+  thread.append(...messages.map(markSent));
+  watchForTurnsIn(messages);
+}
+
 function add(delivery: Delivery, message: Element): void {
-  delivery.thread.append(markSent(message));
+  putIn(delivery.thread, [message]);
   if (!delivery.isFollowingQuestion) return;
   const reachedTheTop = scrollToTop(delivery.scroller, delivery.questionBubble, SIZE.jumpMargin);
   delivery.isFollowingQuestion = !reachedTheTop;
@@ -151,6 +159,14 @@ async function replyOnceItComes(delivery: Delivery, exchange: Exchange): Promise
   return messages;
 }
 
+/** The rest of a reply in a chat that was left part way through it goes in
+    at once, for when it's opened again: after what's in already, whose
+    pictures keep the turns they have. In one of the site's own tabs, what
+    was sent is gone already (resetThreads). */
+function putInTheRest(delivery: Delivery, messages: Element[]): void {
+  if (isChat(delivery.tab)) putIn(delivery.thread, messages.slice(delivery.shownCount));
+}
+
 /** Puts a reply in, a message at a time, until it's all in or something
     else is sent (the rest then goes in at once) or another tab opens. */
 async function showOneByOne(delivery: Delivery, messages: Element[]): Promise<void> {
@@ -158,8 +174,7 @@ async function showOneByOne(delivery: Delivery, messages: Element[]): Promise<vo
   while (delivery.shownCount < messages.length) {
     if (delivery.shownCount > 0) await pause(BETWEEN_MESSAGES_MS);
     if (delivery.isHurried) return;
-    // A chat stopped part way is shown whole, for when it's opened again.
-    if (delivery.isStopped) return showChat(delivery.tab);
+    if (delivery.isStopped) return putInTheRest(delivery, messages);
     showNext(delivery);
   }
   if (current === delivery) current = null;
@@ -176,7 +191,10 @@ export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> 
   if (openTab?.tab === tab) openTab.sent.push(delivery);
   current = delivery;
   const messages = await replyOnceItComes(delivery, exchange);
-  if (delivery.isHurried) return delivery.thinkingLine.replaceWith(...messages.map(markSent));
+  if (delivery.isHurried) {
+    delivery.thinkingLine.replaceWith(...messages.map(markSent));
+    return watchForTurnsIn(messages);
+  }
   delivery.thinkingLine.remove();
   await showOneByOne(delivery, messages);
 }
