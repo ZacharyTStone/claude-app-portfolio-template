@@ -1,0 +1,30 @@
+---
+/* The pieces of a line of a post (src/site/writing/body.ts), as elements. Astro escapes their words, so no HTML
+   gets through, and a link is to a web address: it opens in a new tab, and tells that site nothing. */
+import { newTabAttributes } from "../contracts/links.ts";
+import type { PostSpan } from "../site/writing/body.ts";
+
+interface Props {
+  spans: PostSpan[];
+}
+const { spans } = Astro.props;
+---
+
+{spans.map((span) => {
+  if (typeof span === "string") return span;
+  if (span.type === "code") return <code>{span.text}</code>;
+  if (span.type === "break") return <br />;
+  if (span.type === "link") {
+    return (
+      <a href={span.href} {...newTabAttributes(span.href)}>
+        <Astro.self spans={span.spans} />
+      </a>
+    );
+  }
+  const Marked = span.type;
+  return (
+    <Marked>
+      <Astro.self spans={span.spans} />
+    </Marked>
+  );
+})}

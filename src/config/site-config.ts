@@ -72,7 +72,8 @@ export type SiteConfig = {
   /** A Writing tab, listing your posts elsewhere: { qiita: "alex-example" }.
       The build fetches them, and stops if it can't, so a new post shows
       once the site is built again (docs/writing.md). Each language then
-      needs the writing* strings (English has them). Leave out for none. */
+      needs the writing* strings (English has them). With viewer: true, a
+      post opens in the site's viewer. Leave out for none. */
   writing?: Writing;
   /** Your recent public activity, in a section of the details panel: the
       public repos you pushed to most recently, each with the day:

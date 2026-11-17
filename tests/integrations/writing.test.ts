@@ -50,6 +50,25 @@ test("the posts fetched are said, by how many and whose", async () => {
   assert.equal(said.at(-1), `info: the Writing tab lists ${posts.length} posts by ${sampleFixture().user} on Qiita`);
 });
 
+test("on a site whose viewer shows its posts, each is fetched with its text, and what's said says each has a page", async () => {
+  const { said, log } = logger();
+  const fromTheFixture = () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log);
+  const posts = await fetchPosts(sampleWriting({ viewer: true }), fromTheFixture, log);
+  assert.ok(Array.isArray(posts) && posts.length > 0);
+  assert.ok(posts.every((post) => post.body));
+  assert.equal(
+    said.at(-1),
+    `info: the Writing tab lists ${posts.length} posts by ${sampleFixture().user} on Qiita, each with a page of its own for the viewer (writing.viewer)`,
+  );
+});
+
+test("on any other site, nothing of a post's text is fetched into the build", async () => {
+  const { log } = logger();
+  const posts = await fetchPosts(sampleWriting(), () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA }, log), log);
+  assert.ok(Array.isArray(posts) && posts.length > 0);
+  assert.ok(posts.every((post) => !("body" in post)));
+});
+
 test("with no posts yet, what's said is that the site has no Writing tab until the first", async () => {
   const { said, log } = logger();
   const fromNoPosts = () => qiitaFetch({ [WRITING_FIXTURE]: SAMPLE_QIITA_WITH_NO_POSTS }, log);

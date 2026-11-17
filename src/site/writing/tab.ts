@@ -6,18 +6,14 @@ import type { Thread } from "../../config/language.ts";
 import type { Sidebar } from "../../config/sidebar.ts";
 import type { Strings } from "../../config/strings.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../config/writing.ts";
-import { dayPosted, type Post } from "./post.ts";
-
-/** Kana. A title with any is Japanese; one with kanji alone could be
-    Chinese as well, so it isn't marked. */
-const KANA = /[\p{Script=Hiragana}\p{Script=Katakana}]/u;
+import { dayPosted, isInJapanese, type Post } from "./post.ts";
 
 /** The language a post's title is in, where it isn't the page's and can be
-    told from the title: "ja", or undefined. */
+    told from the title: "ja", or undefined. A title in kanji alone isn't
+    marked (isInJapanese). */
 function titleLanguage(title: string, pageLanguage: string): string | undefined {
-  const isJapanese = KANA.test(title);
   const pageIsJapanese = pageLanguage.split("-")[0] === "ja";
-  return isJapanese && !pageIsJapanese ? "ja" : undefined;
+  return isInJapanese(title) && !pageIsJapanese ? "ja" : undefined;
 }
 
 /** The day as the page's language writes it: "Oct 1, 2026", "2026/10/01".

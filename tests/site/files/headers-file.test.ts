@@ -11,10 +11,10 @@ import { sampleConfig } from "../sample.ts";
 const HOSTS_THAT_READ_A_HEADERS_FILE: Host[] = ["cloudflare", "netlify"];
 const HOSTS_THAT_READ_NONE = HOSTS.filter((host) => !HOSTS_THAT_READ_A_HEADERS_FILE.includes(host));
 
-/** The sample on `host`, with neither Ask, the contact form nor a viewer: its policy allows nothing beyond the
-    site's own files. */
+/** The sample on `host`, with neither Ask, the contact form, a viewer nor a Writing tab: its policy allows
+    nothing beyond the site's own files. */
 const plainSiteOn = (host: Host) =>
-  makeSite(sampleConfig({ host, ask: undefined, contactForm: undefined, viewer: undefined }));
+  makeSite(sampleConfig({ host, ask: undefined, contactForm: undefined, viewer: undefined, writing: undefined }));
 
 /** Written out, so that a change to a header fails here, not only in the function that writes it. */
 const PLAIN_SITES_HEADERS_FILE = [
@@ -53,18 +53,47 @@ const VIEWER = { "https://docs.example.com/d/1/edit": "https://docs.example.com/
 const FRAMES_FROM_THE_VIEWERS_SITE = "frame-src https://docs.example.com";
 
 test("a host's _headers file lets frames come from the viewer's site", () => {
-  const file = headersFile(makeSite(sampleConfig({ viewer: VIEWER, host: "cloudflare" })));
+  const file = headersFile(makeSite(sampleConfig({ viewer: VIEWER, writing: undefined, host: "cloudflare" })));
   assert.ok(file?.includes(FRAMES_FROM_THE_VIEWERS_SITE));
 });
 
 test("a page that carries its own policy lets frames come from the viewer's site", () => {
-  const policy = pagePolicy(makeSite(sampleConfig({ viewer: VIEWER, host: "static" })));
+  const policy = pagePolicy(makeSite(sampleConfig({ viewer: VIEWER, writing: undefined, host: "static" })));
   assert.ok(policy.includes(FRAMES_FROM_THE_VIEWERS_SITE));
 });
 
 test("a site with the contact form may post a form, to itself, and fetch from itself", () => {
-  const policy = pagePolicy(makeSite(sampleConfig({ ask: undefined, viewer: undefined })));
+  const policy = pagePolicy(makeSite(sampleConfig({ ask: undefined, viewer: undefined, writing: undefined })));
   assert.equal(policy, contentSecurityPolicy({ ask: false, contactForm: true, meta: true }));
   assert.match(policy, /(^|; )form-action 'self'(;|$)/);
   assert.match(policy, /(^|; )connect-src 'self'(;|$)/);
+});
+
+/** The sample with a Writing tab alone of what its policy depends on: its posts open in the viewer, or, with
+    `viewer` false, in a new tab. */
+const withAWritingTab = (viewer: boolean, host: Host) =>
+  makeSite(
+    sampleConfig({
+      host,
+      ask: undefined,
+      contactForm: undefined,
+      viewer: undefined,
+      writing: { qiita: "sam-sample", viewer },
+    }),
+  );
+
+test("a site whose viewer shows its posts may frame its own pages, and only it may frame them", () => {
+  const file = headersFile(withAWritingTab(true, "cloudflare")) ?? "";
+  assert.match(file, /; frame-src 'self'; /);
+  assert.match(file, /; frame-ancestors 'self'; /);
+  assert.match(file, /^ {2}X-Frame-Options: SAMEORIGIN$/m);
+  assert.equal(
+    pagePolicy(withAWritingTab(true, "static")),
+    contentSecurityPolicy({ ask: false, ownFrames: true, meta: true }),
+  );
+});
+
+test("a site whose posts open in a new tab frames nothing, and nothing frames it", () => {
+  assert.equal(headersFile(withAWritingTab(false, "cloudflare")), PLAIN_SITES_HEADERS_FILE);
+  assert.equal(pagePolicy(withAWritingTab(false, "static")), contentSecurityPolicy({ ask: false, meta: true }));
 });

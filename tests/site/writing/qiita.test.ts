@@ -53,9 +53,19 @@ const noConnection = () => new TypeError("fetch failed", { cause: new Error("get
 
 const postsOf = (fetch: Fetch, perPage?: number) => qiitaPosts(USER, { fetch, perPage, retryAfterMs: NO_WAIT });
 
-test("a post keeps its title, its link, when it was posted, its LGTMs and its tags, and nothing of its body", async () => {
+/** The sample's posts, of the tests' stand-in for Qiita: with each one's
+    text, or, as on a site whose viewer doesn't show its posts, without. */
+const fromTheSample = (bodies?: boolean) => qiitaPosts(USER, { fetch: fixtureFetch(sampleFixture()), bodies });
+
+/** An item of the fixture's, as far as these tests read one. */
+type FixtureItem = { id: string; body: string; rendered_body?: string };
+
+const fixtureItems = () => sampleFixture().items as FixtureItem[];
+
+test("a post keeps its id, its title, its link, when it was posted, its LGTMs and its tags, and nothing of its body", async () => {
   const expected: Post[] = [
     {
+      id: "c0ffee0000000000c0f1",
       title: "Astroで静的サイトを組み立てる",
       url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f1",
       posted: "2026-10-01T09:30:00+09:00",
@@ -63,6 +73,7 @@ test("a post keeps its title, its link, when it was posted, its LGTMs and its ta
       tags: ["Astro", "TypeScript"],
     },
     {
+      id: "c0ffee0000000000c0f3",
       title: "Testing a static site in Playwright",
       url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f3",
       posted: "2026-06-15T18:00:00+09:00",
@@ -70,7 +81,30 @@ test("a post keeps its title, its link, when it was posted, its LGTMs and its ta
       tags: ["Playwright"],
     },
   ];
-  assert.deepEqual(await samplePosts(), expected);
+  assert.deepEqual(await fromTheSample(), expected);
+});
+
+test("for a site whose viewer shows its posts, a post keeps its text too, as its author wrote it", async () => {
+  const written = new Map(fixtureItems().map(({ id, body }) => [id, body]));
+  const posts = await fromTheSample(true);
+  assert.ok(posts.length, "the fixture has public posts");
+  assert.deepEqual(
+    posts.map((post) => post.body),
+    posts.map((post) => written.get(post.id)),
+  );
+  assert.ok(posts.every((post) => post.body));
+});
+
+test("Qiita's own HTML of a post is never kept, with the post's text or without", async () => {
+  const qiitasHtml = fixtureItems().flatMap((each) => each.rendered_body ?? []);
+  assert.ok(qiitasHtml.length, "the fixture has a post as Qiita's HTML");
+  for (const posts of [await fromTheSample(), await fromTheSample(true)]) {
+    const kept = JSON.stringify(posts);
+    assert.deepEqual(
+      qiitasHtml.filter((html) => kept.includes(html)),
+      [],
+    );
+  }
 });
 
 test("a post shared by link only (private) is left out", async () => {
@@ -156,7 +190,9 @@ test("a refusal that another try wouldn't change (too many requests in the hour)
 
 for (const [wrong, answer, where] of [
   ["an object, not a list", { items: [] }, "the answer"],
+  ["a post whose id couldn't be one part of an address", [item(1, { id: "../item1" })], "0.id"],
   ["a post without a title", [item(1, { title: "  " })], "0.title"],
+  ["a post whose text isn't text", [item(1, { body: { html: "<p>The body.</p>" } })], "0.body"],
   ["a post that links to another site", [item(1, { url: "https://example.com/items/1" })], "0.url"],
   ["a post whose date isn't one", [item(1, { created_at: "yesterday" })], "0.created_at"],
   ["a post with LGTMs that aren't a count", [item(1, { likes_count: -1 })], "0.likes_count"],

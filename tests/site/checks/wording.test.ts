@@ -63,6 +63,20 @@ testEachProblem([
     ],
   },
   {
+    wrong: "a viewer that shows the Writing tab's posts and no other link, without the words for its buttons",
+    change: (sample) => {
+      delete sample.viewer;
+      for (const language of Object.values(sample.languages)) {
+        delete statedStrings(language).viewerOpen;
+        delete statedStrings(language).viewerClose;
+      }
+    },
+    problems: [
+      "fr: strings.viewerOpen is missing (writing.viewer needs it)",
+      "fr: strings.viewerClose is missing (writing.viewer needs it)",
+    ],
+  },
+  {
     wrong: "a string left out of a language other than English",
     change: inFrench((french) => delete statedStrings(french).skip),
     problems: [`fr: strings.skip is missing: ${ONLY_ENGLISH_HAS_ITS_OWN}`],
@@ -122,6 +136,13 @@ testEachProblem([
     problems: ["fr: strings.writingEmpty is missing (writing.showWhenEmpty needs it)"],
   },
 ]);
+
+test("a site with no viewer, whose posts open in a new tab, needs no words for a viewer's buttons", () => {
+  const withoutAViewer = sampleConfig({ viewer: undefined, writing: { qiita: "sam-sample" } });
+  delete statedStrings(languageOf(withoutAViewer, "fr")).viewerOpen;
+  delete statedStrings(languageOf(withoutAViewer, "fr")).viewerClose;
+  assert.deepEqual(problemsIn(withoutAViewer), []);
+});
 
 test("a Writing tab that comes with the first post needs no words for when there's none", () => {
   const withoutTheLine = sampleConfig();

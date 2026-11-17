@@ -14,6 +14,10 @@ export type PolicyOptions = {
   contactForm?: boolean;
   /** The sites the viewer may show in a frame (frameOrigins), if any. */
   frames?: readonly string[];
+  /** The viewer shows the site's own pages of its posts in a frame (the
+      config's writing.viewer): the pages may frame the site itself, and be
+      framed by it and by no other site. */
+  ownFrames?: boolean;
 };
 
 /** The sites the viewer shows pages from: the origin of each address in
@@ -25,20 +29,26 @@ export function frameOrigins(viewer: Record<string, string> = {}): string[] {
   return [...new Set(origins)].sort();
 }
 
+/** Where the pages' frames may come from: the site itself, for its own
+    pages of its posts, then the sites its viewer names. */
+const frameSources = ({ frames = [], ownFrames }: PolicyOptions): string[] => [
+  ...(ownFrames ? ["'self'"] : []),
+  ...frames,
+];
+
 /** The Content-Security-Policy, directive by directive: only same-origin
     scripts, styles, images and fonts, nothing inline, and Trusted Types
     required, so no script can turn a string into markup. A site with a
-    viewer may also show pages from the sites its viewer names, in a frame;
-    one with the contact form may post a form, to itself.
+    viewer may also show pages from the sites its viewer names, in a frame,
+    and its own pages of its posts if its viewer shows those: only then may
+    a page be framed at all, and by the site itself alone. One with the
+    contact form may post a form, to itself.
 
     With `meta`, it's the policy for a page to carry in a <meta> tag: the
     same, less frame-ancestors, which browsers only take from a header. */
-export function contentSecurityPolicy({
-  ask,
-  contactForm = false,
-  frames = [],
-  meta = false,
-}: PolicyOptions & { meta?: boolean }): string {
+export function contentSecurityPolicy(options: PolicyOptions & { meta?: boolean }): string {
+  const { ask, contactForm = false, ownFrames = false, meta = false } = options;
+  const frames = frameSources(options);
   const directives = [
     "default-src 'none'",
     "script-src 'self'",
@@ -53,7 +63,7 @@ export function contentSecurityPolicy({
     // The one form a page may post is the contact form, to the site itself.
     `form-action ${contactForm ? "'self'" : "'none'"}`,
     // Browsers ignore this one in a <meta> tag (and say so in the console).
-    ...(meta ? [] : ["frame-ancestors 'none'"]),
+    ...(meta ? [] : [`frame-ancestors ${ownFrames ? "'self'" : "'none'"}`]),
     "require-trusted-types-for 'script'",
     "trusted-types 'none'",
   ];
@@ -91,9 +101,10 @@ export function securityHeaders({
     ["Content-Security-Policy", contentSecurityPolicy(policy)],
     // A file is what its type says it is, never guessed from its contents.
     ["X-Content-Type-Options", "nosniff"],
-    // No site shows these pages in a frame: for browsers that predate the
+    // No other site shows these pages in a frame, and the site itself only
+    // where its viewer shows its own pages: for browsers that predate the
     // policy's frame-ancestors.
-    ["X-Frame-Options", "DENY"],
+    ["X-Frame-Options", policy.ownFrames ? "SAMEORIGIN" : "DENY"],
     ["Referrer-Policy", REFERRER_POLICY],
     ["Permissions-Policy", PERMISSIONS_POLICY],
     // A window from another site that this page opens, or that opened it,

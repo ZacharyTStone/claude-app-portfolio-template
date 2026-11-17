@@ -1,7 +1,9 @@
 /* A built site, as files, and the tests any built site has to pass: this
    repo's own (dist/) and the sample the tests build. Every language's page
    has the main one's structure, nothing is inline, the links are safe, and
-   everything on the site they point at is there, under the site's path. */
+   everything on the site they point at is there, under the site's path. A
+   post's own page, on a site whose viewer shows its posts, is held to the
+   same, and has no script at all. */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
@@ -14,6 +16,7 @@ import { portfolioPages } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { basePath } from "../../src/site/url.ts";
 import type { Post } from "../../src/site/writing/post.ts";
+import { postPages } from "../../src/site/writing/post-pages.ts";
 
 /** A built file, and where it's served. */
 type ServedFile = { file: string; url: URL };
@@ -27,7 +30,10 @@ export type BuiltSite = {
   languagePages: ServedFile[];
   /** Each language's tabs' pages, and the tab each has open. */
   tabPages: Array<ServedFile & { tab: string }>;
-  /** Every page: each language's home page, its tabs' pages, and the 404 page. */
+  /** Each post's own page, on a site whose viewer shows its posts. */
+  postPages: ServedFile[];
+  /** Every page: each language's home page, its tabs' pages, each post's
+      own page, and the 404 page. */
   pages: ServedFile[];
   /** Whether the build has this file, by its path in the built folder. */
   hasFile: (file: string) => boolean;
@@ -46,12 +52,14 @@ export function builtSite(name: string, folder: string, config: SiteConfig, post
   const servedAt = (path: string): ServedFile => served(`${path.slice(1)}index.html`);
   const languagePages = site.codes.map((code) => servedAt(site.home(code)));
   const tabPages = portfolioPages(site).flatMap(({ head, tab }) => (tab ? [{ ...servedAt(head.path), tab }] : []));
+  const ownPagesOfPosts = postPages(site).map(({ path }) => servedAt(path));
   return {
     name,
     url,
     languagePages,
     tabPages,
-    pages: [...languagePages, ...tabPages, served(NOT_FOUND_PAGE)],
+    postPages: ownPagesOfPosts,
+    pages: [...languagePages, ...tabPages, ...ownPagesOfPosts, served(NOT_FOUND_PAGE)],
     hasFile: (file) => existsSync(join(folder, file)) && statSync(join(folder, file)).isFile(),
     hasFolder: (file) => existsSync(join(folder, file)) && statSync(join(folder, file)).isDirectory(),
     read: (file) => readFileSync(join(folder, file), "utf8"),
@@ -218,9 +226,11 @@ function testEachPartHasOneTopHeading(site: BuiltSite): void {
       assert.equal(topHeadingsIn(html), views.length);
     });
   }
-  test(`${site.name}: ${NOT_FOUND_PAGE} has one <h1>`, () => {
-    assert.equal(topHeadingsIn(site.read(NOT_FOUND_PAGE)), 1);
-  });
+  for (const file of [...site.postPages.map((page) => page.file), NOT_FOUND_PAGE]) {
+    test(`${site.name}: ${file} has one <h1>`, () => {
+      assert.equal(topHeadingsIn(site.read(file)), 1);
+    });
+  }
 }
 
 /** How far into a page a browser looks for its <meta charset> when the
@@ -240,9 +250,11 @@ function testEachPageSaysItsCharsetEarly(site: BuiltSite): void {
 }
 
 function testNothingIsInline(site: BuiltSite): void {
+  // A page of the portfolio's carries the script's data. A post's own page and the 404 page have no script.
+  const portfolioFiles = new Set([...site.languagePages, ...site.tabPages].map((page) => page.file));
   for (const { file } of site.pages) {
-    test(`${site.name}: ${file} has no inline script but its two data blocks`, () => {
-      const dataBlocks = file === NOT_FOUND_PAGE ? [] : ["application/json", "application/ld+json"];
+    test(`${site.name}: ${file} has no inline script but its data blocks, if it has any`, () => {
+      const dataBlocks = portfolioFiles.has(file) ? ["application/json", "application/ld+json"] : [];
       assert.deepEqual(inlineScriptTypes(site.read(file)), dataBlocks);
     });
 

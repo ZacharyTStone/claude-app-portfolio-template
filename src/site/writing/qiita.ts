@@ -2,7 +2,8 @@
    lists them. The build asks once for every hundred posts, with no token:
    Qiita answers one address about 60 times an hour that way. What comes
    back is checked before anything of it reaches a page, and only what the
-   tab shows is kept. */
+   site shows is kept: a post's text only when the site's viewer shows its
+   posts. */
 import * as v from "valibot";
 import { unreachable, WAIT_MS, withOneMoreTry, type Failure, type Fetch } from "../fetching.ts";
 import { newestFirst, type Post } from "./post.ts";
@@ -14,9 +15,12 @@ export const qiitaItemsAddress = (user: string, page: number, perPage: number): 
 /** The most posts Qiita gives in a page, and the last page it serves. */
 const PAGES = { size: 100, last: 100 } as const;
 
-/** An item as Qiita's API has it, but for what the tab doesn't show:
-    v.object leaves out every other field, the post's body among them. */
+/** An item as Qiita's API has it, but for what the site doesn't show:
+    v.object leaves out every other field, the post as Qiita's own HTML
+    among them. */
 const ItemSchema = v.object({
+  // It names the post's own page on this site, so it's a path's one part.
+  id: v.pipe(v.string(), v.regex(/^[\w-]+$/)),
   title: v.pipe(v.string(), v.trim(), v.nonEmpty()),
   // A card links to Qiita, and to nowhere else.
   url: v.pipe(v.string(), v.startsWith("https://qiita.com/")),
@@ -24,6 +28,8 @@ const ItemSchema = v.object({
   likes_count: v.pipe(v.number(), v.integer(), v.minValue(0)),
   tags: v.array(v.object({ name: v.string() })),
   private: v.boolean(),
+  // The post as its author wrote it, in Markdown.
+  body: v.optional(v.string()),
 });
 
 type Item = v.InferOutput<typeof ItemSchema>;
@@ -35,6 +41,9 @@ const RefusalSchema = v.object({ type: v.string() });
 
 export type QiitaOptions = {
   fetch: Fetch;
+  /** Whether each post's text is kept: for a site whose viewer shows its
+      posts (the config's writing.viewer). */
+  bodies?: boolean | undefined;
   /** Posts a page: 100, unless a test asks for fewer to see the pages followed. */
   perPage?: number;
   /** How long a failed request waits before it's tried again: 2 seconds,
@@ -75,12 +84,14 @@ async function tryPage(address: string, fetch: Fetch): Promise<Item[] | Failure>
 const pageOfItems = (address: string, options: QiitaOptions): Promise<Item[]> =>
   withOneMoreTry(address, () => tryPage(address, options.fetch), options.retryAfterMs);
 
-const postOf = (item: Item): Post => ({
+const postOf = (item: Item, withItsBody: boolean): Post => ({
+  id: item.id,
   title: item.title,
   url: item.url,
   posted: item.created_at,
   likes: item.likes_count,
   tags: item.tags.map((tag) => tag.name),
+  ...(withItsBody && item.body !== undefined ? { body: item.body } : {}),
 });
 
 /** Every public post of `user`'s, newest first, following the pages until
@@ -94,5 +105,6 @@ export async function qiitaPosts(user: string, options: QiitaOptions): Promise<P
     items.push(...onThisPage);
     if (onThisPage.length < perPage) break;
   }
-  return newestFirst(items.filter((item) => !item.private).map(postOf));
+  const withBodies = options.bodies === true;
+  return newestFirst(items.filter((item) => !item.private).map((item) => postOf(item, withBodies)));
 }

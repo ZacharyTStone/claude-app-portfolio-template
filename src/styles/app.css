@@ -30,6 +30,7 @@
 @import "../components/Home.css";
 @import "../components/Panel.css";
 @import "../components/Logo.css";
+@import "../components/PostPage.css";
 
 @import "folding.css";
 @import "thread-menu.css";

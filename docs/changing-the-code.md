@@ -142,6 +142,15 @@ for no real site's. A new test that builds a site goes through
 [GitHub activity](github-activity.md#without-github-in-the-tests) say the
 same for a site's owner.
 
+A post's text, which a build keeps for a site whose viewer shows its
+posts, is read into parts by `src/site/writing/body.ts`, with Astro's own
+Markdown reader (`satteri`, which only the build runs), and each post's
+page is made from the parts (`src/site/writing/post-pages.ts`,
+`src/components/PostPage.astro`). A new kind of part is a member of
+`PostBlock`, a row in `tests/site/writing/body.test.ts`, and an element in
+`src/components/PostBlock.astro`; nothing of a post is ever given to
+`set:html`.
+
 ## Adding a browser check
 
 The checks are Playwright tests, `tests/browser/*.spec.ts`.
@@ -168,7 +177,8 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`, `writingTab`, `githubActivity`, `gatheredContext`. A test
+  `contactForm`, `writingTab`, `postInViewer`, `githubActivity`,
+  `gatheredContext`. A test
   that asks for one is skipped, with the reason, on a site without it. For
   any other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.

@@ -33,10 +33,12 @@ export function qiitaFetch(environment: NodeJS.ProcessEnv, log: Log): Fetch {
   return fixtureFetch(readFixture(resolve(ROOT, fixtureFile)));
 }
 
-/** What's said of the posts fetched: how many and whose, and, with none,
+/** What's said of the posts fetched: how many and whose (and that each has
+    a page of the site's own, where the viewer shows them), and, with none,
     what the site has for a tab. */
-function postsFound(count: number, { qiita, showWhenEmpty }: Writing): string {
-  if (count > 0) return `the Writing tab lists ${count} posts by ${qiita} on Qiita`;
+function postsFound(count: number, { qiita, showWhenEmpty, viewer }: Writing): string {
+  const inTheViewer = viewer ? ", each with a page of its own for the viewer (writing.viewer)" : "";
+  if (count > 0) return `the Writing tab lists ${count} posts by ${qiita} on Qiita${inTheViewer}`;
   return showWhenEmpty
     ? `${qiita} has no public posts on Qiita yet, and the Writing tab says so (writing.showWhenEmpty)`
     : `${qiita} has no public posts on Qiita yet, so the site has no Writing tab until the first`;
@@ -46,7 +48,7 @@ function postsFound(count: number, { qiita, showWhenEmpty }: Writing): string {
     says, or why there are none. */
 export async function fetchPosts(writing: Writing, howToAsk: () => Fetch, log: Log): Promise<Post[] | string> {
   try {
-    const posts = await qiitaPosts(writing.qiita, { fetch: howToAsk() });
+    const posts = await qiitaPosts(writing.qiita, { fetch: howToAsk(), bodies: writing.viewer });
     log.info(postsFound(posts.length, writing));
     return posts;
   } catch (error) {

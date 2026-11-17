@@ -16,6 +16,7 @@ import {
   type GitHubActivity,
   type MovingPicture,
   type PlayedPicture,
+  type PostInViewer,
   type SidebarGroup,
   type Site,
   type Thread,
@@ -61,6 +62,7 @@ type SiteParts = {
   comingIntoView: ComesIntoView;
   contactForm: ContactForm;
   writingTab: WritingTab;
+  postInViewer: PostInViewer;
   githubActivity: GitHubActivity;
   gatheredContext: GatheredContext;
 };
@@ -88,6 +90,15 @@ type ForEachWorker = {
 };
 
 type Use<Value> = (value: Value) => Promise<void>;
+
+/** The first post whose card opens it in the viewer, if the site's viewer
+    shows its posts. */
+function postInViewerOf(site: Site): PostInViewer | null {
+  for (const { href, page, title } of site.writing?.posts ?? []) {
+    if (page !== null && title !== null) return { href, page, title };
+  }
+  return null;
+}
 
 /** A fixture for a part only some sites have. */
 const partOrSkip =
@@ -168,6 +179,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   comingIntoView: partOrSkip((site) => site.comesIntoView, "no answer on the site has a quote or a file card"),
   contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
   writingTab: partOrSkip((site) => site.writing, "the site has no Writing tab"),
+  postInViewer: partOrSkip(postInViewerOf, "the site's viewer shows no posts"),
   githubActivity: partOrSkip((site) => site.activity, "the site has no GitHub activity in its panel"),
   gatheredContext: partOrSkip((site) => site.context, "the panel's Context gathers no links from the answers"),
 });

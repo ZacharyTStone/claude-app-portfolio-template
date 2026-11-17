@@ -1,7 +1,8 @@
 /* The Writing tab: the posts the build fetched, a card each, under the tab's
    own question, on every language's page; with JavaScript on and off, and
-   on a phone. A card links to the post's own page, which the checks never
-   open: they never use the network. */
+   on a phone. A card links to the post where it was posted, which the
+   checks never open: they never use the network. What a card opens on a
+   site whose viewer shows its posts is in post-pages.spec.ts. */
 import type { Page } from "@playwright/test";
 import { WRITING_TAB } from "../../src/config/writing.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
@@ -45,7 +46,9 @@ test.describe("the Writing tab, opened from its row in the sidebar", () => {
     await expect(page).toHaveTitle(windowTitle(writingTab.title, site));
   });
 
-  test("opens a post in a new tab, and tells its site nothing of where the visitor came from", async ({ page }) => {
+  test("links each card to its post in a new tab, which is told nothing of where the visitor came from", async ({
+    page,
+  }) => {
     for (const card of await cardsIn(page).all()) {
       await expect(card).toHaveAttribute("target", "_blank");
       await expect(card).toHaveAttribute("rel", /\bnoreferrer\b/);

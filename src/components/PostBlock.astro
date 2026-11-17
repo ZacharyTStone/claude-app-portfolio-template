@@ -1,0 +1,81 @@
+---
+/* One part of a post (src/site/writing/body.ts), as elements: a heading under the page's own, and a list's item,
+   a quote and a note drawn by using this again for each of their parts. A table's head says it heads a column,
+   and a note is one to a screen reader too. */
+import type { PostBlock } from "../site/writing/body.ts";
+import PostSpans from "./PostSpans.astro";
+
+interface Props {
+  block: PostBlock;
+}
+const { block } = Astro.props;
+const Heading = block.type === "heading" ? (`h${block.level}` as const) : "h2";
+const List = block.type === "list" && block.ordered ? "ol" : "ul";
+---
+
+{block.type === "paragraph" && (
+  <p>
+    <PostSpans spans={block.spans} />
+  </p>
+)}
+{block.type === "heading" && (
+  <Heading>
+    <PostSpans spans={block.spans} />
+  </Heading>
+)}
+{block.type === "list" && (
+  <List start={block.start}>
+    {block.items.map((item) => (
+      <li>
+        {item.map((part) => (
+          <Astro.self block={part} />
+        ))}
+      </li>
+    ))}
+  </List>
+)}
+{block.type === "code" && block.file && <p class="post-file">{block.file}</p>}
+{block.type === "code" && <pre><code>{block.text}</code></pre>}
+{block.type === "quote" && (
+  <blockquote>
+    {block.blocks.map((part) => (
+      <Astro.self block={part} />
+    ))}
+  </blockquote>
+)}
+{block.type === "note" && (
+  <div class="post-note" role="note">
+    {block.blocks.map((part) => (
+      <Astro.self block={part} />
+    ))}
+  </div>
+)}
+{block.type === "table" && (
+  <div class="post-table">
+    <table>
+      <thead>
+        <tr>
+          {block.head.map((cell) => (
+            <th scope="col">
+              <PostSpans spans={cell} />
+            </th>
+          ))}
+        </tr>
+      </thead>
+      {block.rows.length > 0 && (
+        <tbody>
+          {block.rows.map((row) => (
+            <tr>
+              {row.map((cell) => (
+                <td>
+                  <PostSpans spans={cell} />
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      )}
+    </table>
+  </div>
+)}
+{block.type === "rule" && <hr />}

@@ -70,7 +70,11 @@ type OptionalPart = {
     type, so only this check can say that a site with the part left it out. */
 const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
   const parts = {
-    viewer: { isOnTheSite: Boolean(site.config.viewer), nameInProblem: "viewer" },
+    // A viewer that shows the Writing tab's posts needs its two buttons too.
+    viewer: {
+      isOnTheSite: Boolean(site.config.viewer ?? site.config.writing?.viewer),
+      nameInProblem: site.config.viewer ? "viewer" : "writing.viewer",
+    },
     // Only the picture's own file says whether it's one a visitor plays, so
     // any picture that moves asks for the words.
     movingPictures: {
