@@ -3,13 +3,14 @@
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS, panelId } from "../contracts/page-ids.ts";
-import { CLASS_SELECTOR } from "../contracts/page-selectors.ts";
+import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR } from "../contracts/page-selectors.ts";
 import { clone, findAll, make } from "./lib/dom.ts";
 import { goHome } from "./navigation.ts";
 import { detailsPanel } from "./page.ts";
 
-/** The rows of the config's panel.context. */
-const PANEL_CONTACT_LINKS = `section[aria-labelledby="${panelId("context")}"] ${CLASS_SELECTOR.panelRows} a`;
+/** The rows of the config's panel.context, not the links it gathers from
+    the answers. */
+const PANEL_CONTACT_LINKS = `section[aria-labelledby="${panelId("context")}"] ${CLASS_SELECTOR.panelRows}:not(${ATTRIBUTE_SELECTOR.contextOf}) a`;
 
 export function logOut(logoutRow: HTMLElement, accountMenu: HTMLElement): void {
   const logBackInButton = make(

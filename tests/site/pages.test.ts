@@ -68,7 +68,7 @@ test("a tab's page is titled as the window is with the tab open, and described b
     code: "fr",
     path: "/fr/about/",
     title: tabWindowTitle("About", config.name),
-    description: "Sam is an engineer. One Two",
+    description: "Sam is an engineer. One Two Sam writes at the blog, and is on GitHub.",
     versions: { en: "/about/", fr: "/fr/about/" },
   });
 });
@@ -79,7 +79,10 @@ test("a tab whose first answer has no words of its own is described as the site 
 
 test("a personal answer's page is titled by its question, and described by its answer", () => {
   const head = headAt("/personal-fun/");
-  assert.deepEqual([head.title, head.description], [tabWindowTitle("for fun?", config.name), "Reading."]);
+  assert.deepEqual(
+    [head.title, head.description],
+    [tabWindowTitle("for fun?", config.name), "Reading. Mostly the blog, and a list."],
+  );
 });
 
 test("a page's alternates are each language's version, and the main one's for any other, as full addresses", () => {

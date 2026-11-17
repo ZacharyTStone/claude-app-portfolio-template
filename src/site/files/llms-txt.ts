@@ -1,13 +1,15 @@
 /* llms.txt: the site as plain text, for a model reading it on someone's
    behalf (a recruiter pasting the address into an assistant): who this is,
-   how to reach them, the posts the Writing tab lists, the public repos the
-   panel's GitHub activity lists, and every answer, in
+   how to reach them, the panel's links, the posts the Writing tab lists,
+   the public repos the panel's GitHub activity lists, and every answer, in
    the words /ask reads (../plain-answers.ts). */
 
 import type { AskAnswer } from "../../contracts/ask.ts";
+import type { PanelRow } from "../../config/language.ts";
 import type { SiteConfig } from "../../config/site-config.ts";
 import { plainAnswers } from "../plain-answers.ts";
-import { panelRows } from "../panel.ts";
+import { PAGE_IDS } from "../../contracts/page-ids.ts";
+import { contextLists } from "../context-links.ts";
 import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
 import { dayPosted, type Post } from "../writing/post.ts";
@@ -77,15 +79,24 @@ function pageList(site: Site): string {
   return [...homePages, ...tabPages].join("\n");
 }
 
-/** The details panel's links, but for the contact links, which have their
-    own section. */
+/** The details panel's rows as its home screen lists them: the outputs,
+    the links Context gathers from the answers, then Context's own rows. */
+function panelRowsAtHome(site: Site): PanelRow[] {
+  const { outputs, context } = site.language(site.main).panel;
+  const gathered = contextLists(site, site.main).find((list) => list.of === PAGE_IDS.home)?.rows ?? [];
+  return [...(outputs?.rows ?? []), ...gathered, ...(context?.rows ?? [])];
+}
+
+/** The details panel's links, each once, but for the contact links, which
+    have their own section. */
 function panelLinks(site: Site): string[] {
   const { email, github, linkedin } = site.config.links;
-  const contactHrefs = [`mailto:${email}`, github, linkedin];
+  const listed = new Set([`mailto:${email}`, github, linkedin]);
   const links: string[] = [];
-  for (const { label, meta, href } of panelRows(site.language(site.main).panel)) {
-    if (!href || contactHrefs.includes(href)) continue;
-    links.push(`- [${label}](${fullAddress(site, href)}): ${meta}`);
+  for (const { label, meta, href } of panelRowsAtHome(site)) {
+    if (!href || listed.has(href)) continue;
+    listed.add(href);
+    links.push(`- [${label}](${fullAddress(site, href)})${meta ? `: ${meta}` : ""}`);
   }
   return links;
 }

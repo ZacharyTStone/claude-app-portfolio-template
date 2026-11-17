@@ -45,6 +45,13 @@ export const PANEL_SECTIONS = `${ID.panel} > section`;
 /** The panel's GitHub activity, the section the build adds after the config's. */
 export const ACTIVITY_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${panelId(ACTIVITY_SECTION)}"]`;
 
+/** The panel's Context, the config's section. */
+export const CONTEXT_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${panelId("context")}"]`;
+/** Its lists gathered from the answers, one for each tab that links
+    anywhere, and the home screen's; and the list of its own rows. */
+export const GATHERED_LISTS = `${CONTEXT_IN_THE_PANEL} ${CLASS.panelRows}${ATTRIBUTE.contextOf}`;
+export const OWN_CONTEXT_ROWS = `${CONTEXT_IN_THE_PANEL} ${CLASS.panelRows}:not(${ATTRIBUTE.contextOf}) > li > *`;
+
 /** A tab's row in the sidebar: its first, as a thread can be among the
     rows at the top and in a group too. A thread's row links to its page,
     and a chat's to its #id. */

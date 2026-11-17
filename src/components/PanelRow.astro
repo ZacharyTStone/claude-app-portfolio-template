@@ -22,5 +22,5 @@ const link = href ? linkAttributes(href, label, code) : {};
 <RowElement class={iconClass(icon)} {...link} {...(fetched ? flag(DATA.fetched) : {})}>
   <Logo icon={icon} hidden />
   {label}
-  <span class={PAGE_CLASSES.rowMeta}>{meta}</span>
+  {meta && <span class={PAGE_CLASSES.rowMeta}>{meta}</span>}
 </RowElement>

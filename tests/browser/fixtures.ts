@@ -12,6 +12,7 @@ import {
   type Clock,
   type ComesIntoView,
   type ContactForm,
+  type GatheredContext,
   type GitHubActivity,
   type MovingPicture,
   type PlayedPicture,
@@ -61,6 +62,7 @@ type SiteParts = {
   contactForm: ContactForm;
   writingTab: WritingTab;
   githubActivity: GitHubActivity;
+  gatheredContext: GatheredContext;
 };
 
 type PageErrors = {
@@ -167,6 +169,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
   writingTab: partOrSkip((site) => site.writing, "the site has no Writing tab"),
   githubActivity: partOrSkip((site) => site.activity, "the site has no GitHub activity in its panel"),
+  gatheredContext: partOrSkip((site) => site.context, "the panel's Context gathers no links from the answers"),
 });
 
 // Chromium with a phone's screen, touch and user agent: the device's own

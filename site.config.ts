@@ -20,7 +20,7 @@ const me = {
     acme: { company: "Acme", title: "Senior Software Engineer", years: "2024 – now" },
     globex: { company: "Globex", title: "Frontend Engineer", years: "2021 – 2024" },
   },
-  project: { name: "Pocket Notes", site: "pocketnotes.example.com", href: "https://example.com" },
+  project: { name: "Pocket Notes", site: "pocketnotes.example.com", href: "https://pocketnotes.example.com" },
 } as const;
 const { acme, globex } = me.jobs;
 
@@ -476,8 +476,11 @@ export default {
             { label: me.project.site, meta: "Site", icon: "globe", href: me.project.href },
           ],
         },
+        // Context lists the links the open tab's answers use (every one on
+        // the site, on the home screen), then these rows.
         context: {
           title: "Context",
+          fromAnswers: true,
           rows: [
             { label: "GitHub", meta: "Link", icon: "github", href: me.github },
             { label: "LinkedIn", meta: "Link", icon: "linkedin", href: me.linkedin },

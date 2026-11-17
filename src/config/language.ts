@@ -142,7 +142,17 @@ export type Panel = {
   outputs?: PanelList;
   /** Where else to find you, as rows. "Log out" shows these links as its
       goodbye's contact links (your email alone, without them). */
-  context?: PanelList;
+  context?: ContextList;
+};
+
+/** The Context section: your own rows, and with `fromAnswers`, the links
+    the open tab's answers use, above them. */
+export type ContextList = PanelList & {
+  /** true to list, above the rows, each web address and file the open
+      tab's answers link to (every one on the site, on the home screen and
+      in a chat), as the Claude app lists a conversation's sources. A link
+      one of the rows has stays the row. Leave out for the rows alone. */
+  fromAnswers?: boolean;
 };
 
 /** A step in the checklist: a tick, a title and when. */
@@ -170,7 +180,7 @@ export type PanelList = {
 export type PanelRow = {
   /** What the row says: "Resume". */
   label: string;
-  /** The note on the right, smaller: "PDF". */
+  /** The note on the right, smaller: "PDF" ("" for none). */
   meta: string;
   /** An .i-* icon (as a sidebar row's), or "github" or "linkedin", which
       are drawn as small lettered badges. */
