@@ -1,7 +1,9 @@
 ---
+import { ACTIVITY_SECTION } from "../config/activity.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
+import { activityRows } from "../site/activity/rows.ts";
 import { site } from "../site/current.ts";
 import { tabHref } from "../site/pages.ts";
 import type { Page } from "../site/site.ts";
@@ -20,6 +22,10 @@ const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
   const section = panel[name];
   return section ? [{ name, title: section.title, rows: section.rows }] : [];
 });
+// The GitHub activity the build fetched, after the config's own sections:
+// none on a site without `activity`, or with no recent public pushes.
+const { activity, timezone } = site.config;
+const activityRowsHere = activity ? activityRows(site.repos, activity.github, code, timezone) : [];
 ---
 
 <aside class="panel" id={PAGE_IDS.panel} aria-label={strings.panel}>
@@ -60,4 +66,15 @@ const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
       </ul>
     </PanelSection>
   ))}
+  {activityRowsHere.length > 0 && (
+    <PanelSection name={ACTIVITY_SECTION} title={strings.activityTitle ?? ""}>
+      <ul class={PAGE_CLASSES.panelRows}>
+        {activityRowsHere.map((row) => (
+          <li>
+            <PanelRow row={row} code={code} fetched />
+          </li>
+        ))}
+      </ul>
+    </PanelSection>
+  )}
 </aside>

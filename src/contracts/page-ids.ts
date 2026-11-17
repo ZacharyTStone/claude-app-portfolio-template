@@ -2,6 +2,7 @@
    the id the built pages and the stylesheet (src/styles) have, which can't
    import it: change one here, and change it there. */
 
+import type { ACTIVITY_SECTION } from "../config/activity.ts";
 import type { Panel } from "../config/language.ts";
 
 /** No thread can take one of these (src/site/checks), since a thread's id
@@ -60,7 +61,11 @@ export const titleId = (id: string): string => `${id}-title`;
 
 export const groupId = (id: string): string => `${ID_PREFIX.group}${id}`;
 
-export const panelId = (key: keyof Panel): string => `${ID_PREFIX.panel}${key}`;
+/** A section of the details panel: one of the config's, or the GitHub
+    activity the build adds after them. */
+export type PanelSectionName = keyof Panel | typeof ACTIVITY_SECTION;
+
+export const panelId = (key: PanelSectionName): string => `${ID_PREFIX.panel}${key}`;
 
 export const personalTabId = (id: string): string => `${ID_PREFIX.personal}${id}`;
 

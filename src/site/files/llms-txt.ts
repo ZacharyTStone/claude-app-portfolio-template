@@ -1,6 +1,7 @@
 /* llms.txt: the site as plain text, for a model reading it on someone's
    behalf (a recruiter pasting the address into an assistant): who this is,
-   how to reach them, the posts the Writing tab lists, and every answer, in
+   how to reach them, the posts the Writing tab lists, the public repos the
+   panel's GitHub activity lists, and every answer, in
    the words /ask reads (../plain-answers.ts). */
 
 import type { AskAnswer } from "../../contracts/ask.ts";
@@ -10,6 +11,7 @@ import { panelRows } from "../panel.ts";
 import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
 import { dayPosted, type Post } from "../writing/post.ts";
+import type { Repo } from "../activity/github.ts";
 
 /** Between two paragraphs or headings, as in Markdown. */
 const BLANK_LINE = "\n\n";
@@ -30,6 +32,8 @@ export function llmsTxt(site: Site): string {
     ...(links.length ? [section("Links", links.join("\n"))] : []),
     // So has a site with no posts in its Writing tab, or no Writing tab.
     ...(site.posts.length ? [section("Writing", postList(site.posts))] : []),
+    // And a site with no public pushes lately, or no `activity`, no GitHub section.
+    ...(site.repos.length ? [section("Recent public activity on GitHub", repoList(config.name, site.repos))] : []),
     section("Contact", contactList(config.links)),
     section(
       "Questions and answers",
@@ -48,6 +52,18 @@ const postList = (posts: Post[]): string =>
       return `- [${post.title.replace(/[[\]]/g, "\\$&")}](${post.url}): ${about}`;
     })
     .join("\n");
+
+/** A line over the repos that says what they are, and aren't: only public
+    work, as of the build. Then "- [alex-example/notes](https://github.com/…):
+    last pushed 2026-11-12 (UTC)" for each, the latest first. */
+const repoList = (name: string, repos: Repo[]): string =>
+  [
+    `The public repos ${name} pushed to most recently, as of the site's last build. Private work isn't shown.`,
+    "",
+    ...repos.map(
+      (repo) => `- [${repo.name}](${repo.url}): last pushed ${repo.pushed.slice(0, "YYYY-MM-DD".length)} (UTC)`,
+    ),
+  ].join("\n");
 
 /** "- [Portfolio (EN)](https://example.com/)" for each language, then
     "- [About](https://example.com/about/)" for each of the main language's

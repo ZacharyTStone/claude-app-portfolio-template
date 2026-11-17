@@ -1,7 +1,8 @@
 ---
 import type { PanelRow } from "../config/language.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import { linkAttributes } from "./attributes.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { flag, linkAttributes } from "./attributes.ts";
 import { iconClass } from "./logos.ts";
 import Logo from "./Logo.astro";
 
@@ -9,14 +10,16 @@ interface Props {
   row: PanelRow;
   /** The language of the page it's on. */
   code: string;
+  /** In the GitHub activity: the row is a repo the build fetched. */
+  fetched?: boolean;
 }
-const { row, code } = Astro.props;
+const { row, code, fetched } = Astro.props;
 const { label, meta, icon, href } = row;
 const RowElement = href ? "a" : "span";
 const link = href ? linkAttributes(href, label, code) : {};
 ---
 
-<RowElement class={iconClass(icon)} {...link}>
+<RowElement class={iconClass(icon)} {...link} {...(fetched ? flag(DATA.fetched) : {})}>
   <Logo icon={icon} hidden />
   {label}
   <span class={PAGE_CLASSES.rowMeta}>{meta}</span>

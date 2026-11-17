@@ -3,8 +3,8 @@
    Qiita answers one address about 60 times an hour that way. What comes
    back is checked before anything of it reaches a page, and only what the
    tab shows is kept. */
-import { setTimeout as sleep } from "node:timers/promises";
 import * as v from "valibot";
+import { unreachable, WAIT_MS, withOneMoreTry, type Failure, type Fetch } from "../fetching.ts";
 import { newestFirst, type Post } from "./post.ts";
 
 /** Where a user's posts are, newest first, a page at a time. */
@@ -13,10 +13,6 @@ export const qiitaItemsAddress = (user: string, page: number, perPage: number): 
 
 /** The most posts Qiita gives in a page, and the last page it serves. */
 const PAGES = { size: 100, last: 100 } as const;
-
-/** How long one request may take, and how long a failed one waits before
-    it's tried again, in milliseconds. */
-const WAIT_MS = { answer: 10_000, retry: 2_000 } as const;
 
 /** An item as Qiita's API has it, but for what the tab doesn't show:
     v.object leaves out every other field, the post's body among them. */
@@ -37,9 +33,6 @@ const PageSchema = v.array(ItemSchema);
 /** What Qiita sends with a refusal: { "message": "Not found", "type": "not_found" }. */
 const RefusalSchema = v.object({ type: v.string() });
 
-/** As much of fetch() as the build uses: what the tests stand in for. */
-export type Fetch = (address: string, init: RequestInit) => Promise<Response>;
-
 export type QiitaOptions = {
   fetch: Fetch;
   /** Posts a page: 100, unless a test asks for fewer to see the pages followed. */
@@ -48,19 +41,6 @@ export type QiitaOptions = {
       unless a test has no time to wait. */
   retryAfterMs?: number;
 };
-
-/** Why a request gave no page of posts, and whether trying again might. */
-type Failure = { why: string; mightPass: boolean };
-
-const reasonOf = (error: unknown): string => (error instanceof Error ? error.message : String(error));
-
-function unreachable(error: unknown): Failure {
-  if (error instanceof Error && error.name === "TimeoutError") {
-    return { why: `no answer in ${WAIT_MS.answer / 1000} seconds`, mightPass: true };
-  }
-  const cause = error instanceof Error && error.cause !== undefined ? ` (${reasonOf(error.cause)})` : "";
-  return { why: `Qiita couldn't be reached: ${reasonOf(error)}${cause}`, mightPass: true };
-}
 
 /** A busy or broken server may answer the next request; one that says no to
     this one, or has no such user, won't. */
@@ -83,7 +63,7 @@ function misshapen(issues: [v.BaseIssue<unknown>, ...v.BaseIssue<unknown>[]]): F
 
 async function tryPage(address: string, fetch: Fetch): Promise<Item[] | Failure> {
   const init = { headers: { accept: "application/json" }, signal: AbortSignal.timeout(WAIT_MS.answer) };
-  const response = await fetch(address, init).catch(unreachable);
+  const response = await fetch(address, init).catch((error: unknown) => unreachable("Qiita", error));
   if (!(response instanceof Response)) return response;
   if (!response.ok) return refusal(response);
   const parsed = v.safeParse(PageSchema, await response.json().catch(() => undefined));
@@ -92,15 +72,8 @@ async function tryPage(address: string, fetch: Fetch): Promise<Item[] | Failure>
 
 /** One page's items, with one more try after a failure that might pass.
     Throws, saying where and why, if there's still no page. */
-async function pageOfItems(address: string, options: QiitaOptions): Promise<Item[]> {
-  let tried = await tryPage(address, options.fetch);
-  if (!Array.isArray(tried) && tried.mightPass) {
-    await sleep(options.retryAfterMs ?? WAIT_MS.retry);
-    tried = await tryPage(address, options.fetch);
-  }
-  if (!Array.isArray(tried)) throw new Error(`${tried.why}, at ${address}`);
-  return tried;
-}
+const pageOfItems = (address: string, options: QiitaOptions): Promise<Item[]> =>
+  withOneMoreTry(address, () => tryPage(address, options.fetch), options.retryAfterMs);
 
 const postOf = (item: Item): Post => ({
   title: item.title,

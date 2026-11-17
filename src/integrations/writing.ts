@@ -7,14 +7,13 @@
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import type { AstroIntegration } from "astro";
+import type { Fetch } from "../site/fetching.ts";
 import type { LoadedSiteConfig } from "../site/load-site-config.ts";
 import { ROOT } from "../site/repo.ts";
 import { fixtureFetch, readFixture, WRITING_FIXTURE } from "../site/writing/fixture.ts";
 import type { Post } from "../site/writing/post.ts";
-import { qiitaPosts, type Fetch } from "../site/writing/qiita.ts";
-
-/** Where a report goes: Astro's logger for this integration. */
-type Log = Record<"info" | "warn" | "error", (message: string) => void>;
+import { qiitaPosts } from "../site/writing/qiita.ts";
+import { inPlaceOfTheFile, type Log } from "./in-place.ts";
 
 /** The module the pages read the posts from. */
 const FETCHED_MODULE = fileURLToPath(new URL("../site/writing/fetched.ts", import.meta.url));
@@ -52,14 +51,6 @@ const COULD_NOT = {
     `The Writing tab's posts couldn't be fetched, so it lists none until the dev server starts again: ${why}.`,
 };
 
-/** Vite's hook that gives the posts' module the posts as its source. */
-const inPlaceOfTheFile = (posts: Post[]) => ({
-  name: "writing-posts",
-  enforce: "pre" as const,
-  load: (id: string) =>
-    resolve(id.split("?")[0] ?? "") === FETCHED_MODULE ? `export default ${JSON.stringify(posts)};` : undefined,
-});
-
 /** The Astro integration that fetches the posts of the config Astro was
     started with. */
 export function writingPosts({ config }: LoadedSiteConfig): AstroIntegration {
@@ -74,7 +65,8 @@ export function writingPosts({ config }: LoadedSiteConfig): AstroIntegration {
         if (typeof posts === "string") logger.error(COULD_NOT[command](posts));
         // Thrown, Astro would call it an unhandled error and print a stack under it.
         if (typeof posts === "string" && command === "build") process.exit(1);
-        updateConfig({ vite: { plugins: [inPlaceOfTheFile(typeof posts === "string" ? [] : posts)] } });
+        const listed = typeof posts === "string" ? [] : posts;
+        updateConfig({ vite: { plugins: [inPlaceOfTheFile("writing-posts", FETCHED_MODULE, listed)] } });
       },
     },
   };

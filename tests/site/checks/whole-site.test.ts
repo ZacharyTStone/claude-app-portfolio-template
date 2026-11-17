@@ -138,6 +138,27 @@ testEachProblem([
     ],
   },
   {
+    wrong: "the GitHub user is its profile's whole address",
+    change: (sample) => (sample.activity = { github: "https://github.com/sam-sample" }),
+    problems: [
+      `activity.github should be a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the GitHub user is written with an @",
+    change: (sample) => (sample.activity = { github: "@sam-sample" }),
+    problems: [
+      `activity.github should be a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the GitHub user name is longer than GitHub allows",
+    change: (sample) => (sample.activity = { github: "s".repeat(40) }),
+    problems: [
+      `activity.github should be a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
     wrong: "the viewer lists a link the site doesn't have",
     change: (sample) => (sample.viewer = { "https://docs.example.com/d/other/edit": "https://docs.example.com/p" }),
     problems: [

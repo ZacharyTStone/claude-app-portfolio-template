@@ -477,6 +477,8 @@ export default function japanese(me: SampleFacts): Language {
       writingQuestion: `${ja.first}は何を書いているの？`,
       writingIntro: "Qiitaに書いた記事です。新しい順に：",
       writingEmpty: "まだ記事はありません。",
+      // With `activity` in site.config.ts: the panel's GitHub activity.
+      activityTitle: "最近の公開リポジトリ",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",

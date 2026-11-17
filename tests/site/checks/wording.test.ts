@@ -3,6 +3,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
+  ACTIVITY_STRING_NAMES,
   CONTACT_FORM_STRING_NAMES,
   PAGE_STRING_NAMES,
   REQUIRED_SCRIPT_STRING_NAMES,
@@ -79,7 +80,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form and a Writing tab",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab and GitHub activity",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -91,7 +92,13 @@ testEachProblem([
       "fr: strings.pause is missing (a picture with a still needs it)",
       ...CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
+      ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
     ],
+  },
+  {
+    wrong: "GitHub activity without its heading, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).activityTitle),
+    problems: ["fr: strings.activityTitle is missing (activity needs it)"],
   },
   {
     wrong: "a Writing tab without its question, in a language other than English",
@@ -125,6 +132,12 @@ test("a site without a Writing tab needs no words for one", () => {
   const withoutWriting = sampleConfig({ writing: undefined });
   for (const name of WRITING_STRING_NAMES) delete statedStrings(languageOf(withoutWriting, "fr"))[name];
   assert.deepEqual(problemsIn(withoutWriting), []);
+});
+
+test("a site without GitHub activity needs no words for it", () => {
+  const withoutActivity = sampleConfig({ activity: undefined });
+  for (const name of ACTIVITY_STRING_NAMES) delete statedStrings(languageOf(withoutActivity, "fr"))[name];
+  assert.deepEqual(problemsIn(withoutActivity), []);
 });
 
 test("a site without a LinkedIn profile needs no words for one", () => {

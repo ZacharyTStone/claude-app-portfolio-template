@@ -14,6 +14,7 @@ import {
   isEmailAddress,
   isFrameableAddress,
   isHttpsAddress,
+  isGitHubUserName,
   isLanguageCode,
   isPathOnSite,
   isPixelCount,
@@ -149,6 +150,13 @@ const SETTING_FORMATS: SettingFormat[] = [
     field: "writing.qiita",
     looksRight: isQiitaUserId,
     shouldBe: `a Qiita user id, as in your profile's address (qiita.com/alex-example is "alex-example")`,
+    mayBeLeftOut: true,
+  },
+  // The build asks GitHub for this user's public activity by it.
+  {
+    field: "activity.github",
+    looksRight: isGitHubUserName,
+    shouldBe: `a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
 ];
