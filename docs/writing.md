@@ -214,8 +214,8 @@ SITE_CONFIG=tests/sample/site.config.ts WRITING_FIXTURE=tests/sample/qiita.json 
 ```
 
 `tests/sample/qiita-no-posts.json` is the same user before their first
-post, and `tests/build/no-posts.test.ts` builds the sample with it: no
-Writing tab, and nothing on the site that points at one.
+post, and `tests/build/sample-site.test.ts` builds the sample with it too:
+no Writing tab, and nothing on the site that points at one.
 
 The template's own `site.config.ts` has `writing` commented out, as it
 has Ask: a copy starts as that file, and would otherwise ask Qiita for

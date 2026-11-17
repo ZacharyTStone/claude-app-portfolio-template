@@ -1,8 +1,9 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
    viewer, a picture that has a still, a Writing tab and GitHub activity in
-   the panel; and the same site on
-   a host that reads no headers. */
+   the panel; the same site on a host that reads no headers; and the same
+   site before its first post. The builds share Astro's working folder, so
+   they're made one after another, in this file. */
 import assert from "node:assert/strict";
 import { join } from "node:path";
 import { test } from "node:test";
@@ -19,10 +20,10 @@ import { makeSite } from "../../src/site/site.ts";
 import { panelId } from "../../src/contracts/page-ids.ts";
 import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
-import { folderForConfigs, writeSampleConfig } from "../sample/as-a-file.ts";
+import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
-import { SAMPLE_QIITA, samplePosts } from "../sample/qiita.ts";
+import { SAMPLE_QIITA, SAMPLE_QIITA_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/qiita.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
@@ -207,3 +208,35 @@ testPagesCarryThePolicy(staticSample, policy);
 test("the policy a page carries lets frames come from the viewer's site and no other", () => {
   assert.match(policy, new RegExp(`(^|; )frame-src ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
 });
+
+/** The sample before its first post on Qiita (tests/sample/qiita-no-posts.json): it has no Writing tab, and
+    nothing on the site points at the tab's page, which isn't there. */
+const NO_POSTS_BUILD_FOLDER = join(folder, "no-posts-dist");
+const builtWithNoPosts = buildSample(NO_POSTS_BUILD_FOLDER, SAMPLE_CONFIG, SAMPLE_QIITA_WITH_NO_POSTS);
+const sampleWithNoPosts = builtSite("the sample before its first post", NO_POSTS_BUILD_FOLDER, sampleConfig);
+
+/** Anything that names the Writing tab's page, its answer or its id. */
+const WRITING_TAB_NAMED = new RegExp(`/${WRITING_TAB}/|"${WRITING_TAB}\\.1"|id="${WRITING_TAB}"`);
+
+test("the sample builds before its first post, saying it has no Writing tab until then", () => {
+  assert.equal(builtWithNoPosts.status, 0, builtWithNoPosts.stderr || builtWithNoPosts.stdout);
+  assert.match(
+    builtWithNoPosts.stdout,
+    new RegExp(
+      `${sampleFixture().user} has no public posts on Qiita yet, so the site has no Writing tab until the first`,
+    ),
+  );
+});
+
+test("the sample before its first post has no page for the Writing tab, in any language", () => {
+  const writingPages = sampleWithNoPosts.languagePages.map(({ file }) => file.replace(/index\.html$/, WRITING_TAB));
+  assert.deepEqual(writingPages.filter(sampleWithNoPosts.hasFolder), []);
+});
+
+testBuiltSite(sampleWithNoPosts);
+
+for (const file of [...sampleWithNoPosts.pages.map((page) => page.file), "sitemap.xml", "llms.txt", ASK_INDEX_FILE]) {
+  test(`the sample before its first post: ${file} has no Writing tab, no row or link for it, and no answer from it`, () => {
+    assert.doesNotMatch(sampleWithNoPosts.read(file), WRITING_TAB_NAMED);
+  });
+}
