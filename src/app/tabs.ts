@@ -10,6 +10,7 @@ import { ATTRIBUTE_SELECTOR, CLASS_SELECTOR, PART_SELECTOR } from "../contracts/
 import { tabPagePath, tabWindowTitle } from "../contracts/tab-pages.ts";
 import { unfold } from "./folding.ts";
 import { clone, find, findAll } from "./lib/dom.ts";
+import { showContextOf } from "./panel-context.ts";
 import { askedTab, homeGreeting, homePath, homeTitle, sidebar, siteName } from "./page.ts";
 import { addressOfPlace, openTabIn, ownAddress, placeOfLink, type Here, type IdKind } from "./tab-addresses.ts";
 
@@ -104,11 +105,15 @@ function markOpen(openTab: HTMLElement | null): void {
   openTab?.classList.add(PAGE_CLASSES.open);
 }
 
+/** The open tab's id, if it has a page of its own: null for the home
+    screen, and for a tab that's in this page alone (a chat). */
+const idWithAPage = (openTab: HTMLElement | null): string | null =>
+  openTab && kindOf(openTab.id) === "tab with a page" ? openTab.id : null;
+
 /** Each link to another language's page goes to the open tab there: to its
     page, under that language's home page (DATA.home), or to the home page
-    for a tab that's in this page alone (a chat). */
-function pointLanguageLinksAt(openTab: HTMLElement | null): void {
-  const tabId = openTab && kindOf(openTab.id) === "tab with a page" ? openTab.id : null;
+    for a tab that has none. */
+function pointLanguageLinksAt(tabId: string | null): void {
   for (const link of findAll(document, `a${ATTRIBUTE_SELECTOR.home}`)) {
     const home = link.getAttribute(DATA.home) ?? "";
     link.setAttribute("href", tabId ? tabPagePath(home, tabId) : home);
@@ -117,8 +122,8 @@ function pointLanguageLinksAt(openTab: HTMLElement | null): void {
 
 /** Brings the page into step with the open tab: it shows, its row is the
     sidebar's current one (in a folded group, the group unfolds), the links
-    to the other languages go to it, and the window is titled with its
-    name. */
+    to the other languages go to it, the panel's Context lists its links,
+    and the window is titled with its name. */
 export function showOpenTab(): void {
   const tab = currentTab();
   markOpen(tab);
@@ -126,7 +131,9 @@ export function showOpenTab(): void {
   markCurrentRow(ownRow ?? rowStandingInFor(tab));
   const groupList = ownRow?.closest("ul");
   if (groupList?.hidden) unfold(groupList);
-  pointLanguageLinksAt(tab);
+  const tabId = idWithAPage(tab);
+  pointLanguageLinksAt(tabId);
+  showContextOf(tabId);
   setWindowTitle(tab ? headingOf(tab).textContent : null);
 }
 

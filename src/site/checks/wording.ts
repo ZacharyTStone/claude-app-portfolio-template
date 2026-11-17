@@ -4,6 +4,7 @@
 import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
 import { isEnglish } from "../../config/english-strings.ts";
 import { PAGE_STRING_NAMES, PART_STRINGS, REQUIRED_SCRIPT_STRING_NAMES } from "../../config/strings.ts";
+import { formForQuestions } from "../site.ts";
 import { isFilledIn, type LanguageCheck } from "./reporting.ts";
 
 /** English is the one language with wording of its own to fall back on
@@ -77,6 +78,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
       nameInProblem: "a picture with a still",
     },
     contactForm: { isOnTheSite: Boolean(site.config.contactForm), nameInProblem: "contactForm" },
+    askForm: { isOnTheSite: formForQuestions(site.config) !== undefined, nameInProblem: "ask with contactForm" },
     writing: { isOnTheSite: Boolean(site.config.writing), nameInProblem: "writing" },
     emptyWriting: {
       isOnTheSite: Boolean(site.config.writing?.showWhenEmpty),

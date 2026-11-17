@@ -76,21 +76,31 @@ function addressEmail(message: Element, question: string): void {
   email.setAttribute("href", emailLink(mailto, subject, body));
 }
 
+/** The message to copy for LinkedIn, and the link that takes the question
+    to the contact form, each with the question in. */
+function putQuestionIn(message: Element, question: string): void {
+  message.querySelector(ATTRIBUTE_SELECTOR.formQuestion)?.setAttribute(DATA.formQuestion, question);
+  const draft = message.querySelector(CLASS_SELECTOR.draft);
+  if (!draft) return;
+  const wording = draft.getAttribute(DATA.messageDraft) ?? "";
+  find(draft, CLASS_SELECTOR.draftText).textContent = withQuestion(wording, question);
+}
+
+/** What would carry the question to the owner but the email: the message to
+    copy, and the link to the contact form. */
+const OFFERS_OF_A_MESSAGE = `${CLASS_SELECTOR.draft}, ${ATTRIBUTE_SELECTOR.formQuestion}`;
+
 /** "Something else": how to reach the owner, with the question in the email
-    it opens and in a message to copy. A blocked visitor is offered no
-    message, and an email to write themselves: nothing they typed is shown
-    back. */
+    it opens, in a message to copy and, on a site with the contact form, in
+    the form the first link fills in. A blocked visitor is offered neither,
+    and an email to write themselves: nothing they typed is shown back. */
 function somethingElse(asked: TypedQuestion): Element[] {
   const message = clone(find(askedTab, CLASS_SELECTOR.answer));
-  message.querySelector(CLASS_SELECTOR.messageActions)?.remove();
   const question = questionForOwner(asked);
   addressEmail(message, question);
-  const draft = message.querySelector(CLASS_SELECTOR.draft);
-  if (asked.outcome.kind === "blocked") draft?.remove();
-  else if (draft) {
-    const wording = draft.getAttribute(DATA.messageDraft) ?? "";
-    find(draft, CLASS_SELECTOR.draftText).textContent = withQuestion(wording, question);
-  }
+  if (asked.outcome.kind === "blocked") {
+    for (const offer of message.querySelectorAll(OFFERS_OF_A_MESSAGE)) offer.remove();
+  } else putQuestionIn(message, question);
   return [message];
 }
 

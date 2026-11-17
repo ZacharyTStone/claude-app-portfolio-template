@@ -62,6 +62,12 @@ export type Site = {
   pageUrl: (code: string) => string;
 };
 
+/** The thread whose contact form takes a question Ask has no answer for,
+    from the link in "Something else": on a site with both Ask and the
+    form. Undefined on any other, whose "Something else" has no such link. */
+export const formForQuestions = (config: SiteConfig): string | undefined =>
+  config.ask ? config.contactForm?.tab : undefined;
+
 /** One of a language's pages, which each part of it is drawn from. */
 export type Page = {
   code: string;

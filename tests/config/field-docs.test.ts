@@ -8,6 +8,7 @@ import { test } from "node:test";
 import ts from "typescript";
 import {
   ACTIVITY_STRING_NAMES,
+  ASK_FORM_STRING_NAMES,
   CONTACT_FORM_STRING_NAMES,
   EMPTY_WRITING_STRING_NAMES,
   PAGE_STRING_NAMES,
@@ -118,6 +119,7 @@ test("the lists of the strings' names have every string the type has, and no oth
   const namesInTheLists = [
     ...PAGE_STRING_NAMES,
     ...CONTACT_FORM_STRING_NAMES,
+    ...ASK_FORM_STRING_NAMES,
     ...WRITING_STRING_NAMES,
     ...EMPTY_WRITING_STRING_NAMES,
     ...ACTIVITY_STRING_NAMES,

@@ -1,10 +1,11 @@
 /* A made-up site with what the template's own one-language site can't
    show, for the tests to check and to build (build.ts): it's served under
    a path, in two languages, with Ask on, the contact form, a link that
-   opens in the viewer, one of each kind of figure, a picture that moves
-   all the time, a Writing tab of posts on Qiita, and its recent public
-   activity on GitHub in the panel, which the tests' builds are given from
-   qiita.json and github.json: no test reaches Qiita or GitHub.
+   opens in the viewer, a panel whose Context gathers the answers' links,
+   one of each kind of figure, a picture that moves all the time, a
+   Writing tab of posts on Qiita, and its recent public activity on GitHub
+   in the panel, which the tests' builds are given from qiita.json and
+   github.json: no test reaches Qiita or GitHub.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -28,6 +29,16 @@ const movingIcon = { src: "/assets/sample-icon-moving.svg", still: "/assets/samp
 /** A document on another site: the address the sample's link card has, and
     the address that shows the document in the viewer's frame. */
 const notes = { href: "https://docs.example.com/d/notes/edit", inFrame: "https://docs.example.com/d/notes/preview" };
+
+/** Sam's profiles. */
+const github = "https://github.com/example";
+const linkedin = "https://www.linkedin.com/in/example";
+/** Links in the text, for the panel's Context to gather: one to GitHub,
+    which its own row has, a site linked again from the personal answer,
+    and an address long enough to have to fit the panel. */
+const blog = "https://blog.example.com/";
+const aboutLinks = `[the blog](${blog}), and is on [GitHub](${github})`;
+const readingLinks = `[the blog](${blog}), and [a list](https://a-very-long-subdomain-for-a-reading-list.example.com/lists/sam-sample-reading-list-for-2026)`;
 
 /** Every string of the interface as a language other than English has to
     state it, told apart from English's own: "Share (fr)". */
@@ -61,7 +72,13 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
       ],
     },
     threads: [
-      { id: "about", title: "About", messages: [{ q: "who is sam?", a: ["Sam is **an engineer**.", ["One", "Two"]] }] },
+      {
+        id: "about",
+        title: "About",
+        messages: [
+          { q: "who is sam?", a: ["Sam is **an engineer**.", ["One", "Two"], `Sam writes at ${aboutLinks}.`] },
+        ],
+      },
       {
         id: "work",
         title: "Work",
@@ -85,9 +102,15 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
               },
               { flow: { title: "The pipeline", steps: [{ name: "Draft", note: "by hand" }, { name: "Publish" }] } },
               { link: { name: "Sam's notes", kind: "Document", href: notes.href, icon: "file" } },
+              { link: { name: "Sam on LinkedIn", kind: "Profile", href: linkedin, icon: "linkedin" } },
               { image: { ...iconPicture, caption: "Sam's icon.", href: icon } },
               { image: { ...iconPicture, ...movingIcon, caption: "Sam's icon, as if it moved." } },
-              { images: [iconPicture, { ...iconPicture, round: true }] },
+              {
+                images: [
+                  { ...iconPicture, href: "https://pictures.example.com/sam" },
+                  { ...iconPicture, round: true },
+                ],
+              },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
             ],
@@ -108,9 +131,15 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
     panel: {
       progress: { title: "Career", steps: [{ tab: "work", title: "Work", when: "2020", now: true }] },
       outputs: { title: "Files", rows: [{ label: "The icon", meta: "Image", icon: "file", href: icon }] },
+      // Above its own rows, the links the open tab's answers use. A row
+      // that isn't a link stays in its place.
       context: {
         title: "Links",
-        rows: [{ label: "GitHub", meta: "example", icon: "github", href: "https://github.com/example" }],
+        fromAnswers: true,
+        rows: [
+          { label: "GitHub", meta: "example", icon: "github", href: github },
+          { label: "Remote", meta: "Based in", icon: "globe" },
+        ],
       },
     },
     account: {
@@ -138,7 +167,7 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
         { label: "Work", tab: "work" },
         { label: "Something personal", ask: "Such as?", personal: true },
       ],
-      personal: [{ id: "fun", q: "for fun?", a: ["Reading."] }],
+      personal: [{ id: "fun", q: "for fun?", a: ["Reading.", `Mostly ${readingLinks}.`] }],
       ui: { else: "Else", elseLabel: "Else", send: "Send", back: "Back", step: "{n} of {total}", followUp: "More" },
     },
     notFound: { title: "Not found.", text: "Nothing here.", back: "Back" },
@@ -151,11 +180,7 @@ const config: SiteConfig = {
   host: "cloudflare",
   name: "Sam Sample",
   timezone: "UTC",
-  links: {
-    email: "sam@example.com",
-    github: "https://github.com/example",
-    linkedin: "https://www.linkedin.com/in/example",
-  },
+  links: { email: "sam@example.com", github, linkedin },
   social: { image: icon, width: ICON_SIZE, height: ICON_SIZE },
   themeColor: "#191919",
   ask: { role: "an engineer" },
@@ -169,7 +194,10 @@ const config: SiteConfig = {
   activity: { github: "sam-sample" },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.
-  languages: { en: sampleLanguage("EN", "en_US"), fr: sampleLanguage("FR", "fr_FR", stringsMarked("fr")) },
+  languages: {
+    en: sampleLanguage("EN", "en_US"),
+    fr: sampleLanguage("FR", "fr_FR", stringsMarked("fr")),
+  },
 };
 
 export default config;

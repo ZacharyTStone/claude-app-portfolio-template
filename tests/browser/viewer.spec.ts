@@ -9,6 +9,7 @@ import {
   ID_SELECTOR as ID,
 } from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
+import { CONTEXT_IN_THE_PANEL } from "./parts.ts";
 import type { ViewerLink } from "./site.ts";
 
 const FRAMED_TEXT = "A document, stood in for.";
@@ -31,6 +32,17 @@ const linkIn = (page: Page, { tab, shown }: ViewerLink): Locator =>
 test.beforeEach(async ({ page, site, viewerLink }) => {
   await otherSitesReturnAPage(page, [viewerLink.href, viewerLink.shown]);
   await page.goto(site.pathOf(viewerLink.tab));
+});
+
+test("the same link in the panel's Context opens in the viewer too, under the same name", async ({
+  page,
+  viewerLink,
+  gatheredContext: _onASiteWithIt,
+}) => {
+  await page.locator(`${CONTEXT_IN_THE_PANEL} a[${DATA.viewerAddress}="${viewerLink.shown}"]:visible`).click();
+  const viewer = page.locator(OPEN_VIEWER);
+  await expect(viewer.locator("iframe")).toHaveAttribute("src", viewerLink.shown);
+  await expect(viewer.locator(CLASS.viewerTitle)).toHaveText(viewerLink.title);
 });
 
 test.describe("a link the viewer lists, clicked", () => {

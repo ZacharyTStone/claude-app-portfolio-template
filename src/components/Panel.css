@@ -131,3 +131,24 @@
 .panel-rows [data-fetched] {
   overflow-wrap: anywhere;
 }
+/* Context's lists, one after another, read as one: the open tab's links,
+   then the config's own rows. */
+.panel-rows:not([hidden]) ~ .panel-rows {
+  margin-top: 2px;
+}
+/* A link gathered from the answers has words a site didn't write for the
+   panel, and an address on the right: the words break anywhere rather than
+   reach past the panel, and a long address is cut short. */
+.panel-rows[data-context-of] {
+  grid-template-columns: minmax(0, 1fr);
+}
+.panel-rows[data-context-of] a {
+  overflow-wrap: anywhere;
+}
+.panel-rows[data-context-of] .row-meta {
+  flex: 0 1 auto;
+  min-width: 0;
+  max-width: 50%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

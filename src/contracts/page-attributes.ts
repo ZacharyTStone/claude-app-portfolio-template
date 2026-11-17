@@ -4,6 +4,7 @@
 
 import type { ClockMood } from "../config/language.ts";
 import type { GreetingPart } from "./day-parts.ts";
+import { PAGE_IDS } from "./page-ids.ts";
 
 /** Each comment says which element has the attribute and what its value
     is. One with no value only marks its element for the browser code to
@@ -33,8 +34,8 @@ export const DATA = {
   /** No value: each button that shows or hides the details panel, the
       panel's own close button among them. */
   panelToggle: "data-panel-toggle",
-  /** No value: the share button in a tab's top bar, and the copy icon
-      under an answer. Both copy the tab's address. */
+  /** No value: the share button in a tab's top bar, which copies the
+      tab's address. */
   copyLink: "data-copy-link",
   /** On a language's link in the sidebar: the language's name, in itself. */
   languageName: "data-name",
@@ -74,6 +75,11 @@ export const DATA = {
   messageDraft: "data-draft",
   /** No value: that message's copy button. */
   copyDraft: "data-copy-draft",
+  /** In "Something else", on a site with Ask and the contact form, on the
+      link to the form's tab: the question it puts in the form's message
+      box (the config's asked.q, until the browser code puts the visitor's
+      in). It is also how the browser code finds the link. */
+  formQuestion: "data-form-question",
   /** On a link that opens in the viewer: the address its frame shows, and
       what the viewer calls it. */
   viewerAddress: "data-view",
@@ -84,12 +90,23 @@ export const DATA = {
   /** On each of the contact form's two notes: which it is, a ContactNote
       ("sent" or "failed"), for the browser code to say under Send. */
   contactNote: "data-note",
+  /** On each list the panel's Context gathered from the answers: the tab
+      whose links it lists (its id), or PAGE_IDS.home for the home
+      screen's, which a chat and "Something else" show too. The page is
+      built with the open tab's showing (contextListFor), and the script
+      shows the one for each tab it opens. */
+  contextOf: "data-context-of",
   /** No value: a post's card in the Writing tab, or a repo's row in the
       panel's GitHub activity, made from what the build fetched, which changes from one build to the next. The Japanese fonts
       aren't cut for what's in it (scripts/fonts): it's set in the system's
       Japanese font instead (src/styles/japanese.css). */
   fetched: "data-fetched",
 } as const;
+
+/** The DATA.contextOf of the Context's list that shows with a tab open:
+    the tab's own, for a tab with a page (its id), and the home screen's
+    for the home screen (undefined or null), a chat and "Something else". */
+export const contextListFor = (tabWithAPage: string | null | undefined): string => tabWithAPage ?? PAGE_IDS.home;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */
 export const LOCAL_ZONE = "local";

@@ -63,8 +63,9 @@ export function builtSite(name: string, folder: string, config: SiteConfig, post
 const STRUCTURAL_TAG = /<(section|details|h[1-4]|dl|ul|nav|header|footer|main)\b[^>]*/g;
 
 /** An attribute a language words differently (aria-label="Tabs"), or that
-    is state (open), with its value. */
-const WORDING_OR_STATE_ATTRIBUTE = / (?:aria-label|aria-labelledby|open)\b(?:="[^"]*")?/g;
+    is state (open, or hidden on the panel's Context lists but the open
+    tab's), with its value. */
+const WORDING_OR_STATE_ATTRIBUTE = / (?:aria-label|aria-labelledby|open|hidden)\b(?:="[^"]*")?/g;
 
 /** The page's outline: each structural tag, without what a language words differently. */
 const outlineOf = (html: string): string[] =>

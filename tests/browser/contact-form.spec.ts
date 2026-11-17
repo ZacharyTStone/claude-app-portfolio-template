@@ -1,9 +1,10 @@
 /* The contact form (src/components/ContactForm.astro, src/app/contact-form.ts),
    with /contact stood in for. With JavaScript it's sent in place, and the
    line under Send says how it went; without, the Worker's redirect brings
-   the visitor back to the page, at the note that says so. What the Worker
+   the visitor back to the page, at the note that says so. With Ask on (and
+   /ask stood in for), "Something else" takes a question to it. What the Worker
    does with a message has its own tests (tests/worker/contact.test.ts). */
-import type { Page, Request } from "@playwright/test";
+import type { Locator, Page, Request } from "@playwright/test";
 import {
   CONTACT_FIELDS,
   CONTACT_JSON,
@@ -11,11 +12,22 @@ import {
   type ContactNote,
   type ContactReply,
 } from "../../src/contracts/contact.ts";
-import { CLASS_SELECTOR as CLASS, ID_SELECTOR as ID } from "../../src/contracts/page-selectors.ts";
+import { DATA } from "../../src/contracts/page-attributes.ts";
+import {
+  ATTRIBUTE_SELECTOR as ATTRIBUTE,
+  CLASS_SELECTOR as CLASS,
+  ID_SELECTOR as ID,
+} from "../../src/contracts/page-selectors.ts";
 import { A_PHONE, expect, test } from "./fixtures.ts";
-import type { ContactForm } from "./site.ts";
+import { EMAIL_LINK, OPEN_CARD, OPEN_CHAT, openTab } from "./parts.ts";
+import type { ContactForm, Site } from "./site.ts";
+import { askIn, askInNewChat } from "./visitor.ts";
 
 const EMAIL = "jane@example.org";
+
+/** In "Something else", on a site with Ask and the form: the link that
+    takes the question to the form. */
+const TO_THE_FORM = `a${ATTRIBUTE.formQuestion}`;
 const MESSAGE = "Hello! Are you free for a call next week?";
 
 /** The form in its tab, and its parts. */
@@ -240,5 +252,128 @@ test.describe("the contact form, on a phone", () => {
     await fillIn(page, contactForm);
     await form.send.tap();
     await expect(form.status).toHaveText(contactForm.sent);
+  });
+});
+
+test.describe("a question Ask has no answer for, on a site with the contact form", () => {
+  test.skip(({ site }) => !site.ask, "Ask is off");
+
+  const TO_OWNER = "Do you know testing?";
+  const typedIn = (site: Site): string => `Does ${site.name} know testing?`;
+
+  /** The link in the open chat's reply that takes the question to the form. */
+  const linkToTheForm = (page: Page): Locator => page.locator(`${OPEN_CHAT} ${CLASS.thread} ${TO_THE_FORM}`);
+
+  test("the reply's first link offers to send it with the form, and goes to the form's tab's page", async ({
+    page,
+    site,
+    ask,
+    contactForm,
+  }) => {
+    await ask.returns({ id: null, toOwner: TO_OWNER });
+    await page.goto("./");
+    await askInNewChat(page, typedIn(site));
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} > ${CLASS.answer}`).last();
+    await expect(reply.locator("a").first()).toHaveAttribute(DATA.formQuestion, TO_OWNER);
+    await expect(linkToTheForm(page)).toHaveAttribute("href", site.pathOf(contactForm.tab));
+  });
+
+  for (const [what, reply, inTheBox] of [
+    ["as it's said to the owner", { id: null, toOwner: TO_OWNER }, () => TO_OWNER],
+    ["as it was typed, when /ask said it to no one", { id: null }, typedIn],
+  ] as const) {
+    test(`following it opens the form's tab with the question ${what} in the message box, and the cursor in the email box, and sends nothing`, async ({
+      page,
+      site,
+      ask,
+      contactForm,
+    }) => {
+      const sent = await standIn(page, contactForm, "sent");
+      await ask.returns(reply);
+      await page.goto("./");
+      await askInNewChat(page, typedIn(site));
+      await linkToTheForm(page).click();
+      const form = formIn(page, contactForm);
+      await expect(openTab(page, contactForm.tab)).toBeVisible();
+      await expect(page).toHaveURL((url) => url.pathname === site.pathOf(contactForm.tab));
+      await expect(form.message).toHaveValue(inTheBox(site));
+      await expect(form.email).toBeFocused();
+      await page.waitForTimeout(300);
+      expect(sent).toHaveLength(0);
+    });
+  }
+
+  test("what the visitor had typed in the message box stays, with the question after it", async ({
+    page,
+    site,
+    ask,
+    contactForm,
+  }) => {
+    await ask.returns({ id: null, toOwner: TO_OWNER });
+    await page.goto(site.pathOf(contactForm.tab));
+    await formIn(page, contactForm).message.fill(MESSAGE);
+    await askInNewChat(page, typedIn(site));
+    await linkToTheForm(page).click();
+    await expect(formIn(page, contactForm).message).toHaveValue(`${MESSAGE}\n\n${TO_OWNER}`);
+  });
+
+  test("asked in the form's own tab, following it fills the form below", async ({ page, site, ask, contactForm }) => {
+    await ask.returns({ id: null, toOwner: TO_OWNER });
+    await page.goto(site.pathOf(contactForm.tab));
+    await askIn(page, contactForm.tab, typedIn(site));
+    await page.locator(`#${contactForm.tab} ${CLASS.thread} ${TO_THE_FORM}`).click();
+    const form = formIn(page, contactForm);
+    await expect(form.message).toHaveValue(TO_OWNER);
+    await expect(form.email).toBeFocused();
+  });
+
+  test("a blocked visitor is offered no form, as they're offered no message", async ({ page, site, ask }) => {
+    await ask.returns({ blocked: true });
+    await page.goto("./");
+    await askInNewChat(page, typedIn(site));
+    await expect(page.locator(`${OPEN_CHAT} ${EMAIL_LINK}`)).toBeVisible();
+    await expect(linkToTheForm(page)).toHaveCount(0);
+  });
+
+  test.describe("on a phone", () => {
+    test.use(A_PHONE);
+
+    test("following it opens the form's tab with the question in, and the cursor in the email box", async ({
+      page,
+      site,
+      ask,
+      contactForm,
+    }) => {
+      await ask.returns({ id: null, toOwner: TO_OWNER });
+      await page.goto("./");
+      await page.locator(`${OPEN_CARD} input`).tap();
+      await page.keyboard.type(typedIn(site));
+      await page.keyboard.press("Enter");
+      await linkToTheForm(page).tap();
+      const form = formIn(page, contactForm);
+      await expect(form.message).toHaveValue(TO_OWNER);
+      await expect(form.email).toBeFocused();
+      await expect(form.email).toBeInViewport();
+    });
+  });
+});
+
+test.describe("a question typed in, on a site without the contact form", () => {
+  test.skip(({ site }) => site.contactForm !== null, "the site has the contact form");
+
+  test('gets the "Something else" reply as it was: its links are the tab\'s, and none goes to a form', async ({
+    page,
+    site,
+    ask,
+  }) => {
+    if (site.ask) await ask.returns({ id: null });
+    await page.goto("./");
+    await askInNewChat(page, "Are you free next month?");
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} > ${CLASS.answer}`).last();
+    await expect(reply.locator(EMAIL_LINK)).toBeVisible();
+    await expect(page.locator(TO_THE_FORM)).toHaveCount(0);
+    const linksIn = (answer: Locator) =>
+      answer.locator(":scope > a").evaluateAll((links) => links.map((link) => link.className));
+    expect(await linksIn(reply)).toEqual(await linksIn(page.locator(`${ID.asked} ${CLASS.answer}`)));
   });
 });

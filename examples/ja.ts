@@ -387,6 +387,7 @@ export default function japanese(me: SampleFacts): Language {
       },
       context: {
         title: "つながり",
+        fromAnswers: true,
         rows: [
           { label: "GitHub", meta: "リンク", icon: "github", href: me.github },
           { label: "LinkedIn", meta: "リンク", icon: "linkedin", href: me.linkedin },
@@ -438,8 +439,6 @@ export default function japanese(me: SampleFacts): Language {
       panelToggleTitle: "詳細",
       credit: "デザインはClaudeアプリを参考にしています。Anthropicとは関係ありません。",
       share: "共有",
-      copyTab: "このタブのリンクをコピー",
-      copyTitle: "リンクをコピー",
       question: "質問：",
       followUpPlaceholder: "続けて質問する…",
       model: "ポートフォリオ",
@@ -452,6 +451,7 @@ export default function japanese(me: SampleFacts): Language {
       contactSend: "送信",
       contactSent: "送信しました。ありがとうございます。返信はメールでお送りします。",
       contactFailed: "送信できませんでした。時間をおいてもう一度お試しいただくか、{email}までメールでご連絡ください。",
+      askForm: "お問い合わせフォームで送る",
       copied: "コピーしました",
       copyFailed: "コピーできませんでした",
       menuCopy: "リンクをコピー",

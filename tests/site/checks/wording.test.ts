@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import {
   ACTIVITY_STRING_NAMES,
+  ASK_FORM_STRING_NAMES,
   CONTACT_FORM_STRING_NAMES,
   PAGE_STRING_NAMES,
   REQUIRED_SCRIPT_STRING_NAMES,
@@ -80,6 +81,12 @@ testEachProblem([
   },
   {
     wrong:
+      "Ask and the contact form without the words for the link from one to the other, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).askForm),
+    problems: ["fr: strings.askForm is missing (ask with contactForm needs it)"],
+  },
+  {
+    wrong:
       "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab and GitHub activity",
     change: inFrench((french) => delete french.strings),
     problems: [
@@ -91,6 +98,7 @@ testEachProblem([
       "fr: strings.play is missing (a picture with a still needs it)",
       "fr: strings.pause is missing (a picture with a still needs it)",
       ...CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
+      ...ASK_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (ask with contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
     ],
@@ -141,6 +149,17 @@ test("a site without the contact form needs no words for it", () => {
   }
   assert.deepEqual(problemsIn(withoutTheForm), []);
 });
+
+for (const [without, change] of [
+  ["Ask", { ask: undefined }],
+  ["the contact form", { contactForm: undefined }],
+] as const) {
+  test(`a site without ${without} needs no words for the link from Ask's reply to the form`, () => {
+    const withoutEither = sampleConfig(change);
+    for (const name of ASK_FORM_STRING_NAMES) delete statedStrings(languageOf(withoutEither, "fr"))[name];
+    assert.deepEqual(problemsIn(withoutEither), []);
+  });
+}
 
 test("a site without a Writing tab needs no words for one", () => {
   const withoutWriting = sampleConfig({ writing: undefined });

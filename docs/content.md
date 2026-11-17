@@ -149,7 +149,9 @@ but a home prompt can name it, Ask can pick it, and its page is there.
 
 A question a visitor types gets the `asked` reply, "Something else": how
 to reach you, with their question in an email and a message to copy.
-With [Ask](ask.md) on, it gets an answer first where the site has one.
+With [Ask](ask.md) on, it gets an answer first where the site has one,
+and with the [contact form](contact-form.md#a-question-ask-cant-answer)
+too, the reply's first link takes the question to the form.
 
 In `asked.email` and `asked.message.text`, `{question}` is what the
 visitor asked. On an English page with Ask on it is said to you ("Do
@@ -178,6 +180,44 @@ panel is as it was at the last build, and it reads only public activity,
 and says so. [GitHub activity](github-activity.md) has the rest: what it
 shows and leaves out, a token for the build, and what happens when GitHub
 is down.
+
+## The panel's Context
+
+The details panel's `context` is your own rows: where else to find you.
+With `fromAnswers: true` it also lists, above them, the links the open
+tab's answers use, as the Claude app lists a conversation's sources:
+
+```ts
+context: { title: "Context", fromAnswers: true, rows: [ … ] },
+```
+
+- On a tab, it's what that tab's questions and answers link to: link
+  cards, links in the text, pictures with an `href`. Each address once, in
+  the order the tab first links to it. On the home screen, in a chat and
+  in "Something else", it's every one on the site.
+- Only what a visitor can open is listed: a web address, or a file on the
+  site (`/assets/resume.pdf`). A link to one of the site's own pages
+  (`#about`, `/about/`), `mailto:` and the Writing tab's posts are left
+  out.
+- A row is called by the name of a link card to it, wherever the card
+  is, or else by the first link's words, with the host on its right. A
+  picture's caption says what the picture shows, not where it goes, so a
+  link with no words is called by its address, short
+  (`github.com/you/app`). Its icon is its link card's, or else `github` or
+  `linkedin` by the host, `file` for a file on the site, and `globe` for
+  any other.
+- A link one of your own rows has stays that row, so your own rows come
+  last and stay put. A row without an `href` stays where you put it. A
+  link the viewer lists opens there from the panel too.
+- Each tab's page is built with its own list showing, so it's right
+  without JavaScript; with it, the panel shows each tab's as you move
+  between them. Every page carries every tab's list, a few hundred bytes
+  for each link.
+- llms.txt's Links section lists the home screen's links too, after your
+  Outputs.
+
+Without `fromAnswers`, Context is your rows alone, as it always was.
+"Log out" shows only your own rows' links, either way.
 
 ## The viewer
 

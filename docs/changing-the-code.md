@@ -168,9 +168,9 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`, `writingTab`, `githubActivity`. A test that asks for one is skipped, with
-  the reason, on a site without it. For any
-  other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
+  `contactForm`, `writingTab`, `githubActivity`, `gatheredContext`. A test
+  that asks for one is skipped, with the reason, on a site without it. For
+  any other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.
 - **Select by the page's names**: `CLASS_SELECTOR`, `ID_SELECTOR`,
   `ATTRIBUTE_SELECTOR` (`src/contracts/page-selectors.ts`), not by a class

@@ -1,9 +1,10 @@
 ---
 import { ACTIVITY_SECTION } from "../config/activity.ts";
-import { DATA } from "../contracts/page-attributes.ts";
+import { contextListFor, DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { PAGE_IDS } from "../contracts/page-ids.ts";
 import { activityRows } from "../site/activity/rows.ts";
+import { contextLists } from "../site/context-links.ts";
 import { site } from "../site/current.ts";
 import { tabHref } from "../site/pages.ts";
 import type { Page } from "../site/site.ts";
@@ -14,7 +15,7 @@ import PanelSection from "./PanelSection.astro";
 interface Props {
   page: Page;
 }
-const { code, language } = Astro.props.page;
+const { code, language, tab } = Astro.props.page;
 const { strings, panel } = language;
 const { progress } = panel;
 const SECTIONS_OF_ROWS_IN_ORDER = ["outputs", "context"] as const;
@@ -22,6 +23,10 @@ const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
   const section = panel[name];
   return section ? [{ name, title: section.title, rows: section.rows }] : [];
 });
+// With panel.context.fromAnswers, the links the answers use, a list for each tab, above Context's own rows. The
+// page shows its open tab's (the home screen's on the home page), and the script the one for each tab it opens.
+const gatheredLists = contextLists(site, code);
+const listShown = contextListFor(tab);
 // The GitHub activity the build fetched, after the config's own sections:
 // none on a site without `activity`, or with no recent public pushes.
 const { activity, timezone } = site.config;
@@ -57,13 +62,25 @@ const activityRowsHere = activity ? activityRows(site.repos, activity.github, co
   )}
   {sectionsOfRows.map((section) => (
     <PanelSection name={section.name} title={section.title}>
-      <ul class={PAGE_CLASSES.panelRows}>
-        {section.rows.map((row) => (
-          <li>
-            <PanelRow row={row} code={code} />
-          </li>
+      {section.name === "context" &&
+        gatheredLists.map((list) => (
+          <ul class={PAGE_CLASSES.panelRows} {...{ [DATA.contextOf]: list.of }} hidden={list.of !== listShown}>
+            {list.rows.map((row) => (
+              <li>
+                <PanelRow row={row} code={code} />
+              </li>
+            ))}
+          </ul>
         ))}
-      </ul>
+      {section.rows.length > 0 && (
+        <ul class={PAGE_CLASSES.panelRows}>
+          {section.rows.map((row) => (
+            <li>
+              <PanelRow row={row} code={code} />
+            </li>
+          ))}
+        </ul>
+      )}
     </PanelSection>
   ))}
   {activityRowsHere.length > 0 && (
