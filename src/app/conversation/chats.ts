@@ -198,6 +198,13 @@ function chatChanged(chat: Chat): void {
   saveChat(chat);
 }
 
+/** What's been sent in a chat so far, as it's kept; null for a tab that
+    isn't a chat. */
+export function sentInChat(tab: HTMLElement): Exchange[] | null {
+  const chat = chatOf(tab);
+  return chat ? chat.sources.map(readExchange) : null;
+}
+
 /** Something's been sent in a chat: it's kept, and the chat listed. Says
     where in the chat it's kept, for updateInChat; null if the chat is gone. */
 export function addToChat(tab: HTMLElement, exchange: Exchange): number | null {

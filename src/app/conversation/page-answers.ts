@@ -1,7 +1,7 @@
 /* The page's own questions and answers, read from its threads and copied
    for a reply. What's been sent into a thread isn't the page's own, and is
    never part of a copy. */
-import { parseAnswerId } from "../../contracts/ask.ts";
+import { parseAnswerId, threadAnswerId, type AskTurn } from "../../contracts/ask.ts";
 import { CLASS_SELECTOR, PART_SELECTOR } from "../../contracts/page-selectors.ts";
 import { clone, find } from "../lib/dom.ts";
 import { restStill } from "../play.ts";
@@ -41,6 +41,27 @@ export function findAnswer(answerId: string): PageAnswer | null {
 }
 
 export const isOnPage = (answerId: string): boolean => findAnswer(answerId) !== null;
+
+// The last of the questions the visitor has read down to: the last one
+// above the middle of what the tab shows, or, with the tab scrolled to its
+// end (or too short to scroll), the last of all.
+function lastRead(scroller: Element, questions: Element[]): number {
+  const isAtEnd = scroller.scrollTop + scroller.clientHeight >= scroller.scrollHeight - 1;
+  if (isAtEnd) return questions.length - 1;
+  const { top, height } = scroller.getBoundingClientRect();
+  const middle = top + height / 2;
+  return questions.findLastIndex((question) => question.getBoundingClientRect().top <= middle);
+}
+
+/** The tab's own answers, down to the one being read, or the first. Each
+    is a turn of the tab, for a question asked in it (follow-up.ts). */
+export function answersReadIn(tab: HTMLElement): AskTurn[] {
+  const questions = [...tab.querySelectorAll(OWN_QUESTION)];
+  const readTo = lastRead(find(tab, CLASS_SELECTOR.scroll), questions);
+  return questions
+    .slice(0, Math.max(readTo, 0) + 1)
+    .map((question, i) => ({ question: questionText(question), id: threadAnswerId(tab.id, i + 1) }));
+}
 
 /** A message to show again elsewhere: without its buttons or the ids the
     page already has, with nothing in it waiting to be scrolled to, and no

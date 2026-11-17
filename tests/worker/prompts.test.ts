@@ -11,7 +11,7 @@ import assert from "node:assert/strict";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { test } from "node:test";
-import type { AskIndex } from "../../src/contracts/ask.ts";
+import type { AskIndex, AskTurn } from "../../src/contracts/ask.ts";
 import { SAMPLE_ANSWERS } from "../sample/ask-answers.ts";
 import { LLAMA_GUARD_MODEL } from "../../src/worker/ask/known-models.ts";
 import { NONE } from "../../src/worker/ask/prompts/wording.ts";
@@ -27,6 +27,8 @@ type Scenario = {
   story: string;
   question: string;
   lang: string;
+  /** The turns before the question in its chat, if it's a follow-up. */
+  earlier?: AskTurn[];
   /** The site's answers, if not the Worker tests' own. */
   index?: AskIndex;
   /** What the picker says. */
@@ -78,6 +80,16 @@ const SCENARIOS: Scenario[] = [
     addresses: [wrote("Have you worked with Vue?")],
   },
   {
+    file: "follow-up-en.txt",
+    story:
+      "An English page, in a chat that has asked two questions: one with no answer, then one about Acme. The follow-up refers back to the second; the writer's first reply names what only the first had.",
+    question: "How long has he been there?",
+    lang: "en",
+    earlier: [{ question: "Has Alex worked at Globex?" }, { question: "What does Alex do at Acme?", id: "acme.1" }],
+    picks: toolCall("acme.1", [1]),
+    writes: [wrote("Alex has been at Acme since 2024, after Globex."), wrote("Alex has been at Acme since 2024.")],
+  },
+  {
     file: "pick-every-block.txt",
     story:
       "The site of tests/sample, which has every kind of block: how each reaches the picker, and which lines get a number.",
@@ -121,10 +133,11 @@ function callAsText(title: string, { model, input }: Sent): string {
 // Everything the models are sent for one question: the picker (the call
 // with a tool), Llama Guard, then each call for a line of text in the
 // order it was made.
-async function sentFor({ story, question, lang, index = INDEX, picks, writes, addresses }: Scenario): Promise<string> {
-  const { env, askJson } = stubs({ run: models(picks), writes, rewrites: addresses, index });
+async function sentFor(scenario: Scenario): Promise<string> {
+  const { story, question, lang, earlier, index = INDEX, picks, writes, addresses } = scenario;
+  const { env, ask } = stubs({ run: models(picks), writes, rewrites: addresses, index });
   const sent = recordingCalls(env);
-  await askJson(question, lang);
+  await ask({ question, lang, earlier });
   const isLlamaGuard = ({ model }: Sent) => model === LLAMA_GUARD_MODEL;
   const isPicker = (call: Sent) => !isLlamaGuard(call) && call.input.tools !== undefined;
   const textCalls = sent.filter((call) => !isLlamaGuard(call) && !isPicker(call));

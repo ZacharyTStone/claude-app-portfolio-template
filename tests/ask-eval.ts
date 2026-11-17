@@ -8,10 +8,12 @@
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
-import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest } from "../src/contracts/ask.ts";
+import { isCitedLines, isQuestionToOwner, isReplyText, type AskRequest, type AskTurn } from "../src/contracts/ask.ts";
 import { isArrayOf, isRecord, isString } from "../src/contracts/guards.ts";
 
-type Question = { q: string; lang: string; expect: string | string[] };
+/** A question, and for a follow-up the turns of the chat before it, as
+    the page would send them. */
+type Question = { q: string; lang: string; expect: string | string[]; earlier?: AskTurn[] };
 type Verdict = "right" | "wrong" | "saidNone" | "falseAnswer" | "falseBlock" | "missedBlock";
 
 /** What /ask said: the id picked ("none", "blocked"), why there was none,
@@ -58,17 +60,23 @@ const expected = (item: Question) => [item.expect].flat();
 const expectsBlock = (item: Question) => expected(item).includes("blocked");
 const wait = (ms: number) => new Promise((done) => setTimeout(done, ms));
 
+const isTurn = (turn: unknown): turn is AskTurn =>
+  isRecord(turn) && isString(turn.question) && (turn.id === undefined || isString(turn.id));
+
 // The site's question list: [{ q, lang, expect }], where expect is an
-// answer id, a list of ids any of which is right, "none" or "blocked".
+// answer id, a list of ids any of which is right, "none" or "blocked". A
+// follow-up has `earlier` too: [{ question, id }], oldest first, each id
+// the answer that question was shown (left out for none).
 function readQuestions(file: string): Question[] {
   const list: unknown = JSON.parse(readFileSync(file, "utf8"));
   const isQuestion = (item: unknown): item is Question =>
     isRecord(item) &&
     isString(item.q) &&
     isString(item.lang) &&
-    (isString(item.expect) || isArrayOf(item.expect, isString));
+    (isString(item.expect) || isArrayOf(item.expect, isString)) &&
+    (item.earlier === undefined || isArrayOf(item.earlier, isTurn));
   if (!Array.isArray(list) || !list.every(isQuestion))
-    throw new Error(`${String(file)}: not a list of { q, lang, expect }`);
+    throw new Error(`${String(file)}: not a list of { q, lang, expect, earlier? }`);
   return list;
 }
 
@@ -88,12 +96,12 @@ async function answerIds(site: string): Promise<((lang: string) => Set<unknown>)
   };
 }
 
-async function ask(site: string, { q, lang }: Question): Promise<Said> {
+async function ask(site: string, { q, lang, earlier }: Question): Promise<Said> {
   for (let attempt = 0; attempt < 2; attempt++) {
     const response = await fetch(`${site}/ask`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ question: q, lang } satisfies AskRequest),
+      body: JSON.stringify({ question: q, lang, earlier } satisfies AskRequest),
     });
     // Over the minute's limit: wait it out, once.
     if (response.status === 429) {

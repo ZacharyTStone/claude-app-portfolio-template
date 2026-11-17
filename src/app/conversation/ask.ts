@@ -1,8 +1,9 @@
 /* Ask: a question typed in goes to /ask (the Worker; src/contracts/ask.ts has
    what it says), checked here, not trusted. Once it says the visitor is
    blocked or out of questions, this browser tab stops asking. */
-import type { AskRequest, AskResponse } from "../../contracts/ask.ts";
+import type { AskResponse, AskTurn } from "../../contracts/ask.ts";
 import { lockFor, lockedResponse, parseAskResponse } from "./ask-response.ts";
+import { askRequestFor } from "./follow-up.ts";
 import { session } from "../lib/storage.ts";
 import { askUrl, root } from "../page.ts";
 
@@ -11,11 +12,12 @@ const ASK_LOCK_KEY = "portfolio:ask-locked";
 
 const ASK_TIMEOUT_MS = 12_000;
 
-/** What /ask says about a question; null when it can't be asked. */
-export async function ask(question: string): Promise<AskResponse | null> {
+/** What /ask says about a question, asked after the `earlier` turns of
+    its chat or tab; null when it can't be asked. */
+export async function ask(question: string, earlier: readonly AskTurn[]): Promise<AskResponse | null> {
   const locked = lockedResponse(session.get(ASK_LOCK_KEY));
   if (locked) return locked;
-  const request: AskRequest = { question, lang: root.lang };
+  const request = askRequestFor(question, root.lang, earlier);
   try {
     const response = await fetch(askUrl, {
       method: "POST",

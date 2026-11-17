@@ -1,7 +1,9 @@
 /* The line /ask logs for a question. wrangler.jsonc, at ASK_LOG_QUESTIONS,
    tells a site's owner what's in it, and they read these names in Workers
    Logs: the names stay as they are. */
+import type { EarlierTurn } from "./earlier.ts";
 import type { Outcome } from "./outcome.ts";
+import { NONE } from "./prompts/wording.ts";
 import type { QuoteCheck } from "./quote.ts";
 import type { NotSaid } from "./to-owner.ts";
 import type { Unwritten } from "./write.ts";
@@ -20,6 +22,9 @@ type Summary = {
   error?: string;
   /** The answer picked, which didn't name what was asked (coverage.ts). */
   uncovered?: string;
+  /** For a follow-up: the answers shown for the turns before it, oldest
+      first, each an id or "none". The site's ids, never what was asked. */
+  after?: string;
   /** Whether a reply was written from the lines picked and passed its
       check, and if not, why. */
   wrote?: "sent" | "dropped";
@@ -73,11 +78,16 @@ function errorCode(error: unknown): string {
   return error instanceof Error && /^\w+Error$/.test(error.name) ? error.name : "unknown";
 }
 
-function answeredSummary({ answer, reply, neurons }: Extract<Outcome, { kind: "answered" }>): Summary {
+// "acme.1 none": undefined for a question that came alone.
+const shownBefore = (earlier: readonly EarlierTurn[]): string | undefined =>
+  earlier.length ? earlier.map(({ answer }) => answer?.id ?? NONE).join(" ") : undefined;
+
+function answeredSummary({ answer, reply, neurons, earlier }: Extract<Outcome, { kind: "answered" }>): Summary {
   const { written, quoted } = reply;
   return {
     ask: answer.id,
     neurons: rounded(neurons),
+    after: shownBefore(earlier),
     wrote: written?.outcome,
     unwritten: written?.why,
     reply: quoted?.outcome,
@@ -86,10 +96,11 @@ function answeredSummary({ answer, reply, neurons }: Extract<Outcome, { kind: "a
 }
 
 function unansweredSummary(outcome: Extract<Outcome, { kind: "unanswered" }>): Summary {
-  const { uncoveredId, saidToOwner, picked, neurons } = outcome;
+  const { uncoveredId, saidToOwner, picked, neurons, earlier } = outcome;
   return {
     ask: "none",
     neurons: rounded(neurons),
+    after: shownBefore(earlier),
     uncovered: uncoveredId,
     toOwner: saidToOwner?.outcome,
     unaddressed: saidToOwner?.why,

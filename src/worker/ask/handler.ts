@@ -6,12 +6,13 @@ import { admit, type Admitted } from "./admit.ts";
 import { ownerNames, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
+import { earlierQuestions, earlierTurns } from "./earlier.ts";
 import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { lineFor, type LogSink } from "./log.ts";
 import { llamaGuardVerdict } from "./moderation.ts";
 import { neuronsSpentOn, responseTo, type Outcome } from "./outcome.ts";
 import { pick, type Picked } from "./pick.ts";
-import { INAPPROPRIATE } from "./prompts/pick.ts";
+import { INAPPROPRIATE, type Asking } from "./prompts/pick.ts";
 import { replyFrom } from "./reply.ts";
 import { sayToOwner } from "./to-owner.ts";
 
@@ -47,15 +48,19 @@ async function outcomeOf(request: Request, env: Env, settings: Settings, guard: 
 async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<Outcome> {
   const { question } = admitted.askRequest;
   const choices = await admitted.choicesBeingRead;
-  const { picked, isInappropriate, costNeurons } = await pickWhileModerating(ai, settings, question, choices);
-  const asked = { question, picked };
+  const earlier = earlierTurns(admitted.askRequest.earlier, choices);
+  const asking = { question, earlier };
+  const { picked, isInappropriate, costNeurons } = await pickWhileModerating(ai, settings, asking, choices);
+  const asked = { ...asking, picked };
   if (isInappropriate) return { kind: "flagged", ...asked, visitorHash: admitted.visitorHash, neurons: costNeurons };
   if (picked.ranOutOfTime) return { kind: "timedOut", ...asked, neurons: costNeurons };
 
   const allowance = { questionsLeft: admitted.questionsLeft, visitorLimit: settings.visitorLimit };
+  // A pick has to cover the question as it was typed: a follow-up that
+  // names nothing ("how long?") is covered by any answer.
   const { answer: answerShown, uncoveredId } = answerToShow(picked.id, question, choices);
   if (answerShown) {
-    const chosen = { question, answer: answerShown, lineNumbers: picked.sentences };
+    const chosen = { question, earlier: earlierQuestions(earlier), answer: answerShown, lineNumbers: picked.sentences };
     const reply = await replyFrom(ai, settings.model, chosen, choices);
     const neurons = costNeurons + neuronCost(reply.written?.tokens ?? NO_TOKENS, settings.price);
     return { kind: "answered", ...asked, ...allowance, answer: answerShown, reply, neurons };
@@ -75,16 +80,18 @@ type ModeratedPick = {
 };
 
 // The model picks while Llama Guard reads the question: neither waits for
-// the other.
+// the other. Llama Guard reads only the question: the earlier ones were
+// asked already, or are the site's own, and the picker judges only the
+// last.
 async function pickWhileModerating(
   ai: Ai,
   settings: Settings,
-  question: string,
+  asking: Asking,
   choices: Choices,
 ): Promise<ModeratedPick> {
   const [picked, verdict] = await Promise.all([
-    pick(ai, settings.model, question, choices),
-    llamaGuardVerdict(ai, question),
+    pick(ai, settings.model, asking, choices),
+    llamaGuardVerdict(ai, asking.question),
   ]);
   return {
     picked,

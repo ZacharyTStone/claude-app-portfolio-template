@@ -101,10 +101,30 @@ export const AskIndexSchema = v.object({
 
 export type AskIndex = v.InferOutput<typeof AskIndexSchema>;
 
+/** The most turns a question is sent with from before it in its chat or
+    tab: the one before it, and the one before that. */
+export const MAX_EARLIER_TURNS = 2;
+
+/** A turn of the chat or tab a question is asked in, from before it. */
+export type AskTurn = {
+  /** What was asked: what the visitor typed, the first question of a
+      thread they chose, or the site's own question over the tab's answer
+      they were reading. The Worker reads it as the visitor's words,
+      whichever it is. */
+  question: string;
+  /** The answer they were shown for it ("work.2"), when there was one and
+      the page knows which. The Worker reads its text from /ask.json. */
+  id?: string;
+};
+
 export type AskRequest = {
   question: string;
   /** The page's <html lang>. */
   lang: string;
+  /** The turns before this question, oldest first, MAX_EARLIER_TURNS at
+      most: what a follow-up ("and before that?") refers back to. Left out
+      when there are none, and by a page from before follow-ups. */
+  earlier?: AskTurn[];
 };
 
 // Control and format characters: line breaks, zero-width and bidi marks.

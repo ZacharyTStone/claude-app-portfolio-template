@@ -68,7 +68,9 @@ holds it.
 - **Its requests are small.** Ask takes only a small JSON POST. Another
   method, another content type (which a page on another site can't send)
   or a body over 2,048 bytes is refused before anything is spent on it,
-  and a question is cut to 300 characters.
+  and a question is cut to 300 characters, as is each of the two earlier
+  ones of its chat it may come with. An earlier answer is named by its id,
+  and read from the site's own answers.
 - **A reply is held to your site**, by a fixed list of answers to pick
   from, a check of every name, number and address in it (which also
   refuses a character no reader can see, and a letter from a script the

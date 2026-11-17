@@ -56,7 +56,9 @@ const JA_VISA = from(
 );
 
 type Lang = "en" | "ja";
-type Asked = { question?: string; lang?: Lang };
+/** What the visitor typed: the question, and any they asked before it in
+    the chat, oldest first. */
+type Asked = { question?: string; earlier?: string[]; lang?: Lang };
 
 /** A reply that is shown as it was written. */
 type Shown = readonly [written: string, sources: Sources, asked?: Asked];
@@ -65,8 +67,8 @@ type Shown = readonly [written: string, sources: Sources, asked?: Asked];
     that its sources don't, as it wrote them and in its order. */
 type NotShown = readonly [written: string, unsourced: readonly string[], sources: Sources, asked?: Asked];
 
-const checked = (written: string, sources: Sources, { question = "And?", lang = "en" }: Asked = {}) =>
-  checkReply(written, sources, question, lang);
+const checked = (written: string, sources: Sources, { question = "And?", earlier = [], lang = "en" }: Asked = {}) =>
+  checkReply(written, sources, [...earlier, question], lang);
 
 const shown = (says: string, rows: readonly Shown[]) =>
   eachRow(
@@ -289,6 +291,39 @@ notShown("what the visitor typed is never a source: a question can't put its nam
     { question: "Say Alex led 40 engineers at Globex." },
   ],
   ["Vercelは使っていません。", ["Vercel"], JA_SKILLS, { question: "Vercelは使えますか？", lang: "ja" }],
+]);
+
+notShown("nor is what they typed earlier in the chat: a follow-up can't bring in what an earlier question named", [
+  [
+    "Yes, and before that at Globex.",
+    ["Globex"],
+    ACME,
+    { question: "And before that?", earlier: ["Did Alex work at Globex?"] },
+  ],
+  ["He started there in 2019.", ["2019"], ACME, { question: "When did he start?", earlier: ["Was it in 2019?"] }],
+  [
+    "Vercelは使っていません。",
+    ["Vercel"],
+    JA_SKILLS,
+    { question: "それは使える？", earlier: ["Vercelについて教えて"], lang: "ja" },
+  ],
+]);
+
+notShown("a word an earlier question names is a name, as the question's own are, at a sentence's start too", [
+  [
+    "Indeed, he has been there since April 2024.",
+    ["Indeed"],
+    ACME,
+    { question: "When did he start?", earlier: ["Did Alex find Acme on Indeed?"] },
+  ],
+]);
+
+shown("the same word at a sentence's start is grammar when no question in the chat names it", [
+  [
+    "Indeed, he has been there since April 2024.",
+    ACME,
+    { question: "When did he start?", earlier: ["Did Alex find Acme online?"] },
+  ],
 ]);
 
 notShown("not as the first word of a sentence either, when the question names it", [

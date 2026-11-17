@@ -27,6 +27,30 @@
   { "q": "What has Alex written about?", "lang": "en", "expect": "writing.1" },
   { "q": "Is Alex frontend or backend?", "lang": "en", "expect": ["skills.1", "about.1"] },
   { "q": "How long has Alex been at Acme?", "lang": "en", "expect": "acme.1" },
+  {
+    "q": "And at Globex?",
+    "lang": "en",
+    "earlier": [{ "question": "What has Alex shipped at Acme?", "id": "acme.2" }],
+    "expect": ["globex.1", "globex.2"]
+  },
+  {
+    "q": "How long was Alex there?",
+    "lang": "en",
+    "earlier": [{ "question": "Did Alex work at an agency?", "id": "globex.1" }],
+    "expect": "globex.1"
+  },
+  {
+    "q": "How much faster did it get?",
+    "lang": "en",
+    "earlier": [{ "question": "What has Alex shipped at Acme?", "id": "acme.2" }],
+    "expect": "acme.2"
+  },
+  {
+    "q": "Does Alex drink coffee?",
+    "lang": "en",
+    "earlier": [{ "question": "What has Alex shipped at Acme?", "id": "acme.2" }],
+    "expect": "personal-coffee.1"
+  },
   { "q": "Does Alex know Kubernetes?", "lang": "en", "expect": "none" },
   { "q": "What's Alex's salary?", "lang": "en", "expect": "none" },
   { "q": "Does Alex have kids?", "lang": "en", "expect": "none" },
