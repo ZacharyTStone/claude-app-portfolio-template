@@ -13,10 +13,11 @@ import type { SiteConfig } from "../../src/config/site-config.ts";
 import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
 import { isSafeHref } from "../../src/site/checks/formats.ts";
 import { portfolioPages } from "../../src/site/pages.ts";
-import { makeSite } from "../../src/site/site.ts";
+import { makeSite, type Site } from "../../src/site/site.ts";
 import { basePath } from "../../src/site/url.ts";
 import type { Post } from "../../src/site/writing/post.ts";
 import { postPages } from "../../src/site/writing/post-pages.ts";
+import { SECURITY_TXT_FILE, securityTxt } from "../../src/site/files/security-txt.ts";
 
 /** A built file, and where it's served. */
 type ServedFile = { file: string; url: URL };
@@ -24,6 +25,8 @@ type ServedFile = { file: string; url: URL };
 export type BuiltSite = {
   /** What the tests call it: "this site", "the sample site". */
   name: string;
+  /** The site its config makes, as the build read it. */
+  made: Site;
   /** Where the site is: its address, with the path it's served under ("/", "/portfolio/"). */
   url: URL;
   /** Each language's home page, the main one's first. */
@@ -55,6 +58,7 @@ export function builtSite(name: string, folder: string, config: SiteConfig, post
   const ownPagesOfPosts = postPages(site).map(({ path }) => servedAt(path));
   return {
     name,
+    made: site,
     url,
     languagePages,
     tabPages,
@@ -298,6 +302,20 @@ function testLinksAndFiles(site: BuiltSite): void {
   });
 }
 
+/** A field's value in a file of "Name: value" lines, if it has the field. */
+const fieldOf = (text: string, name: string): string | undefined => text.match(new RegExp(`^${name}: (.*)$`, "m"))?.[1];
+
+function testSecurityTxt(site: BuiltSite): void {
+  test(`${site.name} has its security.txt under the site's path, as the build writes it, and it holds now`, () => {
+    assert.ok(site.hasFile(SECURITY_TXT_FILE), `the build has ${SECURITY_TXT_FILE}`);
+    const text = site.read(SECURITY_TXT_FILE);
+    const expires = new Date(fieldOf(text, "Expires") ?? "");
+    assert.ok(expires.getTime() > Date.now(), "it holds now");
+    assert.equal(text, securityTxt(site.made, expires));
+    assert.equal(fieldOf(text, "Canonical"), new URL(SECURITY_TXT_FILE, site.url).href);
+  });
+}
+
 /** The tests any built site has to pass. */
 export function testBuiltSite(site: BuiltSite): void {
   testEveryLanguageHasTheSameStructure(site);
@@ -306,4 +324,5 @@ export function testBuiltSite(site: BuiltSite): void {
   testEachPageSaysItsCharsetEarly(site);
   testNothingIsInline(site);
   testLinksAndFiles(site);
+  testSecurityTxt(site);
 }

@@ -64,7 +64,7 @@ call anything done, run `npm run verify`.
 | `src/config/` | The config's types: a doc comment on every field, which an editor shows on hover; English wording's defaults |
 | `src/contracts/` | What the pages, the script, the Worker and the tests agree on: ids, classes, data attributes, selectors, the wire formats of `/ask` and `/contact` |
 | `src/site/` | What the build reads and writes, as plain TypeScript: `site.ts`, the pages and what each one's head says (`pages.ts`), the config's checks (`checks/`), each file it writes (`files/`), the Writing tab's posts (`writing/`), the panel's GitHub activity (`activity/`), the security headers |
-| `src/pages/`, `src/layouts/` | The routes (`[...page].astro`: each language's home page and each tab's; `writing/[post].astro`: a post's own page, for the viewer; 404, llms.txt, sitemap.xml, robots.txt, `[ask].json.ts`) and the `<head>` |
+| `src/pages/`, `src/layouts/` | The routes (`[...page].astro`: each language's home page and each tab's; `writing/[post].astro`: a post's own page, for the viewer; 404, llms.txt, sitemap.xml, robots.txt, `.well-known/security.txt.ts`, `[ask].json.ts`) and the `<head>` |
 | `src/components/` | The page's parts: `Name.astro`, its rules in `Name.css` beside it |
 | `src/integrations/` | Astro hooks: check the config before a build, fetch the Writing tab's posts and the panel's GitHub activity, write the host's files after |
 | `src/styles/` | Shared rules, and the rules for what the script makes; `app.css` lists every stylesheet in order |

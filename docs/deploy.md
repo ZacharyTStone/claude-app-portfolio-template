@@ -37,6 +37,14 @@ caching of its own: a host caches every page as it caches the home page.
 paths no tab can take (the build refuses a thread with one of those ids),
 and nor is `/blog/`.
 
+Beside the pages, the build writes `robots.txt`, `sitemap.xml`, `llms.txt`
+and `/.well-known/security.txt` ([Security](security.md#securitytxt)).
+The last is in a folder whose name starts with a dot. Cloudflare's and
+Netlify's deploys publish that folder as any other; GitHub Pages' upload
+leaves it out unless told not to, which the workflow below does; and a
+server of your own may refuse paths with a dot-folder in them, as many
+nginx setups do: let it serve `/.well-known/`.
+
 ## Cloudflare (recommended)
 
 The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
@@ -102,8 +110,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
+          # Or .well-known/security.txt is left out.
+          include-hidden-files: true
       - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 ```
