@@ -64,9 +64,15 @@ export async function fetchHistory(
     log.info(historyFound(user, history));
     return history;
   } catch (error) {
-    return error instanceof Error ? error.message : String(error);
+    return withoutTheToken(error instanceof Error ? error.message : String(error), token);
   }
 }
+
+/** `why`, with the token's value taken out wherever it is, before anything
+    says it: no message of this code's has it, but a server or a library
+    that quoted a request back could put it in one. */
+const withoutTheToken = (why: string, token: string | undefined): string =>
+  token ? why.replaceAll(token, `[the token in ${GITHUB_TOKEN}]`) : why;
 
 /** A problem for each mark in no year of the history: it has nowhere to go
     on the calendar. */

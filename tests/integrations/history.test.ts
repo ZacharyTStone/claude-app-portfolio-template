@@ -63,6 +63,20 @@ test("the history fetched is said, by whose, since when and how much, and never 
   assert.ok(!said.some((line) => line.includes("a-secret-token")));
 });
 
+test("a server that quotes the token back in its refusal never gets it said: its value is taken out of why", async () => {
+  const { log } = logger();
+  const token = "github_pat_a-secret-token";
+  const echoing = async () =>
+    Response.json(
+      { message: `Bad credentials: Bearer ${token}` },
+      { status: 401, headers: { "content-type": "application/json" } },
+    );
+  const why = await fetchHistory(SAMPLE, { [GITHUB_TOKEN]: token }, () => echoing, log);
+  assert.equal(typeof why, "string");
+  assert.ok(!String(why).includes(token), String(why));
+  assert.match(String(why), new RegExp(`\\[the token in ${GITHUB_TOKEN}\\]`));
+});
+
 test("a history that can't be fetched is none, and why is what's said instead", async () => {
   const { said, log } = logger();
   const why = await fetchHistory(

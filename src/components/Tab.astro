@@ -38,7 +38,8 @@ const isOpen = page.tab === id;
       <span class={PAGE_CLASSES.label}>{strings.share}</span>
     </button>
   </Topbar>
-  <div class={PAGE_CLASSES.scroll}>
+  {/* Focusable, so a keyboard can scroll an answer with no link in it, such as a long one of figures. */}
+  <div class={PAGE_CLASSES.scroll} tabindex="0">
     <div class={PAGE_CLASSES.thread}>
       <slot />
     </div>
