@@ -105,7 +105,9 @@ goes in both. What came of a question is one `Outcome`
 `src/worker/ask/model.ts` is the only caller of Workers AI. The contact
 form's `/contact` is built the same way, in `src/worker/contact/`: what
 came of a message is one `ContactOutcome`, and the reply (JSON, or a
-redirect back to the page) and the log line each come from it.
+redirect back to the page) and the log line each come from it. Its
+senders are `outbox.ts`, and `providers.ts` is the only caller of a
+sender's API, whose tests pass a `fetch` of their own.
 
 ## Changing what Ask may say
 
@@ -157,8 +159,10 @@ The checks are Playwright tests, `tests/browser/*.spec.ts`.
 `npm run test:browser` runs them on two sites: the repo's own (the
 project `site`) and the made-up one in `tests/sample` (the project
 `sample`), which has what a starter site may not: Ask, a viewer, a second
-language, a path it's served under. It needs `npm run build` first, and
-says so.
+language, a path it's served under. The contact form's checks also run on
+the sample as Netlify serves it (the project `netlify`,
+`tests/sample/on-netlify.ts`), where Netlify Forms takes its messages. It
+needs `npm run build` first, and says so.
 
 - **Run less than everything while you work.**
   `npx playwright test viewer.spec` runs one file, `-g "words from its

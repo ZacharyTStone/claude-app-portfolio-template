@@ -75,7 +75,7 @@ call anything done, run `npm run verify`.
 | `diagrams/` | Pictures that move, as code (each site's own) |
 | `scripts/` | The diagram kit (`diagram.ts`), the fonts (`fonts.ts`), the update and its list |
 | `tests/` | Unit tests mirroring `src/`, the browser checks (`tests/browser/`), the sample site, Ask's eval |
-| `playwright.config.ts` | How the browser checks run: the two sites, the visitor's time zone |
+| `playwright.config.ts` | How the browser checks run: the two sites (and the sample on Netlify, for the contact form), the visitor's time zone |
 | `docs/` | The guides: see the last section |
 
 `dist/` is what Astro builds and the host serves. It is never committed.
@@ -139,7 +139,7 @@ call anything done, run `npm run verify`.
 | add a language, or change Japanese text | `docs/languages.md` |
 | draw or change a diagram | `docs/diagrams.md` |
 | turn Ask on, or change its limits or its cost | `docs/ask.md` |
-| turn the contact form on, or change its limits | `docs/contact-form.md` |
+| turn the contact form on, or change its sender or its limits | `docs/contact-form.md` |
 | turn on the Writing tab, its posts in the viewer or its daily rebuild, or change what the build fetches | `docs/writing.md` |
 | turn on the panel's GitHub activity, or give its build a token | `docs/github-activity.md` |
 | change a header, the policy, or what a page loads | `docs/security.md` |
