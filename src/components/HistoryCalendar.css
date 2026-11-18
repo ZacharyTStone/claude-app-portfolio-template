@@ -15,9 +15,17 @@
   align-items: center;
   gap: 5px 10px;
 }
-.history-calendar dl > div,
-.history-calendar dd {
+/* A row is the dl's own: its year in the first column, and its weeks and total, in the dd, on the two after,
+   so that every row's strip starts and ends where the others' do. */
+.history-calendar dl > div {
   display: contents;
+}
+.history-calendar dd {
+  display: grid;
+  grid-column: 2 / -1;
+  grid-template-columns: subgrid;
+  align-items: center;
+  margin: 0;
 }
 .history-calendar dt {
   color: var(--text-2);
