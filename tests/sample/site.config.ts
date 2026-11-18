@@ -5,8 +5,8 @@
    one of each kind of figure, a picture that moves all the time, a
    Writing tab of posts on Qiita, Zenn and note, each Qiita post with a page
    of its own that the viewer shows, and its recent public activity on
-   GitHub in the panel, which the tests' builds are given from writing.json
-   and github.json: no test reaches any of them.
+   GitHub, GitLab and Codeberg in the panel, which the tests' builds are
+   given from writing.json and activity.json: no test reaches any of them.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -193,8 +193,9 @@ const config: SiteConfig = {
   // them from writing.json. Each Qiita post opens in the viewer too, as a
   // page of the site's own.
   writing: { qiita: "sam-sample", zenn: "sam_sample", note: "sam_sample", viewer: true },
-  // So is its activity on GitHub, read from github.json.
-  activity: { github: "sam-sample" },
+  // So is its activity on all three places, read from activity.json: on
+  // Codeberg, Sam has another name.
+  activity: { github: "sam-sample", gitlab: "sam-sample", codeberg: "sams" },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.
   languages: {

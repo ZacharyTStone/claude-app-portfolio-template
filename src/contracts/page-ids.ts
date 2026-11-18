@@ -61,8 +61,8 @@ export const titleId = (id: string): string => `${id}-title`;
 
 export const groupId = (id: string): string => `${ID_PREFIX.group}${id}`;
 
-/** A section of the details panel: one of the config's, or the GitHub
-    activity the build adds after them. */
+/** A section of the details panel: one of the config's, or the activity
+    the build adds after them. */
 export type PanelSectionName = keyof Panel | typeof ACTIVITY_SECTION;
 
 export const panelId = (key: PanelSectionName): string => `${ID_PREFIX.panel}${key}`;

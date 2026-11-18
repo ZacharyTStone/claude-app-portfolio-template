@@ -480,7 +480,7 @@ export default function japanese(me: SampleFacts): Language {
       writingEmpty: "まだ記事はありません。",
       // With writing.zenn or writing.dev: after a post's count of likes.
       writingLikes: "いいね",
-      // With `activity` in site.config.ts: the panel's GitHub activity.
+      // With `activity` in site.config.ts: the panel's activity.
       activityTitle: "最近の公開リポジトリ",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",

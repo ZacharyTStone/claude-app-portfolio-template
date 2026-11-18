@@ -7,31 +7,23 @@
    kept. */
 import * as v from "valibot";
 import { ACTIVITY_REPOS } from "../../config/activity.ts";
-import { unreachable, WAIT_MS, withOneMoreTry, type Failure, type Fetch } from "../fetching.ts";
-
-/** A public repo the user pushed to, as the panel lists it. */
-export type Repo = {
-  /** Its owner and name, as GitHub writes them: "alex-example/notes". */
-  name: string;
-  /** Its page: "https://github.com/alex-example/notes". */
-  url: string;
-  /** When the user last pushed to it, in UTC: "2026-11-12T03:04:05Z". */
-  pushed: string;
-};
+import type { Failure } from "../fetching.ts";
+import { ask, readPages, type AskOptions, type Asking, type EventPage } from "./asking.ts";
+import { inUtc, latestOnce, type Repo } from "./repo.ts";
 
 /** The environment variable that may hold a token for the build to ask
     GitHub with. It's read by the build alone, and no page carries it. */
 export const GITHUB_TOKEN = "GITHUB_TOKEN";
 
-const API = "https://api.github.com";
+/** GitHub's API: the one address the token is ever sent to. */
+export const GITHUB_API = "https://api.github.com";
 
 /** Where a user's public events are, newest first, a page at a time. */
 export const eventsAddress = (user: string, perPage: number): string =>
-  `${API}/users/${encodeURIComponent(user)}/events/public?per_page=${perPage}`;
+  `${GITHUB_API}/users/${encodeURIComponent(user)}/events/public?per_page=${perPage}`;
 
-/** The most events GitHub gives in a page, and how many pages the build
-    reads at most, should the first not name enough repos. */
-const PAGES = { size: 100, most: 3 } as const;
+/** The most events GitHub gives in a page. */
+const PAGE_SIZE = 100;
 
 /** "alex-example/notes": an owner and a repo, as a path on github.com. */
 const REPO_NAME = /^[A-Za-z0-9-]+\/[A-Za-z0-9._-]+$/;
@@ -47,21 +39,10 @@ const EventSchema = v.object({
 
 type Event = v.InferOutput<typeof EventSchema>;
 
-const PageSchema = v.array(EventSchema);
-
-/** What GitHub sends with a refusal: { "message": "Not Found", … }. */
-const RefusalSchema = v.object({ message: v.string() });
-
-export type GitHubOptions = {
-  fetch: Fetch;
+export type GitHubOptions = AskOptions & {
   /** A token to ask with, from GITHUB_TOKEN: none, unless the build's
       environment has one. */
   token?: string;
-  /** Events a page: 100, unless a test asks for fewer to see the pages followed. */
-  perPage?: number;
-  /** How long a failed request waits before it's tried again: 2 seconds,
-      unless a test has no time to wait. */
-  retryAfterMs?: number;
 };
 
 /** "14:05 UTC", from the epoch seconds GitHub's x-ratelimit-reset gives. */
@@ -79,86 +60,61 @@ function rateLimited(response: Response, withToken: boolean): Failure {
   return { why, mightPass: false };
 }
 
-/** A busy or broken server may answer the next request; one that says no to
-    this one, or has no such user, won't. */
-async function refusal(response: Response, withToken: boolean): Promise<Failure> {
-  const { status } = response;
-  const isLimited = status === 403 || status === 429;
-  if (isLimited && response.headers.get("x-ratelimit-remaining") === "0") return rateLimited(response, withToken);
-  const said = v.safeParse(RefusalSchema, await response.json().catch(() => undefined));
-  const message = said.success ? ` (${said.output.message})` : "";
-  if (status === 404) return { why: `GitHub has no user by that name${message}`, mightPass: false };
-  if (status === 401 && withToken) {
-    return { why: `GitHub refused the token in ${GITHUB_TOKEN}${message}: fix it, or unset it`, mightPass: false };
-  }
-  return { why: `GitHub answered ${status}${message}`, mightPass: status >= 500 };
-}
-
-function misshapen(issues: [v.BaseIssue<unknown>, ...v.BaseIssue<unknown>[]]): Failure {
-  const [first] = issues;
-  const where = v.getDotPath(first) ?? "the answer";
-  return {
-    why: `GitHub's answer isn't a list of events as its API sends one (${where}: ${first.message})`,
-    mightPass: false,
+/** What only GitHub says no for: its hourly limit, used up, and the token. */
+const refusedByGitHub =
+  (withToken: boolean) =>
+  (response: Response, message: string): Failure | undefined => {
+    const { status } = response;
+    const isLimited = status === 403 || status === 429;
+    if (isLimited && response.headers.get("x-ratelimit-remaining") === "0") return rateLimited(response, withToken);
+    if (status === 401 && withToken) {
+      return { why: `GitHub refused the token in ${GITHUB_TOKEN}${message}: fix it, or unset it`, mightPass: false };
+    }
+    return undefined;
   };
-}
 
 /** The next page's address, from the Link header GitHub sends with a page
     that has one after it. Only ever an address of GitHub's API: the token,
     if there is one, goes nowhere else. */
 function nextPage(response: Response): string | undefined {
   const next = /<([^>]+)>;\s*rel="next"/.exec(response.headers.get("link") ?? "")?.[1];
-  return next && URL.canParse(next) && new URL(next).origin === API ? next : undefined;
+  return next && URL.canParse(next) && new URL(next).origin === GITHUB_API ? next : undefined;
 }
 
-type Page = { events: Event[]; next: string | undefined };
-
-function requestFor(token: string | undefined): RequestInit {
+function askingFor(address: string, token: string | undefined): Asking<Event[]> {
   const headers: Record<string, string> = {
     accept: "application/vnd.github+json",
     "x-github-api-version": "2022-11-28",
     ...(token ? { authorization: `Bearer ${token}` } : {}),
   };
-  return { headers, signal: AbortSignal.timeout(WAIT_MS.answer) };
-}
-
-async function tryPage(address: string, options: GitHubOptions): Promise<Page | Failure> {
-  const response = await options
-    .fetch(address, requestFor(options.token))
-    .catch((error: unknown) => unreachable("GitHub", error));
-  if (!(response instanceof Response)) return response;
-  if (!response.ok) return refusal(response, Boolean(options.token));
-  const parsed = v.safeParse(PageSchema, await response.json().catch(() => undefined));
-  return parsed.success ? { events: parsed.output, next: nextPage(response) } : misshapen(parsed.issues);
+  const refused = refusedByGitHub(Boolean(token));
+  return { service: "github", address, what: "a list of events", schema: v.array(EventSchema), headers, refused };
 }
 
 /** Each repo pushed to once, at its latest push, the latest first. Only a
     push counts, and only a public one. */
-function reposPushedTo(events: Event[]): Repo[] {
-  const pushes = events
-    .filter((event) => event.type === "PushEvent" && event.public)
-    .toSorted((one, other) => Date.parse(other.created_at) - Date.parse(one.created_at));
-  const repos = new Map<string, Repo>();
-  for (const push of pushes) {
-    const key = push.repo.name.toLowerCase();
-    if (repos.has(key)) continue;
-    repos.set(key, { name: push.repo.name, url: `https://github.com/${push.repo.name}`, pushed: push.created_at });
-  }
-  return [...repos.values()];
-}
+const reposPushedTo = (events: Event[]): Repo[] =>
+  latestOnce(
+    events
+      .filter((event) => event.type === "PushEvent" && event.public)
+      .map((push) => ({
+        service: "github",
+        name: push.repo.name,
+        url: `https://github.com/${push.repo.name}`,
+        pushed: inUtc(push.created_at),
+      })),
+  );
 
-/** The public repos `user` pushed to most recently, the latest first, as
-    many as the panel lists, or fewer if their recent public events name
-    fewer. Throws if GitHub can't be reached, refuses, or sends anything
-    but a list of events. */
-export async function recentRepos(user: string, options: GitHubOptions): Promise<Repo[]> {
-  const events: Event[] = [];
-  let address: string | undefined = eventsAddress(user, options.perPage ?? PAGES.size);
-  for (let page = 1; address !== undefined && page <= PAGES.most; page++) {
-    const asking: string = address;
-    const read = await withOneMoreTry(asking, () => tryPage(asking, options), options.retryAfterMs);
-    events.push(...read.events);
-    address = reposPushedTo(events).length < ACTIVITY_REPOS ? read.next : undefined;
-  }
+/** The public repos `user` pushed to most recently on GitHub, the latest
+    first, as many as the panel lists, or fewer if their recent public
+    events name fewer. Throws if GitHub can't be reached, refuses, or sends
+    anything but a list of events. */
+export async function githubRepos(user: string, options: GitHubOptions): Promise<Repo[]> {
+  const readPage = async (address: string): Promise<EventPage<Event>> => {
+    const { got, response } = await ask(askingFor(address, options.token), options);
+    return { events: got, next: nextPage(response) };
+  };
+  const first = eventsAddress(user, options.perPage ?? PAGE_SIZE);
+  const events = await readPages(first, readPage, (read) => reposPushedTo(read).length);
   return reposPushedTo(events).slice(0, ACTIVITY_REPOS);
 }

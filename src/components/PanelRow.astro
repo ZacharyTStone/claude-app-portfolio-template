@@ -10,7 +10,7 @@ interface Props {
   row: PanelRow;
   /** The language of the page it's on. */
   code: string;
-  /** In the GitHub activity: the row is a repo the build fetched. */
+  /** In the panel's activity: the row is a repo the build fetched. */
   fetched?: boolean;
 }
 const { row, code, fetched } = Astro.props;

@@ -77,10 +77,10 @@ export type SiteConfig = {
       needs the writing* strings (English has them). Leave out for none. */
   writing?: Writing;
   /** Your recent public activity, in a section of the details panel: the
-      public repos you pushed to most recently, each with the day:
-      { github: "alex-example" }. The build fetches it, and stops if it
-      can't (docs/github-activity.md). Each language then needs
-      strings.activityTitle (English has it). Leave out for none. */
+      public repos you pushed to most recently, each with the day, on
+      GitHub, GitLab or Codeberg: { github: "alex-example" }. The build
+      fetches it, and stops if it can't (docs/activity.md). Each language
+      then needs strings.activityTitle (English has it). Leave out for none. */
   activity?: Activity;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every

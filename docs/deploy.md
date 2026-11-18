@@ -66,8 +66,8 @@ With a [Writing tab](writing.md), each build fetches your posts first, and
 stops if it can't: a build that fails deploys nothing, so the site that's
 up stays as it was. [A rebuild each day](writing.md#a-rebuild-each-day)
 brings in what you've posted since, with a deploy hook and a cron trigger.
-The same goes for [GitHub activity](github-activity.md), whose build may
-need a `GITHUB_TOKEN` on a busy build machine.
+The same goes for the panel's [activity](activity.md), whose build may
+need a `GITHUB_TOKEN` for GitHub on a busy build machine.
 
 `npm run deploy` runs one pinned version of Wrangler, Cloudflare's tool;
 `npm run wrangler -- dev` serves the site locally as Cloudflare would.

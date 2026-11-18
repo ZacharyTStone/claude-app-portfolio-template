@@ -82,7 +82,7 @@ function japaneseFonts(): CutFont[] {
 }
 
 /** The Japanese wording of the parts a build leaves out while they have nothing to show: the Writing tab
-    before the first post, the panel's GitHub activity before the first repo. A later build shows them, a daily
+    before the first post, the panel's activity before the first repo. A later build shows them, a daily
     rebuild without anyone at hand among them, so the fonts are cut for them now, and the check asks for them. */
 function wordingNotShownYet(): string {
   const site = makeSite(config);

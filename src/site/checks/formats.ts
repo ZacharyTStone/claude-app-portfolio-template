@@ -79,6 +79,16 @@ export const isDomainName = looksLike(/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{
     "@alex-example", and not the profile's whole address. */
 export const isGitHubUserName = looksLike(/^(?=.{1,39}$)[A-Za-z0-9]+(-[A-Za-z0-9]+)*$/);
 
+/** "alex-example": a GitLab user name, letters, digits, "_", "-" and ".",
+    not starting with "-" or ending with ".", as the address of its profile
+    has it. Not "@alex-example", and not the profile's whole address. */
+export const isGitLabUserName = looksLike(/^(?=.{1,255}$)([A-Za-z0-9_.][A-Za-z0-9_.-]*[A-Za-z0-9_-]|[A-Za-z0-9_])$/);
+
+/** "alex-example": a Codeberg user name, letters and digits with single
+    inner "-", "_" or ".", up to 40 of them, as the address of its profile
+    has it. Not "@alex-example", and not the profile's whole address. */
+export const isCodebergUserName = looksLike(/^(?=.{1,40}$)[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$/);
+
 /** Whether the account menu's clock can tell the time in `zone`: it uses
     this constructor (src/app), which throws for a zone it doesn't know
     ("Tokyo", for "Asia/Tokyo"). */

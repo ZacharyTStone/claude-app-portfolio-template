@@ -1,7 +1,7 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
    viewer, a picture that has a still, a Writing tab whose posts each have
-   a page of the site's own for the viewer, and GitHub activity in the
+   a page of the site's own for the viewer, and three places' activity in the
    panel; the same site on a host that reads no headers; and the same site
    before its first post. The builds share Astro's working folder, so
    they're made one after another, in this file. */
@@ -26,14 +26,14 @@ import {
 import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { panelId } from "../../src/contracts/page-ids.ts";
-import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
+import { ACTIVITY_SECTION, ACTIVITY_SERVICES } from "../../src/config/activity.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { postPages } from "../../src/site/writing/post-pages.ts";
 import { dayPosted } from "../../src/site/writing/post.ts";
 import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
-import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
+import { SAMPLE_ACTIVITY, sampleRepos } from "../sample/activity.ts";
 import { SAMPLE_WRITING, SAMPLE_WRITING_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/writing.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
@@ -79,10 +79,12 @@ test("the sample has a Writing tab, and the build says its posts are the tests' 
   );
 });
 
-test("the sample has GitHub activity, and the build says its repos are the tests' fixture, not GitHub's", () => {
+test("the sample has activity, and the build says its repos are the tests' fixture, not GitHub's, GitLab's or Codeberg's", () => {
   assert.match(
     built.stdout,
-    new RegExp(`the panel's GitHub activity is the fixture ${escapeRegExp(SAMPLE_GITHUB)}, not GitHub's`),
+    new RegExp(
+      `the panel's activity is the fixture ${escapeRegExp(SAMPLE_ACTIVITY)}, not GitHub's, GitLab's or Codeberg's`,
+    ),
   );
 });
 
@@ -107,6 +109,10 @@ test("the sample has Ask on, so the build writes what /ask picks from", () => {
 });
 
 const frameAddresses = Object.values(sampleConfig.viewer ?? {});
+
+/** The panel's activity on a page, as built. */
+const activitySectionIn = (html: string): string =>
+  html.match(new RegExp(`<section aria-labelledby="${panelId(ACTIVITY_SECTION)}".*?</section>`, "s"))?.[0] ?? "";
 
 /** A page's tab with this id, as built. */
 const tabIn = (html: string, id: string): string =>
@@ -141,13 +147,24 @@ for (const { file, url } of sample.languagePages) {
     const html = sample.read(file);
     const sections = [...html.matchAll(/<section aria-labelledby="([^"]+)"/g)].map(([, id]) => id);
     assert.equal(sections.at(-1), panelId(ACTIVITY_SECTION));
-    const section = html.match(new RegExp(`<section aria-labelledby="${panelId(ACTIVITY_SECTION)}".*?</section>`, "s"));
     const fetchedLinks = [
-      ...(section?.[0] ?? "").matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g")),
+      ...activitySectionIn(html).matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g")),
     ];
     assert.deepEqual(
       fetchedLinks.map(([, href]) => href),
       repos.map((repo) => repo.url),
+    );
+  });
+
+  test(`${file} names the place of each repo in its row, before the day, since the sample reads more than one`, () => {
+    const notes = [
+      ...activitySectionIn(sample.read(file)).matchAll(
+        new RegExp(`<span class="${PAGE_CLASSES.rowMeta}">([^<]*)<`, "g"),
+      ),
+    ];
+    assert.deepEqual(
+      notes.map(([, note = ""]) => note.split(" · ")[0]),
+      repos.map((repo) => ACTIVITY_SERVICES[repo.service]),
     );
   });
 

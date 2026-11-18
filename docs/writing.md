@@ -371,7 +371,7 @@ has every kind of Markdown a page shows and some it leaves out, so the
 tests hold each post's own page too. To build the sample as the tests do:
 
 ```sh
-SITE_CONFIG=tests/sample/site.config.ts WRITING_FIXTURE=tests/sample/writing.json npm run build
+SITE_CONFIG=tests/sample/site.config.ts WRITING_FIXTURE=tests/sample/writing.json ACTIVITY_FIXTURE=tests/sample/activity.json npm run build
 ```
 
 `tests/sample/writing-no-posts.json` is the same user before their first

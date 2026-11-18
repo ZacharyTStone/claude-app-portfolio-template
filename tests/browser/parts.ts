@@ -42,7 +42,7 @@ export const EMAIL_LINK = ATTRIBUTE.emailBody;
 
 /** The details panel's sections, in the order the page has them. */
 export const PANEL_SECTIONS = `${ID.panel} > section`;
-/** The panel's GitHub activity, the section the build adds after the config's. */
+/** The panel's activity, the section the build adds after the config's. */
 export const ACTIVITY_IN_THE_PANEL = `${ID.panel} > section[aria-labelledby="${panelId(ACTIVITY_SECTION)}"]`;
 
 /** The panel's Context, the config's section. */

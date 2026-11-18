@@ -129,27 +129,29 @@ sent.
 
 A build fetches two things: the Writing tab's posts
 (`src/integrations/writing.ts`, `src/site/writing/`) and the panel's
-GitHub activity (`src/integrations/activity.ts`, `src/site/activity/`).
+activity (`src/integrations/activity.ts`, `src/site/activity/`).
 The Writing tab's places are each a module of `src/site/writing/`
 (`qiita.ts`, `zenn.ts`, `dev.ts`, and `feeds.ts` for every place read from
 a feed), listed together in `sources.ts`; a new place is a module there
 that gives `Post`s, a field of `Writing` (`src/config/writing.ts`), a row
 in `src/site/checks/writing.ts`, and a part of the stand-in
-(`src/site/writing/fixture.ts`). What their requests share, the time
-limit and the one more try, is `src/site/fetching.ts` (and, for the
-Writing tab's places, `src/site/writing/source.ts`). No test reaches any
-of them. A unit test passes a place's function (`qiitaPosts()`,
-`zennPosts()`, `feedPosts()`, `recentRepos()`…) a `fetch` of its own. A
-build the tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`,
-the paths of `tests/sample/writing.json` and `tests/sample/github.json`
+(`src/site/writing/fixture.ts`). The panel's places are each a module of
+`src/site/activity/` (`github.ts`, `gitlab.ts`, `codeberg.ts`), asked
+together in `recent.ts`. What their requests share, the time limit and
+the one more try, is `src/site/fetching.ts` (and `src/site/writing/source.ts`
+and `src/site/activity/asking.ts`). No test reaches any of them. A unit
+test passes a place's function (`qiitaPosts()`, `zennPosts()`,
+`feedPosts()`, `githubRepos()`…) a `fetch` of its own. A build the tests
+make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
+`tests/sample/writing.json` and `tests/sample/activity.json`
 (`tests/build/astro-build.ts`), and asks those files in place of the
-places and GitHub; each answers for the sample's users alone, so it can
-stand in for no real site's. A new test that builds a site goes through
-`astroBuild()` too; one of a site before its first post gives it
+places; each answers for the sample's users alone, so it can stand in for
+no real site's. A new test that builds a site goes through `astroBuild()`
+too; one of a site before its first post gives it
 `tests/sample/writing-no-posts.json` in place of `writing.json`.
 [Writing](writing.md#without-the-places-in-the-tests) and
-[GitHub activity](github-activity.md#without-github-in-the-tests) say the
-same for a site's owner.
+[Activity](activity.md#without-github-gitlab-or-codeberg-in-the-tests)
+say the same for a site's owner.
 
 A post's text, which a build keeps for a site whose viewer shows its
 posts, is read into parts by `src/site/writing/body.ts`, with Astro's own
@@ -188,7 +190,7 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`, `writingTab`, `postInViewer`, `githubActivity`,
+  `contactForm`, `writingTab`, `postInViewer`, `panelActivity`,
   `gatheredContext`. A test
   that asks for one is skipped, with the reason, on a site without it. For
   any other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`

@@ -119,7 +119,7 @@ testEachProblem([
     ],
   },
   {
-    wrong: "GitHub activity without its heading, in a language other than English",
+    wrong: "the panel's activity without its heading, in a language other than English",
     change: inFrench((french) => delete statedStrings(french).activityTitle),
     problems: ["fr: strings.activityTitle is missing (activity needs it)"],
   },
@@ -189,7 +189,7 @@ test("a site without a Writing tab needs no words for one", () => {
   assert.deepEqual(problemsIn(withoutWriting), []);
 });
 
-test("a site without GitHub activity needs no words for it", () => {
+test("a site without activity in its panel needs no words for it", () => {
   const withoutActivity = sampleConfig({ activity: undefined });
   for (const name of ACTIVITY_STRING_NAMES) delete statedStrings(languageOf(withoutActivity, "fr"))[name];
   assert.deepEqual(problemsIn(withoutActivity), []);

@@ -11,14 +11,14 @@ const SAMPLE_PUBLIC = fileURLToPath(new URL("public", import.meta.url));
 
 /** Builds the sample into `outputFolder`: `astro build` on its config (or
     on a test's own version of it, at `configPath`), then its pictures. Its
-    posts are tests/sample/qiita.json's, unless `qiitaFixture` names
-    another stand-in for Qiita. */
+    posts are tests/sample/writing.json's, unless `writingFixture` names
+    another stand-in for the places they're on. */
 export function buildSample(
   outputFolder: string,
   configPath = SAMPLE_CONFIG,
-  qiitaFixture?: string,
+  writingFixture?: string,
 ): SpawnSyncReturns<string> {
-  const built = astroBuild(configPath, outputFolder, qiitaFixture);
+  const built = astroBuild(configPath, outputFolder, writingFixture);
   if (built.status === 0) cpSync(SAMPLE_PUBLIC, outputFolder, { recursive: true });
   return built;
 }

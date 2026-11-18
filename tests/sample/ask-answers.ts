@@ -2,7 +2,7 @@ import type { AskAnswer } from "../../src/contracts/ask.ts";
 
 /** The sample site's English answers as the build writes them to
     /ask.json: one of every kind of block an answer can have, each as the
-    line of text Ask reads, and the Writing tab of the posts in qiita.json.
+    line of text Ask reads, and the Writing tab of the posts in writing.json.
     The Worker's tests can't build the site (they are checked with the
     Workers types), so they read this, and ask-answers.test.ts holds it to
     what the build writes. */
@@ -35,7 +35,7 @@ export const SAMPLE_ANSWERS: AskAnswer[] = [
     id: "writing.1",
     title: "Writing",
     q: "what have they written?",
-    // The public posts in qiita.json, newest first: each title is a line.
+    // The public posts in writing.json, newest first: each title is a line.
     text: [
       "Posts, newest first:",
       "Astroで静的サイトを組み立てる",

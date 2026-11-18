@@ -2,20 +2,24 @@
    settings every language shares. */
 
 import { range } from "es-toolkit";
+import { ACTIVITY_SERVICES, type ActivityService } from "../../config/activity.ts";
 import { answerBlocksIn, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Language } from "../../config/language.ts";
 import type { Topic } from "../../config/question-card.ts";
 import type { Host, SiteConfig } from "../../config/site-config.ts";
 import { isRecord } from "../../contracts/guards.ts";
+import { inWords } from "../activity/repo.ts";
 import { CONTACT_FORM_HOSTS, contactFormReceiver } from "../contact-form.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
 import {
+  isCodebergUserName,
   isColour,
   isEmailAddress,
   isFrameableAddress,
   isHttpsAddress,
   isGitHubUserName,
+  isGitLabUserName,
   isLanguageCode,
   isPathOnSite,
   isPixelCount,
@@ -152,6 +156,19 @@ const SETTING_FORMATS: SettingFormat[] = [
     shouldBe: `a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
+  // And GitLab, and Codeberg, the same.
+  {
+    field: "activity.gitlab",
+    looksRight: isGitLabUserName,
+    shouldBe: `a GitLab user name, as in your profile's address (gitlab.com/alex-example is "alex-example")`,
+    mayBeLeftOut: true,
+  },
+  {
+    field: "activity.codeberg",
+    looksRight: isCodebergUserName,
+    shouldBe: `a Codeberg user name, as in your profile's address (codeberg.org/alex-example is "alex-example")`,
+    mayBeLeftOut: true,
+  },
 ];
 
 /** A setting's value, by where it is in the config: "links.email". */
@@ -245,6 +262,17 @@ const checkViewer: SiteCheck = (site, problemUnless) => {
   }
 };
 
+/** With `activity` and none of its places, the build would ask no one, and
+    the panel would never list a repo. */
+const checkActivityNamesAPlace: SiteCheck = ({ config }, problemUnless) => {
+  const { activity } = config;
+  const places = Object.keys(ACTIVITY_SERVICES) as ActivityService[];
+  problemUnless(
+    !activity || places.some((place) => activity[place] != null),
+    `activity names no place to read it from: give it one or more of ${inWords(places)}, each with your user name there, or remove it`,
+  );
+};
+
 /** The checks of the site as a whole, in the order their problems are
     listed: all of them before any language's. */
 export const SITE_CHECKS: SiteCheck[] = [
@@ -255,4 +283,5 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkAskRunsOnItsHost,
   checkContactForm,
   checkViewer,
+  checkActivityNamesAPlace,
 ];
