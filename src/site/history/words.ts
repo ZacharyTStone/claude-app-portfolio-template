@@ -3,28 +3,43 @@
    it. GitHub's days are UTC days, and are written as such wherever the
    page is read. `code` is the page's language: "en", "ja". */
 
-const IN_UTC = { timeZone: "UTC" } as const;
+/** A day as the medium date style has it, in UTC. */
+const DAY = { dateStyle: "medium", timeZone: "UTC" } as const;
+
+/** Each formatter, made once for a language and a style: a calendar
+    writes hundreds of days a page, and making a formatter costs far more
+    than using one. */
+const madeFormats = new Map<string, Intl.DateTimeFormat | Intl.NumberFormat>();
+
+function made<Format extends Intl.DateTimeFormat | Intl.NumberFormat>(key: string, make: () => Format): Format {
+  const format = (madeFormats.get(key) as Format | undefined) ?? make();
+  madeFormats.set(key, format);
+  return format;
+}
+
+const dateFormat = (code: string, options: Intl.DateTimeFormatOptions): Intl.DateTimeFormat =>
+  made(`date ${code} ${JSON.stringify(options)}`, () => new Intl.DateTimeFormat(code, options));
+
+const numberFormat = (code: string, options: Intl.NumberFormatOptions = {}): Intl.NumberFormat =>
+  made(`number ${code} ${JSON.stringify(options)}`, () => new Intl.NumberFormat(code, options));
 
 /** "4,812" in English, "4 812" in French. */
-export const writtenNumber = (code: string, count: number): string => new Intl.NumberFormat(code).format(count);
+export const writtenNumber = (code: string, count: number): string => numberFormat(code).format(count);
 
 /** "38%"; "0.4%" for a share too small to be a whole one. */
 export const writtenShare = (code: string, share: number): string =>
-  new Intl.NumberFormat(code, { style: "percent", maximumFractionDigits: share > 0 && share < 0.01 ? 1 : 0 }).format(
-    share,
-  );
+  numberFormat(code, { style: "percent", maximumFractionDigits: share > 0 && share < 0.01 ? 1 : 0 }).format(share);
 
 /** "Mar 14, 2023" in English, "2023/03/14" in Japanese. */
-export const writtenDay = (code: string, day: string): string =>
-  new Intl.DateTimeFormat(code, { dateStyle: "medium", ...IN_UTC }).format(Date.parse(day));
+export const writtenDay = (code: string, day: string): string => dateFormat(code, DAY).format(Date.parse(day));
 
 /** Two days as one span: "Mar 2 – 24, 2023". */
 export const writtenSpan = (code: string, from: string, to: string): string =>
-  new Intl.DateTimeFormat(code, { dateStyle: "medium", ...IN_UTC }).formatRange(Date.parse(from), Date.parse(to));
+  dateFormat(code, DAY).formatRange(Date.parse(from), Date.parse(to));
 
 /** A month, "2022-04", as "April 2022". */
 export const writtenMonth = (code: string, month: string): string =>
-  new Intl.DateTimeFormat(code, { month: "long", year: "numeric", ...IN_UTC }).format(Date.parse(`${month}-01`));
+  dateFormat(code, { month: "long", year: "numeric", timeZone: "UTC" }).format(Date.parse(`${month}-01`));
 
 /** A piece of a number written with its unit: the figures, or the words. */
 export type WrittenPart = { text: string; isNumber: boolean };
@@ -34,7 +49,7 @@ const PARTS_OF_A_NUMBER = new Set(["integer", "group", "decimal", "fraction", "m
 /** A count of days in pieces, so that the figures can be drawn larger than
     the word: "23", " ", "days" in English, "23", " ", "日" in Japanese. */
 export const daysInPieces = (code: string, days: number): WrittenPart[] =>
-  new Intl.NumberFormat(code, { style: "unit", unit: "day", unitDisplay: "long" })
+  numberFormat(code, { style: "unit", unit: "day", unitDisplay: "long" })
     .formatToParts(days)
     .map(({ type, value }) => ({ text: value, isNumber: PARTS_OF_A_NUMBER.has(type) }));
 
@@ -59,7 +74,7 @@ const MS_A_DAY = 86_400_000;
 
 /** The name of a day of the week (0 for Sunday): "Mon", "月". */
 export const weekdayName = (code: string, weekday: number, width: "short" | "long" = "short"): string =>
-  new Intl.DateTimeFormat(code, { weekday: width, ...IN_UTC }).format(A_SUNDAY + weekday * MS_A_DAY);
+  dateFormat(code, { weekday: width, timeZone: "UTC" }).format(A_SUNDAY + weekday * MS_A_DAY);
 
 /** The days of the week as Date numbers them, in the order the language's
     week has them. */

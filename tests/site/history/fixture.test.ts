@@ -20,9 +20,22 @@ const fixture: Fixture = {
   ],
 };
 
-const ask = (query: string, variables: Record<string, unknown>, address = GRAPHQL_ADDRESS) =>
-  fixtureFetch(fixture)(address, { method: "POST", body: JSON.stringify({ query, variables }) }).then((answer) =>
-    answer.json(),
+type Day = { date: string; contributionCount: number };
+type Calendar = {
+  restrictedContributionsCount: number;
+  contributionCalendar: { totalContributions: number; weeks: Array<{ contributionDays: Day[] }> };
+};
+type Overview = {
+  createdAt: string;
+  contributionsCollection: { contributionYears: number[] };
+  repositories: { nodes: unknown[] };
+};
+/** What the stand-in answers, as the build reads it. */
+type Answer = { data: { user: Overview & { [alias: `y${number}`]: Calendar } }; errors?: unknown[] };
+
+const ask = (query: string, variables: Record<string, unknown>, address = GRAPHQL_ADDRESS): Promise<Answer> =>
+  fixtureFetch(fixture)(address, { method: "POST", body: JSON.stringify({ query, variables }) }).then(
+    (answer) => answer.json() as Promise<Answer>,
   );
 
 test("the overview has the account's age and its years, and only the repos GitHub's filters let through", async () => {
@@ -55,9 +68,7 @@ test("a calendar is the days of the range asked, a week from each Sunday, with i
 
 test("a day's character counts up to 35", async () => {
   const { data } = await ask(calendarsQuery([2022], new Date("2024-01-01T00:00:00Z")), { login: "sam-sample" });
-  const days = data.user.y2022.contributionCalendar.weeks.flatMap(
-    (week: { contributionDays: unknown[] }) => week.contributionDays,
-  );
+  const days = (data.user.y2022?.contributionCalendar.weeks ?? []).flatMap((week) => week.contributionDays);
   assert.deepEqual(days.slice(-2), [
     { date: "2022-12-30", contributionCount: 2 },
     { date: "2022-12-31", contributionCount: 10 },

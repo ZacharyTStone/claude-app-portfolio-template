@@ -48,8 +48,9 @@ function historyFound(user: string, history: History): string {
   return `the GitHub history has ${user}'s ${years}, as of ${history.asOf}, and the languages of their public repos`;
 }
 
-/** The history of the user `config` names, asked for as `howToAsk` says,
-    with the token in `environment`'s GITHUB_TOKEN; or why there is none. */
+/** The history of the user githubHistory names, asked for as `howToAsk`
+    says, with the token in `environment`'s GITHUB_TOKEN; or why there is
+    none. */
 export async function fetchHistory(
   { user }: GitHubHistory,
   environment: NodeJS.ProcessEnv,

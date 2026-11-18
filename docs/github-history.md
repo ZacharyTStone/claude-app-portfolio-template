@@ -79,8 +79,8 @@ shades it too): no contributions, then the four quarters of all your busy
 weeks across the whole history, so a quiet year looks quiet beside a busy
 one. Weeks before your account was made (or before your first
 contribution, if a commit is dated earlier), or after the day of the
-build, are left empty. The year is at the left and its total at the right, and
-your marks sit at their weeks. A key, "Less" to "More", is under it. The
+build, are left empty. The year is at the left and its total at the
+right, and your marks sit at their weeks. A key, "Less" to "More", is under it. The
 cells shrink to fit a phone, and narrow to slivers there, so the page
 never scrolls sideways. Hovering a week shows its days and its count.
 
