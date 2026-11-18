@@ -3,6 +3,7 @@
    once. A place that can't be had stops the build, as one could alone: a tab
    with one place's posts gone would say less than it should. */
 import type { Writing } from "../../config/writing.ts";
+import { asShowable } from "../../contracts/ask.ts";
 import { DEV, devPosts } from "./dev.ts";
 import { feedPosts, feedsOf } from "./feeds.ts";
 import { newestFirst, type Post } from "./post.ts";
@@ -35,12 +36,22 @@ export function sourcesOf(writing: Writing, options: WritingOptions): Source[] {
 const eachOnce = (posts: Post[]): Post[] =>
   posts.filter((post, at) => posts.findIndex((other) => other.url === post.url) === at);
 
+/** A post as the tab keeps it: its title and tags with nothing hidden or
+    reordered in them (asShowable), whatever the place sent. Ask's models
+    read the titles as the site's text. Throws for a title of only
+    characters no one sees. */
+function showable(post: Post): Post {
+  const title = asShowable(post.title);
+  if (!title) throw new Error(`The post at ${post.url} has a title of only characters no one can see`);
+  return { ...post, title, tags: post.tags.map(asShowable).filter(Boolean) };
+}
+
 /** Every post of every place `writing` names, newest first, or the newest
     `writing.latest` of them. Throws, saying which place and why, if any
     can't be had. */
 export async function postsOfEveryPlace(writing: Writing, options: WritingOptions): Promise<Post[]> {
   const fetched = await Promise.all(sourcesOf(writing, options).map((source) => source.posts()));
-  return newestFirst(eachOnce(fetched.flat())).slice(0, writing.latest);
+  return newestFirst(eachOnce(fetched.flat().map(showable))).slice(0, writing.latest);
 }
 
 /** How many posts came from each place, as the build says it: "3 on Qiita,

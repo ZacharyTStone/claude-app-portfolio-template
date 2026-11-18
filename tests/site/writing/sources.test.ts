@@ -53,6 +53,33 @@ test("a post two feeds both list is listed once", async () => {
   assert.equal(posts[0]?.place, "note.com");
 });
 
+/** A feed of one post, titled and tagged as a test has it. */
+const oneFeedPost = (title: string, tag = "life") =>
+  fixtureFetch({
+    feeds: {
+      [BLOG]: `<rss><channel><link>https://blog.example.com/</link><item><title>${title}</title><link>https://blog.example.com/a</link><pubDate>Sat, 04 Jul 2026 07:30:00 +0900</pubDate><category>${tag}</category></item></channel></rss>`,
+    },
+  });
+const BLOG = "https://blog.example.com/rss";
+
+test("a title or a tag is kept with nothing hidden or reordered in it, whatever the place sent", async () => {
+  // A bidi override, a zero-width space and a line break, as numbered characters in the XML.
+  const fetch = oneFeedPost("Safe&#8238;txt.exe &#8203;title&#x0A;  here", "&#8203;life&#8206;");
+  const [post] = await postsOfEveryPlace({ feeds: [{ url: BLOG }] }, { fetch, timeZone: "UTC", retryAfterMs: NO_WAIT });
+  assert.equal(post?.title, "Safe txt.exe title here");
+  assert.deepEqual(post?.tags, ["life"]);
+});
+
+test("a title of only characters no one can see stops it, saying which post", async () => {
+  const fetch = oneFeedPost("&#8203;&#8238;");
+  await assert.rejects(
+    postsOfEveryPlace({ feeds: [{ url: BLOG }] }, { fetch, timeZone: "UTC", retryAfterMs: NO_WAIT }),
+    {
+      message: "The post at https://blog.example.com/a has a title of only characters no one can see",
+    },
+  );
+});
+
 test("a time is written again by the owner's clock, with its offset", () => {
   assert.deepEqual(
     [
