@@ -101,7 +101,9 @@ picture is an illustration: Ask reads only its caption, so a fact belongs
 in the answer's text too. A link card is a label Ask reads and never
 quotes, but for the Writing tab's: each post's title there is a line Ask
 may quote, as it quotes your sentences
-([Writing](writing.md#ask-and-llmstxt)).
+([Writing](writing.md#ask-and-llmstxt)). A part of your GitHub history is
+a label too, of what GitHub counts
+([GitHub history](github-history.md#ask-and-llmstxt)).
 
 ## Turning it on
 

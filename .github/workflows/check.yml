@@ -22,5 +22,9 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
 
-      # Everything, in order, as it runs on your machine: the chain is `verify` in package.json.
+      # Everything, in order, as it runs on your machine: the chain is `verify` in package.json. A site with a
+      # GitHub history builds with the token in the repo's secret BUILD_GITHUB_TOKEN (docs/github-history.md);
+      # without the secret, GITHUB_TOKEN is empty, and the build asks GitHub as it would with none.
       - run: npm run verify
+        env:
+          GITHUB_TOKEN: ${{ secrets.BUILD_GITHUB_TOKEN }}

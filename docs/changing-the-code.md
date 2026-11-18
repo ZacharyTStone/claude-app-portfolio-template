@@ -142,6 +142,18 @@ for no real site's. A new test that builds a site goes through
 [GitHub activity](github-activity.md#without-github-in-the-tests) say the
 same for a site's owner.
 
+A site with `githubHistory` fetches a third thing, its owner's whole
+history on GitHub (`src/integrations/history.ts`, `src/site/history/`),
+from GitHub's GraphQL API, which needs the token in `GITHUB_TOKEN`. It
+shares the time limit and the one more try, and a unit test passes
+`githubHistory()` a `fetch` of its own too. A build the tests make is
+given `GITHUB_HISTORY_FIXTURE`, the path of
+`tests/sample/github-history.json`, which answers its two queries for
+the sample's user alone, and needs no token
+([GitHub history](github-history.md#without-github-in-the-tests)). What
+the parts show is worked out by pure functions in `src/site/history/`,
+each with its tests in `tests/site/history/`.
+
 A post's text, which a build keeps for a site whose viewer shows its
 posts, is read into parts by `src/site/writing/body.ts`, with Astro's own
 Markdown reader (`satteri`, which only the build runs), and each post's
@@ -178,7 +190,7 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
   `contactForm`, `writingTab`, `postInViewer`, `githubActivity`,
-  `gatheredContext`. A test
+  `gatheredContext`, `githubHistory`. A test
   that asks for one is skipped, with the reason, on a site without it. For
   any other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`
   around assertions: a part that silently doesn't run reads as a pass.
