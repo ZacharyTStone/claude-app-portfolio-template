@@ -127,20 +127,21 @@ sent.
 
 A build fetches two things: the Writing tab's posts
 (`src/integrations/writing.ts`, `src/site/writing/`) and the panel's
-GitHub activity (`src/integrations/activity.ts`, `src/site/activity/`).
+activity (`src/integrations/activity.ts`, `src/site/activity/`).
 What their requests share, the time limit and the one more try, is
-`src/site/fetching.ts`. No test reaches Qiita or GitHub. A unit test
-passes `qiitaPosts()` or `recentRepos()` a `fetch` of its own. A build the
-tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
-`tests/sample/qiita.json` and `tests/sample/github.json`
-(`tests/build/astro-build.ts`), and asks those files in place of Qiita
-and GitHub; each answers for the sample's user alone, so it can stand in
-for no real site's. A new test that builds a site goes through
+`src/site/fetching.ts`. No test reaches Qiita, GitHub, GitLab or
+Codeberg. A unit test passes `qiitaPosts()` or `recentRepos()` a `fetch`
+of its own. A build the tests make is given `WRITING_FIXTURE` and
+`ACTIVITY_FIXTURE`, the paths of `tests/sample/qiita.json` and
+`tests/sample/activity.json` (`tests/build/astro-build.ts`), and asks
+those files in place of Qiita and of the places its activity is on; each
+answers for the sample's users alone, so it can stand in for no real
+site's. A new test that builds a site goes through
 `astroBuild()` too; one of a site before its first post gives it
 `tests/sample/qiita-no-posts.json` in place of `qiita.json`.
 [Writing](writing.md#without-qiita-in-the-tests) and
-[GitHub activity](github-activity.md#without-github-in-the-tests) say the
-same for a site's owner.
+[Activity](activity.md#without-github-gitlab-or-codeberg-in-the-tests)
+say the same for a site's owner.
 
 A post's text, which a build keeps for a site whose viewer shows its
 posts, is read into parts by `src/site/writing/body.ts`, with Astro's own
@@ -177,7 +178,7 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
 - **A part only some sites have is a fixture**: `viewerLink`,
   `playedPicture`, `movingPicture`, `comingIntoView`, `otherThread`,
   `clock`, `startingPrompt`, `personalAnswer`, `foldingGroup`,
-  `contactForm`, `writingTab`, `postInViewer`, `githubActivity`,
+  `contactForm`, `writingTab`, `postInViewer`, `panelActivity`,
   `gatheredContext`. A test
   that asks for one is skipped, with the reason, on a site without it. For
   any other condition, `test.skip(!site.ask, "Ask is off")`. Never an `if`

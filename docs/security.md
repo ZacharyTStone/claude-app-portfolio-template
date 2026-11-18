@@ -60,11 +60,13 @@ in the code, see the security policy in the template's repository.
   a page, never as HTML: no markup in a post reaches a page, a link in it
   goes to a web address or is just its words, and a picture is a link,
   so the page loads nothing from another site either.
-- With [GitHub activity](github-activity.md), it's the build too that asks
-  GitHub, for public events only. What GitHub sends is checked, only a
-  repo's name and a day are kept, a row links to `github.com` and nowhere
-  else, and a name is text. A `GITHUB_TOKEN` the build is given is sent to
-  GitHub's API alone, and never reaches a page or a log.
+- With [activity](activity.md) in the panel, it's the build too that asks
+  GitHub, GitLab or Codeberg, for public activity only. What each sends is
+  checked, only a repo's name and a day are kept, a row links to the
+  repo's own place (`github.com`, `gitlab.com` or `codeberg.org`) and
+  nowhere else, and a name is text. A `GITHUB_TOKEN` the build is given is
+  sent to GitHub's API alone, never to GitLab or Codeberg, and never
+  reaches a page or a log.
 - The build checks the config. It stops on a link that isn't a web, mailto,
   #tab or site address (so no `javascript:`; and `//host`, `\\host` and
   `/\host` are other sites, not the site's own), and on a value that doesn't

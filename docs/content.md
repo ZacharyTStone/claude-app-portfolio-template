@@ -38,7 +38,7 @@ a fact.
 | Buttons, tooltips and what the script says | `strings` | `src/config/strings.ts` |
 | What an answer is made of | a message's `a` | `src/config/blocks.ts` |
 | The Writing tab: your posts on Qiita, fetched as the site builds | `writing` | `src/config/writing.ts` |
-| Your recent public repos on GitHub, in the panel, fetched as the site builds | `activity` | `src/config/activity.ts` |
+| Your recent public repos on GitHub, GitLab or Codeberg, in the panel, fetched as the site builds | `activity` | `src/config/activity.ts` |
 
 Everything from `home` down belongs to one language: it is inside
 `languages.en`, and again inside each other language
@@ -173,14 +173,16 @@ a language needs for it, a post in the viewer, the tab before your first
 post, what happens when Qiita is down, and a rebuild each day that brings
 new posts in.
 
-## GitHub activity
+## Activity
 
 `activity: { github: "your-github-name" }` ends the details panel with
 "Recent public repos": the public repos you pushed to most recently, each
-a row that links to it, with the day. The build fetches them, so the
-panel is as it was at the last build, and it reads only public activity,
-and says so. [GitHub activity](github-activity.md) has the rest: what it
-shows and leaves out, a token for the build, and what happens when GitHub
+a row that links to it, with the day. `gitlab` and `codeberg` beside it,
+or in its place, read gitlab.com and codeberg.org too, and the rows are
+then of all of them, each saying where it is. The build fetches them, so
+the panel is as it was at the last build, and it reads only public
+activity, and says so. [Activity](activity.md) has the rest: what it
+shows and leaves out, a token for GitHub, and what happens when a place
 is down.
 
 ## The panel's Context
