@@ -1,11 +1,12 @@
 /* The daily rebuild. A cron trigger in wrangler.jsonc runs it, and it asks
    Workers Builds for a build of the site by the deploy hook the secret
    DEPLOY_HOOK_URL holds, so the Writing tab lists what's been posted since
-   the last one, and the panel's GitHub activity what's been pushed
-   (docs/writing.md, docs/github-activity.md). Without the secret it does nothing. The
+   the last one, and the panel's activity what's been pushed
+   (docs/writing.md, docs/activity.md). Without the secret it does nothing. The
    hook's address is a credential, so neither it nor an error's message,
    which could repeat it, is ever logged. */
 import type { Env } from "./env.ts";
+import type { Fetch } from "./lib/http.ts";
 
 /** How long Workers Builds may take to say it will build, in milliseconds. */
 const ANSWER_WITHIN_MS = 10_000;
@@ -19,9 +20,6 @@ export type RebuildLog = (line: RebuildLine) => void;
 
 /** One line of JSON, under the Worker's Observability tab. */
 export const logRebuildToConsole: RebuildLog = (line) => console.log(JSON.stringify(line));
-
-/** As much of fetch() as a rebuild uses. */
-export type Fetch = (address: string, init: RequestInit) => Promise<Response>;
 
 /** An error's kind, never its message. */
 const errorKind = (error: unknown): string =>

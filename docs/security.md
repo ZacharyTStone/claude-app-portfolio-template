@@ -51,20 +51,26 @@ in the code, see the security policy in the template's repository.
   another's: its frame may load the site's stylesheet and fonts and open
   a link in a new tab, and it may run no script, so nothing in the frame
   can reach the page around it.
-- With a [Writing tab](writing.md), it's the build that asks Qiita for
-  your posts, not a visitor's browser: the pages still load nothing from
-  another site. What Qiita sends is checked before any of it reaches a
-  page, only what a card shows is kept, a card links to `qiita.com` and
-  nowhere else, and a title is text, never markup. With `writing.viewer`
-  a post's text is kept too, and read from its Markdown into the parts of
-  a page, never as HTML: no markup in a post reaches a page, a link in it
-  goes to a web address or is just its words, and a picture is a link,
-  so the page loads nothing from another site either.
-- With [GitHub activity](github-activity.md), it's the build too that asks
-  GitHub, for public events only. What GitHub sends is checked, only a
-  repo's name and a day are kept, a row links to `github.com` and nowhere
-  else, and a name is text. A `GITHUB_TOKEN` the build is given is sent to
-  GitHub's API alone, and never reaches a page or a log.
+- With a [Writing tab](writing.md), it's the build that asks Qiita, Zenn,
+  DEV or a blog's feed for your posts, not a visitor's browser: the pages
+  still load nothing from another site. What each sends is checked before
+  any of it reaches a page, only what a card shows is kept, a card links
+  to the place the post is on and nowhere else (a feed's post, to the
+  blog's own site), and a title is text, never markup. A feed is read as
+  XML that declares no entities of its own, and nothing of a post's text
+  in it is read. With `writing.viewer` a Qiita post's text is kept too,
+  and read from its Markdown into the parts of a page, never as HTML: no
+  markup in a post reaches a page, a link in it goes to a web address or
+  is just its words, and a picture is a link, so the page loads nothing
+  from another site either. No other place's post has a page, since every
+  other place gives a post's text only as HTML.
+- With [activity](activity.md) in the panel, it's the build too that asks
+  GitHub, GitLab or Codeberg, for public activity only. What each sends is
+  checked, only a repo's name and a day are kept, a row links to the
+  repo's own place (`github.com`, `gitlab.com` or `codeberg.org`) and
+  nowhere else, and a name is text. A `GITHUB_TOKEN` the build is given is
+  sent to GitHub's API alone, never to GitLab or Codeberg, and never
+  reaches a page or a log.
 - The build checks the config. It stops on a link that isn't a web, mailto,
   #tab or site address (so no `javascript:`; and `//host`, `\\host` and
   `/\host` are other sites, not the site's own), and on a value that doesn't
@@ -124,15 +130,52 @@ With it on:
   this one turns it away unread.
 - **It emails only you.** The Worker sends to one address,
   `CONTACT_TO`, and its `send_email` binding is locked to that address in
-  `wrangler.jsonc`, whatever the Worker asks. The visitor's address goes
-  in the email's Reply-To and subject only once it looks like an address,
-  with nothing in it that could start another line.
+  `wrangler.jsonc`, whatever the Worker asks. With Resend or Postmark as
+  the sender there's no binding: the Worker's code names `CONTACT_TO` as
+  the one recipient, and the key, which could send anywhere, is a secret
+  (`CONTACT_API_KEY`) that goes to that API alone, in no page and no log.
+  The visitor's address goes in the email's Reply-To and subject only
+  once it looks like an address, with nothing in it that could start
+  another line.
 - **Its sending is capped**, per visitor and per day for the site, in the
   Durable Object Ask uses, with visitors counted by the same salted,
   daily hash of their address. A field only a bot fills in drops what a
-  bot sends. Without the binding or the Durable Object, nothing is sent.
+  bot sends. Without the binding (or the API key) or the Durable Object,
+  nothing is sent.
 - **Nothing a visitor sent is logged**: not their address, their email or
-  the message, only what came of it.
+  the message, only what came of it. A sender's refusal is logged by its
+  status and code, never its message.
+- **On Netlify, Netlify Forms takes it**, with no Worker: the pages and
+  their policy are the same, the form posts to the site itself, and
+  Netlify's honeypot and spam filter stand where the Worker's checks and
+  limits do. Netlify keeps each message, with the visitor's address, until
+  you delete it ([On Netlify](contact-form.md#on-netlify)).
+
+## security.txt
+
+Every build writes `/.well-known/security.txt`
+([RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)), which tells someone
+who finds a security problem with the site where to report it:
+
+- `Contact`: your `links.email`, the address the site gives for everything
+  else, so the file says nothing the pages don't. There's no setting for
+  it: a report about your site goes to you. A problem in the shared code
+  is the template's, and its security policy says where that goes.
+- `Expires`: 364 days after the build. RFC 9116 asks for less than a year,
+  so that a file nobody keeps up says it's out of date. Each build writes
+  it again: every push, and on a site with a Writing tab
+  [the daily rebuild](writing.md#a-rebuild-each-day). A site that goes a
+  year without a build has a file past its date, which a reader is to
+  treat as stale.
+- `Preferred-Languages`: the site's languages, the main one first.
+- `Canonical`: its own address. On a site served under a path, the file
+  is under that path too
+  (`https://you.github.io/portfolio/.well-known/security.txt`), where no
+  one looks: RFC 9116 reads only the one at the host's root.
+
+Its folder's name starts with a dot, and some deploys leave such a folder
+out: GitHub Pages' upload does unless told not to
+([Deploying](deploy.md#github-pages)).
 
 ## The code
 

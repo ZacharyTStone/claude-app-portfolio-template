@@ -84,12 +84,16 @@ async function tryPage(address: string, fetch: Fetch): Promise<Item[] | Failure>
 const pageOfItems = (address: string, options: QiitaOptions): Promise<Item[]> =>
   withOneMoreTry(address, () => tryPage(address, options.fetch), options.retryAfterMs);
 
+/** What a page calls Qiita, and what it calls a like there. */
+export const QIITA = { place: "Qiita", likes: "LGTM" } as const;
+
 const postOf = (item: Item, withItsBody: boolean): Post => ({
   id: item.id,
   title: item.title,
   url: item.url,
   posted: item.created_at,
-  likes: item.likes_count,
+  place: QIITA.place,
+  likes: { count: item.likes_count, word: QIITA.likes },
   tags: item.tags.map((tag) => tag.name),
   ...(withItsBody && item.body !== undefined ? { body: item.body } : {}),
 });

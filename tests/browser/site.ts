@@ -11,7 +11,7 @@ import { WRITING_TAB } from "../../src/config/writing.ts";
 import type { PersonalAnswer, QuestionCard, Topic } from "../../src/config/question-card.ts";
 import { SCRIPT_STRING_ATTRIBUTES, SCRIPT_STRING_NAMES, type ScriptStrings } from "../../src/config/strings.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
-import type { ContactNote } from "../../src/contracts/contact.ts";
+import { CONTACT_RECEIVERS, type ContactNote, type ContactReceiver } from "../../src/contracts/contact.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { tabPagePath } from "../../src/contracts/tab-pages.ts";
@@ -79,7 +79,8 @@ export type WritingTab = Thread & {
   posts: Array<{
     /** Where the card links: the post's page. */
     href: string;
-    /** The card's text: its title, then the day, its LGTMs and its tags. */
+    /** The card's text: its title, then the day, where it was posted (with
+        more than one place), its likes and its tags. */
     text: string;
     /** The language its title is marked as being in, if it's marked. */
     lang: string | null;
@@ -94,14 +95,15 @@ export type WritingTab = Thread & {
 /** A post whose card opens it in the viewer, as the site's own page of it. */
 export type PostInViewer = { href: string; page: string; title: string };
 
-/** The panel's GitHub activity, made from the repos the build fetched: its
+/** The panel's activity, made from the repos the build fetched: its
     heading, and each repo's row, in the page's order. */
-export type GitHubActivity = {
+export type PanelActivity = {
   title: string;
   repos: Array<{
-    /** Where the row links: the repo's page on GitHub. */
+    /** Where the row links: the repo's page, on its own place. */
     href: string;
-    /** The row's text: the repo's name, then the day it was pushed to. */
+    /** The row's text: the repo's name, then the day it was pushed to
+        (after its place, on a site that reads more than one). */
     text: string;
   }>;
 };
@@ -127,8 +129,11 @@ export type ComesIntoView = { tab: string; answer: string };
 export type ContactForm = {
   /** The tab it's in. */
   tab: string;
-  /** The address it posts to, in full: where the checks' /contact stands
-      in. */
+  /** Who takes its messages: the Worker, or Netlify Forms. */
+  receiver: ContactReceiver;
+  /** The address it posts to, in full, without the note its action ends at
+      on Netlify (a request never carries it): where the checks' stand-in
+      for /contact, or for Netlify, is. */
   action: string;
   /** What its two notes say, as the page has them. */
   sent: string;
@@ -228,9 +233,9 @@ export type Site = {
   contactForm: ContactForm | null;
   /** The Writing tab, on a site with `writing`. */
   writing: WritingTab | null;
-  /** The panel's GitHub activity, on a site with `activity` and public
+  /** The panel's activity, on a site with `activity` and public
       pushes lately. */
-  activity: GitHubActivity | null;
+  activity: PanelActivity | null;
   /** The panel's Context, on a site whose Context gathers links. */
   context: GatheredContext | null;
 };
@@ -372,7 +377,7 @@ async function readWriting(page: Page, threadsBuilt: Thread[]): Promise<WritingT
   return { ...thread, posts };
 }
 
-async function readActivity(page: Page): Promise<GitHubActivity | null> {
+async function readActivity(page: Page): Promise<PanelActivity | null> {
   const section = page.locator(ACTIVITY_IN_THE_PANEL);
   if (!(await section.count())) return null;
   const repos = await section
@@ -525,9 +530,17 @@ async function readContactForm(page: Page): Promise<ContactForm | null> {
   const form = tab.locator(CLASS.contactForm);
   const note = async (which: ContactNote) =>
     ((await form.locator(`[${DATA.contactNote}="${which}"]`).textContent()) ?? "").trim();
+  const says = await form.getAttribute(DATA.contactReceiver);
+  const receiver = CONTACT_RECEIVERS.find((each) => each === says);
+  if (!receiver) throw new Error(`The contact form says it's taken by "${says}", which nothing is`);
   return {
     tab: (await tab.getAttribute("id")) ?? "",
-    action: await form.evaluate((element) => (element as HTMLFormElement).action),
+    receiver,
+    action: await form.evaluate((element) => {
+      const action = new URL((element as HTMLFormElement).action);
+      action.hash = "";
+      return action.href;
+    }),
     sent: await note("sent"),
     failed: await note("failed"),
   };

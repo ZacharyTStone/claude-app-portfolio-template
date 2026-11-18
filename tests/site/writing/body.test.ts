@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { postBlocks, type PostBlock, type PostSpan } from "../../../src/site/writing/body.ts";
-import { sampleFixture } from "../../sample/qiita.ts";
+import { sampleFixture } from "../../sample/writing.ts";
 
 const paragraph = (...spans: PostSpan[]): PostBlock => ({ type: "paragraph", spans });
 const link = (href: string, ...spans: PostSpan[]): PostSpan => ({ type: "link", href, spans });
@@ -215,7 +215,9 @@ function linksIn(value: unknown): string[] {
   return [...own, ...Object.values(value).flatMap(linksIn)];
 }
 
-const fixtureBodies = (sampleFixture().items as Array<{ body?: string }>).flatMap((item) => item.body ?? []);
+const fixtureBodies = ((sampleFixture().qiita?.posts ?? []) as Array<{ body?: string }>).flatMap(
+  (item) => item.body ?? [],
+);
 
 test("every link in the sample's posts is to a web address", () => {
   const links = fixtureBodies.flatMap((body) => linksIn(postBlocks(body)));

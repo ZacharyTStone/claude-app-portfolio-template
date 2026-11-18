@@ -13,10 +13,15 @@ export type Env = Variables & {
       messages), and blocks. Without it, /ask picks nothing and /contact
       sends nothing. */
   ASK_GUARD?: DurableObjectNamespace;
-  /** Where the contact form's messages go out: wrangler.jsonc locks it to
-      one address, the site owner's (destination_address). Without it,
-      /contact sends nothing. */
+  /** Where the contact form's messages go out when CONTACT_SENDER is
+      "cloudflare": wrangler.jsonc locks it to one address, the site
+      owner's (destination_address). Without it, /contact sends nothing. */
   CONTACT_EMAIL?: SendEmail;
+  /** A secret: the key the contact form's sender's API is asked with, when
+      CONTACT_SENDER is "resend" or "postmark" (contact/providers.ts). It's
+      sent to that API alone, and never logged. Without it, /contact sends
+      nothing. */
+  CONTACT_API_KEY?: string;
   /** A secret: the address of a Workers Builds deploy hook for the site's
       branch, which the cron trigger POSTs to for the daily rebuild
       (rebuild.ts). Without it, the trigger does nothing. */

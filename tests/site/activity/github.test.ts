@@ -5,9 +5,10 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { ACTIVITY_REPOS } from "../../../src/config/activity.ts";
 import { fixtureFetch } from "../../../src/site/activity/fixture.ts";
-import { eventsAddress, GITHUB_TOKEN, recentRepos, type Repo } from "../../../src/site/activity/github.ts";
+import { eventsAddress, GITHUB_TOKEN, githubRepos } from "../../../src/site/activity/github.ts";
+import type { Repo } from "../../../src/site/activity/repo.ts";
 import type { Fetch } from "../../../src/site/fetching.ts";
-import { sampleGitHub, sampleRepos } from "../../sample/github.ts";
+import { sampleActivity } from "../../sample/activity.ts";
 
 const USER = "sam-sample";
 
@@ -61,20 +62,28 @@ const rateLimited = (status = 403) =>
 const noConnection = () => new TypeError("fetch failed", { cause: new Error("getaddrinfo ENOTFOUND api.github.com") });
 
 const reposOf = (fetch: Fetch, more: { perPage?: number; token?: string } = {}) =>
-  recentRepos(USER, { fetch, retryAfterMs: NO_WAIT, ...more });
+  githubRepos(USER, { fetch, retryAfterMs: NO_WAIT, ...more });
+
+/** The sample's GitHub events, as the fixture has them. */
+const sampleEvents = () => sampleActivity().github?.events ?? [];
+
+/** The sample's repos on GitHub, as a build makes them of the fixture. */
+const sampleRepos = () => githubRepos(USER, { fetch: fixtureFetch(sampleActivity()) });
 
 const FIRST_PAGE = eventsAddress(USER, 100);
 
 test("the sample's repos are the public ones it pushed to, the latest first, each once, at its latest push", async () => {
+  const github = (name: string, pushed: string): Repo => ({
+    service: "github",
+    name,
+    url: `https://github.com/${name}`,
+    pushed,
+  });
   const expected: Repo[] = [
-    { name: "sam-sample/notes", url: "https://github.com/sam-sample/notes", pushed: "2026-11-12T23:30:00Z" },
-    {
-      name: "sample-org/shared-tool",
-      url: "https://github.com/sample-org/shared-tool",
-      pushed: "2026-11-08T15:45:00Z",
-    },
-    { name: "sam-sample/dotfiles", url: "https://github.com/sam-sample/dotfiles", pushed: "2026-10-30T20:00:00Z" },
-    { name: "sam-sample/site", url: "https://github.com/sam-sample/site", pushed: "2026-10-15T07:00:00Z" },
+    github("sam-sample/notes", "2026-11-12T23:30:00Z"),
+    github("sample-org/shared-tool", "2026-11-08T15:45:00Z"),
+    github("sam-sample/dotfiles", "2026-10-30T20:00:00Z"),
+    github("sam-sample/site", "2026-10-15T07:00:00Z"),
   ];
   assert.deepEqual(await sampleRepos(), expected);
 });
@@ -88,7 +97,7 @@ test(`no more than ${ACTIVITY_REPOS} repos are listed, however many were pushed 
 });
 
 test("an event that isn't public is left out, though the endpoint has only public ones", async () => {
-  const hidden = sampleGitHub().events.filter((event) => !(event as { public: boolean }).public);
+  const hidden = sampleEvents().filter((event) => !(event as { public: boolean }).public);
   assert.equal(hidden.length, 1, "the fixture has an event that isn't public");
   const hiddenRepo = (hidden[0] as { repo: { name: string } }).repo.name;
   assert.ok(!(await sampleRepos()).some((repo) => repo.name === hiddenRepo));
@@ -143,7 +152,7 @@ test("the pages are followed, by GitHub's Link to the next, until they name enou
   // Two events a page, each repo pushed to twice: a page names one repo.
   const twice = pushesToRepos(ACTIVITY_REPOS).flatMap((event) => [event, { ...event, id: `${event.id}b` }]);
   const asked: string[] = [];
-  const fixture = fixtureFetch({ user: USER, events: [...twice, ...pushesToRepos(2)] });
+  const fixture = fixtureFetch({ github: { user: USER, events: [...twice, ...pushesToRepos(2)] } });
   const fetch: Fetch = (address, init) => {
     asked.push(address);
     return fixture(address, init);
@@ -174,7 +183,7 @@ test("a Link to anywhere but GitHub's API isn't followed, so a token goes nowher
 });
 
 test("a user GitHub doesn't have stops it at once, saying so and where", async () => {
-  const fetch = fixtureFetch({ user: "someone-else", events: [] });
+  const fetch = fixtureFetch({ github: { user: "someone-else", events: [] } });
   await assert.rejects(reposOf(fetch), {
     message: `GitHub has no user by that name (Not Found), at ${FIRST_PAGE}`,
   });

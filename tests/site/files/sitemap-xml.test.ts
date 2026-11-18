@@ -3,7 +3,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { sitemapXml } from "../../../src/site/files/sitemap-xml.ts";
 import { makeSite } from "../../../src/site/site.ts";
-import { samplePosts } from "../../sample/qiita.ts";
+import { samplePosts } from "../../sample/writing.ts";
 import { sampleConfig, sampleInEnglishOnly } from "../sample.ts";
 
 const posts = await samplePosts();

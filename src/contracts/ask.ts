@@ -129,6 +129,13 @@ export type AskRequest = {
 
 // Control and format characters: line breaks, zero-width and bidi marks.
 const CONTROL = /[\p{Cc}\p{Cf}\u2028\u2029]/u;
+const EVERY_CONTROL = new RegExp(CONTROL.source, "gu");
+
+/** `text` with each control or format character in it made a space, and
+    each run of spaces one: what a title or tag the build fetched is kept
+    as, so nothing in it is hidden or reordered, on a page or in what Ask's
+    models read. */
+export const asShowable = (text: string): string => text.replace(EVERY_CONTROL, " ").replace(/\s+/g, " ").trim();
 
 /** Text the page can show: something in it, one line, nothing hidden or
     reordered. The Worker sends only text that passes, and the page checks

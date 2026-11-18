@@ -1,14 +1,17 @@
 /* The contact form (src/components/ContactForm.astro, src/app/contact-form.ts),
-   with /contact stood in for. With JavaScript it's sent in place, and the
-   line under Send says how it went; without, the Worker's redirect brings
-   the visitor back to the page, at the note that says so. With Ask on (and
-   /ask stood in for), "Something else" takes a question to it. What the Worker
-   does with a message has its own tests (tests/worker/contact.test.ts). */
+   with /contact stood in for, or on Netlify, Netlify Forms. With JavaScript
+   it's sent in place, and the line under Send says how it went; without, the
+   Worker's redirect brings the visitor back to the page, at the note that
+   says so, as Netlify's answer does at the note that says it went. With Ask
+   on (and /ask stood in for), "Something else" takes a question to it. What
+   the Worker does with a message has its own tests
+   (tests/worker/contact.test.ts). */
 import type { Locator, Page, Request } from "@playwright/test";
 import {
   CONTACT_FIELDS,
   CONTACT_JSON,
   CONTACT_NOTE_IDS,
+  NETLIFY_FORM_NAME_FIELD,
   type ContactNote,
   type ContactReply,
 } from "../../src/contracts/contact.ts";
@@ -52,21 +55,36 @@ type Says = ContactNote | "unreachable";
 /** The status the stand-in refuses with, which the page's console notes. */
 const REFUSED = 503;
 
-/** Stands in for /contact as the Worker answers: a ContactReply to the
-    page's script, which asks for one, and otherwise a redirect back to the
-    page the form was on, at the note. Returns what it was sent. */
+/** What the Worker answers: a ContactReply to the page's script, which asks
+    for one, and otherwise a redirect back to the page the form was on, at
+    the note. */
+function workerAnswer(request: Request, form: ContactForm, says: ContactNote) {
+  if ((request.headers().accept ?? "").includes(CONTACT_JSON)) {
+    const reply: ContactReply = { sent: says === "sent" };
+    return { status: says === "sent" ? 200 : REFUSED, json: reply };
+  }
+  const formPage = new URLSearchParams(request.postData() ?? "").get(CONTACT_FIELDS.page) ?? "/";
+  return { status: 303, headers: { Location: new URL(`${formPage}#${CONTACT_NOTE_IDS[says]}`, form.action).href } };
+}
+
+/** What Netlify answers a form it takes: the page the form's action names,
+    here by a redirect to it, which the browser follows to the same place
+    (at the action's note, which the address keeps). A message it doesn't
+    take gets an error. */
+const netlifyAnswer = (form: ContactForm, says: ContactNote) =>
+  says === "sent" ? { status: 303, headers: { Location: form.action } } : { status: REFUSED };
+
+/** Stands in for /contact, or Netlify, as each answers the form's POST, and
+    lets anything else through (on Netlify the form posts to its tab's own
+    page). Returns what it was sent. */
 async function standIn(page: Page, form: ContactForm, says: Says): Promise<Request[]> {
   const requests: Request[] = [];
   await page.route(form.action, async (route) => {
-    requests.push(route.request());
+    const request = route.request();
+    if (request.method() !== "POST") return route.fallback();
+    requests.push(request);
     if (says === "unreachable") return route.abort();
-    if ((route.request().headers().accept ?? "").includes(CONTACT_JSON)) {
-      const reply: ContactReply = { sent: says === "sent" };
-      return route.fulfill({ status: says === "sent" ? 200 : REFUSED, json: reply });
-    }
-    const formPage = new URLSearchParams(route.request().postData() ?? "").get(CONTACT_FIELDS.page) ?? "/";
-    const back = new URL(`${formPage}#${CONTACT_NOTE_IDS[says]}`, form.action).href;
-    return route.fulfill({ status: 303, headers: { Location: back } });
+    return route.fulfill(form.receiver === "netlify" ? netlifyAnswer(form, says) : workerAnswer(request, form, says));
   });
   return requests;
 }
@@ -86,6 +104,7 @@ test.describe("the contact form, with JavaScript", () => {
     page,
     contactForm,
   }) => {
+    test.skip(contactForm.receiver !== "worker", "Netlify Forms takes this site's messages");
     const requests = await standIn(page, contactForm, "sent");
     await fillIn(page, contactForm);
     await formIn(page, contactForm).send.click();
@@ -101,6 +120,31 @@ test.describe("the contact form, with JavaScript", () => {
       [CONTACT_FIELDS.message]: MESSAGE,
       [CONTACT_FIELDS.trap]: "",
     });
+  });
+
+  test("on Netlify, Send posts the form's fields to its tab's own page, as a form would, with the form's name", async ({
+    page,
+    contactForm,
+  }) => {
+    test.skip(contactForm.receiver !== "netlify", "the site's Worker takes its messages");
+    const requests = await standIn(page, contactForm, "sent");
+    await fillIn(page, contactForm);
+    const form = formIn(page, contactForm);
+    await form.send.click();
+    await expect.poll(() => requests.length).toBe(1);
+    const [request] = requests;
+    expect([request?.method(), request?.url()]).toEqual(["POST", contactForm.action]);
+    expect(new URL(contactForm.action).pathname).toBe(new URL(page.url()).pathname);
+    expect(request?.headers()["content-type"]).toContain("application/x-www-form-urlencoded");
+    expect(request?.headers().accept).not.toBe(CONTACT_JSON);
+    const fields = Object.fromEntries(new URLSearchParams(request?.postData() ?? ""));
+    expect(fields).toEqual({
+      [NETLIFY_FORM_NAME_FIELD]: await form.element.getAttribute("name"),
+      [CONTACT_FIELDS.email]: EMAIL,
+      [CONTACT_FIELDS.message]: MESSAGE,
+      [CONTACT_FIELDS.trap]: "",
+    });
+    expect(fields[NETLIFY_FORM_NAME_FIELD]).toBeTruthy();
   });
 
   test("once it has gone, the line under Send says so, the boxes are empty, and the tab stays open", async ({
@@ -135,7 +179,7 @@ test.describe("the contact form, with JavaScript", () => {
     await expect(form.message).toHaveValue(MESSAGE);
   });
 
-  test("when /contact can't be reached, the line under Send says it didn't go", async ({
+  test("when the form's address can't be reached, the line under Send says it didn't go", async ({
     page,
     contactForm,
     pageErrors,
@@ -153,6 +197,7 @@ test.describe("the contact form, with JavaScript", () => {
     let answer = () => {};
     const answered = new Promise<void>((resolve) => (answer = resolve));
     await page.route(contactForm.action, async (route) => {
+      if (route.request().method() !== "POST") return route.fallback();
       requests.push(route.request());
       await answered;
       await route.fulfill({ json: { sent: true } satisfies ContactReply });
@@ -216,6 +261,10 @@ test.describe("the contact form, without JavaScript", () => {
       site,
       contactForm,
     }) => {
+      test.skip(
+        note === "failed" && contactForm.receiver === "netlify",
+        "Netlify sends a visitor back to no page of the site's when it doesn't take a message",
+      );
       await page.goto(site.pathOf(contactForm.tab));
       const requests = await standIn(page, contactForm, note);
       await fillIn(page, contactForm);
@@ -375,5 +424,18 @@ test.describe("a question typed in, on a site without the contact form", () => {
     const linksIn = (answer: Locator) =>
       answer.locator(":scope > a").evaluateAll((links) => links.map((link) => link.className));
     expect(await linksIn(reply)).toEqual(await linksIn(page.locator(`${ID.asked} ${CLASS.answer}`)));
+  });
+});
+
+test.describe("a question typed in, on a site with the contact form and without Ask", () => {
+  test.skip(({ site }) => site.ask !== null, "Ask is on");
+  test.skip(({ site }) => site.contactForm === null, "the site has no contact form");
+
+  test('gets the "Something else" reply with no link to the form, which only Ask\'s reply offers', async ({ page }) => {
+    await page.goto("./");
+    await askInNewChat(page, "Are you free next month?");
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} > ${CLASS.answer}`).last();
+    await expect(reply.locator(EMAIL_LINK)).toBeVisible();
+    await expect(page.locator(TO_THE_FORM)).toHaveCount(0);
   });
 });

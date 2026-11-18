@@ -99,10 +99,17 @@
   //   // Where the form's messages go: your own address, the one the
   //   // contact form's block below locks its binding to.
   //   "CONTACT_TO": "you@example.com",
+  //   // Who sends them: "cloudflare", the binding in the contact form's
+  //   // block below, which needs Email Routing on your domain; or
+  //   // "resend" or "postmark", for a domain whose mail is elsewhere. With
+  //   // either, the Worker sends to CONTACT_TO alone with your key from
+  //   // them, a secret (`npm run wrangler -- secret put CONTACT_API_KEY`),
+  //   // never written here, and the block below stays commented out.
+  //   "CONTACT_SENDER": "cloudflare",
   //   // The address the form's emails come from: one on a domain Email
-  //   // Routing is on for. Left out, it's portfolio@ and the domain the
-  //   // form was sent from, less a leading "www.". If that isn't one,
-  //   // uncomment this line and set it:
+  //   // Routing is on for, or one verified with Resend or Postmark. Left
+  //   // out, it's portfolio@ and the domain the form was sent from, less a
+  //   // leading "www.". If that isn't one, uncomment this line and set it:
   //   // "CONTACT_FROM": "portfolio@example.com",
   //   // Messages the form sends you per day (UTC), for the whole site:
   //   // past it, the form says it couldn't send, and offers your email.
@@ -120,11 +127,11 @@
   // "ratelimits": [{ "name": "ASK_LIMIT", "namespace_id": "4242", "simple": { "limit": 10, "period": 60 } }],
   //
   // ---- The contact form (optional) ------------------------------------------
-  // // The form's messages go out through this binding, and only ever to
-  // // destination_address: your own address, as CONTACT_TO has it,
-  // // verified in the Cloudflare dashboard under Email Routing, which has
-  // // to be on for your domain (docs/contact-form.md). Sending there is
-  // // free on every plan.
+  // // With CONTACT_SENDER "cloudflare", the form's messages go out through
+  // // this binding, and only ever to destination_address: your own
+  // // address, as CONTACT_TO has it, verified in the Cloudflare dashboard
+  // // under Email Routing, which has to be on for your domain
+  // // (docs/contact-form.md). Sending there is free on every plan.
   // "send_email": [{ "name": "CONTACT_EMAIL", "destination_address": "you@example.com" }],
   // ---- End of the Worker ----------------------------------------------------
 

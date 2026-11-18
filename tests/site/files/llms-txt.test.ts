@@ -5,8 +5,8 @@ import { llmsTxt } from "../../../src/site/files/llms-txt.ts";
 import { FAVICONS } from "../../../src/site/icons.ts";
 import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite } from "../../../src/site/site.ts";
-import { sampleRepos } from "../../sample/github.ts";
-import { samplePosts } from "../../sample/qiita.ts";
+import { sampleRepos } from "../../sample/activity.ts";
+import { samplePosts } from "../../sample/writing.ts";
 import { sampleConfig } from "../sample.ts";
 
 /** The sample's posts in its Writing tab, as its build has them. */
@@ -85,16 +85,26 @@ test("a panel row that links to a tab is listed at the tab's page", () => {
   assert.ok(llmsTxt(makeSite(withALinkToATab)).includes("- [My work](https://example.com/portfolio/work/): Tab\n"));
 });
 
-test("llms.txt lists the Writing tab's posts, newest first, each by its title with its address, day and tags", () => {
+test("llms.txt lists the Writing tab's posts, newest first, each by its title with its address, day, place and tags", () => {
   assert.ok(
     llmsText.includes(
       [
         "\n## Writing\n",
-        "- [Astroで静的サイトを組み立てる](https://qiita.com/sam-sample/items/c0ffee0000000000c0f1): 2026-10-01 · Astro, TypeScript",
-        "- [Testing a static site in Playwright](https://qiita.com/sam-sample/items/c0ffee0000000000c0f3): 2026-06-15 · Playwright\n",
+        "- [Astroで静的サイトを組み立てる](https://qiita.com/sam-sample/items/c0ffee0000000000c0f1): 2026-10-01 · Qiita · Astro, TypeScript",
+        "- [Sam's notes on testing, on Zenn](https://zenn.dev/sam_sample/articles/5a3p1e0000000a): 2026-09-09 · Zenn",
+        "- [朝の散歩で考えたこと](https://note.com/sam_sample/n/n0000000000ab): 2026-07-03 · note",
+        "- [Testing a static site in Playwright](https://qiita.com/sam-sample/items/c0ffee0000000000c0f3): 2026-06-15 · Qiita · Playwright\n",
       ].join("\n"),
     ),
+    llmsText,
   );
+});
+
+test("a tab of posts from one place doesn't name it in llms.txt, as its cards don't", () => {
+  const onQiita = posts.filter((post) => post.place === "Qiita");
+  const [first] = onQiita;
+  assert.ok(first);
+  assert.ok(llmsTxt(makeSite(sampleConfig(), onQiita)).includes(`(${first.url}): 2026-10-01 · Astro, TypeScript\n`));
 });
 
 test("a post's title can't end the link it's written in", () => {
@@ -109,15 +119,17 @@ test("llms.txt has no Writing section for a site with no posts, or no Writing ta
   assert.ok(!llmsTxt(makeSite(sampleConfig({ writing: undefined }), posts)).includes("\n## Writing\n"));
 });
 
-test("llms.txt lists the public repos the panel's GitHub activity lists, the latest first, saying they're only the public ones", async () => {
+test("llms.txt lists the public repos the panel's activity lists, the latest first, saying they're only the public ones, and where", async () => {
   const repos = await sampleRepos();
   const withActivity = llmsTxt(makeSite(sampleConfig(), posts, repos));
   assert.ok(
     withActivity.includes(
       [
-        "\n## Recent public activity on GitHub\n",
+        "\n## Recent public activity on GitHub, GitLab and Codeberg\n",
         `The public repos ${sampleConfig().name} pushed to most recently, as of the site's last build. Private work isn't shown.\n`,
         "- [sam-sample/notes](https://github.com/sam-sample/notes): last pushed 2026-11-12 (UTC)",
+        "- [sample-group/tools/linter](https://gitlab.com/sample-group/tools/linter): last pushed 2026-11-10 (UTC)",
+        "- [sams/zine](https://codeberg.org/sams/zine): last pushed 2026-11-09 (UTC)",
         "- [sample-org/shared-tool](https://github.com/sample-org/shared-tool): last pushed 2026-11-08 (UTC)",
       ].join("\n"),
     ),
@@ -125,8 +137,14 @@ test("llms.txt lists the public repos the panel's GitHub activity lists, the lat
   assert.equal(repos.filter((repo) => !withActivity.includes(`- [${repo.name}](${repo.url}): `)).length, 0);
 });
 
-test("llms.txt has no GitHub section for a site with no public pushes lately, or no `activity`", async () => {
-  const heading = "\n## Recent public activity on GitHub\n";
+test("llms.txt's activity is on GitHub, for a site that reads GitHub alone", async () => {
+  const onGitHub = sampleConfig({ activity: { github: "sam-sample" } });
+  const repos = (await sampleRepos()).filter((repo) => repo.service === "github");
+  assert.ok(llmsTxt(makeSite(onGitHub, posts, repos)).includes("\n## Recent public activity on GitHub\n"));
+});
+
+test("llms.txt has no activity section for a site with no public pushes lately, or no `activity`", async () => {
+  const heading = "\n## Recent public activity on";
   assert.ok(!llmsTxt(makeSite(sampleConfig(), posts, [])).includes(heading));
   assert.ok(!llmsTxt(makeSite(sampleConfig({ activity: undefined }), posts, await sampleRepos())).includes(heading));
 });

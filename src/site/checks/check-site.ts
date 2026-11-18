@@ -16,6 +16,7 @@ import { languageChecks, type Findings, type LanguageCheck, type ProblemUnless }
 import { TEXT_LINK_CHECKS } from "./text-links.ts";
 import { SITE_CHECKS } from "./whole-site.ts";
 import { WORDING_CHECKS } from "./wording.ts";
+import { WRITING_CHECKS } from "./writing.ts";
 
 /** The checks of one language, in the order their problems are listed. */
 const LANGUAGE_CHECKS: LanguageCheck[] = [...PARTS_CHECKS, ...WORDING_CHECKS, ...TEXT_LINK_CHECKS];
@@ -29,7 +30,7 @@ export function checkSite(site: Site, stylesheetIcons: Set<string>, publicRoot: 
   const problemUnless: ProblemUnless = (isOk, problem) => {
     if (!isOk) findings.problems.push(problem);
   };
-  for (const check of SITE_CHECKS) check(site, problemUnless);
+  for (const check of [...SITE_CHECKS, ...WRITING_CHECKS]) check(site, problemUnless);
   checkTabPaths(site, publicRoot, problemUnless);
   for (const code of site.codes) {
     const checks = languageChecks(site, code, stylesheetIcons, problemUnless);

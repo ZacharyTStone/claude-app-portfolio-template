@@ -17,14 +17,14 @@ export const senderFor = (request: Request, contactFrom: string): string =>
 /** Who an email is from, and the one address it goes to. */
 type Addresses = { from: string; to: string };
 
+/** The email a message is sent as, whichever sender sends it
+    (outbox.ts): to one address, with Reply going to the visitor. */
+export type Email = Addresses & { replyTo: string; subject: string; text: string };
+
 /** The email for a message a visitor sent. The visitor's address has been
     checked (check.ts), so it can't add a line to the subject, or another
     recipient: the email goes to `to` alone. */
-export function emailFor(
-  { email, message }: ContactForm,
-  { from, to }: Addresses,
-  request: Request,
-): EmailMessageBuilder {
+export function emailFor({ email, message }: ContactForm, { from, to }: Addresses, request: Request): Email {
   const site = new URL(request.url).hostname;
   return {
     to,

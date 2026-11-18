@@ -13,7 +13,7 @@ import {
   type ComesIntoView,
   type ContactForm,
   type GatheredContext,
-  type GitHubActivity,
+  type PanelActivity,
   type MovingPicture,
   type PlayedPicture,
   type PostInViewer,
@@ -63,7 +63,7 @@ type SiteParts = {
   contactForm: ContactForm;
   writingTab: WritingTab;
   postInViewer: PostInViewer;
-  githubActivity: GitHubActivity;
+  panelActivity: PanelActivity;
   gatheredContext: GatheredContext;
 };
 
@@ -180,7 +180,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   contactForm: partOrSkip((site) => site.contactForm, "the site has no contact form"),
   writingTab: partOrSkip((site) => site.writing, "the site has no Writing tab"),
   postInViewer: partOrSkip(postInViewerOf, "the site's viewer shows no posts"),
-  githubActivity: partOrSkip((site) => site.activity, "the site has no GitHub activity in its panel"),
+  panelActivity: partOrSkip((site) => site.activity, "the site has no activity in its panel"),
   gatheredContext: partOrSkip((site) => site.context, "the panel's Context gathers no links from the answers"),
 });
 

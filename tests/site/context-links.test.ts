@@ -9,7 +9,7 @@ import type { Block } from "../../src/config/blocks.ts";
 import type { Language, PanelRow } from "../../src/config/language.ts";
 import { contextLists, linksOfTheSite } from "../../src/site/context-links.ts";
 import { makeSite } from "../../src/site/site.ts";
-import { samplePosts } from "../sample/qiita.ts";
+import { samplePosts } from "../sample/writing.ts";
 import { languageOf, sampleInEnglishOnly } from "./sample.ts";
 
 /** The sample in English with one thread, "links", whose one answer is

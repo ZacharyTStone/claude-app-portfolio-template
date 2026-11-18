@@ -4,6 +4,7 @@
 import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
 import { isEnglish } from "../../config/english-strings.ts";
 import { PAGE_STRING_NAMES, PART_STRINGS, REQUIRED_SCRIPT_STRING_NAMES } from "../../config/strings.ts";
+import type { Writing } from "../../config/writing.ts";
 import { formForQuestions } from "../site.ts";
 import { isFilledIn, type LanguageCheck } from "./reporting.ts";
 
@@ -66,6 +67,12 @@ type OptionalPart = {
   nameInProblem: string;
 };
 
+/** A card counts a Zenn or DEV post's likes in the page's own word. */
+function likesPart(writing: Writing | undefined): OptionalPart {
+  const place = (["zenn", "dev"] as const).find((name) => writing?.[name]);
+  return { isOnTheSite: place !== undefined, nameInProblem: `writing.${place ?? "zenn"}` };
+}
+
 /** The wording for a part only some sites have is optional in the config's
     type, so only this check can say that a site with the part left it out. */
 const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
@@ -88,6 +95,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
       isOnTheSite: Boolean(site.config.writing?.showWhenEmpty),
       nameInProblem: "writing.showWhenEmpty",
     },
+    writingLikes: likesPart(site.config.writing),
     activity: { isOnTheSite: Boolean(site.config.activity), nameInProblem: "activity" },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {

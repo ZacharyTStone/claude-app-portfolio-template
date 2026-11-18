@@ -1,7 +1,7 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
    viewer, a picture that has a still, a Writing tab whose posts each have
-   a page of the site's own for the viewer, and GitHub activity in the
+   a page of the site's own for the viewer, and three places' activity in the
    panel; the same site on a host that reads no headers; and the same site
    before its first post. The builds share Astro's working folder, so
    they're made one after another, in this file. */
@@ -17,18 +17,24 @@ import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { tabPagePath } from "../../src/contracts/tab-pages.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { HEADERS_FILE, headersFile, pagePolicy } from "../../src/site/files/headers-file.ts";
+import {
+  WRITING_FEED_TYPE,
+  writingFeedPath,
+  writingFeedTitle,
+  writingFeedXml,
+} from "../../src/site/files/writing-feed.ts";
 import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { panelId } from "../../src/contracts/page-ids.ts";
-import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
-import { WRITING_ICON, WRITING_PLACE, WRITING_TAB } from "../../src/config/writing.ts";
+import { ACTIVITY_SECTION, ACTIVITY_SERVICES } from "../../src/config/activity.ts";
+import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { postPages } from "../../src/site/writing/post-pages.ts";
 import { dayPosted } from "../../src/site/writing/post.ts";
 import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
-import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
-import { SAMPLE_QIITA, SAMPLE_QIITA_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/qiita.ts";
+import { SAMPLE_ACTIVITY, sampleRepos } from "../sample/activity.ts";
+import { SAMPLE_WRITING, SAMPLE_WRITING_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/writing.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
@@ -45,7 +51,7 @@ test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
-test("the sample site has a home page for each of its two languages, a page for each of their tabs, a page for each post, and a 404 page", () => {
+test("the sample site has a home page for each of its two languages, a page for each of their tabs, a page for each Qiita post, and a 404 page", () => {
   const tabPages = ["about/index.html", "work/index.html", "writing/index.html", "personal-fun/index.html"];
   assert.deepEqual(
     sample.pages.map(({ file }) => [file, sample.hasFile(file)]),
@@ -54,7 +60,7 @@ test("the sample site has a home page for each of its two languages, a page for 
       ["fr/index.html", true],
       ...tabPages.map((file) => [file, true]),
       ...tabPages.map((file) => [`fr/${file}`, true]),
-      ...posts.map((post) => [`writing/${post.id}/index.html`, true]),
+      ...posts.flatMap((post) => (post.body === undefined ? [] : [[`writing/${post.id}/index.html`, true]])),
       ["404.html", true],
     ],
   );
@@ -66,17 +72,19 @@ test("the sample's host reads a _headers file, so the build writes the site's he
   assert.equal(sample.read(HEADERS_FILE), headersFile(sampleSite));
 });
 
-test("the sample has a Writing tab, and the build says its posts are the tests' fixture, not Qiita's", () => {
+test("the sample has a Writing tab, and the build says its posts are the tests' fixture, not the places'", () => {
   assert.match(
     built.stdout,
-    new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_QIITA)}, not Qiita's`),
+    new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_WRITING)}, not the places'`),
   );
 });
 
-test("the sample has GitHub activity, and the build says its repos are the tests' fixture, not GitHub's", () => {
+test("the sample has activity, and the build says its repos are the tests' fixture, not GitHub's, GitLab's or Codeberg's", () => {
   assert.match(
     built.stdout,
-    new RegExp(`the panel's GitHub activity is the fixture ${escapeRegExp(SAMPLE_GITHUB)}, not GitHub's`),
+    new RegExp(
+      `the panel's activity is the fixture ${escapeRegExp(SAMPLE_ACTIVITY)}, not GitHub's, GitLab's or Codeberg's`,
+    ),
   );
 });
 
@@ -102,6 +110,10 @@ test("the sample has Ask on, so the build writes what /ask picks from", () => {
 
 const frameAddresses = Object.values(sampleConfig.viewer ?? {});
 
+/** The panel's activity on a page, as built. */
+const activitySectionIn = (html: string): string =>
+  html.match(new RegExp(`<section aria-labelledby="${panelId(ACTIVITY_SECTION)}".*?</section>`, "s"))?.[0] ?? "";
+
 /** A page's tab with this id, as built. */
 const tabIn = (html: string, id: string): string =>
   html.match(new RegExp(`<article class="${PAGE_CLASSES.tab}" id="${id}".*?</article>`, "s"))?.[0] ?? "";
@@ -110,7 +122,8 @@ for (const { file, url } of sample.languagePages) {
   test(`${file} has the contact form in its thread, posting to /contact under the site's path, and back to its tab's page`, () => {
     const tabId = sampleConfig.contactForm?.tab ?? "";
     const tab = tabIn(sample.read(file), tabId);
-    const opening = `<form class="${PAGE_CLASSES.contactForm}" action="${sampleSite.link(CONTACT_PATH)}" method="post">`;
+    const action = sampleSite.link(CONTACT_PATH);
+    const opening = `<form class="${PAGE_CLASSES.contactForm}" action="${action}" ${DATA.contactReceiver}="worker" method="post">`;
     assert.ok(tab.includes(opening), "the form, in its thread");
     const backTo = tabPagePath(url.pathname, tabId);
     assert.ok(tab.includes(`name="${CONTACT_FIELDS.page}" value="${backTo}"`), "the page to come back to");
@@ -134,13 +147,24 @@ for (const { file, url } of sample.languagePages) {
     const html = sample.read(file);
     const sections = [...html.matchAll(/<section aria-labelledby="([^"]+)"/g)].map(([, id]) => id);
     assert.equal(sections.at(-1), panelId(ACTIVITY_SECTION));
-    const section = html.match(new RegExp(`<section aria-labelledby="${panelId(ACTIVITY_SECTION)}".*?</section>`, "s"));
     const fetchedLinks = [
-      ...(section?.[0] ?? "").matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g")),
+      ...activitySectionIn(html).matchAll(new RegExp(`<a [^>]*href="([^"]*)"[^>]*\\s${DATA.fetched}[\\s>]`, "g")),
     ];
     assert.deepEqual(
       fetchedLinks.map(([, href]) => href),
       repos.map((repo) => repo.url),
+    );
+  });
+
+  test(`${file} names the place of each repo in its row, before the day, since the sample reads more than one`, () => {
+    const notes = [
+      ...activitySectionIn(sample.read(file)).matchAll(
+        new RegExp(`<span class="${PAGE_CLASSES.rowMeta}">([^<]*)<`, "g"),
+      ),
+    ];
+    assert.deepEqual(
+      notes.map(([, note = ""]) => note.split(" · ")[0]),
+      repos.map((repo) => ACTIVITY_SERVICES[repo.service]),
     );
   });
 
@@ -225,6 +249,17 @@ test("the policy a page carries lets frames come from the site itself, for its p
   assert.match(policy, new RegExp(`(^|; )frame-src 'self' ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
 });
 
+/** With posts, the feed says it changed when the newest was posted, whenever it's built. */
+const FEED_BUILT_AT_ANY_TIME = new Date(0);
+
+test("the sample's Writing tab has its feed, and each language's home page points at it", () => {
+  assert.equal(sample.read(writingFeedPath(sampleSite).slice(1)), writingFeedXml(sampleSite, FEED_BUILT_AT_ANY_TIME));
+  const pointer = `<link rel="alternate" type="${WRITING_FEED_TYPE}" title="${writingFeedTitle(sampleSite)}" href="${sampleSite.fileUrl(writingFeedPath(sampleSite))}">`;
+  for (const { file } of sample.languagePages) {
+    assert.ok(sample.read(file).includes(pointer), file);
+  }
+});
+
 /** Each post's own page, as built. */
 const postPagesBuilt = postPages(sampleSite).map((page) => ({
   ...page,
@@ -232,7 +267,7 @@ const postPagesBuilt = postPages(sampleSite).map((page) => ({
   html: sample.read(`${page.path.slice(1)}index.html`),
 }));
 
-test("the sample's posts each have a page of the site's own, one in Japanese and one in the main language", () => {
+test("the sample's Qiita posts each have a page of the site's own, one in Japanese and one in the main language", () => {
   assert.deepEqual(
     postPagesBuilt.map(({ html }) => html.match(/<html lang="([^"]*)"/)?.[1]),
     postPagesBuilt.map(({ lang }) => lang),
@@ -241,18 +276,18 @@ test("the sample's posts each have a page of the site's own, one in Japanese and
 });
 
 for (const { post, file, html } of postPagesBuilt) {
-  test(`${file} is headed by the post's title, with the day it was posted and a link to it on ${WRITING_PLACE}`, () => {
+  test(`${file} is headed by the post's title, with the day it was posted and a link to it on ${post.place}`, () => {
     assert.ok(html.includes(`<h1>${post.title}</h1>`));
     assert.ok(html.includes(`<time datetime="${post.posted}">${dayPosted(post)}</time>`));
     assert.match(
       html,
       new RegExp(
-        `<a [^>]*href="${escapeRegExp(post.url)}" target="_blank" rel="noopener noreferrer">${WRITING_PLACE}</a>`,
+        `<a [^>]*href="${escapeRegExp(post.url)}" target="_blank" rel="noopener noreferrer">${post.place}</a>`,
       ),
     );
   });
 
-  test(`${file} names the post on ${WRITING_PLACE} as its canonical address, and is marked as made from what was fetched`, () => {
+  test(`${file} names the post on ${post.place} as its canonical address, and is marked as made from what was fetched`, () => {
     assert.ok(html.includes(`<link rel="canonical" href="${post.url}">`));
     assert.match(html, new RegExp(`<body ${DATA.fetched}>`));
   });
@@ -293,10 +328,10 @@ test("each post's page is valid HTML, as `npm run lint:html` holds a site's own 
   assert.equal(validated.status, 0, validated.stdout || validated.stderr);
 });
 
-/** The sample before its first post on Qiita (tests/sample/qiita-no-posts.json): it has no Writing tab, and
+/** The sample before its first post anywhere (tests/sample/writing-no-posts.json): it has no Writing tab, and
     nothing on the site points at the tab's page, which isn't there. */
 const NO_POSTS_BUILD_FOLDER = join(folder, "no-posts-dist");
-const builtWithNoPosts = buildSample(NO_POSTS_BUILD_FOLDER, SAMPLE_CONFIG, SAMPLE_QIITA_WITH_NO_POSTS);
+const builtWithNoPosts = buildSample(NO_POSTS_BUILD_FOLDER, SAMPLE_CONFIG, SAMPLE_WRITING_WITH_NO_POSTS);
 const sampleWithNoPosts = builtSite("the sample before its first post", NO_POSTS_BUILD_FOLDER, sampleConfig);
 
 /** Anything that names the Writing tab's page, its answer or its id. */
@@ -307,14 +342,15 @@ test("the sample builds before its first post, saying it has no Writing tab unti
   assert.match(
     builtWithNoPosts.stdout,
     new RegExp(
-      `${sampleFixture().user} has no public posts on Qiita yet, so the site has no Writing tab until the first`,
+      `there are no public posts on Qiita \\(${sampleFixture().qiita?.user}\\), Zenn \\(${sampleFixture().zenn?.user}\\) and note yet, so the site has no Writing tab until the first`,
     ),
   );
 });
 
-test("the sample before its first post has no page for the Writing tab, in any language", () => {
+test("the sample before its first post has no page for the Writing tab, in any language, and no feed", () => {
   const writingPages = sampleWithNoPosts.languagePages.map(({ file }) => file.replace(/index\.html$/, WRITING_TAB));
   assert.deepEqual(writingPages.filter(sampleWithNoPosts.hasFolder), []);
+  assert.equal(sampleWithNoPosts.hasFile(writingFeedPath(sampleSite).slice(1)), false);
 });
 
 testBuiltSite(sampleWithNoPosts);

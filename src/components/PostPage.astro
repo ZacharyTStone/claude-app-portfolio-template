@@ -3,7 +3,6 @@
    posted and a link to it where it was posted, then its text. All of it is what the build fetched, so it's
    marked as that, and set in the system's Japanese font where it's Japanese. Its canonical address is the
    post's own, where it was posted: this page is the site's copy for a visitor to read here. It has no script. */
-import { WRITING_PLACE } from "../config/writing.ts";
 import { newTabAttributes } from "../contracts/links.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -33,7 +32,7 @@ const dir = lang === site.main ? mainLanguage.dir : undefined;
     <p class={PAGE_CLASSES.postSource}>
       <time datetime={post.posted}>{dayPosted(post)}</time>
       <a class={`i-out ${PAGE_CLASSES.iconAfter}`} href={post.url} {...newTabAttributes(post.url)}>
-        {WRITING_PLACE}
+        {post.place}
       </a>
     </p>
     {blocks.map((block) => (

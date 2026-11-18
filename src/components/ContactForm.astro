@@ -1,20 +1,15 @@
 ---
 /* The contact form under a thread's last answer (the config's contactForm): the visitor's email, a message, and
    Send. Without JavaScript it's a plain POST, which the Worker answers by sending the visitor back to its tab's page, at
-   one of the two notes under it, which :target shows. With it, src/app/contact-form.ts sends it with fetch and says
-   the note in place, under Send. */
-import {
-  CONTACT_FIELDS,
-  CONTACT_NOTE_IDS,
-  CONTACT_PATH,
-  MAX_EMAIL_LENGTH,
-  MAX_MESSAGE_LENGTH,
-} from "../contracts/contact.ts";
+   one of the two notes under it, which :target shows; on Netlify, Netlify Forms answers with that page, at the note
+   that says it went (contact-form.ts). With it, src/app/contact-form.ts sends it with fetch and says the note in
+   place, under Send. */
+import { CONTACT_FIELDS, CONTACT_NOTE_IDS, MAX_EMAIL_LENGTH, MAX_MESSAGE_LENGTH } from "../contracts/contact.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { site } from "../site/current.ts";
-import { tabPath } from "../site/pages.ts";
 import type { Page } from "../site/site.ts";
+import { contactFormParts } from "./contact-form.ts";
 
 interface Props {
   page: Page;
@@ -24,12 +19,13 @@ const { strings } = page.language;
 const { email } = site.config.links;
 // "… or email {email}.": the words around the link to your address, which a note without {email} goes without.
 const [failedBeforeEmail = "", failedAfterEmail] = (strings.contactFailed ?? "").split("{email}");
-// Where the Worker sends a visitor without JavaScript back to: the form's own tab's page, which opens on it.
-const returnTo = site.link(tabPath(site, page.code, site.config.contactForm?.tab ?? ""));
+const { attributes, hidden } = contactFormParts(site, page.code);
 ---
 
-<form class={PAGE_CLASSES.contactForm} action={site.link(CONTACT_PATH)} method="post">
-  <input type="hidden" name={CONTACT_FIELDS.page} value={returnTo} />
+<form class={PAGE_CLASSES.contactForm} {...attributes} method="post">
+  {Object.entries(hidden).map(([name, value]) => (
+    <input type="hidden" name={name} value={value} />
+  ))}
   <label class="contact-field">
     <span class="contact-label">{strings.contactEmail}</span>
     <input

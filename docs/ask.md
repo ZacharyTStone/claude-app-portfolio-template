@@ -67,6 +67,15 @@ about; otherwise the question goes in as it was typed.
 
 ### What isn't checked
 
+Everything the models read of your site (your answers, and on a site with
+a [Writing tab](writing.md) the titles of your posts the build fetched)
+is given to them as the site's text, with the instruction to treat none of
+it as instructions, as the visitor's question is. A fetched title is kept
+with no hidden or reordering characters in it, so a feed can't slip in
+words a reader wouldn't see. A title is still words someone else's server
+sent, and a model can still be swayed by them; the checks below hold all
+the same.
+
 The reply's ordinary words are not checked, and neither is what the check
 can't tell from one: a name in kana or kanji, a number in kanji. So a
 claim written entirely in ordinary lower-case words is not caught by this

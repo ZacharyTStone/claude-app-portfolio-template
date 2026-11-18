@@ -17,7 +17,8 @@ export type SiteConfig = {
   /** Who serves the built site ("cloudflare" if left out). "cloudflare"
       and "netlify" read the security headers from a file the build writes;
       on any other host the pages carry what a page can, in <meta> tags.
-      Only "cloudflare" runs Ask and the contact form. */
+      Only "cloudflare" runs Ask; the contact form runs there and on
+      "netlify". */
   host?: Host;
   /** Strict-Transport-Security's extras. Both are hard to undo: leave them
       out unless every subdomain is HTTPS for good. */
@@ -52,12 +53,12 @@ export type SiteConfig = {
     /** Who you are, in a few words, for the model: "a software engineer". */
     role: string;
   };
-  /** A form under a thread's last answer that emails you a visitor's
-      message: their email, the message, and Send. Its Worker (src/worker)
-      sends it to the address wrangler.jsonc names (docs/contact-form.md).
-      Each language then needs the strings that start "contact", and with
-      Ask on, strings.askForm. Leave out for no form. It needs host
-      "cloudflare". */
+  /** A form under a thread's last answer that sends you a visitor's
+      message: their email, the message, and Send. On host "cloudflare" its
+      Worker emails it to the address wrangler.jsonc names; on "netlify",
+      Netlify Forms takes it (docs/contact-form.md). Each language then
+      needs the strings that start "contact", and with Ask on,
+      strings.askForm. Leave out for no form. */
   contactForm?: {
     /** The id of the thread it's under: "contact". */
     tab: string;
@@ -69,17 +70,17 @@ export type SiteConfig = {
       Each language then needs strings.viewerOpen and strings.viewerClose.
       Leave out for no viewer. */
   viewer?: Record<string, string>;
-  /** A Writing tab, listing your posts elsewhere: { qiita: "alex-example" }.
+  /** A Writing tab, listing your posts on Qiita, Zenn, DEV, note, Medium,
+      Substack, Hatena Blog or any blog's feed: { qiita: "alex-example" }.
       The build fetches them, and stops if it can't, so a new post shows
       once the site is built again (docs/writing.md). Each language then
-      needs the writing* strings (English has them). With viewer: true, a
-      post opens in the site's viewer. Leave out for none. */
+      needs the writing* strings (English has them). Leave out for none. */
   writing?: Writing;
   /** Your recent public activity, in a section of the details panel: the
-      public repos you pushed to most recently, each with the day:
-      { github: "alex-example" }. The build fetches it, and stops if it
-      can't (docs/github-activity.md). Each language then needs
-      strings.activityTitle (English has it). Leave out for none. */
+      public repos you pushed to most recently, each with the day, on
+      GitHub, GitLab or Codeberg: { github: "alex-example" }. The build
+      fetches it, and stops if it can't (docs/activity.md). Each language
+      then needs strings.activityTitle (English has it). Leave out for none. */
   activity?: Activity;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every

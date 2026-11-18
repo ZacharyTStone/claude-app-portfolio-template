@@ -93,6 +93,9 @@ export const DATA = {
   /** On each of the contact form's two notes: which it is, a ContactNote
       ("sent" or "failed"), for the browser code to say under Send. */
   contactNote: "data-note",
+  /** On the contact form: who takes its messages, a ContactReceiver
+      ("worker" or "netlify"), which says how its answer is read. */
+  contactReceiver: "data-receiver",
   /** On each list the panel's Context gathered from the answers: the tab
       whose links it lists (its id). The page is built with every tab's,
       the open tab's showing; the script makes a chat's, from the lists of
@@ -100,7 +103,7 @@ export const DATA = {
       opens. The home screen has none. */
   contextOf: "data-context-of",
   /** No value: a post's card in the Writing tab, a repo's row in the
-      panel's GitHub activity, or the <body> of a post's own page, made from
+      panel's activity, or the <body> of a post's own page, made from
       what the build fetched, which changes from one build to the next. The
       Japanese fonts aren't cut for what's in it (scripts/fonts): it's set
       in the system's Japanese font instead (src/styles/japanese.css). */

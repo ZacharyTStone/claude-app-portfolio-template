@@ -1,8 +1,9 @@
 ---
 /* What a page's <head> says of it, for search engines and a link's preview: its title and description, its
-   address and its versions in the other languages, and the site's social card. Any kind of page has one, from
-   its PageHead (src/site/pages.ts). */
+   address and its versions in the other languages, the Writing tab's feed on a site with the tab, and the
+   site's social card. Any kind of page has one, from its PageHead (src/site/pages.ts). */
 import { site } from "../site/current.ts";
+import { hasWritingFeed, WRITING_FEED_TYPE, writingFeedPath, writingFeedTitle } from "../site/files/writing-feed.ts";
 import { alternatesOf, type PageHead } from "../site/pages.ts";
 import { makePage } from "../site/site.ts";
 import { structuredData } from "../site/structured-data.ts";
@@ -25,6 +26,14 @@ const otherLanguages = Object.keys(head.versions).filter((code) => code !== page
 {alternatesOf(site, head).map(({ hreflang, href }) => (
   <link rel="alternate" hreflang={hreflang} href={href} />
 ))}
+{hasWritingFeed(site) && (
+  <link
+    rel="alternate"
+    type={WRITING_FEED_TYPE}
+    title={writingFeedTitle(site)}
+    href={site.fileUrl(writingFeedPath(site))}
+  />
+)}
 
 <meta property="og:type" content="website" />
 <meta property="og:title" content={title} />

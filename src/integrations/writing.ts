@@ -14,7 +14,7 @@ import type { LoadedSiteConfig } from "../site/load-site-config.ts";
 import { ROOT } from "../site/repo.ts";
 import { fixtureFetch, readFixture, WRITING_FIXTURE } from "../site/writing/fixture.ts";
 import type { Post } from "../site/writing/post.ts";
-import { qiitaPosts } from "../site/writing/qiita.ts";
+import { postsOfEveryPlace, postsPerPlace, sourcesOf } from "../site/writing/sources.ts";
 import { inPlaceOfTheFile, type Log } from "./in-place.ts";
 
 /** The module the pages read the posts from. */
@@ -22,34 +22,49 @@ const FETCHED_MODULE = fileURLToPath(new URL("../site/writing/fetched.ts", impor
 
 const GUIDE = "docs/writing.md";
 
-/** How the build asks Qiita: over the network, or, when the environment
-    variable WRITING_FIXTURE names a file, of the tests' stand-in, which
-    says so (src/site/writing/fixture.ts). Throws for a file that isn't a
-    fixture. */
-export function qiitaFetch(environment: NodeJS.ProcessEnv, log: Log): Fetch {
+/** How the build asks for the posts: over the network, or, when the
+    environment variable WRITING_FIXTURE names a file, of the tests'
+    stand-in, which says so (src/site/writing/fixture.ts). Throws for a file
+    that isn't a fixture. */
+export function writingFetch(environment: NodeJS.ProcessEnv, log: Log): Fetch {
   const fixtureFile = environment[WRITING_FIXTURE];
   if (!fixtureFile) return fetch;
-  log.warn(`the Writing tab's posts are the fixture ${fixtureFile}, not Qiita's, since ${WRITING_FIXTURE} names it`);
+  log.warn(
+    `the Writing tab's posts are the fixture ${fixtureFile}, not the places', since ${WRITING_FIXTURE} names it`,
+  );
   return fixtureFetch(readFixture(resolve(ROOT, fixtureFile)));
 }
 
-/** What's said of the posts fetched: how many and whose (and that each has
-    a page of the site's own, where the viewer shows them), and, with none,
-    what the site has for a tab. */
-function postsFound(count: number, { qiita, showWhenEmpty, viewer }: Writing): string {
-  const inTheViewer = viewer ? ", each with a page of its own for the viewer (writing.viewer)" : "";
-  if (count > 0) return `the Writing tab lists ${count} posts by ${qiita} on Qiita${inTheViewer}`;
-  return showWhenEmpty
-    ? `${qiita} has no public posts on Qiita yet, and the Writing tab says so (writing.showWhenEmpty)`
-    : `${qiita} has no public posts on Qiita yet, so the site has no Writing tab until the first`;
+/** What `writing` names, as what's said names it: "Qiita (alex-example) and
+    Zenn (alex_example)". */
+function placesOf(writing: Writing): string {
+  const names = sourcesOf(writing, { fetch, timeZone: "UTC" }).map((source) => source.name);
+  return names.length > 1 ? `${names.slice(0, -1).join(", ")} and ${names.at(-1)}` : (names[0] ?? "");
 }
 
-/** The posts of the Qiita user `writing` names, asked for as `howToAsk`
-    says, or why there are none. */
-export async function fetchPosts(writing: Writing, howToAsk: () => Fetch, log: Log): Promise<Post[] | string> {
+/** What's said of the posts fetched: how many and where from (and that each
+    Qiita post has a page of the site's own, where the viewer shows them),
+    and, with none, what the site has for a tab. */
+function postsFound(posts: Post[], writing: Writing): string {
+  const withPages = posts.some((post) => post.body !== undefined);
+  const inTheViewer = withPages ? ", each Qiita post with a page of its own for the viewer (writing.viewer)" : "";
+  if (posts.length > 0) return `the Writing tab lists ${posts.length} posts: ${postsPerPlace(posts)}${inTheViewer}`;
+  const none = `there are no public posts on ${placesOf(writing)} yet`;
+  return writing.showWhenEmpty
+    ? `${none}, and the Writing tab says so (writing.showWhenEmpty)`
+    : `${none}, so the site has no Writing tab until the first`;
+}
+
+/** The posts of the places `writing` names, asked for as `howToAsk` says,
+    by the owner's clock (the config's timezone), or why there are none. */
+export async function fetchPosts(
+  writing: Writing,
+  { howToAsk, timeZone }: { howToAsk: () => Fetch; timeZone: string },
+  log: Log,
+): Promise<Post[] | string> {
   try {
-    const posts = await qiitaPosts(writing.qiita, { fetch: howToAsk(), bodies: writing.viewer });
-    log.info(postsFound(posts.length, writing));
+    const posts = await postsOfEveryPlace(writing, { fetch: howToAsk(), timeZone, bodies: writing.viewer });
+    log.info(postsFound(posts, writing));
     return posts;
   } catch (error) {
     return error instanceof Error ? error.message : String(error);
@@ -59,7 +74,7 @@ export async function fetchPosts(writing: Writing, howToAsk: () => Fetch, log: L
 /** What's said when there are no posts to list, by whether it's a build. */
 const COULD_NOT = {
   build: (why: string) =>
-    `The Writing tab's posts couldn't be fetched, so the build stops, and a host keeps the site it has: ${why}. Build again once Qiita answers, or remove writing from the config to build without the tab (${GUIDE}).`,
+    `The Writing tab's posts couldn't be fetched, so the build stops, and a host keeps the site it has: ${why}. Build again once it answers, or remove writing from the config to build without the tab (${GUIDE}).`,
   dev: (why: string) =>
     `The Writing tab's posts couldn't be fetched, so the site has none until the dev server starts again: ${why}.`,
 };
@@ -74,7 +89,8 @@ export function writingPosts({ config }: LoadedSiteConfig): AstroIntegration {
         // `astro check` reads no posts, and a preview builds nothing.
         const buildsPages = command === "build" || command === "dev";
         if (!config.writing || !buildsPages) return;
-        const posts = await fetchPosts(config.writing, () => qiitaFetch(process.env, logger), logger);
+        const howToAsk = () => writingFetch(process.env, logger);
+        const posts = await fetchPosts(config.writing, { howToAsk, timeZone: config.timezone }, logger);
         if (typeof posts === "string") logger.error(COULD_NOT[command](posts));
         // Thrown, Astro would call it an unhandled error and print a stack under it.
         if (typeof posts === "string" && command === "build") process.exit(1);

@@ -7,7 +7,7 @@ import type { Fetch } from "../../../src/site/fetching.ts";
 import { fixtureFetch } from "../../../src/site/writing/fixture.ts";
 import type { Post } from "../../../src/site/writing/post.ts";
 import { qiitaItemsAddress, qiitaPosts } from "../../../src/site/writing/qiita.ts";
-import { sampleFixture, samplePosts } from "../../sample/qiita.ts";
+import { sampleFixture, samplePosts } from "../../sample/writing.ts";
 
 const USER = "sam-sample";
 
@@ -58,18 +58,19 @@ const postsOf = (fetch: Fetch, perPage?: number) => qiitaPosts(USER, { fetch, pe
 const fromTheSample = (bodies?: boolean) => qiitaPosts(USER, { fetch: fixtureFetch(sampleFixture()), bodies });
 
 /** An item of the fixture's, as far as these tests read one. */
-type FixtureItem = { id: string; body: string; rendered_body?: string };
+type FixtureItem = { id: string; title: string; body: string; rendered_body?: string; private: boolean };
 
-const fixtureItems = () => sampleFixture().items as FixtureItem[];
+const fixtureItems = () => (sampleFixture().qiita?.posts ?? []) as FixtureItem[];
 
-test("a post keeps its id, its title, its link, when it was posted, its LGTMs and its tags, and nothing of its body", async () => {
+test("a post keeps its id, its title, its link, when it was posted, its place, its LGTMs and its tags, and nothing of its body", async () => {
   const expected: Post[] = [
     {
       id: "c0ffee0000000000c0f1",
       title: "Astroで静的サイトを組み立てる",
       url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f1",
       posted: "2026-10-01T09:30:00+09:00",
-      likes: 12,
+      place: "Qiita",
+      likes: { count: 12, word: "LGTM" },
       tags: ["Astro", "TypeScript"],
     },
     {
@@ -77,7 +78,8 @@ test("a post keeps its id, its title, its link, when it was posted, its LGTMs an
       title: "Testing a static site in Playwright",
       url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f3",
       posted: "2026-06-15T18:00:00+09:00",
-      likes: 3,
+      place: "Qiita",
+      likes: { count: 3, word: "LGTM" },
       tags: ["Playwright"],
     },
   ];
@@ -108,10 +110,10 @@ test("Qiita's own HTML of a post is never kept, with the post's text or without"
 });
 
 test("a post shared by link only (private) is left out", async () => {
-  const privateOnes = sampleFixture().items.filter((each) => (each as { private: boolean }).private);
+  const privateOnes = fixtureItems().filter((each) => each.private);
   assert.equal(privateOnes.length, 1, "the fixture has a private post");
   const posts = await samplePosts();
-  assert.ok(!posts.some((post) => post.title === (privateOnes[0] as { title: string }).title));
+  assert.ok(!posts.some((post) => post.title === privateOnes[0]?.title));
 });
 
 test("the newest comes first, whatever order Qiita sends them in", async () => {
@@ -123,7 +125,7 @@ test("the newest comes first, whatever order Qiita sends them in", async () => {
 });
 
 test("the pages are followed until one comes back short, and every post on them is kept", async () => {
-  const fixture = { user: USER, items: items(5) };
+  const fixture = { qiita: { user: USER, posts: items(5) }, feeds: {} };
   const asked: string[] = [];
   const fetch: Fetch = (address, init) => {
     asked.push(address);
@@ -150,7 +152,7 @@ test("a build asks for a hundred posts a page, each request with a time limit", 
 });
 
 test("a user Qiita doesn't have stops it at once, saying so and where", async () => {
-  const fetch = fixtureFetch({ user: "someone-else", items: items(1) });
+  const fetch = fixtureFetch({ qiita: { user: "someone-else", posts: items(1) }, feeds: {} });
   await assert.rejects(postsOf(fetch), {
     message: `Qiita has no user by that id (not_found), at ${qiitaItemsAddress(USER, 1, 100)}`,
   });

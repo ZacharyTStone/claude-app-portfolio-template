@@ -12,11 +12,14 @@ than text: file cards, bars, flows, pictures, quotes, and diagrams that
 move. A link you choose, such as a resume in Google Docs, can open in a
 viewer beside the conversation instead of a new tab. Each tab has a page
 of its own (`/about/`), so a link to one opens on it and previews as it.
-A Writing tab can list your posts on Qiita, fetched as the site builds,
-and open each in the viewer too.
+A Writing tab can list your posts from Qiita, Zenn, DEV, note, Medium,
+Substack, Hatena Blog or any blog's feed, fetched as the site builds, with
+a feed of its own; a Qiita post can open in the viewer too.
 An optional Worker on Cloudflare, Ask, answers typed questions from your
 own answers, and quotes the lines it answered from; the same Worker can
-run a contact form that emails you, with JavaScript or without.
+run a contact form that emails you (through Cloudflare, Resend or
+Postmark), with JavaScript or without. On Netlify, the form is a Netlify
+form instead.
 
 ## Quick start
 
@@ -100,8 +103,8 @@ your config, README, pictures, diagrams or `src/styles/site.css`:
 | draw a diagram that moves | [Diagrams](docs/diagrams.md) |
 | let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
 | let visitors email you from the site | [The contact form](docs/contact-form.md) |
-| list your posts on Qiita in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
-| show your recent public GitHub repos in the panel | [GitHub activity](docs/github-activity.md) |
+| list your posts from Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any feed in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
+| show your recent public repos on GitHub, GitLab or Codeberg in the panel | [Activity](docs/activity.md) |
 | know what protects the site and its visitors | [Security](docs/security.md) |
 | take the template's later changes | [Updating](docs/updating.md) |
 | change the code itself | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |

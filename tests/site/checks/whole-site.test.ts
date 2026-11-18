@@ -159,6 +159,41 @@ testEachProblem([
     ],
   },
   {
+    wrong: "the GitLab user is its profile's whole address",
+    change: (sample) => (sample.activity = { gitlab: "https://gitlab.com/sam-sample" }),
+    problems: [
+      `activity.gitlab should be a GitLab user name, as in your profile's address (gitlab.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the GitLab user is written with an @",
+    change: (sample) => (sample.activity = { gitlab: "@sam-sample" }),
+    problems: [
+      `activity.gitlab should be a GitLab user name, as in your profile's address (gitlab.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the Codeberg user is its profile's whole address",
+    change: (sample) => (sample.activity = { codeberg: "https://codeberg.org/sams" }),
+    problems: [
+      `activity.codeberg should be a Codeberg user name, as in your profile's address (codeberg.org/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "the Codeberg user name is longer than Codeberg allows",
+    change: (sample) => (sample.activity = { codeberg: "s".repeat(41) }),
+    problems: [
+      `activity.codeberg should be a Codeberg user name, as in your profile's address (codeberg.org/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "activity names no place to read it from",
+    change: (sample) => (sample.activity = {}),
+    problems: [
+      "activity names no place to read it from: give it one or more of github, gitlab and codeberg, each with your user name there, or remove it",
+    ],
+  },
+  {
     wrong: "the viewer lists a link the site doesn't have",
     change: (sample) => (sample.viewer = { "https://docs.example.com/d/other/edit": "https://docs.example.com/p" }),
     problems: [
@@ -195,6 +230,20 @@ for (const url of ["https://example.com/", "https://example.github.io/portfolio"
   test(`"${url}" is a site's address, with or without a path`, () => {
     assert.deepEqual(
       problemsAfter((sample) => (sample.url = url)),
+      [],
+    );
+  });
+}
+
+for (const activity of [
+  { github: "sam-sample" },
+  { gitlab: "sam.sample_2" },
+  { codeberg: "sam_sample.x" },
+  { github: "sam-sample", gitlab: "sam-sample", codeberg: "sams" },
+]) {
+  test(`activity on ${Object.keys(activity).join(", ")}, each as its place writes a user name, is fine`, () => {
+    assert.deepEqual(
+      problemsAfter((sample) => (sample.activity = activity)),
       [],
     );
   });
@@ -243,13 +292,30 @@ for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
       `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "cloudflare"`,
     ]);
   });
+}
 
+test("the contact form runs where Cloudflare's Worker or Netlify Forms takes its messages", () => {
+  for (const host of [undefined, "cloudflare", "netlify"] as const) {
+    assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [], host);
+  }
+});
+
+for (const host of HOSTS.filter((other) => other !== "cloudflare" && other !== "netlify")) {
   test(`the contact form doesn't run on the host "${host}"`, () => {
     assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [
-      `contactForm needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove contactForm, or set host to "cloudflare"`,
+      `contactForm needs Cloudflare Workers (its Worker, src/worker) or Netlify Forms to take its messages, but host is "${host}": remove contactForm, or set host to "cloudflare" or "netlify"`,
     ]);
   });
 }
+
+test("on Netlify, the contact form needs no Worker, and Ask still does", () => {
+  assert.deepEqual(
+    problemsIn(sampleConfig({ ask: { role: "an engineer" }, contactForm: { tab: "about" }, host: "netlify" })),
+    [
+      `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "netlify": remove ask, or set host to "cloudflare"`,
+    ],
+  );
+});
 
 test("the contact form goes under a thread the site has", () => {
   assert.deepEqual(problemsIn(sampleConfig({ contactForm: { tab: "work" } })), []);

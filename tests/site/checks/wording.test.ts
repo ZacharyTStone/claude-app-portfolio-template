@@ -101,7 +101,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab and GitHub activity",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn and GitHub activity",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -114,11 +114,12 @@ testEachProblem([
       ...CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
       ...ASK_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (ask with contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
+      "fr: strings.writingLikes is missing (writing.zenn needs it)",
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
     ],
   },
   {
-    wrong: "GitHub activity without its heading, in a language other than English",
+    wrong: "the panel's activity without its heading, in a language other than English",
     change: inFrench((french) => delete statedStrings(french).activityTitle),
     problems: ["fr: strings.activityTitle is missing (activity needs it)"],
   },
@@ -188,7 +189,7 @@ test("a site without a Writing tab needs no words for one", () => {
   assert.deepEqual(problemsIn(withoutWriting), []);
 });
 
-test("a site without GitHub activity needs no words for it", () => {
+test("a site without activity in its panel needs no words for it", () => {
   const withoutActivity = sampleConfig({ activity: undefined });
   for (const name of ACTIVITY_STRING_NAMES) delete statedStrings(languageOf(withoutActivity, "fr"))[name];
   assert.deepEqual(problemsIn(withoutActivity), []);

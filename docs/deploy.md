@@ -37,11 +37,19 @@ caching of its own: a host caches every page as it caches the home page.
 paths no tab can take (the build refuses a thread with one of those ids),
 and nor is `/blog/`.
 
+Beside the pages, the build writes `robots.txt`, `sitemap.xml`, `llms.txt`
+and `/.well-known/security.txt` ([Security](security.md#securitytxt)).
+The last is in a folder whose name starts with a dot. Cloudflare's and
+Netlify's deploys publish that folder as any other; GitHub Pages' upload
+leaves it out unless told not to, which the workflow below does; and a
+server of your own may refuse paths with a dot-folder in them, as many
+nginx setups do: let it serve `/.well-known/`.
+
 ## Cloudflare (recommended)
 
 The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
-the only host that runs [Ask](ask.md) and the
-[contact form](contact-form.md). Use an account on the free plan:
+the only host that runs [Ask](ask.md) (the [contact form](contact-form.md)
+runs here and on Netlify). Use an account on the free plan:
 there Cloudflare refuses what it would otherwise bill, so the site can
 never cost anything ([What Ask can cost](ask.md#what-ask-can-cost)).
 
@@ -58,8 +66,8 @@ With a [Writing tab](writing.md), each build fetches your posts first, and
 stops if it can't: a build that fails deploys nothing, so the site that's
 up stays as it was. [A rebuild each day](writing.md#a-rebuild-each-day)
 brings in what you've posted since, with a deploy hook and a cron trigger.
-The same goes for [GitHub activity](github-activity.md), whose build may
-need a `GITHUB_TOKEN` on a busy build machine.
+The same goes for the panel's [activity](activity.md), whose build may
+need a `GITHUB_TOKEN` for GitHub on a busy build machine.
 
 `npm run deploy` runs one pinned version of Wrangler, Cloudflare's tool;
 `npm run wrangler -- dev` serves the site locally as Cloudflare would.
@@ -70,7 +78,7 @@ the site isn't also served at its `workers.dev` address.
 
 | Host | `host` | Settings |
 | --- | --- | --- |
-| Netlify | `"netlify"` | Build command `npm run build`, publish directory `dist`. Node comes from `.node-version`. |
+| Netlify | `"netlify"` | Build command `npm run build`, publish directory `dist`. Node comes from `.node-version`. With the contact form, turn on form detection: Netlify Forms takes its messages ([On Netlify](contact-form.md#on-netlify)). |
 | Vercel | `"vercel"` | Detected as Astro: build `npm run build`, output `dist`. In the project's settings, set Node to the version in `.node-version`. |
 | Anything else (S3, nginx, Caddy…) | `"static"` | Run `npm run build` and upload `dist/`. Set the headers in `src/site/security-headers.ts` on the server where you can. |
 
@@ -102,8 +110,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run build
-      - uses: actions/upload-pages-artifact@7b1f4a764d45c48632c6b24a0339c27f5614fb0b # v4.0.0
+      - uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
         with:
           path: dist
+          # Or .well-known/security.txt is left out.
+          include-hidden-files: true
       - uses: actions/deploy-pages@d6db90164ac5ed86f2b6aed7e0febac5b3c0c03e # v4.0.5
 ```

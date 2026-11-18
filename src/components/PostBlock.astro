@@ -1,7 +1,8 @@
 ---
 /* One part of a post (src/site/writing/body.ts), as elements: a heading under the page's own, and a list's item,
    a quote and a note drawn by using this again for each of their parts. A table's head says it heads a column,
-   and a note is one to a screen reader too. */
+   and a note is one to a screen reader too. Code and a table scroll sideways where they're wider than the page,
+   so each takes the focus, for the keyboard to scroll it. */
 import type { PostBlock } from "../site/writing/body.ts";
 import PostSpans from "./PostSpans.astro";
 
@@ -35,7 +36,7 @@ const List = block.type === "list" && block.ordered ? "ol" : "ul";
   </List>
 )}
 {block.type === "code" && block.file && <p class="post-file">{block.file}</p>}
-{block.type === "code" && <pre><code>{block.text}</code></pre>}
+{block.type === "code" && <pre tabindex="0"><code>{block.text}</code></pre>}
 {block.type === "quote" && (
   <blockquote>
     {block.blocks.map((part) => (
@@ -51,7 +52,7 @@ const List = block.type === "list" && block.ordered ? "ol" : "ul";
   </div>
 )}
 {block.type === "table" && (
-  <div class="post-table">
+  <div class="post-table" tabindex="0">
     <table>
       <thead>
         <tr>

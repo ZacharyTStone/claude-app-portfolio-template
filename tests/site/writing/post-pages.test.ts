@@ -7,19 +7,25 @@ import { tabPath } from "../../../src/site/pages.ts";
 import { makeSite } from "../../../src/site/site.ts";
 import { postBlocks } from "../../../src/site/writing/body.ts";
 import { postPages } from "../../../src/site/writing/post-pages.ts";
-import { samplePosts } from "../../sample/qiita.ts";
+import { samplePosts } from "../../sample/writing.ts";
 import { sampleConfig, sampleInEnglishOnly } from "../sample.ts";
 
 const posts = await samplePosts();
 const site = makeSite(sampleConfig(), posts);
+
+/** The posts the build kept the text of: the sample's on Qiita. Its posts on
+    Zenn and note open where they are. */
+const withPages = posts.filter((post) => post.body !== undefined);
 const pages = postPages(site);
 
-test("the sample's viewer shows its posts, so each has a page, in the tab's order", () => {
+test("the sample's viewer shows its posts, so each Qiita post has a page, in the tab's order, and no other", () => {
   assert.equal(site.config.writing?.viewer, true);
-  assert.ok(posts.length > 1, "the sample has posts");
+  assert.ok(withPages.length > 1, "the sample has posts on Qiita");
+  assert.ok(withPages.every((post) => post.place === "Qiita"));
+  assert.ok(withPages.length < posts.length, "the sample has posts elsewhere too");
   assert.deepEqual(
     pages.map((page) => page.post),
-    posts,
+    withPages,
   );
 });
 
@@ -27,7 +33,7 @@ test("a post's page is under the Writing tab's page in the main language, by the
   const tabsPage = tabPath(site, site.main, WRITING_TAB);
   assert.deepEqual(
     pages.map((page) => page.path),
-    posts.map((post) => `${tabsPage}${post.id}/`),
+    withPages.map((post) => `${tabsPage}${post.id}/`),
   );
 });
 
@@ -38,7 +44,7 @@ test("a post's page has the post's text, read into parts", () => {
 
 test("a post in Japanese is marked as that, and any other as in the site's main language", () => {
   const japanese = /[\p{Script=Hiragana}\p{Script=Katakana}]/u;
-  const expected = posts.map((post) => (japanese.test(`${post.title}${post.body}`) ? "ja" : site.main));
+  const expected = withPages.map((post) => (japanese.test(`${post.title}${post.body}`) ? "ja" : site.main));
   assert.deepEqual(
     pages.map((page) => page.lang),
     expected,
