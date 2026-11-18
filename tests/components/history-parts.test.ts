@@ -37,7 +37,10 @@ test("a history with nothing done has no streak and no busiest day to show", () 
 });
 
 test("the note says how much private work is in the count, and there's none without any", () => {
-  assert.equal(privateNote(history, ENGLISH_STRINGS, "en"), "Includes 1,099 in private repos, counted but not shown.");
+  assert.equal(
+    privateNote(history, ENGLISH_STRINGS, "en"),
+    "Includes 1,099 contributions to private repos, in every count and in the calendar. The repos stay private.",
+  );
   assert.equal(privateNote(madeUp({ 2026: [3] }), ENGLISH_STRINGS, "en"), undefined);
 });
 

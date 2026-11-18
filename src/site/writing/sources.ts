@@ -37,13 +37,28 @@ const eachOnce = (posts: Post[]): Post[] =>
   posts.filter((post, at) => posts.findIndex((other) => other.url === post.url) === at);
 
 /** A post as the tab keeps it: its title and tags with nothing hidden or
-    reordered in them (asShowable), whatever the place sent. Ask's models
-    read the titles as the site's text. Throws for a title of only
-    characters no one sees. */
+    reordered in them (asShowable), whatever the place sent, and no longer
+    than a title or a tag is (MOST). Ask's models read the titles as the
+    site's text. Throws for a title of only characters no one sees. */
 function showable(post: Post): Post {
   const title = asShowable(post.title);
   if (!title) throw new Error(`The post at ${post.url} has a title of only characters no one can see`);
-  return { ...post, title, tags: post.tags.map(asShowable).filter(Boolean) };
+  const tags = post.tags.map(asShowable).filter((tag) => tag && [...tag].length <= MOST.tagCharacters);
+  return { ...post, title: shortened(title), tags: tags.slice(0, MOST.tags) };
+}
+
+/** As much of a post as is kept: far more than any real title or tag has,
+    so a place can't fill a card, or what Ask's models read, with a page of
+    words in a title's place. A tag longer than a tag can be isn't one. */
+const MOST = { titleCharacters: 200, tags: 10, tagCharacters: 50 } as const;
+
+/** `title`, or as much of it as fits, to its last whole word, then "…". */
+function shortened(title: string): string {
+  const characters = [...title];
+  if (characters.length <= MOST.titleCharacters) return title;
+  const cut = characters.slice(0, MOST.titleCharacters).join("");
+  const lastSpace = cut.lastIndexOf(" ");
+  return `${lastSpace > MOST.titleCharacters / 2 ? cut.slice(0, lastSpace) : cut}…`;
 }
 
 /** Every post of every place `writing` names, newest first, or the newest

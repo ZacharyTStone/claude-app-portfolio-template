@@ -487,7 +487,8 @@ export default function japanese(me: SampleFacts): Language {
       historySince: "活動開始",
       historyStreak: "最長連続記録",
       historyBusiest: "最も多かった日",
-      historyPrivate: "うち{n}件は非公開リポジトリでの活動で、件数にだけ含めています。",
+      historyPrivate:
+        "うち{n}件は非公開リポジトリでの活動で、件数にもカレンダーにも含めています。リポジトリ名は公開していません。",
       historyCalendar: "{year}年からの毎週のコントリビューション",
       historyLess: "少ない",
       historyMore: "多い",

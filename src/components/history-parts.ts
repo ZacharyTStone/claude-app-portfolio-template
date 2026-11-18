@@ -58,7 +58,8 @@ export function statTiles(history: History, strings: Strings, code: string): Til
 }
 
 /** The note under the stats, when GitHub counts private work: "Includes
-    1,204 in private repos, counted but not shown." */
+    1,204 contributions to private repos, in every count and in the
+    calendar. The repos stay private." */
 export function privateNote(history: History, strings: Strings, code: string): string | undefined {
   const { restricted } = historyStats(history);
   if (restricted === 0 || !strings.historyPrivate) return undefined;

@@ -70,6 +70,26 @@ test("a title or a tag is kept with nothing hidden or reordered in it, whatever 
   assert.deepEqual(post?.tags, ["life"]);
 });
 
+test("a title is kept to 200 characters, to its last whole word, and a post to ten tags of 50 characters at most", async () => {
+  const words = Array.from({ length: 60 }, (_, at) => `word${at}`).join(" ");
+  const tooLong = "x".repeat(51);
+  const tags = [tooLong, ...Array.from({ length: 12 }, (_, at) => `tag${at}`)];
+  const fetch = fixtureFetch({
+    feeds: {
+      [BLOG]: `<rss><channel><link>https://blog.example.com/</link><item><title>${words}</title><link>https://blog.example.com/a</link><pubDate>Sat, 04 Jul 2026 07:30:00 +0900</pubDate>${tags.map((tag) => `<category>${tag}</category>`).join("")}</item></channel></rss>`,
+    },
+  });
+  const [post] = await postsOfEveryPlace({ feeds: [{ url: BLOG }] }, { fetch, timeZone: "UTC", retryAfterMs: NO_WAIT });
+  assert.ok(post);
+  assert.ok([...post.title].length <= 201, post.title);
+  assert.match(post.title, /^word0 word1 .* word\d+…$/);
+  assert.ok(words.startsWith(post.title.slice(0, -1)));
+  assert.deepEqual(
+    post.tags,
+    Array.from({ length: 10 }, (_, at) => `tag${at}`),
+  );
+});
+
 test("a title of only characters no one can see stops it, saying which post", async () => {
   const fetch = oneFeedPost("&#8203;&#8238;");
   await assert.rejects(

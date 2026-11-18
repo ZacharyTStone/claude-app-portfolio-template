@@ -166,8 +166,8 @@ export type HistoryStrings = {
       under them: "Busiest day". */
   historyBusiest: string;
   /** Under the stats, when GitHub counts private work, with {n} for how
-      many contributions it is: "Includes {n} in private repos, counted
-      but not shown." */
+      many contributions it is: "Includes {n} contributions to private
+      repos, in every count and in the calendar. The repos stay private." */
   historyPrivate: string;
   /** The calendar's title, with {year} for its first year: "Contributions,
       every week since {year}". */
