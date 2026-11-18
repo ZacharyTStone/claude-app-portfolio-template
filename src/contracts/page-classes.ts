@@ -72,6 +72,11 @@ const WRITTEN_BY_A_COMPONENT = {
   playButton: "play-button",
   quote: "quote",
   fileCard: "file-card",
+  /** The GitHub history's calendar, a figure whose rows come in, one
+      after another, when it's scrolled to; and in each row, the strip of
+      its weeks, which screen readers skip. */
+  historyCalendar: "history-calendar",
+  historyStrip: "history-strip",
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
   menuButton: "menu-button",
@@ -207,7 +212,8 @@ const ADDED_BY_THE_SCRIPT = {
       to it where it was posted. */
   post: "post",
   postSource: "post-source",
-  /** A quote or a file card that comes in when it's scrolled to: while
+  /** A quote, a file card or the history's calendar that comes in when
+      it's scrolled to: while
       it's out of sight; once it has come in; and, when several come into
       view together, how far behind the first each one is. */
   waiting: "waiting",

@@ -41,7 +41,8 @@
 }
 
 /* What the build fetched (a post's card in the Writing tab, a post's own
-   page) changes from one build to the next, so the cut-down font isn't cut
+   page, a part of the GitHub history, its labels and all) changes from one
+   build to the next, so the cut-down font isn't cut
    for it (scripts/fonts): on the Japanese page it's set in the system's
    Japanese font, all of it, rather than in the two by turns. On a page in
    another language it already is. */

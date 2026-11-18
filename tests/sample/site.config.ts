@@ -4,9 +4,11 @@
    opens in the viewer, a panel whose Context gathers the answers' links,
    one of each kind of figure, a picture that moves all the time, a
    Writing tab of posts on Qiita, Zenn and note, each Qiita post with a page
-   of its own that the viewer shows, and its recent public activity on
-   GitHub, GitLab and Codeberg in the panel, which the tests' builds are
-   given from writing.json and activity.json: no test reaches any of them.
+   of its own that the viewer shows, its recent public activity on GitHub,
+   GitLab and Codeberg in the panel, and its whole history on GitHub as the
+   four parts of an answer, which the tests' builds are given from
+   writing.json, activity.json and github-history.json: no test reaches any
+   of them.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -114,6 +116,10 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
               },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
+              { github: "stats" },
+              { github: "calendar" },
+              { github: "languages" },
+              { github: "rhythm" },
             ],
           },
         ],
@@ -194,8 +200,16 @@ const config: SiteConfig = {
   // page of the site's own.
   writing: { qiita: "sam-sample", zenn: "sam_sample", note: "sam_sample", viewer: true },
   // So is its activity on all three places, read from activity.json: on
-  // Codeberg, Sam has another name.
+  // Codeberg, Sam has another name. And its whole history on GitHub, from
+  // github-history.json, with two moments marked on it.
   activity: { github: "sam-sample", gitlab: "sam-sample", codeberg: "sams" },
+  githubHistory: {
+    user: "sam-sample",
+    marks: [
+      { at: "2021-06", label: "Sample Co" },
+      { at: "2024-02", label: "Example Labs" },
+    ],
+  },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.
   languages: {

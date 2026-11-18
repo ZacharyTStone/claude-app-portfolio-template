@@ -2,7 +2,7 @@
    problem's wording. Every block here is added to the sample's "work"
    thread, in English. */
 import type { BarRow, Bars, Block, Picture } from "../../../src/config/blocks.ts";
-import { testEachProblem, withBlock, type ProblemRow } from "./problems.ts";
+import { testEachProblem, withBlock, workAnswer, type ProblemRow } from "./problems.ts";
 
 const NOT_A_SAFE_LINK = "which should be a web, mailto, #thread or relative address";
 
@@ -170,5 +170,24 @@ testEachProblem([
     "a quote without its words",
     { quote: { text: "", by: "A coworker" } },
     `the thread "work" has a quote without its text or who said it (by)`,
+  ),
+  {
+    wrong: "a part of a GitHub history on a site with none",
+    change: (sample, english) => {
+      sample.githubHistory = undefined;
+      for (const language of Object.values(sample.languages)) {
+        const answer = workAnswer(language);
+        answer.splice(0, answer.length, ...answer.filter((block) => !(typeof block === "object" && "github" in block)));
+      }
+      workAnswer(english).push({ github: "calendar" });
+    },
+    problems: [
+      `en: the thread "work" has the GitHub part "calendar", but the config has no githubHistory to draw it from: add githubHistory: { user: "…" } (docs/github-history.md)`,
+    ],
+  },
+  wrongBlock(
+    "a part of the GitHub history it has no such part of",
+    { github: "followers" } as unknown as Block,
+    `the thread "work" has the GitHub part "followers", which should be one of "stats", "calendar", "languages", "rhythm"`,
   ),
 ]);

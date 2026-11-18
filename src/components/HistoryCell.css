@@ -1,0 +1,54 @@
+/* A week in its shade, a rounded square, and none where the history has no week. A mark is a thin tick at
+   its week's left edge, from its name above the strip down through the cell; its name runs right from the
+   tick, or left in the second half of the row, so it stays in the row. */
+.history-calendar i {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: 2px;
+}
+.heat-0 {
+  background: var(--heat-0);
+}
+.heat-1 {
+  background: var(--heat-1);
+}
+.heat-2 {
+  background: var(--heat-2);
+}
+.heat-3 {
+  background: var(--heat-3);
+}
+.heat-4 {
+  background: var(--heat-4);
+}
+.history-mark::before {
+  content: "";
+  position: absolute;
+  bottom: -2px;
+  left: -1.5px;
+  width: 1px;
+  height: calc(100% + 19px);
+  background: var(--text-2);
+}
+.history-mark b {
+  position: absolute;
+  bottom: calc(100% + 5px);
+  left: 3px;
+  color: var(--text);
+  font: 500 11.5px/13px var(--sans);
+  white-space: nowrap;
+}
+.history-mark-late b {
+  right: calc(100% + 4px);
+  left: auto;
+}
+/* Narrow, a week is a sliver: taller than it's wide, so that a year still reads as a band. */
+@container (max-width: 519px) {
+  .history-strip i {
+    aspect-ratio: 1 / 2;
+    border-radius: 1px;
+  }
+  .history-mark b {
+    font-size: 11px;
+  }
+}

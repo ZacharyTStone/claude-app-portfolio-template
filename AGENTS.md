@@ -138,6 +138,7 @@ call anything done, run `npm run verify`.
 | change what the site says: a thread, an answer, a picture, a link, the viewer | `docs/content.md` |
 | add a language, or change Japanese text | `docs/languages.md` |
 | draw or change a diagram | `docs/diagrams.md` |
+| show your GitHub history in an answer: its stats, calendar, languages or rhythm | `docs/github-history.md` |
 | turn Ask on, or change its limits or its cost | `docs/ask.md` |
 | turn the contact form on, or change its sender or its limits | `docs/contact-form.md` |
 | turn on the Writing tab, its posts in the viewer or its daily rebuild, or change what the build fetches | `docs/writing.md` |

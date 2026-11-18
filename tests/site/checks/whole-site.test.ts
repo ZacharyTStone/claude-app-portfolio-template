@@ -194,6 +194,29 @@ testEachProblem([
     ],
   },
   {
+    wrong: "the history's GitHub user is its profile's whole address",
+    change: (sample) => (sample.githubHistory = { user: "https://github.com/sam-sample" }),
+    problems: [
+      `githubHistory.user should be a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
+    ],
+  },
+  {
+    wrong: "a mark on the history at a month written without its 0",
+    change: (sample) =>
+      (sample.githubHistory = { user: "sam-sample", marks: [{ at: "2022-4", label: "Rapptr Labs" }] }),
+    problems: [`githubHistory.marks has "Rapptr Labs" at "2022-4", which should be a month, like "2022-04"`],
+  },
+  {
+    wrong: "a mark on the history at a thirteenth month",
+    change: (sample) => (sample.githubHistory = { user: "sam-sample", marks: [{ at: "2022-13", label: "Sellfire" }] }),
+    problems: [`githubHistory.marks has "Sellfire" at "2022-13", which should be a month, like "2022-04"`],
+  },
+  {
+    wrong: "a mark on the history without a label",
+    change: (sample) => (sample.githubHistory = { user: "sam-sample", marks: [{ at: "2022-04", label: "" }] }),
+    problems: ["githubHistory.marks has a mark at 2022-04 without a label"],
+  },
+  {
     wrong: "the viewer lists a link the site doesn't have",
     change: (sample) => (sample.viewer = { "https://docs.example.com/d/other/edit": "https://docs.example.com/p" }),
     problems: [

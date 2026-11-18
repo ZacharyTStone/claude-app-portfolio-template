@@ -482,6 +482,18 @@ export default function japanese(me: SampleFacts): Language {
       writingLikes: "いいね",
       // With `activity` in site.config.ts: the panel's activity.
       activityTitle: "最近の公開リポジトリ",
+      // With `githubHistory` in site.config.ts: the parts of the history.
+      historyContributions: "コントリビューション",
+      historySince: "活動開始",
+      historyStreak: "最長連続記録",
+      historyBusiest: "最も多かった日",
+      historyPrivate: "うち{n}件は非公開リポジトリでの活動で、件数にだけ含めています。",
+      historyCalendar: "{year}年からの毎週のコントリビューション",
+      historyLess: "少ない",
+      historyMore: "多い",
+      historyLanguages: "公開リポジトリの言語",
+      historyOther: "その他",
+      historyRhythm: "曜日ごとのコントリビューション",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",

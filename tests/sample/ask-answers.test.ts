@@ -3,9 +3,11 @@ import { test } from "node:test";
 import { plainAnswers } from "../../src/site/plain-answers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { SAMPLE_ANSWERS } from "./ask-answers.ts";
+import { sampleHistory } from "./github-history.ts";
 import { samplePosts } from "./writing.ts";
 import sampleConfig from "./site.config.ts";
 
 test("the sample site's answers, as the Worker's tests read them, are what the build writes to /ask.json", async () => {
-  assert.deepEqual(plainAnswers(makeSite(sampleConfig, await samplePosts()), "en"), SAMPLE_ANSWERS);
+  const site = makeSite(sampleConfig, await samplePosts(), [], await sampleHistory());
+  assert.deepEqual(plainAnswers(site, "en"), SAMPLE_ANSWERS);
 });

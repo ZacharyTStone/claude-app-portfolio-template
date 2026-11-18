@@ -4,6 +4,7 @@
 import { defineConfig } from "astro/config";
 import { recentActivity } from "./src/integrations/activity.ts";
 import { checkConfig } from "./src/integrations/check-config.ts";
+import { gitHubHistory } from "./src/integrations/history.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
 import { writingPosts } from "./src/integrations/writing.ts";
 import { loadSiteConfig } from "./src/site/load-site-config.ts";
@@ -36,7 +37,13 @@ export default defineConfig({
     // the config being built.
     resolve: { alias: [{ find: IMPORT_OF_SITE_CONFIG, replacement: filePath }] },
   },
-  // The posts and the activity are fetched once the config is known to be right.
-  integrations: [checkConfig(loaded), writingPosts(loaded), recentActivity(loaded), hostFiles(config)],
+  // The posts, the activity and the history are fetched once the config is known to be right.
+  integrations: [
+    checkConfig(loaded),
+    writingPosts(loaded),
+    recentActivity(loaded),
+    gitHubHistory(loaded),
+    hostFiles(config),
+  ],
   devToolbar: { enabled: false },
 });

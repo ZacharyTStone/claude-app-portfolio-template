@@ -102,6 +102,10 @@ export function isTimeZone(zone: unknown): boolean {
   }
 }
 
+/** "2022-04": a year and a month that's one of its twelve. Not "2022-4",
+    "2022-13" or "April 2022". */
+export const isMonth = looksLike(/^\d{4}-(0[1-9]|1[0-2])$/);
+
 /** A browser drops some of these before it reads a link's scheme, so
     "java\nscript:alert(1)" would run. */
 const SPACE_OR_CONTROL_CHARACTER = /[\s\x00-\x1f\x7f]/;

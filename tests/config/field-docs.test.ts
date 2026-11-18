@@ -12,6 +12,7 @@ import {
   CONTACT_FORM_STRING_NAMES,
   EMPTY_WRITING_STRING_NAMES,
   WRITING_LIKES_STRING_NAMES,
+  HISTORY_STRING_NAMES,
   PAGE_STRING_NAMES,
   SCRIPT_STRING_NAMES,
   WRITING_STRING_NAMES,
@@ -125,6 +126,7 @@ test("the lists of the strings' names have every string the type has, and no oth
     ...EMPTY_WRITING_STRING_NAMES,
     ...WRITING_LIKES_STRING_NAMES,
     ...ACTIVITY_STRING_NAMES,
+    ...HISTORY_STRING_NAMES,
     ...SCRIPT_STRING_NAMES,
   ];
   assert.deepEqual(namesInTheType.toSorted(), namesInTheLists.toSorted());
