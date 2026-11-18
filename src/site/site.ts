@@ -10,6 +10,7 @@ import type { Host, SiteConfig } from "../config/site-config.ts";
 import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES, type Strings } from "../config/strings.ts";
 import { readsAsAnotherSite } from "../contracts/links.ts";
 import type { Repo } from "./activity/github.ts";
+import type { History } from "./history/history.ts";
 import { basePath } from "./url.ts";
 import type { Post } from "./writing/post.ts";
 import { withWritingRow, writingThread } from "./writing/tab.ts";
@@ -40,6 +41,9 @@ export type Site = {
       first: none on a site without `activity`, or until the build has
       fetched them. */
   repos: Repo[];
+  /** The GitHub history the answers' parts draw: null on a site without
+      `githubHistory`, or until the build has fetched it. */
+  history: History | null;
   /** The languages' codes ("en", "ja"), in the config's order. */
   codes: string[];
   /** The main language's code: its page is at the site's root. */
@@ -114,8 +118,14 @@ const hasWritingTab = ({ writing }: SiteConfig, posts: Post[]): boolean =>
     there are none. The config's checks see the site with none, so nothing
     of the config's can open a tab that may not be there. `repos` are the
     panel's GitHub activity's (src/site/activity), and a site with none has
-    no section. */
-export function makeSite(config: SiteConfig, posts: Post[] = [], repos: Repo[] = []): Site {
+    no section. `history` is the GitHub history's (src/site/history): a
+    site with none draws none of its parts. */
+export function makeSite(
+  config: SiteConfig,
+  posts: Post[] = [],
+  repos: Repo[] = [],
+  history: History | null = null,
+): Site {
   const withTheTab = hasWritingTab(config, posts);
   const asThePagesReadIt = (code: string, language: Language): SiteLanguage => {
     const withStrings = withEveryString(code, language);
@@ -140,6 +150,7 @@ export function makeSite(config: SiteConfig, posts: Post[] = [], repos: Repo[] =
     host: config.host ?? DEFAULT_HOST,
     posts: config.writing ? posts : [],
     repos: config.activity ? repos : [],
+    history: config.githubHistory ? history : null,
     codes,
     main,
     language(code) {

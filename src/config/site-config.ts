@@ -4,6 +4,7 @@
    threads) the build checks, and names the field (src/site/checks). */
 
 import type { Activity } from "./activity.ts";
+import type { GitHubHistory } from "./github-history.ts";
 import type { Language } from "./language.ts";
 import type { Writing } from "./writing.ts";
 
@@ -81,6 +82,12 @@ export type SiteConfig = {
       can't (docs/github-activity.md). Each language then needs
       strings.activityTitle (English has it). Leave out for none. */
   activity?: Activity;
+  /** Your whole history on GitHub, for answers to show as parts: a block
+      { github: "stats" }, "calendar", "languages" or "rhythm" goes where
+      it fits. The build fetches it with a token in GITHUB_TOKEN, and stops
+      if it can't (docs/github-history.md). Each language then needs the
+      history* strings (English has them). Leave out for none. */
+  githubHistory?: GitHubHistory;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every
       question with its answer, in the main language. */

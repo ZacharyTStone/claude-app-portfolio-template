@@ -32,6 +32,13 @@ const withATypeError = buildOfAConfigWith(A_MISSPELT_SETTING, "type-error");
 const withPostsItCantFetch = buildOfAConfigWith('config.writing = { qiita: "someone-else" };', "no-posts");
 // And the stand-in for GitHub, the same.
 const withActivityItCantFetch = buildOfAConfigWith('config.activity = { github: "someone-else" };', "no-activity");
+// And the stand-in for GitHub's GraphQL API, the same.
+const withHistoryItCantFetch = buildOfAConfigWith('config.githubHistory = { user: "someone-else" };', "no-history");
+// A mark has to be in a year the history it's fetched has.
+const withAMarkOffTheTimeline = buildOfAConfigWith(
+  'config.githubHistory = { user: "sam-sample", marks: [{ at: "2012-04", label: "Rapptr Labs" }] };',
+  "mark-off-the-timeline",
+);
 
 test("a build stops at a problem the config's checks find, and names it under the config's file", () => {
   assert.equal(withADeadLink.status, 1);
@@ -64,11 +71,33 @@ test("a build stops when the panel's GitHub activity can't be fetched, and says 
   );
 });
 
+test("a build stops when the GitHub history can't be fetched, and says why and what to do", () => {
+  assert.equal(withHistoryItCantFetch.status, 1);
+  assert.ok(
+    withHistoryItCantFetch.said.includes(
+      "The GitHub history couldn't be fetched, so the build stops, and a host keeps the site it has: GitHub has no user by that name (Could not resolve to a User with the login of 'someone-else'.), at https://api.github.com/graphql. Build again once it can be, or remove githubHistory from the config to build without it (docs/github-history.md).",
+    ),
+    withHistoryItCantFetch.said,
+  );
+});
+
+test("a build stops when a mark has no year of the GitHub history to go in, and names it", () => {
+  assert.equal(withAMarkOffTheTimeline.status, 1);
+  assert.ok(
+    withAMarkOffTheTimeline.said.includes(
+      `The GitHub history can't place its marks, so the build stops:\n- githubHistory.marks has "Rapptr Labs" at 2012-04, but sam-sample's history on GitHub runs from 2019 to 2026: a mark goes in one of its years`,
+    ),
+    withAMarkOffTheTimeline.said,
+  );
+});
+
 for (const [build, kind] of [
   [withADeadLink, "a problem"],
   [withATypeError, "a type error"],
   [withPostsItCantFetch, "posts it can't fetch"],
   [withActivityItCantFetch, "activity it can't fetch"],
+  [withHistoryItCantFetch, "a history it can't fetch"],
+  [withAMarkOffTheTimeline, "a mark off the history's timeline"],
 ] as const) {
   test(`a build that stops at ${kind} builds nothing`, () => {
     assert.ok(!build.built);
