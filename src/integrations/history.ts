@@ -14,6 +14,7 @@ import type { Fetch } from "../site/fetching.ts";
 import { fixtureFetch, GITHUB_HISTORY_FIXTURE, readFixture } from "../site/history/fixture.ts";
 import type { History } from "../site/history/history.ts";
 import { githubHistory } from "../site/history/queries.ts";
+import { hiddenButNotFound } from "../site/history/repos.ts";
 import { historyStats } from "../site/history/stats.ts";
 import { marksOffTheTimeline } from "../site/history/weeks.ts";
 import { writtenNumber } from "../site/history/words.ts";
@@ -45,14 +46,26 @@ function historyFound(user: string, history: History): string {
   const { total, since } = historyStats(history);
   const years =
     since === undefined ? "no contributions yet" : `${writtenNumber("en", total)} contributions since ${since}`;
-  return `the GitHub history has ${user}'s ${years}, as of ${history.asOf}, and the languages of their public repos`;
+  const repos = writtenNumber("en", history.repos.length);
+  return `the GitHub history has ${user}'s ${years}, as of ${history.asOf}, the languages of their public repos, and the ${repos} of those with code in them`;
+}
+
+/** What's said of a name githubHistory.repos hides that's none of the
+    repos fetched: it hides nothing, which may be a typo. It isn't a
+    problem: a repo renamed, made private or deleted would otherwise stop
+    the next day's build. */
+export function hiddenNotFoundWarning({ user, repos }: GitHubHistory, history: History): string | undefined {
+  const names = hiddenButNotFound(history, repos);
+  if (!names.length) return undefined;
+  const quoted = names.map((name) => `"${name}"`).join(", ");
+  return `githubHistory.repos hides ${quoted}, but ${user} has no public repo with code by that name, so it hides nothing: check the spelling, or take it out if the repo was renamed, made private or deleted`;
 }
 
 /** The history of the user githubHistory names, asked for as `howToAsk`
     says, with the token in `environment`'s GITHUB_TOKEN; or why there is
     none. */
 export async function fetchHistory(
-  { user }: GitHubHistory,
+  config: GitHubHistory,
   environment: NodeJS.ProcessEnv,
   howToAsk: () => Fetch,
   log: Log,
@@ -60,8 +73,10 @@ export async function fetchHistory(
   const token = environment[GITHUB_TOKEN] || undefined;
   if (!token && !environment[GITHUB_HISTORY_FIXTURE]) return NO_TOKEN;
   try {
-    const history = await githubHistory(user, { fetch: howToAsk(), token });
-    log.info(historyFound(user, history));
+    const history = await githubHistory(config.user, { fetch: howToAsk(), token });
+    log.info(historyFound(config.user, history));
+    const notFound = hiddenNotFoundWarning(config, history);
+    if (notFound) log.warn(notFound);
     return history;
   } catch (error) {
     return withoutTheToken(error instanceof Error ? error.message : String(error), token);

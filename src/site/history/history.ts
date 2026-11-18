@@ -27,6 +27,19 @@ export type LanguageSize = {
   size: number;
 };
 
+/** A public repo of the user's own, with code in it: not a fork, and not
+    the profile's README repo. */
+export type PublicRepo = {
+  /** As GitHub names it: "haku". */
+  name: string;
+  /** Its page on GitHub: "https://github.com/alex-example/haku". */
+  url: string;
+  /** The day it was made, in UTC: "2022-01-22". */
+  madeOn: string;
+  /** What its owner says it is, as GitHub has it, if anything. */
+  description?: string;
+};
+
 export type History = {
   /** When the account was made, in UTC: "2019-09-16T08:12:40Z". The
       calendar has no weeks before it. */
@@ -40,6 +53,8 @@ export type History = {
   /** The languages of the user's own public repos, not forks, the most
       written first. */
   languages: LanguageSize[];
+  /** The user's public repos, the oldest first. */
+  repos: PublicRepo[];
 };
 
 const MS_A_DAY = 86_400_000;

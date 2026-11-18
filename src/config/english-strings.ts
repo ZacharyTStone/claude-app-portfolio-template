@@ -72,6 +72,8 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   historyLanguages: "Languages in public repos",
   historyOther: "Other",
   historyRhythm: "Contributions by day of the week",
+  historyRepos: "A public repo, the week it was made",
+  historyReposIn: "Public repos made in {year}",
 };
 
 /** Whether a language's page falls back on ENGLISH_STRINGS: "en", "en-GB". */

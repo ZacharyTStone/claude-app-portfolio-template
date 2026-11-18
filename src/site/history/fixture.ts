@@ -33,11 +33,15 @@ const FixtureSchema = v.object({
   days: v.record(v.pipe(v.string(), v.regex(/^\d{4}$/)), v.pipe(v.string(), v.regex(DAY_CHARACTERS))),
   /** Each year's private contributions, counted among its days but not shown. */
   restricted: v.record(v.string(), v.pipe(v.number(), v.integer(), v.minValue(0))),
-  /** Every repo the user has, each its languages' bytes by name. One that's
-      a fork or private is marked so, and GitHub leaves it out of a query
-      that asks for neither. */
+  /** Every repo the user has: its name, when it was made, what it says it
+      is, and its languages' bytes by name (none for one with no code). One
+      that's a fork or private is marked so, and GitHub leaves it out of a
+      query that asks for neither. */
   repos: v.array(
     v.object({
+      name: v.string(),
+      createdAt: v.pipe(v.string(), v.isoTimestamp()),
+      description: v.optional(v.string()),
       languages: v.record(v.string(), v.number()),
       fork: v.optional(v.boolean()),
       private: v.optional(v.boolean()),
@@ -70,6 +74,10 @@ function overview(fixture: Fixture, { query, variables }: Asked) {
   const start = typeof variables.after === "string" ? Number(variables.after) : 0;
   const end = start + Number(variables.first);
   const nodes = repos.slice(start, end).map((repo) => ({
+    name: repo.name,
+    url: `https://github.com/${fixture.user}/${repo.name}`,
+    createdAt: repo.createdAt,
+    description: repo.description ?? null,
     languages: { edges: Object.entries(repo.languages).map(([name, size]) => ({ size, node: { name } })) },
   }));
   const contributionYears = Object.keys(fixture.days)

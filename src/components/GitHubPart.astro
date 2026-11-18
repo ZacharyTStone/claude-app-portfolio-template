@@ -6,6 +6,7 @@
 import type { GitHubPart } from "../config/github-history.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { site } from "../site/current.ts";
+import { shownRepos } from "../site/history/repos.ts";
 import type { Page } from "../site/site.ts";
 import { flag } from "./attributes.ts";
 import Bars from "./Bars.astro";
@@ -29,6 +30,7 @@ const languages = history && part === "languages" ? languageBars(history, page.l
   <HistoryCalendar
     history={history}
     marks={site.config.githubHistory?.marks ?? []}
+    repos={shownRepos(history, site.config.githubHistory?.repos)}
     page={page}
     attributes={attributes}
   />

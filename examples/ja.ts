@@ -495,6 +495,9 @@ export default function japanese(me: SampleFacts): Language {
       historyLanguages: "公開リポジトリの言語",
       historyOther: "その他",
       historyRhythm: "曜日ごとのコントリビューション",
+      // With `repos` in githubHistory: the calendar's public repos.
+      historyRepos: "公開リポジトリ（作った週）",
+      historyReposIn: "{year}年に作った公開リポジトリ",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",
       askRemoved: "質問は削除されました",

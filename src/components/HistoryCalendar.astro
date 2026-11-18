@@ -2,45 +2,58 @@
 /* Every week of the history: a row a year, oldest first, its year at the
    left and its total at the right, and between them a strip of its weeks,
    each shaded by how much was done in it. The marks the config names sit
-   at their weeks. The strip is a picture of the numbers beside it, so
-   screen readers get the years, the totals and the marks, and not the
-   cells. Scrolled to, the rows come in one after another
-   (src/styles/motion.css). */
+   at their weeks, and so do the public repos it shows, a dot each under
+   the week it was made, with the year's repos named under its row, each
+   a link to it. The strip is a picture of the numbers beside it, so
+   screen readers get the years, the totals, the marks and the repos'
+   links, and not the cells. Scrolled to, the rows play in one after
+   another (src/styles/motion.css). */
 import type { HistoryMark } from "../config/github-history.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
-import type { History } from "../site/history/history.ts";
+import type { History, PublicRepo } from "../site/history/history.ts";
 import { historyStats } from "../site/history/stats.ts";
 import { calendarRows, LEVELS } from "../site/history/weeks.ts";
 import { writtenMonth, writtenNumber } from "../site/history/words.ts";
 import type { Page } from "../site/site.ts";
 import HistoryCell from "./HistoryCell.astro";
-import { calendarCells } from "./history-parts.ts";
+import { calendarCells, pinDepth } from "./history-parts.ts";
 
 interface Props {
   history: History;
   marks: HistoryMark[];
+  /** The public repos to show along it (src/site/history/repos.ts). */
+  repos: PublicRepo[];
   page: Page;
   /** The part's own: data-fetched and data-github. */
   attributes: Record<string, string>;
 }
-const { history, marks, page, attributes } = Astro.props;
+const { history, marks, repos, page, attributes } = Astro.props;
 const { code } = page;
 const { strings } = page.language;
-const rows = calendarRows(history, marks);
+const rows = calendarRows(history, marks, repos);
 const title = (strings.historyCalendar ?? "").replace("{year}", String(rows[0]?.year ?? ""));
+const total = historyStats(history).total;
+const reposIn = (year: number) => (strings.historyReposIn ?? "").replace("{year}", String(year));
 ---
 
 <figure class={`${PAGE_CLASSES.figure} ${PAGE_CLASSES.historyCalendar}`} {...attributes}>
   <figcaption>
-    {title} <b>{writtenNumber(code, historyStats(history).total)}</b>
+    {title} <b {...{ [DATA.count]: total }}>{writtenNumber(code, total)}</b>
   </figcaption>
   <dl>
     {rows.map((row) => (
-      <div class:list={{ "history-marked": row.marks.length > 0 }}>
+      <div
+        class:list={{
+          "history-marked": row.marks.length > 0,
+          "history-pinned-2": pinDepth(row) === 2,
+          "history-pinned-3": pinDepth(row) === 3,
+        }}
+      >
         <dt>{row.year}</dt>
         <dd>
           <span class={PAGE_CLASSES.historyStrip} aria-hidden="true">
-            {calendarCells(row, code).map((cell) => (
+            {calendarCells(row, code, history.asOf).map((cell) => (
               <HistoryCell cell={cell} />
             ))}
           </span>
@@ -49,12 +62,33 @@ const title = (strings.historyCalendar ?? "").replace("{year}", String(rows[0]?.
               {mark.label}, {writtenMonth(code, mark.at)}
             </span>
           ))}
-          <span class="history-total">{writtenNumber(code, row.total)}</span>
+          <span class="history-total" {...{ [DATA.count]: row.total }}>
+            {writtenNumber(code, row.total)}
+          </span>
         </dd>
+        {row.repos.length > 0 && (
+          <dd class={PAGE_CLASSES.historyRepos}>
+            <ul aria-label={reposIn(row.year)}>
+              {row.repos.map((repo) => (
+                <li>
+                  <a href={repo.url} title={repo.description}>
+                    {repo.name}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </dd>
+        )}
       </div>
     ))}
   </dl>
   <p class="history-key" aria-hidden="true">
+    {repos.length > 0 && (
+      <span class="history-key-repos">
+        <i />
+        {strings.historyRepos}
+      </span>
+    )}
     {strings.historyLess}
     <span>
       {LEVELS.map((level) => (

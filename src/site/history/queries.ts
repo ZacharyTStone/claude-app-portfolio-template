@@ -4,11 +4,12 @@
    left out, a hundred repos a page. The second asks for those years'
    calendars, each its own contributionsCollection, as the API asks a
    year at most of each, a few years to a request. Only what the parts draw
-   is kept (history.ts). */
+   is kept (history.ts): each repo's languages, and the name, address,
+   day made and description of one with code in it. */
 import { chunk, range } from "es-toolkit";
 import * as v from "valibot";
 import { askGitHub, type AskOptions } from "./graphql.ts";
-import { dayOf, dayOfYear, type History, type HistoryYear, type LanguageSize } from "./history.ts";
+import { dayOf, dayOfYear, type History, type HistoryYear, type LanguageSize, type PublicRepo } from "./history.ts";
 
 export type HistoryOptions = AskOptions & {
   /** When the build asks: the calendar of this year goes up to it. */
@@ -22,6 +23,9 @@ export type HistoryOptions = AskOptions & {
 const REPO_PAGES = { size: 100, most: 10 } as const;
 const LANGUAGES_A_REPO = 10;
 
+/** The most of a repo's description kept: a sentence or two. */
+const DESCRIPTION_CHARACTERS = 200;
+
 /** How many years' calendars one request asks for. */
 const YEARS_A_REQUEST = 4;
 
@@ -31,7 +35,10 @@ export const OVERVIEW_QUERY = `query ($login: String!, $first: Int!, $after: Str
     contributionsCollection { contributionYears }
     repositories(ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false, first: $first, after: $after) {
       pageInfo { hasNextPage endCursor }
-      nodes { languages(first: ${LANGUAGES_A_REPO}, orderBy: { field: SIZE, direction: DESC }) { edges { size node { name } } } }
+      nodes {
+        name url createdAt description
+        languages(first: ${LANGUAGES_A_REPO}, orderBy: { field: SIZE, direction: DESC }) { edges { size node { name } } }
+      }
     }
   }
 }`;
@@ -45,13 +52,24 @@ const LanguagesSchema = v.object({
   edges: v.array(v.nullable(v.object({ size: Count, node: v.object({ name: LanguageName }) }))),
 });
 
+/** A repo as GitHub names it: letters, digits, ".", "-" and "_". */
+const RepoName = v.pipe(v.string(), v.regex(/^[\w.-]{1,100}$/));
+
+const RepoSchema = v.object({
+  name: RepoName,
+  url: v.pipe(v.string(), v.url(), v.startsWith("https://github.com/")),
+  createdAt: v.pipe(v.string(), v.isoTimestamp()),
+  description: v.nullable(v.string()),
+  languages: v.nullable(LanguagesSchema),
+});
+
 const OverviewSchema = v.object({
   user: v.object({
     createdAt: v.pipe(v.string(), v.isoTimestamp()),
     contributionsCollection: v.object({ contributionYears: v.array(Year) }),
     repositories: v.object({
       pageInfo: v.object({ hasNextPage: v.boolean(), endCursor: v.nullable(v.string()) }),
-      nodes: v.array(v.nullable(v.object({ languages: v.nullable(LanguagesSchema) }))),
+      nodes: v.array(v.nullable(RepoSchema)),
     }),
   }),
 });
@@ -127,6 +145,29 @@ function languagesOf(pages: Overview[]): LanguageSize[] {
     .sort((one, other) => other.size - one.size || one.name.localeCompare(other.name));
 }
 
+type Repo = v.InferOutput<typeof RepoSchema>;
+
+const hasCode = (repo: Repo | null): repo is Repo => Boolean(repo?.languages?.edges.length);
+
+/** A repo as it's kept: its description cut to a sentence or two, and
+    none if it has none. */
+function repoKept({ name, url, createdAt, description }: Repo): PublicRepo {
+  const said = description?.trim().slice(0, DESCRIPTION_CHARACTERS).trim();
+  return { name, url, madeOn: dayOf(createdAt), ...(said ? { description: said } : {}) };
+}
+
+/** The repos with code in them, the oldest first, but for the profile's
+    README repo, which is named as its owner is. */
+function reposOf(pages: Overview[], login: string): PublicRepo[] {
+  const isProfile = (name: string) => name.toLowerCase() === login.toLowerCase();
+  return pages
+    .flatMap((page) => page.repositories.nodes)
+    .filter(hasCode)
+    .filter((repo) => !isProfile(repo.name))
+    .map(repoKept)
+    .sort((one, other) => one.madeOn.localeCompare(other.madeOn) || one.name.localeCompare(other.name));
+}
+
 /** The calendars of `years`, by year. */
 async function calendarsOf(login: string, years: number[], options: HistoryOptions & { now: Date }) {
   const calendars = new Map<number, YearAnswer>();
@@ -186,5 +227,11 @@ export async function githubHistory(login: string, options: HistoryOptions): Pro
     const answer = calendars.get(year);
     return answer ? [yearKept(year, answer, today)] : [];
   });
-  return { createdAt: first.createdAt, asOf: lastDayOf(kept, today), years: kept, languages: languagesOf(pages) };
+  return {
+    createdAt: first.createdAt,
+    asOf: lastDayOf(kept, today),
+    years: kept,
+    languages: languagesOf(pages),
+    repos: reposOf(pages, login),
+  };
 }

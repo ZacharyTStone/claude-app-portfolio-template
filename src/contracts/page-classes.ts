@@ -77,6 +77,14 @@ const WRITTEN_BY_A_COMPONENT = {
       its weeks, which screen readers skip. */
   historyCalendar: "history-calendar",
   historyStrip: "history-strip",
+  /** Under a row of the calendar, the public repos made in its year, each
+      a link; and in its strip, the dots that are the same repos, under
+      the weeks they were made in. */
+  historyRepos: "history-repos",
+  historyPins: "history-pins",
+  /** A repo's link and its dot while the other of the two is pointed at
+      or focused. */
+  lit: "lit",
   /** A top bar's button that opens the sidebar as a drawer on a phone, or
       brings it back once it's hidden. */
   menuButton: "menu-button",
@@ -212,8 +220,8 @@ const ADDED_BY_THE_SCRIPT = {
       to it where it was posted. */
   post: "post",
   postSource: "post-source",
-  /** A quote, a file card or the history's calendar that comes in when
-      it's scrolled to: while
+  /** A quote, a file card or a part of the GitHub history that comes in
+      when it's scrolled to: while
       it's out of sight; once it has come in; and, when several come into
       view together, how far behind the first each one is. */
   waiting: "waiting",

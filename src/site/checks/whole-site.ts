@@ -27,7 +27,7 @@ import {
   isTimeZone,
   isWebAddress,
 } from "./formats.ts";
-import { checkHistoryMarks } from "./history.ts";
+import { checkHistoryMarks, checkHistoryRepos } from "./history.ts";
 import type { ProblemUnless } from "./reporting.ts";
 
 type SiteCheck = (site: Site, problemUnless: ProblemUnless) => void;
@@ -293,4 +293,5 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkViewer,
   checkActivityNamesAPlace,
   checkHistoryMarks,
+  checkHistoryRepos,
 ];

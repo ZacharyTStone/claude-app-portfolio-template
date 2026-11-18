@@ -6,6 +6,7 @@ import {
   ACTIVITY_STRING_NAMES,
   ASK_FORM_STRING_NAMES,
   CONTACT_FORM_STRING_NAMES,
+  HISTORY_REPO_STRING_NAMES,
   HISTORY_STRING_NAMES,
   PAGE_STRING_NAMES,
   REQUIRED_SCRIPT_STRING_NAMES,
@@ -118,7 +119,18 @@ testEachProblem([
       "fr: strings.writingLikes is missing (writing.zenn needs it)",
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
       ...HISTORY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory needs it)`),
+      ...HISTORY_REPO_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory.repos needs it)`),
     ],
+  },
+  {
+    wrong: "a calendar with repos, without the key's words for them, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).historyRepos),
+    problems: ["fr: strings.historyRepos is missing (githubHistory.repos needs it)"],
+  },
+  {
+    wrong: "the name of a year's repos without {year}",
+    change: inFrench((french) => (statedStrings(french).historyReposIn = "Repos")),
+    problems: ["fr: strings.historyReposIn should have {year} in it, where the page writes the number"],
   },
   {
     wrong: "a GitHub history without its calendar's title, in a language other than English",
@@ -222,6 +234,15 @@ test("a site without a GitHub history needs no words for it", () => {
   }
   for (const name of HISTORY_STRING_NAMES) delete statedStrings(languageOf(withoutHistory, "fr"))[name];
   assert.deepEqual(problemsIn(withoutHistory), []);
+});
+
+test("a GitHub history whose calendar shows no repos needs no words for them", () => {
+  const sample = sampleConfig();
+  const withoutRepos = sampleConfig({
+    githubHistory: { user: "sam-sample", marks: sample.githubHistory?.marks ?? [] },
+  });
+  for (const name of HISTORY_REPO_STRING_NAMES) delete statedStrings(languageOf(withoutRepos, "fr"))[name];
+  assert.deepEqual(problemsIn(withoutRepos), []);
 });
 
 test("a site without a LinkedIn profile needs no words for one", () => {

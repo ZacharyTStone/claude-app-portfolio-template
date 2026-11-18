@@ -7,7 +7,7 @@ import type { Strings } from "../config/strings.ts";
 import type { History } from "../site/history/history.ts";
 import { busiestWeekday, languageShares, weekdayShares } from "../site/history/shares.ts";
 import { historyStats } from "../site/history/stats.ts";
-import type { CalendarRow, Level, PlacedMark } from "../site/history/weeks.ts";
+import type { CalendarRow, Level, PlacedMark, PlacedRepo } from "../site/history/weeks.ts";
 import {
   daysInPieces,
   weekdayName,
@@ -19,8 +19,10 @@ import {
   type WrittenPart,
 } from "../site/history/words.ts";
 
-/** A tile of the stats: its label over its value, and a line under it. */
-export type Tile = { label: string; value: WrittenPart[]; under?: string };
+/** A tile of the stats: its label over its value, and a line under it.
+    A tile whose value is a count has it as a number too, which the
+    script counts up to as the tile comes in. */
+export type Tile = { label: string; value: WrittenPart[]; under?: string; count?: number };
 
 const figures = (text: string): WrittenPart[] => [{ text, isNumber: true }];
 
@@ -34,7 +36,7 @@ const writtenDays = (code: string, from: string, to: string): string =>
 export function statTiles(history: History, strings: Strings, code: string): Tile[] {
   const { total, since, streak, busiest } = historyStats(history);
   return [
-    { label: strings.historyContributions ?? "", value: figures(writtenNumber(code, total)) },
+    { label: strings.historyContributions ?? "", value: figures(writtenNumber(code, total)), count: total },
     ...(since === undefined ? [] : [{ label: strings.historySince ?? "", value: figures(String(since)) }]),
     ...(streak
       ? [
@@ -42,6 +44,7 @@ export function statTiles(history: History, strings: Strings, code: string): Til
             label: strings.historyStreak ?? "",
             value: daysInPieces(code, streak.days),
             under: writtenDays(code, streak.from, streak.to),
+            count: streak.days,
           },
         ]
       : []),
@@ -51,6 +54,7 @@ export function statTiles(history: History, strings: Strings, code: string): Til
             label: strings.historyBusiest ?? "",
             value: figures(writtenNumber(code, busiest.count)),
             under: writtenDay(code, busiest.day),
+            count: busiest.count,
           },
         ]
       : []),
@@ -66,18 +70,30 @@ export function privateNote(history: History, strings: Strings, code: string): s
   return strings.historyPrivate.replace("{n}", writtenNumber(code, restricted));
 }
 
-/** A cell of the calendar: its shade, and the days it counts with what was
-    done on them, or none of either where the history has no week. */
-export type Cell = { level?: Level; title?: string; mark?: PlacedMark };
+/** The most dots a week has under it: a repo past them has only its name. */
+const PINS_DRAWN = 3;
 
-/** A row's cells, a column each, with its marks at theirs. */
-export function calendarCells(row: CalendarRow, code: string): Cell[] {
+/** A cell of the calendar: its shade, and the days it counts with what was
+    done on them, or none of either where the history has no week. A mark
+    and the repos made in the week are drawn at it, and the history's
+    latest week, the one with the day it was asked, is marked as now. */
+export type Cell = { level?: Level; title?: string; mark?: PlacedMark; repos?: PlacedRepo[]; now?: boolean };
+
+/** A row's cells, a column each, with its marks and repos at theirs.
+    `asOf` is the history's last day. */
+export function calendarCells(row: CalendarRow, code: string, asOf: string): Cell[] {
   return row.weeks.map((week, column) => {
     const mark = row.marks.find((placed) => placed.week === column);
+    const repos = row.repos.filter((placed) => placed.week === column);
     const shaded = week
       ? { level: week.level, title: `${writtenDays(code, week.from, week.to)}: ${writtenNumber(code, week.count)}` }
       : {};
-    return { ...shaded, ...(mark ? { mark } : {}) };
+    return {
+      ...shaded,
+      ...(mark ? { mark } : {}),
+      ...(repos.length ? { repos } : {}),
+      ...(week && week.to === asOf ? { now: true } : {}),
+    };
   });
 }
 
@@ -119,4 +135,12 @@ export function rhythmDays(history: History, code: string): RhythmDay[] {
       busiest: weekday === busiest,
     };
   });
+}
+
+/** The most dots a row's weeks have under them, one a repo, to the three
+    the calendar draws: how much room the row needs under its strip. */
+export function pinDepth(row: CalendarRow): number {
+  const byWeek = new Map<number, number>();
+  for (const { week } of row.repos) byWeek.set(week, (byWeek.get(week) ?? 0) + 1);
+  return Math.min(PINS_DRAWN, Math.max(0, ...byWeek.values()));
 }

@@ -19,6 +19,21 @@ export function checkHistoryMarks({ config }: Site, problemUnless: ProblemUnless
   }
 }
 
+/** A repo's name, as GitHub has it: letters, digits, ".", "-" and "_". */
+const A_REPO_NAME = /^[\w.-]{1,100}$/;
+
+/** A repo the calendar hides is named as GitHub names it, not by its
+    address. */
+export function checkHistoryRepos({ config }: Site, problemUnless: ProblemUnless): void {
+  const repos = config.githubHistory?.repos;
+  for (const name of repos === true || !repos ? [] : repos.hide) {
+    problemUnless(
+      A_REPO_NAME.test(name),
+      `githubHistory.repos.hide has "${name}", which should be a repo's name as GitHub has it, like "dotfiles"`,
+    );
+  }
+}
+
 /** A part is drawn from the history the build fetches for
     `githubHistory`: without it, there's nothing to draw. */
 export function checkGitHubPart(part: GitHubPart, where: string, { site, problemUnless }: LanguageChecks): void {
@@ -33,10 +48,10 @@ export function checkGitHubPart(part: GitHubPart, where: string, { site, problem
 }
 
 /** Where the page writes a number into the history's wording. */
-const PLACEHOLDERS = { historyPrivate: "{n}", historyCalendar: "{year}" } as const;
+const PLACEHOLDERS = { historyPrivate: "{n}", historyCalendar: "{year}", historyReposIn: "{year}" } as const;
 
 /** Without its placeholder, the note would leave out how many are private,
-    and the calendar's title since when. */
+    the calendar's title since when, and a year's repos which year. */
 export const checkHistoryPlaceholders: LanguageCheck = ({ site, language, problemUnless }) => {
   if (!site.config.githubHistory) return;
   for (const [name, placeholder] of Object.entries(PLACEHOLDERS) as Array<[keyof typeof PLACEHOLDERS, string]>) {

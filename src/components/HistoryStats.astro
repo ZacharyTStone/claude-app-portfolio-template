@@ -4,6 +4,7 @@
    under the tiles says how much of it is in the count. */
 import type { History } from "../site/history/history.ts";
 import type { Page } from "../site/site.ts";
+import { DATA } from "../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
 import { privateNote, statTiles } from "./history-parts.ts";
 
@@ -25,7 +26,13 @@ const note = privateNote(history, page.language.strings, page.code);
         <dt>{tile.label}</dt>
         <dd>
           <span class="history-value">
-            {tile.value.map((piece) => (piece.isNumber ? <b>{piece.text}</b> : piece.text))}
+            {tile.value.map((piece) =>
+              piece.isNumber ? (
+                <b {...(tile.count === undefined ? {} : { [DATA.count]: tile.count })}>{piece.text}</b>
+              ) : (
+                piece.text
+              ),
+            )}
           </span>
           {tile.under && <span class="history-under">{tile.under}</span>}
         </dd>
