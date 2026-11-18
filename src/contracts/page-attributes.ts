@@ -103,11 +103,16 @@ export const DATA = {
       opens. The home screen has none. */
   contextOf: "data-context-of",
   /** No value: a post's card in the Writing tab, a repo's row in the
-      panel's activity, or the <body> of a post's own page, made from
+      panel's activity, a part of the GitHub history in an answer,
+      or the <body> of a post's own page, made from
       what the build fetched, which changes from one build to the next. The
       Japanese fonts aren't cut for what's in it (scripts/fonts): it's set
       in the system's Japanese font instead (src/styles/japanese.css). */
   fetched: "data-fetched",
+  /** On each part of the GitHub history an answer shows: which part it is
+      (a GitHubPart: "stats", "calendar", "languages" or "rhythm"). Each
+      has DATA.fetched too. */
+  githubPart: "data-github",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

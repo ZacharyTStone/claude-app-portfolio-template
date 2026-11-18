@@ -6,6 +6,7 @@ import { FAVICONS } from "../../../src/site/icons.ts";
 import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite } from "../../../src/site/site.ts";
 import { sampleRepos } from "../../sample/activity.ts";
+import { sampleHistory } from "../../sample/github-history.ts";
 import { samplePosts } from "../../sample/writing.ts";
 import { sampleConfig } from "../sample.ts";
 
@@ -147,6 +148,22 @@ test("llms.txt has no activity section for a site with no public pushes lately, 
   const heading = "\n## Recent public activity on";
   assert.ok(!llmsTxt(makeSite(sampleConfig(), posts, [])).includes(heading));
   assert.ok(!llmsTxt(makeSite(sampleConfig({ activity: undefined }), posts, await sampleRepos())).includes(heading));
+});
+
+test("llms.txt says what each part of the GitHub history counts, in a line under its answer, as of the build", async () => {
+  const withHistory = llmsTxt(makeSite(sampleConfig(), posts, [], await sampleHistory()));
+  assert.ok(
+    withHistory.includes(
+      "\n\n(GitHub: 5,002 contributions on GitHub since 2019, 1,099 of them in private repos (counted, not shown), as of the site's last build.",
+    ),
+  );
+  assert.ok(
+    withHistory.includes("\n\n(GitHub: Languages in public repos on GitHub, by size, as of the site's last build: "),
+  );
+});
+
+test("llms.txt says nothing of the GitHub history before the build has fetched it", () => {
+  assert.ok(!llmsText.includes("(GitHub: "));
 });
 
 test("llms.txt's Links are the panel's as its home screen lists them: the outputs, the links Context gathers, its rows, each once", () => {

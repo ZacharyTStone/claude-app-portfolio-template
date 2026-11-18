@@ -38,7 +38,8 @@ const SERIF_ELEMENT = new RegExp(
   "gis",
 );
 // An element marked as made from what the build fetched, the same way: a post's card in the Writing tab, or a
-// repo's row in the panel's activity, each a link, which holds no other. Its text is different at every build, so a font cut for it would be out of date
+// repo's row in the panel's activity, each a link, which holds no other; or a part of the GitHub history,
+// a figure, which holds no other. Its text is different at every build, so a font cut for it would be out of date
 // at the next one: the stylesheet sets it in the system's Japanese font (src/styles/japanese.css).
 // <a class="link-card" href="https://qiita.com/…" data-fetched>…</a>
 const FETCHED_ELEMENT = new RegExp(`<(\\w+)\\b[^>]*\\s${DATA.fetched}\\b[^>]*>.*?</\\1>`, "gis");

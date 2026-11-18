@@ -24,6 +24,10 @@
 @import "../components/Picture.css";
 @import "../components/Quote.css";
 @import "../components/Heading.css";
+@import "../components/HistoryStats.css";
+@import "../components/HistoryCalendar.css";
+@import "../components/HistoryCell.css";
+@import "../components/HistoryRhythm.css";
 @import "../components/Gallery.css";
 @import "../components/Asked.css";
 @import "../components/ContactForm.css";

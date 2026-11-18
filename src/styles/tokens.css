@@ -29,6 +29,14 @@
   --danger: #e8776d;
   --green: rgb(50 215 75);
   --syntax-string: #e5b567; /* est.: not measured yet */
+  /* The GitHub history's calendar: a week with nothing done, then four shades of the site's accent over the
+     page, palest to strongest. Made from --accent and --page, so a site's own accent, and the printed page's,
+     shade it too. */
+  --heat-0: var(--chip);
+  --heat-1: color-mix(in oklab, var(--accent) 24%, var(--page));
+  --heat-2: color-mix(in oklab, var(--accent) 46%, var(--page));
+  --heat-3: color-mix(in oklab, var(--accent) 70%, var(--page));
+  --heat-4: var(--accent);
 
   --sidebar-w: clamp(260px, 24vw, 385px);
   --panel-w: 320px;

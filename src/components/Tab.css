@@ -68,6 +68,10 @@ html:not(.js)
   -webkit-mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
   mask-image: linear-gradient(to bottom, #000 calc(100% - 28px), transparent);
 }
+.scroll:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
 .thread {
   max-width: var(--column);
   margin: 0 auto;

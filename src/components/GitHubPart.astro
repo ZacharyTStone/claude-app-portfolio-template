@@ -1,0 +1,37 @@
+---
+/* A part of the GitHub history, drawn from what the build fetched
+   (src/site/history). Each is a figure marked as fetched, and as the part
+   it is. While there's no history (the dev server couldn't fetch it), it
+   draws nothing. */
+import type { GitHubPart } from "../config/github-history.ts";
+import { DATA } from "../contracts/page-attributes.ts";
+import { site } from "../site/current.ts";
+import type { Page } from "../site/site.ts";
+import { flag } from "./attributes.ts";
+import Bars from "./Bars.astro";
+import HistoryCalendar from "./HistoryCalendar.astro";
+import { languageBars } from "./history-parts.ts";
+import HistoryRhythm from "./HistoryRhythm.astro";
+import HistoryStats from "./HistoryStats.astro";
+
+interface Props {
+  part: GitHubPart;
+  page: Page;
+}
+const { part, page } = Astro.props;
+const { history } = site;
+const attributes = { ...flag(DATA.fetched), [DATA.githubPart]: part };
+const languages = history && part === "languages" ? languageBars(history, page.language.strings, page.code) : undefined;
+---
+
+{history && part === "stats" && <HistoryStats history={history} page={page} attributes={attributes} />}
+{history && part === "calendar" && (
+  <HistoryCalendar
+    history={history}
+    marks={site.config.githubHistory?.marks ?? []}
+    page={page}
+    attributes={attributes}
+  />
+)}
+{languages && <Bars bars={languages} attributes={attributes} />}
+{history && part === "rhythm" && <HistoryRhythm history={history} page={page} attributes={attributes} />}

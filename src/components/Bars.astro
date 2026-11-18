@@ -6,6 +6,9 @@ import { barLength } from "./bars.ts";
 
 interface Props {
   bars: Bars;
+  /** More for the figure to carry: a part of the GitHub history's own
+      (GitHubPart.astro). */
+  attributes?: Record<string, string>;
 }
 const { title, rows, note } = Astro.props.bars;
 
@@ -16,7 +19,7 @@ const largestAmount = Math.max(...rows.map((row) => row.amount));
 const drawnRows = rows.map((row) => ({ ...row, length: `${barLength(row.amount, largestAmount)}%` }));
 ---
 
-<figure class={`${PAGE_CLASSES.figure} bars`}>
+<figure class={`${PAGE_CLASSES.figure} bars`} {...Astro.props.attributes}>
   <figcaption>
     {title}
     {note && (

@@ -112,6 +112,7 @@ An answer is a list of blocks, shown top to bottom:
 | A picture, or pictures side by side | `{ image: { src, alt, width, height } }`, `{ images: [ … ] }` |
 | A quote | `{ quote: { text, by } }` |
 | A heading inside a long answer | `{ heading: { title } }` |
+| A part of your GitHub history | `{ github: "stats" }`, `"calendar"`, `"languages"` or `"rhythm"` |
 
 Text is a little Markdown and never HTML: `**bold**`, `*italic*`, code
 between backticks, and `[a link](#about)`. A link goes to a thread
@@ -187,6 +188,18 @@ the panel is as it was at the last build, and it reads only public
 activity, and says so. [Activity](activity.md) has the rest: what it
 shows and leaves out, a token for GitHub, and what happens when a place
 is down.
+
+## Your GitHub history
+
+`githubHistory: { user: "your-github-name" }` has the build fetch your
+whole history of contributions on GitHub, which an answer then shows in
+parts, each a block you place where it fits: `{ github: "stats" }` (what
+it comes to, the longest streak, the busiest day), `"calendar"` (every
+week, a row a year, with moments you mark on it), `"languages"` and
+`"rhythm"` (the days of the week you work on). It needs a token for
+GitHub, and says how much of the count is private work.
+[GitHub history](github-history.md) has the rest: each part, what it
+leaves out, the token, and what happens when GitHub is down.
 
 ## The panel's Context
 

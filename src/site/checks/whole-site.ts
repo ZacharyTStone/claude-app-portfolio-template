@@ -27,6 +27,7 @@ import {
   isTimeZone,
   isWebAddress,
 } from "./formats.ts";
+import { checkHistoryMarks } from "./history.ts";
 import type { ProblemUnless } from "./reporting.ts";
 
 type SiteCheck = (site: Site, problemUnless: ProblemUnless) => void;
@@ -169,6 +170,13 @@ const SETTING_FORMATS: SettingFormat[] = [
     shouldBe: `a Codeberg user name, as in your profile's address (codeberg.org/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
+  // The build asks GitHub for this user's history by it.
+  {
+    field: "githubHistory.user",
+    looksRight: isGitHubUserName,
+    shouldBe: `a GitHub user name, as in your profile's address (github.com/alex-example is "alex-example")`,
+    mayBeLeftOut: true,
+  },
 ];
 
 /** A setting's value, by where it is in the config: "links.email". */
@@ -284,4 +292,5 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkContactForm,
   checkViewer,
   checkActivityNamesAPlace,
+  checkHistoryMarks,
 ];

@@ -150,6 +150,55 @@ export type ActivityStrings = {
 /** Every name in ActivityStrings. */
 export const ACTIVITY_STRING_NAMES = ["activityTitle"] as const satisfies readonly (keyof ActivityStrings)[];
 
+/** The page's wording for the parts of your GitHub history, on a site with
+    `githubHistory` (PART_STRINGS). Numbers, days and months are the
+    page's language's own, from the platform: none of them is here. */
+export type HistoryStrings = {
+  /** The stats' first tile, over the count of every contribution:
+      "Contributions". */
+  historyContributions: string;
+  /** The stats' tile over the first year the history has: "Since". */
+  historySince: string;
+  /** The stats' tile over the most days in a row with a contribution:
+      "Longest streak". */
+  historyStreak: string;
+  /** The stats' tile over the most contributions in a day, with the day
+      under them: "Busiest day". */
+  historyBusiest: string;
+  /** Under the stats, when GitHub counts private work, with {n} for how
+      many contributions it is: "Includes {n} in private repos, counted
+      but not shown." */
+  historyPrivate: string;
+  /** The calendar's title, with {year} for its first year: "Contributions,
+      every week since {year}". */
+  historyCalendar: string;
+  /** The calendar's key, before its palest shade: "Less". */
+  historyLess: string;
+  /** The calendar's key, after its strongest shade: "More". */
+  historyMore: string;
+  /** The languages' title: "Languages in public repos". */
+  historyLanguages: string;
+  /** The languages' last bar, for all the rest together: "Other". */
+  historyOther: string;
+  /** The rhythm's title: "Contributions by day of the week". */
+  historyRhythm: string;
+};
+
+/** Every name in HistoryStrings. */
+export const HISTORY_STRING_NAMES = [
+  "historyContributions",
+  "historySince",
+  "historyStreak",
+  "historyBusiest",
+  "historyPrivate",
+  "historyCalendar",
+  "historyLess",
+  "historyMore",
+  "historyLanguages",
+  "historyOther",
+  "historyRhythm",
+] as const satisfies readonly (keyof HistoryStrings)[];
+
 /** The wording the browser code shows, with the attribute on <body> that
     carries each to it. The last four are for the parts only some sites
     have (PART_STRINGS). */
@@ -229,7 +278,8 @@ export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as Scri
     which are missing): the script's, the contact form's (and its link
     from Ask's reply), the Writing tab's (and its line for no posts, on a
     site whose tab is there before the first, and its word for likes, on a
-    site with posts from Zenn or DEV) and the panel's activity's own. */
+    site with posts from Zenn or DEV), the panel's activity's own and the
+    GitHub history's. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
@@ -239,10 +289,16 @@ export const PART_STRINGS = {
   emptyWriting: EMPTY_WRITING_STRING_NAMES,
   writingLikes: WRITING_LIKES_STRING_NAMES,
   activity: ACTIVITY_STRING_NAMES,
+  githubHistory: HISTORY_STRING_NAMES,
 } as const satisfies Record<
   string,
   readonly (
-    ScriptStringName | keyof ContactFormStrings | keyof AskFormStrings | keyof WritingStrings | keyof ActivityStrings
+    | ScriptStringName
+    | keyof ContactFormStrings
+    | keyof AskFormStrings
+    | keyof WritingStrings
+    | keyof ActivityStrings
+    | keyof HistoryStrings
   )[]
 >;
 
@@ -264,5 +320,6 @@ export type Strings = PageStrings &
   Partial<AskFormStrings> &
   Partial<WritingStrings> &
   Partial<ActivityStrings> &
+  Partial<HistoryStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

@@ -5,6 +5,7 @@
 import { FIGURE_LIMITS, isTextBlock, picturesIn } from "../../config/blocks.ts";
 import type { Bars, Block, Flow, Heading, LinkCard, Picture, Quote } from "../../config/blocks.ts";
 import { isLanguageCode, isPathOnSite, isPixelCount } from "./formats.ts";
+import { checkGitHubPart } from "./history.ts";
 import { isFilledIn, type LanguageChecks } from "./reporting.ts";
 
 /** `where` starts each problem with the place the block is in: `the thread
@@ -17,6 +18,7 @@ export function checkBlock(block: Block, where: string, checks: LanguageChecks):
   if ("flow" in block) checkFlow(block.flow, where, checks);
   if ("heading" in block) checkHeading(block.heading, where, checks);
   if ("quote" in block) checkQuote(block.quote, where, checks);
+  if ("github" in block) checkGitHubPart(block.github, where, checks);
 }
 
 /** The security policy lets a picture come from nowhere but this site, and

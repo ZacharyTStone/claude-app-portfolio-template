@@ -82,6 +82,20 @@ export default {
   // `writing`. With your own GitHub user name, it's the line below.
   // docs/activity.md has it all.
   // activity: { github: "your-github-name" },
+  // GitHub history (optional): your whole history of contributions on
+  // GitHub, which an answer shows in parts, each a block where it fits:
+  // { github: "stats" }, "calendar", "languages" and "rhythm" (the Skills
+  // tab has one, commented out). The build fetches it from GitHub's GraphQL
+  // API, which needs a token in GITHUB_TOKEN, and stops if it can't. Your
+  // marks name moments on the calendar. Commented out for the same reason
+  // as `writing`. docs/github-history.md has it all.
+  // githubHistory: {
+  //   user: "your-github-name",
+  //   marks: [
+  //     { at: "2021-06", label: globex.company },
+  //     { at: "2024-01", label: acme.company },
+  //   ],
+  // },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,
     about: `${me.name} is a senior software engineer at ${acme.company}, working on the web app its customers use every day. Before that, ${me.first} built sites and apps for clients at ${globex.company}, an agency, and on the side made ${me.project.name}, an offline-first notes app.`,
@@ -337,6 +351,9 @@ export default {
                     ],
                   },
                 },
+                // With `githubHistory` on, the share of each language in
+                // your public repos, from GitHub:
+                // { github: "languages" },
               ],
             },
           ],

@@ -1,0 +1,49 @@
+---
+/* The share of the history's contributions made on each day of the week, a
+   bar a day in the order the page's language has its week, the busiest in
+   the accent. The page allows no inline styles, so a bar's height is an
+   SVG attribute, as Bars.astro draws a bar's length. */
+import type { History } from "../site/history/history.ts";
+import type { Page } from "../site/site.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { rhythmDays } from "./history-parts.ts";
+
+interface Props {
+  history: History;
+  page: Page;
+  /** The part's own: data-fetched and data-github. */
+  attributes: Record<string, string>;
+}
+const { history, page, attributes } = Astro.props;
+const days = rhythmDays(history, page.code);
+
+/** The stylesheet moves each bar back by half its width, so that x="50%" is
+    its middle. */
+const BAR_PX = { drawingHeight: 92, width: 22, tipRadius: 4, gapOverBar: 6 } as const;
+---
+
+<figure class={`${PAGE_CLASSES.figure} history-rhythm`} {...attributes}>
+  <figcaption>{page.language.strings.historyRhythm}</figcaption>
+  <dl>
+    {days.map((day) => (
+      <div class:list={{ accent: day.busiest }}>
+        <dt>{day.name}</dt>
+        <dd>
+          <svg role="img" aria-label={day.share} focusable="false" width="100%" height={BAR_PX.drawingHeight}>
+            <rect
+              class="bar"
+              x="50%"
+              y={`${100 - day.height}%`}
+              width={BAR_PX.width}
+              height={`${day.height}%`}
+              rx={BAR_PX.tipRadius}
+            />
+            <text x="50%" y={`${100 - day.height}%`} dy={-BAR_PX.gapOverBar} text-anchor="middle">
+              {day.share}
+            </text>
+          </svg>
+        </dd>
+      </div>
+    ))}
+  </dl>
+</figure>

@@ -32,13 +32,15 @@ export const MAX_CITED_LINES = 8;
     as they are, or nothing. */
 export const MAX_CITED_LENGTH = 800;
 
-const LABEL_KINDS = ["picture", "link"] as const;
+const LABEL_KINDS = ["picture", "link", "GitHub"] as const;
 
 type LabelKind = (typeof LABEL_KINDS)[number];
 
 /** A line of an answer's text that only names something the page shows:
-    "(picture: The home page)". The model reads it to know what's there;
-    it isn't the owner's sentence, so Ask never quotes it. */
+    "(picture: The home page)", or says what a part of the GitHub history
+    counts: "(GitHub: 4,812 contributions since 2019, …)". The model reads
+    it to know what's there; it isn't the owner's sentence, so Ask never
+    quotes it. */
 export const labelled = (kind: LabelKind, name: string): string => `(${kind}: ${name})`;
 
 // A whole line that `labelled` wrote: "(picture: The home page)", "(link: Resume)".
