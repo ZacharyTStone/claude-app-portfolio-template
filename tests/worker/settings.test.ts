@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { mapValues, pick } from "es-toolkit";
 import { DEFAULT_MODEL, KNOWN_MODELS, UNLISTED_MODEL_PRICE } from "../../src/worker/ask/known-models.ts";
-import { DURABLE_OBJECT_LOCATIONS, SETTINGS, readSettings } from "../../src/worker/settings.ts";
+import { CONTACT_SENDERS, DURABLE_OBJECT_LOCATIONS, SETTINGS, readSettings } from "../../src/worker/settings.ts";
 
 const DEFAULTS = mapValues(SETTINGS, (row) => row.default);
 const UNLISTED_MODEL = "@cf/someone/some-model";
@@ -29,6 +29,7 @@ test("each setting is read from its own variable", () => {
     CONTACT_VISITOR_LIMIT: "2",
     CONTACT_TO: "me@example.org",
     CONTACT_FROM: "hello@example.com",
+    CONTACT_SENDER: "postmark",
   });
   assert.deepEqual(settings, {
     enabled: true,
@@ -45,6 +46,7 @@ test("each setting is read from its own variable", () => {
     contactVisitorLimit: 2,
     contactTo: "me@example.org",
     contactFrom: "hello@example.com",
+    contactSender: "postmark",
     price: { input: 1000, output: 2000 },
   });
 });
@@ -110,5 +112,13 @@ test("the contact form's addresses are addresses, or none", () => {
   });
   for (const written of ["", "example.com", "hi@example", "hi there@example.com"]) {
     assert.deepEqual(pick(read(written), ["contactTo", "contactFrom"]), { contactTo: "", contactFrom: "" }, written);
+  }
+});
+
+test("the contact form's sender is any the Worker sends with, and Cloudflare's binding unless it says so", () => {
+  for (const sender of CONTACT_SENDERS) assert.equal(readSettings({ CONTACT_SENDER: sender }).contactSender, sender);
+  assert.equal(SETTINGS.contactSender.default, "cloudflare");
+  for (const written of ["sendgrid", "Resend", ""]) {
+    assert.equal(readSettings({ CONTACT_SENDER: written }).contactSender, "cloudflare", written);
   }
 });

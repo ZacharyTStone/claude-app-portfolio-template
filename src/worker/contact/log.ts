@@ -4,6 +4,7 @@
    what's in it, and they read these names in Workers Logs: the names stay
    as they are. */
 import type { ContactOutcome } from "./outcome.ts";
+import { Refusal } from "./providers.ts";
 
 export type ContactLogLine = {
   /** What came of the message: "sent", "trapped" (it filled in the field
@@ -14,8 +15,11 @@ export type ContactLogLine = {
       "refused": the limit it was turned away at, or "down". */
   why?: string;
   /** With "error": the email binding's code for it
-      ("E_SENDER_NOT_VERIFIED"), or the kind of error. */
+      ("E_SENDER_NOT_VERIFIED"), a sender's API's ("validation_error",
+      "406"), or the kind of error ("TimeoutError"). */
   error?: string;
+  /** With "error" from a sender's API: the HTTP status it answered with. */
+  status?: number;
 };
 
 export type ContactLogSink = (line: ContactLogLine) => void;
@@ -27,6 +31,11 @@ function errorCode(error: unknown): string {
   if (typeof code === "string" && /^E_[A-Z_]+$/.test(code)) return code;
   return error instanceof Error && /^\w+Error$/.test(error.name) ? error.name : "unknown";
 }
+
+/** What a send that failed leaves in the log: a sender's API's status and
+    code, or the binding's code or the error's kind. */
+const errorFields = (error: unknown): Pick<ContactLogLine, "error" | "status"> =>
+  error instanceof Refusal ? { error: error.code, status: error.status } : { error: errorCode(error) };
 
 /** The line the outcome leaves in the log, if it leaves one. A request
     that isn't the form leaves none, as one that isn't a question leaves
@@ -42,6 +51,6 @@ export function lineFor(outcome: ContactOutcome): ContactLogLine | null {
     case "refused":
       return { contact: outcome.kind, why: outcome.why };
     case "failed":
-      return { contact: "error", error: errorCode(outcome.error) };
+      return { contact: "error", ...errorFields(outcome.error) };
   }
 }

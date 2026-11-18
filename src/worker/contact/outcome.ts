@@ -6,9 +6,9 @@ import { CONTACT_JSON, CONTACT_NOTE_IDS, type ContactNote, type ContactReply } f
 import { HTTP_STATUS, json, seeOther, type Rejection } from "../lib/http.ts";
 
 /** What came of sending a message that was right: turned away before
-    the email binding was asked (the visitor's or the site's day is used
-    up, or AskGuard, the binding or CONTACT_TO is missing, or AskGuard is
-    down), sent, or failed (the binding said no, or failed). */
+    the sender was asked (the visitor's or the site's day is used up, or
+    AskGuard, the binding or the API's key, or CONTACT_TO is missing, or
+    AskGuard is down), sent, or failed (the sender said no, or failed). */
 export type Sending =
   { kind: "refused"; why: "down" | "limited" | "spent" } | { kind: "sent" } | { kind: "failed"; error: unknown };
 

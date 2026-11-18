@@ -2,7 +2,8 @@
    form or both, and Cloudflare reads it only when the site is deployed: a
    binding or a variable named there that the Worker doesn't read, or a
    value it can't, would otherwise go unnoticed. So would a form the config
-   turns on with nothing in wrangler.jsonc to send its messages. */
+   turns on with nothing in wrangler.jsonc to send its messages. (The
+   secrets aren't in the file, so no test here can see them.) */
 import assert from "node:assert/strict";
 import { existsSync, readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -12,6 +13,8 @@ import ownConfig from "../../site.config.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { ASK_PATH } from "../../src/contracts/ask.ts";
 import { CONTACT_PATH } from "../../src/contracts/contact.ts";
+import { contactFormReceiver } from "../../src/site/contact-form.ts";
+import { makeSite } from "../../src/site/site.ts";
 import type { Env } from "../../src/worker/env.ts";
 import { AskGuard } from "../../src/worker/index.ts";
 import { SETTINGS, readSettings } from "../../src/worker/settings.ts";
@@ -29,6 +32,10 @@ const BINDINGS = {
   guard: "ASK_GUARD",
   contactEmail: "CONTACT_EMAIL",
 } as const satisfies Record<string, keyof Env>;
+
+/** The contact form's API key, a secret: the Worker reads it as this, and
+    wrangler.jsonc, which anyone who reads the repo reads, never has it. */
+const API_KEY = "CONTACT_API_KEY" satisfies keyof Env;
 
 type Wrangler = {
   main?: string;
@@ -82,10 +89,23 @@ function askOn(t: TestContext): Wrangler | undefined {
   return wrangler?.ai ? wrangler : undefined;
 }
 
+/** Whether the file sends the contact form's messages: with the
+    send_email binding, or with a sender's API. */
+const sendsTheForm = (wrangler: Wrangler): boolean =>
+  Boolean(wrangler.send_email) || readSettings(wrangler.vars ?? {}).contactSender !== "cloudflare";
+
 /** The same, for a test of the contact form's part: or for Ask alone. */
 function contactFormOn(t: TestContext): Wrangler | undefined {
   const wrangler = workerOn(t)?.wrangler;
-  if (wrangler && !wrangler.send_email) t.skip("wrangler.jsonc has no contact form in it");
+  if (wrangler && !sendsTheForm(wrangler)) t.skip("wrangler.jsonc has no contact form in it");
+  return wrangler && sendsTheForm(wrangler) ? wrangler : undefined;
+}
+
+/** The same, for a test of the send_email binding: a site with a sender's
+    API has none. */
+function bindingOn(t: TestContext): Wrangler | undefined {
+  const wrangler = contactFormOn(t);
+  if (wrangler && !wrangler.send_email) t.skip("the contact form's messages go out by a sender's API");
   return wrangler?.send_email ? wrangler : undefined;
 }
 
@@ -123,10 +143,21 @@ test("every variable it sets is a setting's, with a value the setting can read",
   const on = workerOn(t);
   if (!on) return;
   const rows = Object.values(SETTINGS);
+  // The key has a test of its own, which doesn't print it.
   const unread = Object.entries(on.wrangler.vars ?? {}).filter(
-    ([variable, written]) => !rows.some((row) => row.variable === variable && row.read(written) !== undefined),
+    ([variable, written]) =>
+      variable !== API_KEY && !rows.some((row) => row.variable === variable && row.read(written) !== undefined),
   );
   assert.deepEqual(unread, []);
+});
+
+test("the contact form's API key isn't in vars, where anyone who reads the repo would read it: it's a secret", (t) => {
+  const on = workerOn(t);
+  if (!on) return;
+  assert.ok(
+    !Object.keys(on.wrangler.vars ?? {}).includes(API_KEY),
+    `remove ${API_KEY} from vars, make a new key with your sender, and set it with \`npm run wrangler -- secret put ${API_KEY}\``,
+  );
 });
 
 test("a file with the Worker still commented out turns it on with every other setting at its default", (t) => {
@@ -154,7 +185,7 @@ test("Ask's questions go where wrangler.jsonc runs the Worker first", (t) => {
 });
 
 test("it binds the contact form's email by the name the Worker reads, to one address only", (t) => {
-  const wrangler = contactFormOn(t);
+  const wrangler = bindingOn(t);
   if (!wrangler) return;
   const [binding, ...more] = wrangler.send_email ?? [];
   assert.deepEqual(
@@ -165,7 +196,7 @@ test("it binds the contact form's email by the name the Worker reads, to one add
 });
 
 test("the contact form's messages go to the address its binding is locked to", (t) => {
-  const wrangler = contactFormOn(t);
+  const wrangler = bindingOn(t);
   if (!wrangler) return;
   const lockedTo = wrangler.send_email?.[0]?.destination_address;
   assert.equal(
@@ -187,11 +218,26 @@ function lockedTo({ send_email: [email] = [] }: Wrangler): string | undefined {
   return isTheFormsBinding ? email.destination_address : undefined;
 }
 
+/** What the sender CONTACT_SENDER names needs: the binding, locked to
+    the address the Worker sends to; or, for an API, only that address (its
+    key is a secret, which the file doesn't have). */
+function partsTheSenderNeeds(wrangler: Wrangler): Record<string, boolean> {
+  const { vars = {} } = wrangler;
+  const to = SETTINGS.contactTo.variable;
+  if (readSettings(vars).contactSender !== "cloudflare") {
+    return { [`${to} in vars, your address`]: looksLikeAnAddress(vars[to]) };
+  }
+  const address = lockedTo(wrangler);
+  return {
+    [`send_email ${BINDINGS.contactEmail}, with your address as its destination_address`]: address !== undefined,
+    [`${to} in vars, that same address`]: address !== undefined && vars[to] === address,
+  };
+}
+
 /** What a site with the contact form needs wrangler.jsonc to have on, each
     under the name a failure gives it, and whether the file has it. */
 function partsTheFormNeeds(wrangler: Wrangler): Record<string, boolean> {
-  const { main, assets = {}, durable_objects: durableObjects = {}, vars = {} } = wrangler;
-  const address = lockedTo(wrangler);
+  const { main, assets = {}, durable_objects: durableObjects = {} } = wrangler;
   return {
     main: main !== undefined,
     [`assets.binding "${BINDINGS.assets}"`]: assets.binding === BINDINGS.assets,
@@ -199,14 +245,15 @@ function partsTheFormNeeds(wrangler: Wrangler): Record<string, boolean> {
     [`the Durable Object ${BINDINGS.guard}`]: (durableObjects.bindings ?? []).some(
       ({ name }) => name === BINDINGS.guard,
     ),
-    [`send_email ${BINDINGS.contactEmail}, with your address as its destination_address`]: address !== undefined,
-    [`${SETTINGS.contactTo.variable} in vars, that same address`]:
-      address !== undefined && vars[SETTINGS.contactTo.variable] === address,
+    ...partsTheSenderNeeds(wrangler),
   };
 }
 
 test("a site with the contact form on in site.config.ts has it on in wrangler.jsonc too", (t) => {
   if (!siteConfig.contactForm) return t.skip("site.config.ts has no contact form");
+  if (contactFormReceiver(makeSite(siteConfig).host) !== "worker") {
+    return t.skip("Netlify Forms takes this site's messages, with no Worker");
+  }
   const missing = Object.entries(partsTheFormNeeds(asItIs)).flatMap(([part, isThere]) => (isThere ? [] : [part]));
   assert.deepEqual(missing, [], "wrangler.jsonc needs these, as docs/contact-form.md says");
 });

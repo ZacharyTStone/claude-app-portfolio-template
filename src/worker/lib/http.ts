@@ -10,6 +10,11 @@ export const HTTP_STATUS = {
   serviceUnavailable: 503,
 } as const;
 
+/** As much of fetch() as the Worker's own requests use: the daily
+    rebuild's, to Workers Builds, and the contact form's, to its sender's
+    API. Their tests pass one of their own. */
+export type Fetch = (address: string, init: RequestInit) => Promise<Response>;
+
 /** Why a request isn't one the Worker reads, and the status it's turned
     away with. */
 export type Rejection = { status: number; error: string; headers?: Record<string, string> };
