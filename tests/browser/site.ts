@@ -11,7 +11,7 @@ import { WRITING_TAB } from "../../src/config/writing.ts";
 import type { PersonalAnswer, QuestionCard, Topic } from "../../src/config/question-card.ts";
 import { SCRIPT_STRING_ATTRIBUTES, SCRIPT_STRING_NAMES, type ScriptStrings } from "../../src/config/strings.ts";
 import { threadAnswerId } from "../../src/contracts/ask.ts";
-import type { ContactNote } from "../../src/contracts/contact.ts";
+import { CONTACT_RECEIVERS, type ContactNote, type ContactReceiver } from "../../src/contracts/contact.ts";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
 import { tabPagePath } from "../../src/contracts/tab-pages.ts";
@@ -128,8 +128,11 @@ export type ComesIntoView = { tab: string; answer: string };
 export type ContactForm = {
   /** The tab it's in. */
   tab: string;
-  /** The address it posts to, in full: where the checks' /contact stands
-      in. */
+  /** Who takes its messages: the Worker, or Netlify Forms. */
+  receiver: ContactReceiver;
+  /** The address it posts to, in full, without the note its action ends at
+      on Netlify (a request never carries it): where the checks' stand-in
+      for /contact, or for Netlify, is. */
   action: string;
   /** What its two notes say, as the page has them. */
   sent: string;
@@ -526,9 +529,17 @@ async function readContactForm(page: Page): Promise<ContactForm | null> {
   const form = tab.locator(CLASS.contactForm);
   const note = async (which: ContactNote) =>
     ((await form.locator(`[${DATA.contactNote}="${which}"]`).textContent()) ?? "").trim();
+  const says = await form.getAttribute(DATA.contactReceiver);
+  const receiver = CONTACT_RECEIVERS.find((each) => each === says);
+  if (!receiver) throw new Error(`The contact form says it's taken by "${says}", which nothing is`);
   return {
     tab: (await tab.getAttribute("id")) ?? "",
-    action: await form.evaluate((element) => (element as HTMLFormElement).action),
+    receiver,
+    action: await form.evaluate((element) => {
+      const action = new URL((element as HTMLFormElement).action);
+      action.hash = "";
+      return action.href;
+    }),
     sent: await note("sent"),
     failed: await note("failed"),
   };

@@ -7,6 +7,7 @@ import type { Language } from "../../config/language.ts";
 import type { Topic } from "../../config/question-card.ts";
 import type { Host, SiteConfig } from "../../config/site-config.ts";
 import { isRecord } from "../../contracts/guards.ts";
+import { CONTACT_FORM_HOSTS, contactFormReceiver } from "../contact-form.ts";
 import { panelRows } from "../panel.ts";
 import type { Site } from "../site.ts";
 import {
@@ -175,8 +176,7 @@ const checkHsts: SiteCheck = ({ config }, problemUnless) => {
   );
 };
 
-/** The one host that runs the Worker (src/worker): Ask's, and the contact
-    form's. */
+/** The one host that runs the Worker (src/worker), and so Ask. */
 const WORKER_HOST: Host = "cloudflare";
 
 /** On any other host the page would send its questions to an address with
@@ -188,16 +188,16 @@ const checkAskRunsOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
   );
 };
 
-/** On any other host the form would post to an address with nothing
-    there. Its thread is the main language's: the others have the same
-    threads (checkLanguagesMatch). */
+/** On a host with nothing to take its messages, the form would post to an
+    address with nothing there. Its thread is the main language's: the
+    others have the same threads (checkLanguagesMatch). */
 const checkContactForm: SiteCheck = (site, problemUnless) => {
   const { config, host } = site;
   if (!config.contactForm) return;
   const { tab } = config.contactForm;
   problemUnless(
-    host === WORKER_HOST,
-    `contactForm needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove contactForm, or set host to "${WORKER_HOST}"`,
+    contactFormReceiver(host) !== undefined,
+    `contactForm needs Cloudflare Workers (its Worker, src/worker) or Netlify Forms to take its messages, but host is "${host}": remove contactForm, or set host to ${CONTACT_FORM_HOSTS.map(quoted).join(" or ")}`,
   );
   problemUnless(
     site.language(site.main).threads.some((thread) => thread.id === tab),

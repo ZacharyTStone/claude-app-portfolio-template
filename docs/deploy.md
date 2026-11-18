@@ -48,8 +48,8 @@ nginx setups do: let it serve `/.well-known/`.
 ## Cloudflare (recommended)
 
 The free plan covers it, `wrangler.jsonc` is the whole setup, and it is
-the only host that runs [Ask](ask.md) and the
-[contact form](contact-form.md). Use an account on the free plan:
+the only host that runs [Ask](ask.md) (the [contact form](contact-form.md)
+runs here and on Netlify). Use an account on the free plan:
 there Cloudflare refuses what it would otherwise bill, so the site can
 never cost anything ([What Ask can cost](ask.md#what-ask-can-cost)).
 
@@ -78,7 +78,7 @@ the site isn't also served at its `workers.dev` address.
 
 | Host | `host` | Settings |
 | --- | --- | --- |
-| Netlify | `"netlify"` | Build command `npm run build`, publish directory `dist`. Node comes from `.node-version`. |
+| Netlify | `"netlify"` | Build command `npm run build`, publish directory `dist`. Node comes from `.node-version`. With the contact form, turn on form detection: Netlify Forms takes its messages ([On Netlify](contact-form.md#on-netlify)). |
 | Vercel | `"vercel"` | Detected as Astro: build `npm run build`, output `dist`. In the project's settings, set Node to the version in `.node-version`. |
 | Anything else (S3, nginx, Caddy…) | `"static"` | Run `npm run build` and upload `dist/`. Set the headers in `src/site/security-headers.ts` on the server where you can. |
 

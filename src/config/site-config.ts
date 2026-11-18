@@ -17,7 +17,8 @@ export type SiteConfig = {
   /** Who serves the built site ("cloudflare" if left out). "cloudflare"
       and "netlify" read the security headers from a file the build writes;
       on any other host the pages carry what a page can, in <meta> tags.
-      Only "cloudflare" runs Ask and the contact form. */
+      Only "cloudflare" runs Ask; the contact form runs there and on
+      "netlify". */
   host?: Host;
   /** Strict-Transport-Security's extras. Both are hard to undo: leave them
       out unless every subdomain is HTTPS for good. */
@@ -52,12 +53,12 @@ export type SiteConfig = {
     /** Who you are, in a few words, for the model: "a software engineer". */
     role: string;
   };
-  /** A form under a thread's last answer that emails you a visitor's
-      message: their email, the message, and Send. Its Worker (src/worker)
-      sends it to the address wrangler.jsonc names (docs/contact-form.md).
-      Each language then needs the strings that start "contact", and with
-      Ask on, strings.askForm. Leave out for no form. It needs host
-      "cloudflare". */
+  /** A form under a thread's last answer that sends you a visitor's
+      message: their email, the message, and Send. On host "cloudflare" its
+      Worker emails it to the address wrangler.jsonc names; on "netlify",
+      Netlify Forms takes it (docs/contact-form.md). Each language then
+      needs the strings that start "contact", and with Ask on,
+      strings.askForm. Leave out for no form. */
   contactForm?: {
     /** The id of the thread it's under: "contact". */
     tab: string;

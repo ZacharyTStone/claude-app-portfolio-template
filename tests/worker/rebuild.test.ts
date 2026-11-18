@@ -4,7 +4,8 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import worker from "../../src/worker/index.ts";
-import { rebuild, type Fetch, type RebuildLine } from "../../src/worker/rebuild.ts";
+import type { Fetch } from "../../src/worker/lib/http.ts";
+import { rebuild, type RebuildLine } from "../../src/worker/rebuild.ts";
 import { stubs } from "./support/worker.ts";
 
 /** A deploy hook's address, as Workers Builds makes one: a credential. */

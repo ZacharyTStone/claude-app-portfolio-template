@@ -13,7 +13,8 @@ export default {
   async fetch(request: Request, env: Env, executionContext: ExecutionContext): Promise<Response> {
     const { pathname } = new URL(request.url);
     if (pathname === ASK_PATH) return handleAsk(request, env, executionContext, logToConsole);
-    if (pathname === CONTACT_PATH) return handleContact(request, env, logToConsole);
+    if (pathname === CONTACT_PATH)
+      return handleContact(request, env, logToConsole, (address, init) => fetch(address, init));
     // A path with no file reaches the Worker too: it gets the site's 404.
     return env.ASSETS.fetch(request);
   },

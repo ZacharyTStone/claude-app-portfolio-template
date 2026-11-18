@@ -128,15 +128,26 @@ With it on:
   this one turns it away unread.
 - **It emails only you.** The Worker sends to one address,
   `CONTACT_TO`, and its `send_email` binding is locked to that address in
-  `wrangler.jsonc`, whatever the Worker asks. The visitor's address goes
-  in the email's Reply-To and subject only once it looks like an address,
-  with nothing in it that could start another line.
+  `wrangler.jsonc`, whatever the Worker asks. With Resend or Postmark as
+  the sender there's no binding: the Worker's code names `CONTACT_TO` as
+  the one recipient, and the key, which could send anywhere, is a secret
+  (`CONTACT_API_KEY`) that goes to that API alone, in no page and no log.
+  The visitor's address goes in the email's Reply-To and subject only
+  once it looks like an address, with nothing in it that could start
+  another line.
 - **Its sending is capped**, per visitor and per day for the site, in the
   Durable Object Ask uses, with visitors counted by the same salted,
   daily hash of their address. A field only a bot fills in drops what a
-  bot sends. Without the binding or the Durable Object, nothing is sent.
+  bot sends. Without the binding (or the API key) or the Durable Object,
+  nothing is sent.
 - **Nothing a visitor sent is logged**: not their address, their email or
-  the message, only what came of it.
+  the message, only what came of it. A sender's refusal is logged by its
+  status and code, never its message.
+- **On Netlify, Netlify Forms takes it**, with no Worker: the pages and
+  their policy are the same, the form posts to the site itself, and
+  Netlify's honeypot and spam filter stand where the Worker's checks and
+  limits do. Netlify keeps each message, with the visitor's address, until
+  you delete it ([On Netlify](contact-form.md#on-netlify)).
 
 ## security.txt
 

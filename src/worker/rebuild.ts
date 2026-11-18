@@ -6,6 +6,7 @@
    hook's address is a credential, so neither it nor an error's message,
    which could repeat it, is ever logged. */
 import type { Env } from "./env.ts";
+import type { Fetch } from "./lib/http.ts";
 
 /** How long Workers Builds may take to say it will build, in milliseconds. */
 const ANSWER_WITHIN_MS = 10_000;
@@ -19,9 +20,6 @@ export type RebuildLog = (line: RebuildLine) => void;
 
 /** One line of JSON, under the Worker's Observability tab. */
 export const logRebuildToConsole: RebuildLog = (line) => console.log(JSON.stringify(line));
-
-/** As much of fetch() as a rebuild uses. */
-export type Fetch = (address: string, init: RequestInit) => Promise<Response>;
 
 /** An error's kind, never its message. */
 const errorKind = (error: unknown): string =>
