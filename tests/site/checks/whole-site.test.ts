@@ -217,6 +217,18 @@ testEachProblem([
     problems: ["githubHistory.marks has a mark at 2022-04 without a label"],
   },
   {
+    wrong: "a repo the history hides, named by its address",
+    change: (sample) =>
+      (sample.githubHistory = {
+        user: "sam-sample",
+        repos: { hide: ["https://github.com/sam-sample/dotfiles", ""] },
+      }),
+    problems: [
+      `githubHistory.repos.hide has "https://github.com/sam-sample/dotfiles", which should be a repo's name as GitHub has it, like "dotfiles"`,
+      `githubHistory.repos.hide has "", which should be a repo's name as GitHub has it, like "dotfiles"`,
+    ],
+  },
+  {
     wrong: "the viewer lists a link the site doesn't have",
     change: (sample) => (sample.viewer = { "https://docs.example.com/d/other/edit": "https://docs.example.com/p" }),
     problems: [

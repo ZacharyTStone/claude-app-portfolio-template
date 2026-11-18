@@ -18,6 +18,7 @@ export function madeUp(years: Record<number, number[]>, more: Partial<History> =
     asOf: last ? dayIn(last.year, last.days.length - 1) : `${first}-01-01`,
     years: kept,
     languages: [],
+    repos: [],
     ...more,
   };
 }

@@ -5,10 +5,21 @@
    A row's weeks start on January 1, so a column is the same days of the
    year in every row: the years compare week for week, and a month is at
    the same place in each. The last week takes the year's last day or two
-   as well, rather than leave a stub that would read as a quiet week. */
+   as well, rather than leave a stub that would read as a quiet week.
+   The public repos the config shows are placed the same way, each at the
+   week it was made. */
 import { sum } from "es-toolkit";
 import type { HistoryMark } from "../../config/github-history.ts";
-import { dayIn, dayOf, dayOfYear, daysInYear, everyDay, type History, type HistoryYear } from "./history.ts";
+import {
+  dayIn,
+  dayOf,
+  dayOfYear,
+  daysInYear,
+  everyDay,
+  type History,
+  type HistoryYear,
+  type PublicRepo,
+} from "./history.ts";
 
 /** The columns of a row. */
 export const WEEKS_A_ROW = 52;
@@ -41,6 +52,9 @@ export type PlacedMark = HistoryMark & {
   late: boolean;
 };
 
+/** A public repo, at the column of the week it was made. */
+export type PlacedRepo = PublicRepo & { week: number };
+
 export type CalendarRow = {
   year: number;
   /** The year's contributions, as GitHub totals them. */
@@ -50,6 +64,8 @@ export type CalendarRow = {
       build asked. */
   weeks: Array<Week | undefined>;
   marks: PlacedMark[];
+  /** The repos made in the year, the oldest first. */
+  repos: PlacedRepo[];
 };
 
 /** The history's first day: the day the account was made, or the day of
@@ -90,9 +106,12 @@ export const levelOf = (count: number, tops: number[]): Level =>
 
 const yearOfMonth = (month: string): number => Number(month.slice(0, "YYYY".length));
 
+/** The column of the week a day is in. */
+const weekOf = (day: string): number => Math.min(WEEKS_A_ROW - 1, Math.floor(dayOfYear(day) / DAYS_A_WEEK));
+
 /** Where a mark goes in its year's row. */
 function placed(mark: HistoryMark): PlacedMark {
-  const week = Math.min(WEEKS_A_ROW - 1, Math.floor(dayOfYear(`${mark.at}-01`) / DAYS_A_WEEK));
+  const week = weekOf(`${mark.at}-01`);
   return { ...mark, week, late: week >= WEEKS_A_ROW / 2 };
 }
 
@@ -101,9 +120,10 @@ function placed(mark: HistoryMark): PlacedMark {
 export const marksOffTheTimeline = (history: History, marks: HistoryMark[] = []): HistoryMark[] =>
   marks.filter((mark) => !history.years.some(({ year }) => year === yearOfMonth(mark.at)));
 
-/** A row for each year of the history, oldest first, with `marks` at
-    their weeks. */
-export function calendarRows(history: History, marks: HistoryMark[] = []): CalendarRow[] {
+/** A row for each year of the history, oldest first, with `marks` and
+    `repos` at their weeks. A repo made in a year the history doesn't have
+    (one made before the first contribution) has no row to go in. */
+export function calendarRows(history: History, marks: HistoryMark[] = [], repos: PublicRepo[] = []): CalendarRow[] {
   const span = { first: firstDayOf(history), last: history.asOf };
   const weeksByYear = history.years.map((year) => weeksOfYear(year, span));
   const tops = shadeTops(weeksByYear.flat().map((week) => week?.count ?? 0));
@@ -115,5 +135,8 @@ export function calendarRows(history: History, marks: HistoryMark[] = []): Calen
       .filter((mark) => yearOfMonth(mark.at) === year)
       .map(placed)
       .sort((one, other) => one.week - other.week),
+    repos: repos
+      .filter((repo) => yearOfMonth(repo.madeOn) === year)
+      .map((repo) => ({ ...repo, week: weekOf(repo.madeOn) })),
   }));
 }

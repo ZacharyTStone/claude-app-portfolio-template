@@ -35,9 +35,12 @@ export const PART_SELECTOR = {
   viewerLink: `a${ATTRIBUTE_SELECTOR.viewerAddress}`,
   /** A link to a post that opens in the viewer, at the post's own page. */
   postLink: `a${ATTRIBUTE_SELECTOR.viewerPost}`,
-  /** What comes in as it's scrolled to: a quote, a file card, the GitHub
-      history's calendar. */
-  comesIntoView: `${CLASS_SELECTOR.quote}, ${CLASS_SELECTOR.fileCard}, ${CLASS_SELECTOR.historyCalendar}`,
+  /** What comes in as it's scrolled to: a quote, a file card, a part of
+      the GitHub history. */
+  comesIntoView: `${CLASS_SELECTOR.quote}, ${CLASS_SELECTOR.fileCard}, ${ATTRIBUTE_SELECTOR.githubPart}`,
+  /** In the GitHub history's calendar: a repo's link under its row, and its
+      dot in the row. */
+  historyRepoLink: `${CLASS_SELECTOR.historyRepos} a, ${CLASS_SELECTOR.historyPins} a`,
   /** A played picture's Play button. */
   playButton: `a${ATTRIBUTE_SELECTOR.play}`,
 } as const;

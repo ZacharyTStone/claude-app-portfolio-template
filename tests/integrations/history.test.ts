@@ -4,7 +4,7 @@
 import assert from "node:assert/strict";
 import { relative } from "node:path";
 import { test } from "node:test";
-import { fetchHistory, historyFetch, marksProblems } from "../../src/integrations/history.ts";
+import { fetchHistory, hiddenNotFoundWarning, historyFetch, marksProblems } from "../../src/integrations/history.ts";
 import { GITHUB_TOKEN } from "../../src/site/activity/github.ts";
 import { GITHUB_HISTORY_FIXTURE } from "../../src/site/history/fixture.ts";
 import { GRAPHQL_ADDRESS } from "../../src/site/history/graphql.ts";
@@ -58,7 +58,7 @@ test("the history fetched is said, by whose, since when and how much, and never 
   assert.ok(typeof history === "object");
   assert.equal(
     said.at(-1),
-    "info: the GitHub history has sam-sample's 5,002 contributions since 2019, as of 2026-11-15, and the languages of their public repos",
+    "info: the GitHub history has sam-sample's 5,002 contributions since 2019, as of 2026-11-15, the languages of their public repos, and the 13 of those with code in them",
   );
   assert.ok(!said.some((line) => line.includes("a-secret-token")));
 });
@@ -109,4 +109,18 @@ test("a mark in no year of the history is a problem that names it and the years 
     `githubHistory.marks has "Rapptr Labs" at 2012-04, but sam-sample's history on GitHub runs from 2019 to 2026: a mark goes in one of its years`,
   ]);
   assert.deepEqual(marksProblems(SAMPLE, history), []);
+});
+
+test("a repo githubHistory.repos hides that isn't among those fetched is warned of, by name, but stops nothing", async () => {
+  const { said, log } = logger();
+  const config = { ...SAMPLE, repos: { hide: ["DotFiles", "dotfile"] } };
+  const environment = { ...withTheFixture, [GITHUB_TOKEN]: "a-secret-token" };
+  const history = await fetchHistory(config, environment, () => historyFetch(environment, log), log);
+  assert.ok(typeof history === "object");
+  assert.equal(
+    said.at(-1),
+    `warn: githubHistory.repos hides "dotfile", but sam-sample has no public repo with code by that name, so it hides nothing: check the spelling, or take it out if the repo was renamed, made private or deleted`,
+  );
+  assert.equal(hiddenNotFoundWarning({ ...SAMPLE, repos: true }, history), undefined);
+  assert.equal(hiddenNotFoundWarning(SAMPLE, history), undefined);
 });

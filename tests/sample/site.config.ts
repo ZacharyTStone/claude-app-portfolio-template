@@ -209,6 +209,7 @@ const config: SiteConfig = {
       { at: "2021-06", label: "Sample Co" },
       { at: "2024-02", label: "Example Labs" },
     ],
+    repos: { hide: ["dotfiles"] },
   },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.

@@ -1,8 +1,10 @@
 /* The GitHub history's parts in an answer: each shows, marked as made from
    what the build fetched, on every language's page; the calendar is a row
-   a year whose weeks screen readers skip, and it comes in row by row once
-   it's scrolled to, but shows whole without JavaScript or with motion
-   reduced; and every part fits a phone's screen. */
+   a year whose weeks screen readers skip, with its repos' names as links
+   whose dots in the row light with them; it plays row by row once it's
+   scrolled to, and the stats' counts climb, but every part shows whole
+   without JavaScript or with motion reduced; and every part fits a
+   phone's screen. */
 import type { Locator, Page } from "@playwright/test";
 import type { GitHubPart } from "../../src/config/github-history.ts";
 import { DATA } from "../../src/contracts/page-attributes.ts";
@@ -61,11 +63,34 @@ test.describe("in its tab", () => {
     const years = githubHistory.years.map(Number);
     expect(years.length, "the calendar has a year").toBeGreaterThan(0);
     expect(years).toEqual(years.toSorted((one, other) => one - other));
-    await expect(calendar.locator("dd")).toHaveCount(years.length);
-    for (const row of await calendar.locator("dd").all()) {
+    await expect(calendar.locator("dt")).toHaveCount(years.length);
+    for (const row of await calendar.locator(`dd:has(${CLASS.historyStrip})`).all()) {
       await expect(row.locator(CLASS.historyStrip)).toHaveAttribute("aria-hidden", "true");
       await expect(row).toContainText(/\d/);
     }
+  });
+
+  test("each repo under a row is a link to it on GitHub, and its dot in the row the same link, out of the keyboard's way; pointing at either lights both", async ({
+    page,
+    githubHistory,
+  }) => {
+    const calendar = calendarOf(page, githubHistory);
+    const names = calendar.locator(`${CLASS.historyRepos} a`);
+    test.skip(!(await names.count()), "the calendar shows no repos");
+    await calendar.scrollIntoViewIfNeeded();
+    for (const name of await names.all()) {
+      const address = (await name.getAttribute("href")) ?? "";
+      expect(address).toMatch(/^https:\/\/github\.com\/[^/]+\/[\w.-]+$/);
+      await expect(name).toHaveText(address.split("/").at(-1) ?? "");
+    }
+    const first = names.first();
+    const dot = calendar.locator(`${CLASS.historyPins} a[href="${await first.getAttribute("href")}"]`);
+    await expect(dot).toHaveAttribute("tabindex", "-1");
+    await expect(dot.locator(`xpath=ancestor::*[@aria-hidden="true"]`)).toHaveCount(1);
+    await first.hover();
+    await expect(dot).toContainClass(PAGE_CLASSES.lit);
+    await page.mouse.move(0, 0);
+    await expect(dot).not.toContainClass(PAGE_CLASSES.lit);
   });
 
   test("the stats' numbers are set large in the serif", async ({ page, githubHistory }) => {
@@ -83,7 +108,7 @@ test.describe("in its tab", () => {
 test.describe("below a short window", () => {
   test.use({ viewport: A_SHORT_WINDOW });
 
-  test("the calendar waits, then its rows sweep in one after another once it's scrolled to", async ({
+  test("the calendar waits, then plays its rows one after another once it's scrolled to, its weeks popping in as a line crosses them", async ({
     page,
     site,
     githubHistory,
@@ -95,14 +120,32 @@ test.describe("below a short window", () => {
     await expect(calendar).toContainClass(PAGE_CLASSES.seen);
     await expect(calendar).toHaveCSS("opacity", "1");
     const strips = calendar.locator(CLASS.historyStrip);
-    await expect(strips.first()).toHaveCSS("animation-name", "sweep");
+    const firstWeeks = calendar.locator(`${CLASS.historyStrip} > i:first-child`);
+    await expect(firstWeeks.first()).toHaveCSS("animation-name", "week-in");
+    expect(await strips.first().evaluate((strip) => getComputedStyle(strip, "::after").animationName)).toBe("cross");
     test.skip((await strips.count()) < 2, "the calendar has one row");
-    const delays = await strips.evaluateAll((all) =>
-      all.slice(0, 2).map((strip) => getComputedStyle(strip).animationDelay),
+    const delays = await firstWeeks.evaluateAll((all) =>
+      all.slice(0, 2).map((week) => getComputedStyle(week).animationDelay),
     );
     expect(parseFloat(delays[1] ?? ""), "the second row comes after the first").toBeGreaterThan(
       parseFloat(delays[0] ?? ""),
     );
+  });
+
+  test("the stats come in once they're scrolled to, each count climbing to the number the page was built with", async ({
+    page,
+    site,
+    githubHistory,
+  }) => {
+    test.skip(!githubHistory.parts.includes("stats"), "the GitHub history has no stats");
+    await page.goto(site.pathOf(githubHistory.tab));
+    const stats = partIn(page, githubHistory.tab, "stats");
+    await expect(stats).toContainClass(PAGE_CLASSES.waiting);
+    const count = stats.locator(ATTRIBUTE.count).first();
+    const built = (await count.textContent()) ?? "";
+    await stats.scrollIntoViewIfNeeded();
+    await expect.poll(() => count.textContent(), { intervals: [50] }).not.toBe(built);
+    await expect(count).toHaveText(built);
   });
 });
 
@@ -120,7 +163,7 @@ test.describe("with motion reduced", () => {
     await expect(page.locator(CLASS.waiting)).toHaveCount(0);
     await expect(calendar).toHaveCSS("opacity", "1");
     await calendar.scrollIntoViewIfNeeded();
-    await expect(calendar.locator(CLASS.historyStrip).first()).toHaveCSS("animation-name", "none");
+    await expect(calendar.locator(`${CLASS.historyStrip} > i`).first()).toHaveCSS("animation-name", "none");
     await expect(calendar.locator(CLASS.historyStrip).first()).toHaveCSS("clip-path", "none");
   });
 });

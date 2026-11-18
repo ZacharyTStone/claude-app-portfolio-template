@@ -199,6 +199,23 @@ export const HISTORY_STRING_NAMES = [
   "historyRhythm",
 ] as const satisfies readonly (keyof HistoryStrings)[];
 
+/** The calendar's wording for your public repos, on a site whose
+    `githubHistory` has `repos` (PART_STRINGS). */
+export type HistoryRepoStrings = {
+  /** The calendar's key, beside the dot each repo has under the week it
+      was made: "A public repo, the week it was made". */
+  historyRepos: string;
+  /** What screen readers call the list of a year's repos, under its row,
+      with {year} for the year: "Public repos made in {year}". */
+  historyReposIn: string;
+};
+
+/** Every name in HistoryRepoStrings. */
+export const HISTORY_REPO_STRING_NAMES = [
+  "historyRepos",
+  "historyReposIn",
+] as const satisfies readonly (keyof HistoryRepoStrings)[];
+
 /** The wording the browser code shows, with the attribute on <body> that
     carries each to it. The last four are for the parts only some sites
     have (PART_STRINGS). */
@@ -278,8 +295,8 @@ export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as Scri
     which are missing): the script's, the contact form's (and its link
     from Ask's reply), the Writing tab's (and its line for no posts, on a
     site whose tab is there before the first, and its word for likes, on a
-    site with posts from Zenn or DEV), the panel's activity's own and the
-    GitHub history's. */
+    site with posts from Zenn or DEV), the panel's activity's own, the
+    GitHub history's, and its calendar's repos'. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
@@ -290,6 +307,7 @@ export const PART_STRINGS = {
   writingLikes: WRITING_LIKES_STRING_NAMES,
   activity: ACTIVITY_STRING_NAMES,
   githubHistory: HISTORY_STRING_NAMES,
+  githubRepos: HISTORY_REPO_STRING_NAMES,
 } as const satisfies Record<
   string,
   readonly (
@@ -299,6 +317,7 @@ export const PART_STRINGS = {
     | keyof WritingStrings
     | keyof ActivityStrings
     | keyof HistoryStrings
+    | keyof HistoryRepoStrings
   )[]
 >;
 
@@ -321,5 +340,6 @@ export type Strings = PageStrings &
   Partial<WritingStrings> &
   Partial<ActivityStrings> &
   Partial<HistoryStrings> &
+  Partial<HistoryRepoStrings> &
   Omit<ScriptStrings, OptionalScriptStringName> &
   Partial<Pick<ScriptStrings, OptionalScriptStringName>>;

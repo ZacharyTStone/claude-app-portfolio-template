@@ -101,3 +101,17 @@ test("a mark in a year the history doesn't have is off the timeline, and on no r
     ["In it"],
   );
 });
+
+test("a repo is at the week it was made, in its year's row, the oldest first; one made in a year the history doesn't have is on no row", () => {
+  const history = madeUp({ 2022: everyDayOf(2022, 1), 2023: everyDayOf(2023, 1) });
+  const repo = (name: string, madeOn: string) => ({ name, url: `https://github.com/sam-sample/${name}`, madeOn });
+  const rows = calendarRows(
+    history,
+    [],
+    [repo("first", "2022-01-07"), repo("second", "2022-01-08"), repo("late", "2023-12-31"), repo("old", "2021-05-05")],
+  );
+  assert.deepEqual(
+    rows.map((row) => row.repos.map(({ name, week }) => `${name} ${week}`)),
+    [["first 0", "second 1"], ["late 51"]],
+  );
+});

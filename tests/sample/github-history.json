@@ -18,6 +18,9 @@
   },
   "repos": [
     {
+      "name": "portfolio",
+      "createdAt": "2025-03-08T09:14:02Z",
+      "description": "This site: a portfolio laid out like a chat app.",
       "languages": {
         "TypeScript": 284120,
         "CSS": 31200,
@@ -26,12 +29,18 @@
       }
     },
     {
+      "name": "trail-notes",
+      "createdAt": "2022-05-14T21:40:11Z",
+      "description": "Notes from the trail, as a static site.",
       "languages": {
         "TypeScript": 162300,
         "HTML": 8800
       }
     },
     {
+      "name": "queue-runner",
+      "createdAt": "2021-02-20T13:05:44Z",
+      "description": "A small job queue in Go.",
       "languages": {
         "Go": 141800,
         "Shell": 3900,
@@ -39,29 +48,41 @@
       }
     },
     {
+      "name": "plot-weather",
+      "createdAt": "2020-03-11T07:22:39Z",
       "languages": {
         "Python": 88400,
         "Shell": 2100
       }
     },
     {
+      "name": "recipe-box",
+      "createdAt": "2023-07-02T18:51:20Z",
+      "description": "Recipes, searchable offline.",
       "languages": {
         "TypeScript": 74100,
         "CSS": 12800
       }
     },
     {
+      "name": "tiny-raytracer",
+      "createdAt": "2023-11-19T10:03:57Z",
       "languages": {
         "Rust": 61200
       }
     },
     {
+      "name": "linkcheck",
+      "createdAt": "2024-04-06T15:36:08Z",
+      "description": "Finds the broken links in a site.",
       "languages": {
         "Go": 39300,
         "Makefile": 900
       }
     },
     {
+      "name": "dotfiles",
+      "createdAt": "2019-10-03T12:00:00Z",
       "languages": {
         "Shell": 18400,
         "Vim Script": 6200,
@@ -69,34 +90,49 @@
       }
     },
     {
+      "name": "habit-grid",
+      "createdAt": "2021-09-25T08:47:31Z",
+      "description": "A year of habits, a square a day.",
       "languages": {
         "TypeScript": 22800,
         "JavaScript": 9100
       }
     },
     {
+      "name": "kana-drills",
+      "createdAt": "2020-08-17T22:15:49Z",
+      "description": "Spaced-repetition drills for kana.",
       "languages": {
         "Python": 19700,
         "Jupyter Notebook": 52000
       }
     },
     {
+      "name": "first-site",
+      "createdAt": "2019-11-30T19:29:13Z",
       "languages": {
         "CSS": 9800,
         "HTML": 6400
       }
     },
     {
+      "name": "type-utils",
+      "createdAt": "2026-05-21T04:58:26Z",
+      "description": "Small TypeScript helpers.",
       "languages": {
         "TypeScript": 15200
       }
     },
     {
+      "name": "advent-of-code",
+      "createdAt": "2019-12-01T05:00:42Z",
       "languages": {
         "Ruby": 7300
       }
     },
     {
+      "name": "some-framework",
+      "createdAt": "2022-01-10T11:11:11Z",
       "languages": {
         "JavaScript": 912000,
         "TypeScript": 210000
@@ -104,11 +140,24 @@
       "fork": true
     },
     {
+      "name": "client-app",
+      "createdAt": "2024-03-01T09:00:00Z",
       "languages": {
         "Kotlin": 401000,
         "Java": 88000
       },
       "private": true
+    },
+    {
+      "name": "sam-sample",
+      "createdAt": "2020-01-05T10:00:00Z",
+      "description": "About me.",
+      "languages": {}
+    },
+    {
+      "name": "scratch",
+      "createdAt": "2022-08-08T08:08:08Z",
+      "languages": {}
     }
   ]
 }

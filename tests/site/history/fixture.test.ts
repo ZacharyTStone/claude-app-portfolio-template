@@ -14,9 +14,9 @@ const fixture: Fixture = {
   days: { 2022: `${"0".repeat(363)}2a`, 2023: "13z" },
   restricted: { 2023: 4 },
   repos: [
-    { languages: { TypeScript: 100 } },
-    { languages: { Kotlin: 50 }, private: true },
-    { languages: { JavaScript: 900 }, fork: true },
+    { name: "kept", createdAt: "2023-01-02T03:04:05Z", description: "Kept.", languages: { TypeScript: 100 } },
+    { name: "secret", createdAt: "2023-01-02T03:04:05Z", languages: { Kotlin: 50 }, private: true },
+    { name: "forked", createdAt: "2023-01-02T03:04:05Z", languages: { JavaScript: 900 }, fork: true },
   ],
 };
 
@@ -43,7 +43,13 @@ test("the overview has the account's age and its years, and only the repos GitHu
   assert.equal(data.user.createdAt, fixture.createdAt);
   assert.deepEqual(data.user.contributionsCollection.contributionYears, [2023, 2022]);
   assert.deepEqual(data.user.repositories.nodes, [
-    { languages: { edges: [{ size: 100, node: { name: "TypeScript" } }] } },
+    {
+      name: "kept",
+      url: "https://github.com/sam-sample/kept",
+      createdAt: "2023-01-02T03:04:05Z",
+      description: "Kept.",
+      languages: { edges: [{ size: 100, node: { name: "TypeScript" } }] },
+    },
   ]);
 });
 

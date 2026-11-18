@@ -113,6 +113,10 @@ export const DATA = {
       (a GitHubPart: "stats", "calendar", "languages" or "rhythm"). Each
       has DATA.fetched too. */
   githubPart: "data-github",
+  /** On a number in a part of the GitHub history: the count it writes, as
+      a plain number ("4812" for "4,812"). As the part comes in, the script
+      counts up to it over the number's own animation (src/app/count-up.ts). */
+  count: "data-count",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

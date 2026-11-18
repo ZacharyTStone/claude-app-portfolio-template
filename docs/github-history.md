@@ -2,8 +2,9 @@
 
 With `githubHistory` in `site.config.ts`, the build fetches your whole
 history of contributions on GitHub, and an answer can show it in four
-parts: the totals, a calendar of every week, the languages you write in,
-and the days of the week you work on. Each part is a block of its own,
+parts: the totals, a calendar of every week (with your public repos along
+it, if you like), the languages you write in, and the days of the week
+you work on. Each part is a block of its own,
 which you place where it fits the conversation: the calendar under "what
 have you been building?", the languages under your stack. Unlike the
 panel's quiet [activity](activity.md), it shows numbers, so
@@ -22,7 +23,8 @@ last build. On Cloudflare a build each day keeps it a day old at most
 2. In `site.config.ts`, add your GitHub user name, as your profile's
    address has it (`https://github.com/alex-example` is `alex-example`),
    and, if you like, the moments to mark on the calendar
-   ([Marks](#marks)):
+   ([Marks](#marks)) and your public repos along it
+   ([Your public repos](#your-public-repos)):
 
    ```ts
    githubHistory: {
@@ -31,6 +33,7 @@ last build. On Cloudflare a build each day keeps it a day old at most
        { at: "2022-04", label: "Rapptr Labs" },
        { at: "2025-01", label: "Sellfire" },
      ],
+     repos: { hide: ["dotfiles"] },
    },
    ```
 
@@ -62,7 +65,8 @@ names, as a link to a thread that isn't there is.
 ## The parts
 
 **`{ github: "stats" }`**: a row of tiles, each a label over a number set
-large in the serif. Every contribution GitHub counts; the year the
+large in the serif, rising in turn as they're scrolled to, each count
+climbing to its number. Every contribution GitHub counts; the year the
 history starts; the longest streak, the most days in a row with a
 contribution on each, with its first day and its last; and the busiest
 day, its count and its date. When GitHub counts private work, a note
@@ -84,20 +88,30 @@ right, and your marks sit at their weeks. A key, "Less" to "More", is under it. 
 cells shrink to fit a phone, and narrow to slivers there, so the page
 never scrolls sideways. Hovering a week shows its days and its count.
 
-Scrolled to, the calendar's rows come in one after another, each swept
-in from the left, and each year's total once its row has. Without
-JavaScript, or for a visitor who has asked for less motion, it's simply
-there, whole, as it is printed.
+With `repos`, each of your public repos is a dot under the week you made
+it, and its name, a link to it, is under its year's row
+([Your public repos](#your-public-repos)).
+
+Scrolled to, the calendar plays your history: a row at a time, oldest
+first, a line crosses the year and its weeks pop in as it passes, a
+mark's name at its week, a repo's dot dropping in under its week, and the
+year's total climbing to its number as it goes. The year's repos' names
+come in once the line has passed, and when the last row has played, the
+latest week glows, as now. Pointing at a week makes it larger, and its
+title says its days and its count; pointing at a repo's name or its dot
+lights both. Without JavaScript, or for a visitor who has asked for less
+motion, it's simply there, whole, as it is printed.
 
 **`{ github: "languages" }`**: the share of the code in each language
 across your own public repos, as the site's other bars are drawn: the
 five you write most, the first in the accent, and the rest together as
-"Other".
+"Other". The bars grow as they're scrolled to, rather than as the tab
+opens, since the part is often far down an answer.
 
 **`{ github: "rhythm" }`**: the share of your contributions made on each
 day of the week, a bar a day, in the order the page's language has its
 week (from Sunday in English and Japanese, from Monday in French), with
-the busiest in the accent.
+the busiest in the accent, rising as it's scrolled to.
 
 ## What it shows, and what it doesn't
 
@@ -133,6 +147,35 @@ say so in your answer's words if it matters.
 - **Nothing is a ranking**: no followers, no stars, no comparison with
   anyone.
 
+## Your public repos
+
+With `repos` in `githubHistory`, the calendar shows your public repos
+along it: each a ring under the week you made it, and under its year's
+row, the names of the year's repos, oldest first, each a link to the repo
+on GitHub. A week with several has its rings one under another, three
+at most; the rest have their names alone. A repo's description, if it
+has one, is its name's title, shown as it's pointed at.
+
+```ts
+repos: true,                   // every one
+repos: { hide: ["dotfiles"] }, // all but these, named as GitHub has them, in any case
+```
+
+The repos are your own that are public and aren't forks, as for the
+languages, and only those with code in them: an empty repo, or one of
+Markdown alone, has none. Your profile's README repo, named as you are
+(`alex-example/alex-example`), is left out. So is a repo made in a year
+before your first contribution, which the calendar has no row for. Hide
+the rest you'd rather leave off: an experiment, a test, a copy of a
+tutorial.
+
+A name `hide` has that's none of your repos (a typo, or a repo since
+renamed, made private or deleted) hides nothing, and the build says so,
+but goes on: a repo renamed on GitHub shouldn't stop the next day's
+build. A page in any language but English states the two words the
+repos need, `historyRepos` and `historyReposIn`, in its `strings`
+(`examples/ja.ts` has them in Japanese).
+
 ## Marks
 
 A mark names a moment on the calendar: where a job or a project began.
@@ -165,7 +208,8 @@ Before it makes any page, the build asks GitHub's GraphQL API
   (`contributionsCollection { contributionYears }`), and the languages of
   their own public repos that aren't forks
   (`repositories(ownerAffiliations: OWNER, privacy: PUBLIC, isFork: false)`),
-  each repo's ten largest by size, a hundred repos a page;
+  each repo's ten largest by size, with each repo's name, address, day
+  made and description, a hundred repos a page;
 - each year's calendar, from the first year with a contribution to the
   last: a `contributionsCollection` per year, from January 1 to the
   year's last second (or to the moment of the build, this year), since
@@ -179,8 +223,11 @@ GitHub couldn't finish) is tried once more, two seconds later. What
 comes back is checked before any of it is kept (`valibot`, in
 `src/site/history/graphql.ts`), and only what the parts draw is kept:
 each day's count, each year's total and private count, the account's
-first day, and each language's size. Nothing else of your repos is
-read: not their names, nor what's in them.
+first day, each language's size, and of each public repo with code in
+it, its name, its address, the day it was made and its description, cut
+to 200 characters. Nothing else of your repos is read: not what's in
+them. The repos are fetched with or without `repos`, but drawn only
+with it.
 
 ## A token
 
@@ -281,7 +328,9 @@ No test reaches GitHub. Every build the tests make
 `GITHUB_HISTORY_FIXTURE` to `tests/sample/github-history.json`, a
 made-up history of the sample's user: a quiet start in 2019, growth, a
 new job marked in 2021 and another in 2024, weekday work with quiet
-weekends, a few long runs, private work counted from 2024. The build asks
+weekends, a few long runs, private work counted from 2024, and repos
+named and dated across the years: one the sample hides, one empty, its
+profile's README repo, a fork and a private one. The build asks
 it in place of GitHub (`src/site/history/fixture.ts`), saying so as it
 starts, and needs no token for it. It answers for that user alone: any
 other name gets the error GitHub gives a name it doesn't have, and the

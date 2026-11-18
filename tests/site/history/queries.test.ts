@@ -93,6 +93,81 @@ test("the overview asks for the user's own public repos that aren't forks, each 
   assert.match(OVERVIEW_QUERY, /contributionsCollection \{ contributionYears \}/);
 });
 
+test("the overview asks for each repo's name, address, when it was made and what it says it is", () => {
+  assert.match(OVERVIEW_QUERY, /nodes \{\s+name url createdAt description\s/);
+});
+
+test("the repos kept are the user's own public ones with code in them, the oldest first: an empty one, the profile's README repo, a fork and a private one are left out", async () => {
+  const { repos } = await sampleHistory();
+  assert.deepEqual(
+    repos.map(({ name, madeOn }) => `${madeOn} ${name}`),
+    [
+      "2019-10-03 dotfiles",
+      "2019-11-30 first-site",
+      "2019-12-01 advent-of-code",
+      "2020-03-11 plot-weather",
+      "2020-08-17 kana-drills",
+      "2021-02-20 queue-runner",
+      "2021-09-25 habit-grid",
+      "2022-05-14 trail-notes",
+      "2023-07-02 recipe-box",
+      "2023-11-19 tiny-raytracer",
+      "2024-04-06 linkcheck",
+      "2025-03-08 portfolio",
+      "2026-05-21 type-utils",
+    ],
+  );
+  assert.deepEqual(repos.at(-1), {
+    name: "type-utils",
+    url: "https://github.com/sam-sample/type-utils",
+    madeOn: "2026-05-21",
+    description: "Small TypeScript helpers.",
+  });
+  assert.ok(!("description" in (repos[0] ?? {})), "a repo that says nothing has no description");
+});
+
+/** An overview with one repo of code, named and described as `more` says. */
+const withARepo = (more: Record<string, unknown>) =>
+  Response.json({
+    data: {
+      user: {
+        createdAt: "2026-11-01T00:00:00Z",
+        contributionsCollection: { contributionYears: [] },
+        repositories: {
+          pageInfo: { hasNextPage: false, endCursor: null },
+          nodes: [
+            {
+              name: "notes",
+              url: "https://github.com/sam-sample/notes",
+              createdAt: "2026-11-02T00:00:00Z",
+              description: null,
+              languages: { edges: [{ size: 10, node: { name: "Go" } }] },
+              ...more,
+            },
+          ],
+        },
+      },
+    },
+  });
+
+test("a repo's description is kept to 200 characters, and one of spaces alone is none", async () => {
+  const long = await historyOf(gitHubAnswering(withARepo({ description: `  ${"a".repeat(300)}` })).fetch);
+  assert.equal(long.repos[0]?.description, "a".repeat(200));
+  const blank = await historyOf(gitHubAnswering(withARepo({ description: "   " })).fetch);
+  assert.deepEqual(blank.repos[0], { name: "notes", url: "https://github.com/sam-sample/notes", madeOn: "2026-11-02" });
+});
+
+test("the profile's README repo is left out by its name, in any case, even with code in it", async () => {
+  const { repos } = await historyOf(gitHubAnswering(withARepo({ name: "Sam-Sample" })).fetch);
+  assert.deepEqual(repos, []);
+});
+
+test("a repo whose address isn't on GitHub stops the build, as anything GitHub wouldn't send does", async () => {
+  await assert.rejects(historyOf(gitHubAnswering(withARepo({ url: "https://example.com/notes" })).fetch), {
+    message: /url/,
+  });
+});
+
 test("the repos are read a page at a time, by GitHub's cursor, to the same languages", async () => {
   const { fetch, asked } = gitHubAnswering();
   const { languages } = await historyOf(fetch, { perPage: 5 });
@@ -138,13 +213,14 @@ const NOTHING_YET = Response.json({
   },
 });
 
-test("a user with no contributions yet has no years and no languages, as of the day the build asks", async () => {
+test("a user with no contributions yet has no years, no languages and no repos, as of the day the build asks", async () => {
   const { fetch, asked } = gitHubAnswering(NOTHING_YET);
   assert.deepEqual(await historyOf(fetch), {
     createdAt: "2026-11-01T00:00:00Z",
     asOf: "2026-11-18",
     years: [],
     languages: [],
+    repos: [],
   });
   assert.equal(asked.length, 1);
 });

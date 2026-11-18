@@ -87,14 +87,17 @@ export default {
   // { github: "stats" }, "calendar", "languages" and "rhythm" (the Skills
   // tab has one, commented out). The build fetches it from GitHub's GraphQL
   // API, which needs a token in GITHUB_TOKEN, and stops if it can't. Your
-  // marks name moments on the calendar. Commented out for the same reason
-  // as `writing`. docs/github-history.md has it all.
+  // marks name moments on the calendar, and `repos` puts your public repos
+  // on it, each a dot at the week you made it and its name as a link.
+  // Commented out for the same reason as `writing`.
+  // docs/github-history.md has it all.
   // githubHistory: {
   //   user: "your-github-name",
   //   marks: [
   //     { at: "2021-06", label: globex.company },
   //     { at: "2024-01", label: acme.company },
   //   ],
+  //   repos: true,
   // },
   llms: {
     summary: `Portfolio of ${me.name}, a software engineer in ${me.place} who builds web apps with TypeScript, React and Node.js.`,

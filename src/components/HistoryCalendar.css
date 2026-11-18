@@ -1,7 +1,8 @@
 /* A row a year: the year, a strip of 52 weeks that takes the room between, and the year's total. The cells
    shrink with the figure, so the strip fits a phone without the page scrolling. A row with a mark has room
-   above its strip for the mark's name. The cells are backgrounds, which a browser leaves out of a printed
-   page unless it's told to keep them. */
+   above its strip for the mark's name; one with repos, under it, a line or two of their names, below room
+   for the dots under their weeks (as many dots deep as its busiest week has, to three). The cells are
+   backgrounds, which a browser leaves out of a printed page unless it's told to keep them. */
 .history-calendar {
   display: grid;
   gap: 12px;
@@ -31,7 +32,9 @@
   color: var(--text-2);
   font: 400 11.5px/12px var(--mono);
 }
+/* The strip holds the line that crosses it as its row plays (src/styles/motion.css). */
 .history-strip {
+  position: relative;
   display: grid;
   grid-template-columns: repeat(52, minmax(0, 1fr));
   gap: 3px;
@@ -46,8 +49,35 @@
 .history-marked :is(dt, .history-strip, .history-total) {
   padding-top: 17px;
 }
+.history-calendar .history-repos {
+  grid-column: 2 / -1;
+  padding-top: 8px;
+}
+.history-pinned-2 .history-repos {
+  padding-top: 18px;
+}
+.history-pinned-3 .history-repos {
+  padding-top: 28px;
+}
+.history-repos ul {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 12px;
+  margin: 0 0 10px;
+  padding: 0;
+  list-style: none;
+}
+.history-repos a {
+  color: var(--text-2);
+  font: 400 11.5px/16px var(--mono);
+}
+.history-repos a.lit {
+  color: var(--text);
+  text-decoration-color: var(--accent);
+}
 .history-key {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: flex-end;
   gap: 6px;
@@ -63,11 +93,32 @@
   width: 10px;
   height: 10px;
 }
+/* The key's dot for a repo, at the left, as the strip's are drawn. */
+.history-key-repos {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: auto;
+}
+.history-key .history-key-repos i {
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+}
 @container (max-width: 519px) {
   .history-calendar dl {
     gap: 4px 8px;
   }
   .history-strip {
     gap: 1px;
+  }
+  .history-repos ul {
+    gap: 1px 9px;
+  }
+  .history-repos a {
+    font-size: 11px;
+    line-height: 15px;
   }
 }

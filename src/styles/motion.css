@@ -69,12 +69,12 @@
       background-position: 0 0;
     }
   }
-  .tab:is(.open, :target) .bars .bar {
+  .tab:is(.open, :target) .bars:not([data-github]) .bar {
     transform-box: fill-box;
     transform-origin: 0 50%;
     animation: grow 0.7s 0.25s var(--ease) both;
   }
-  .tab:is(.open, :target) .bars text {
+  .tab:is(.open, :target) .bars:not([data-github]) text {
     animation: show 0.3s 0.8s var(--ease) both;
   }
   @keyframes grow {
@@ -87,14 +87,14 @@
       opacity: 0;
     }
   }
-  /* The history's rhythm grows from its baseline as its tab opens, as bars grow from theirs. */
-  .tab:is(.open, :target) .history-rhythm .bar {
+  /* The history's rhythm grows from its baseline once it's scrolled to, as the languages' bars do. */
+  .history-rhythm.seen .bar {
     transform-box: fill-box;
     transform-origin: 50% 100%;
-    animation: rise 0.6s 0.25s var(--ease) both;
+    animation: rise 0.6s calc(var(--wait, 0s) + 0.1s) var(--ease) both;
   }
-  .tab:is(.open, :target) .history-rhythm text {
-    animation: show 0.3s 0.7s var(--ease) both;
+  .history-rhythm.seen text {
+    animation: show 0.3s calc(var(--wait, 0s) + 0.6s) var(--ease) both;
   }
   @keyframes rise {
     from {
@@ -259,9 +259,57 @@
   .file-card.seen .file-card-line:nth-child(16) {
     --line: 15;
   }
-  /* The history's calendar, once it's scrolled to: each row's weeks sweep in from the left, one row after
-     another, and its total and its marks show once its sweep has passed. Past the twelfth row they come
-     together. */
+  /* A part of the GitHub history comes in once it's scrolled to (src/app/reveal-on-scroll.ts), and its
+     counts climb to their numbers over their own animation, tally (src/app/count-up.ts). */
+  [data-github].seen {
+    animation: show 0.3s var(--wait, 0s) var(--ease) both;
+  }
+  @keyframes tally {
+    from {
+      opacity: 0;
+    }
+    15% {
+      opacity: 1;
+    }
+  }
+  /* The stats: the tiles rise in turn, and each count climbs as its tile does. */
+  .history-stats.seen dl > div {
+    --tile: 0;
+    animation: arrive 0.45s calc(var(--wait, 0s) + var(--tile) * 0.09s) var(--ease) both;
+  }
+  .history-stats.seen dl > :nth-child(2) {
+    --tile: 1;
+  }
+  .history-stats.seen dl > :nth-child(3) {
+    --tile: 2;
+  }
+  .history-stats.seen dl > :nth-child(n + 4) {
+    --tile: 3;
+  }
+  .history-stats.seen [data-count] {
+    animation: tally 1.3s calc(var(--wait, 0s) + var(--tile) * 0.09s + 0.1s) linear both;
+  }
+  /* The languages and the rhythm grow from their baselines once they're scrolled to; other bars, as their
+     tab opens. */
+  .bars.seen .bar {
+    transform-box: fill-box;
+    transform-origin: 0 50%;
+    animation: grow 0.8s calc(var(--wait, 0s) + 0.1s) var(--ease) both;
+  }
+  .bars.seen text {
+    animation: show 0.3s calc(var(--wait, 0s) + 0.7s) var(--ease) both;
+  }
+  .bars.seen .accent .bar {
+    animation-duration: 1s;
+  }
+  /* The calendar plays its years, one row after another, each in --row-takes: a line crosses the row, and
+     its weeks pop in as it passes, four weeks at a time, the dots of the repos made in them dropping in
+     under them; the row's total climbs as it goes, and its repos' names come in once it has passed. Past the
+     twelfth row they come together. Then the latest week, the history's now, glows. */
+  .history-calendar.seen {
+    --row-takes: 0.55s;
+    --weeks-take: calc(var(--row-takes) / 13);
+  }
   .history-calendar.seen dl > * {
     --row: 11;
   }
@@ -301,18 +349,132 @@
   .history-calendar.seen dl > :nth-child(12) {
     --row: 11;
   }
-  .history-calendar.seen .history-strip {
-    animation: sweep 0.8s calc(var(--wait, 0s) + var(--row) * 0.09s) var(--ease) both;
+  .history-calendar.seen .history-strip::after {
+    content: "";
+    position: absolute;
+    top: -3px;
+    bottom: -3px;
+    left: 0;
+    width: 2px;
+    border-radius: 1px;
+    background: var(--accent);
+    box-shadow: 0 0 10px 1px color-mix(in srgb, var(--accent) 70%, transparent);
+    pointer-events: none;
+    animation: cross var(--row-takes) calc(var(--wait, 0s) + var(--row) * var(--row-takes)) linear both;
   }
-  .history-calendar.seen .history-total,
-  .history-calendar.seen .history-mark b,
-  .history-calendar.seen .history-mark::before {
-    animation: show 0.3s calc(var(--wait, 0s) + var(--row) * 0.09s + 0.55s) var(--ease) both;
-  }
-  @keyframes sweep {
+  @keyframes cross {
     from {
-      clip-path: inset(0 100% 0 0);
+      left: 0;
+      opacity: 0;
     }
+    10%,
+    85% {
+      opacity: 1;
+    }
+    to {
+      left: 100%;
+      opacity: 0;
+    }
+  }
+  /* A week's place in its row, four weeks at a time: when the line passes it. */
+  .history-calendar.seen .history-strip > * {
+    --weeks: 0;
+    --passed: calc(var(--wait, 0s) + var(--row) * var(--row-takes) + var(--weeks) * var(--weeks-take));
+    animation: week-in 0.45s var(--passed) var(--ease) both;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 5) {
+    --weeks: 1;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 9) {
+    --weeks: 2;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 13) {
+    --weeks: 3;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 17) {
+    --weeks: 4;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 21) {
+    --weeks: 5;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 25) {
+    --weeks: 6;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 29) {
+    --weeks: 7;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 33) {
+    --weeks: 8;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 37) {
+    --weeks: 9;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 41) {
+    --weeks: 10;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 45) {
+    --weeks: 11;
+  }
+  .history-calendar.seen .history-strip > :nth-child(n + 49) {
+    --weeks: 12;
+  }
+  @keyframes week-in {
+    from {
+      opacity: 0;
+      scale: 0.2;
+    }
+    55% {
+      opacity: 1;
+      scale: 1.4;
+    }
+  }
+  .history-calendar.seen .history-pins a {
+    animation: drop-in 0.5s calc(var(--passed) + 0.12s) var(--ease) both;
+  }
+  @keyframes drop-in {
+    from {
+      opacity: 0;
+      translate: 0 -10px;
+    }
+    60% {
+      opacity: 1;
+      translate: 0 2px;
+      scale: 1.3;
+    }
+  }
+  .history-calendar.seen .history-mark b {
+    animation: arrive 0.35s calc(var(--passed) + 0.1s) var(--ease) both;
+  }
+  .history-calendar.seen .history-total {
+    animation: tally var(--row-takes) calc(var(--wait, 0s) + var(--row) * var(--row-takes)) linear both;
+  }
+  .history-calendar.seen figcaption b {
+    animation: tally 1.3s calc(var(--wait, 0s) + 0.1s) linear both;
+  }
+  .history-calendar.seen .history-repos li {
+    animation: arrive 0.35s calc(var(--wait, 0s) + (var(--row) + 0.8) * var(--row-takes)) var(--ease) both;
+  }
+  .history-calendar.seen .history-now {
+    animation:
+      week-in 0.45s var(--passed) var(--ease) both,
+      now 2.4s calc(var(--passed) + 0.5s) ease-in-out infinite;
+  }
+  @keyframes now {
+    50% {
+      box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 35%, transparent);
+    }
+  }
+  .history-calendar.seen .history-key {
+    animation: show 0.4s calc(var(--wait, 0s) + 0.3s) var(--ease) both;
+  }
+  /* Pointed at, a week grows, to read beside its neighbours; its days and count are its title. One with a
+     mark or a repo's dot keeps its size, so that they stay where they are. */
+  .history-strip > i {
+    transition: transform 0.15s var(--ease);
+  }
+  .history-strip > i:hover:not(.history-mark, :has(a)) {
+    z-index: 1;
+    transform: scale(1.6);
   }
   .live {
     animation: live 2.6s ease-in-out infinite;

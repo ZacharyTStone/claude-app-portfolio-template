@@ -7,8 +7,10 @@ import { initAccountMenu } from "./account-menu.ts";
 import { followAddress, keepOwnAddress } from "./address.ts";
 import { initCard, wireComposer } from "./question-card/card.ts";
 import { initContactForm } from "./contact-form.ts";
+import { initCountUp } from "./count-up.ts";
 import { dropEmptyChat, forgetChats, initChats, restoreChats } from "./conversation/chats.ts";
 import { foldable } from "./folding.ts";
+import { initHistoryRepos } from "./history-repos.ts";
 import { focusHome, greet, initHome } from "./home.ts";
 import { finishOpening, goHome, openNewChat, startOnPhone } from "./navigation.ts";
 import { askedTab, root, sidebar } from "./page.ts";
@@ -70,6 +72,8 @@ function startFeatures(tabPattern: HTMLElement): void {
   initHome();
   initViewer();
   initRevealOnScroll();
+  initCountUp();
+  initHistoryRepos();
   initPlay();
   initPanel();
   // Before the address is followed: it may name one of the form's notes,

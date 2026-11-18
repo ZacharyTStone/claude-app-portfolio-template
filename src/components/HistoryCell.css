@@ -42,6 +42,32 @@
   right: calc(100% + 4px);
   left: auto;
 }
+/* Under a week, a dot for each repo made in it, one under another, each a link to the repo: a ring, filled
+   while it or the repo's name is pointed at. Past three in a week the rest have no dot, only their names. */
+.history-pins {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 50%;
+  display: grid;
+  gap: 3px;
+  translate: -50% 0;
+}
+.history-pins a {
+  display: block;
+  box-sizing: border-box;
+  width: 7px;
+  height: 7px;
+  border: 1.5px solid var(--accent);
+  border-radius: 50%;
+  background: var(--page);
+}
+.history-pins a:nth-child(n + 4) {
+  display: none;
+}
+.history-pins a:is(:hover, .lit) {
+  background: var(--accent);
+  scale: 1.4;
+}
 /* Narrow, a week is a sliver: taller than it's wide, so that a year still reads as a band. */
 @container (max-width: 519px) {
   .history-strip i {

@@ -13,6 +13,19 @@ export type GitHubHistory = {
       its name beside it: where a job or a project began. One or two a
       year read best. */
   marks?: HistoryMark[];
+  /** Your public repos on the calendar: each a dot under the week you
+      made it, and under its year's row, its name as a link to it. Only
+      your own that aren't forks and have code in them; your profile's
+      README repo (named as you are) is left out. `true` shows them all,
+      `{ hide: ["dotfiles"] }` all but those it names. */
+  repos?: true | HiddenRepos;
+};
+
+/** { hide: ["dotfiles"] }. */
+type HiddenRepos = {
+  /** The repos to leave off the calendar, by their names on GitHub, in
+      any case: "dotfiles". */
+  hide: string[];
 };
 
 /** { at: "2022-04", label: "Rapptr Labs" }. */
