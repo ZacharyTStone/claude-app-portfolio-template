@@ -212,3 +212,7 @@ name"` one test, `--project=site` one site. `--ui` or `--debug` lets you
   `{ reducedMotion: "reduce" }` in a `describe`.
 - **What the page works out without the page belongs in a unit test** in
   `tests/app/`. The browser test says the page shows it.
+- **A new kind of page gets a line in the accessibility check**,
+  `tests/browser/accessibility.spec.ts`, which runs axe-core (WCAG 2.0 and
+  2.1, A and AA) on each kind, with the script and without, wide and on a
+  phone. What it finds is fixed in the page, not by turning a rule off.

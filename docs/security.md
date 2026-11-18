@@ -138,6 +138,32 @@ With it on:
 - **Nothing a visitor sent is logged**: not their address, their email or
   the message, only what came of it.
 
+## security.txt
+
+Every build writes `/.well-known/security.txt`
+([RFC 9116](https://www.rfc-editor.org/rfc/rfc9116)), which tells someone
+who finds a security problem with the site where to report it:
+
+- `Contact`: your `links.email`, the address the site gives for everything
+  else, so the file says nothing the pages don't. There's no setting for
+  it: a report about your site goes to you. A problem in the shared code
+  is the template's, and its security policy says where that goes.
+- `Expires`: 364 days after the build. RFC 9116 asks for less than a year,
+  so that a file nobody keeps up says it's out of date. Each build writes
+  it again: every push, and on a site with a Writing tab
+  [the daily rebuild](writing.md#a-rebuild-each-day). A site that goes a
+  year without a build has a file past its date, which a reader is to
+  treat as stale.
+- `Preferred-Languages`: the site's languages, the main one first.
+- `Canonical`: its own address. On a site served under a path, the file
+  is under that path too
+  (`https://you.github.io/portfolio/.well-known/security.txt`), where no
+  one looks: RFC 9116 reads only the one at the host's root.
+
+Its folder's name starts with a dot, and some deploys leave such a folder
+out: GitHub Pages' upload does unless told not to
+([Deploying](deploy.md#github-pages)).
+
 ## The code
 
 - `npm run verify` runs on each pull request

@@ -13,6 +13,8 @@
     "playwright.config.ts",
     "examples",
     "src/pages",
+    // A folder whose name starts with a dot is left out of "src/pages" unless named.
+    "src/pages/.well-known/*.ts",
     "src/layouts",
     "src/components",
     "src/site",
