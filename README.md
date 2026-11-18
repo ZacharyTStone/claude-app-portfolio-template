@@ -98,6 +98,7 @@ your config, README, pictures, diagrams or `src/styles/site.css`:
 | put it online, on Cloudflare or any static host | [Deploying](docs/deploy.md) |
 | add a language, or cut the Japanese fonts | [Languages and fonts](docs/languages.md) |
 | draw a diagram that moves | [Diagrams](docs/diagrams.md) |
+| show your whole GitHub history in an answer: its stats, every week, its languages | [GitHub history](docs/github-history.md) |
 | let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
 | let visitors email you from the site | [The contact form](docs/contact-form.md) |
 | list your posts on Qiita in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
