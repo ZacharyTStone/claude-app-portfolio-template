@@ -110,7 +110,8 @@ for (const { file, url } of sample.languagePages) {
   test(`${file} has the contact form in its thread, posting to /contact under the site's path, and back to its tab's page`, () => {
     const tabId = sampleConfig.contactForm?.tab ?? "";
     const tab = tabIn(sample.read(file), tabId);
-    const opening = `<form class="${PAGE_CLASSES.contactForm}" action="${sampleSite.link(CONTACT_PATH)}" method="post">`;
+    const action = sampleSite.link(CONTACT_PATH);
+    const opening = `<form class="${PAGE_CLASSES.contactForm}" action="${action}" ${DATA.contactReceiver}="worker" method="post">`;
     assert.ok(tab.includes(opening), "the form, in its thread");
     const backTo = tabPagePath(url.pathname, tabId);
     assert.ok(tab.includes(`name="${CONTACT_FIELDS.page}" value="${backTo}"`), "the page to come back to");

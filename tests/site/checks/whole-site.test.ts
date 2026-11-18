@@ -243,13 +243,30 @@ for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
       `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove ask, or set host to "cloudflare"`,
     ]);
   });
+}
 
+test("the contact form runs where Cloudflare's Worker or Netlify Forms takes its messages", () => {
+  for (const host of [undefined, "cloudflare", "netlify"] as const) {
+    assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [], host);
+  }
+});
+
+for (const host of HOSTS.filter((other) => other !== "cloudflare" && other !== "netlify")) {
   test(`the contact form doesn't run on the host "${host}"`, () => {
     assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [
-      `contactForm needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "${host}": remove contactForm, or set host to "cloudflare"`,
+      `contactForm needs Cloudflare Workers (its Worker, src/worker) or Netlify Forms to take its messages, but host is "${host}": remove contactForm, or set host to "cloudflare" or "netlify"`,
     ]);
   });
 }
+
+test("on Netlify, the contact form needs no Worker, and Ask still does", () => {
+  assert.deepEqual(
+    problemsIn(sampleConfig({ ask: { role: "an engineer" }, contactForm: { tab: "about" }, host: "netlify" })),
+    [
+      `ask needs Cloudflare Workers, where its Worker (src/worker) runs, but host is "netlify": remove ask, or set host to "cloudflare"`,
+    ],
+  );
+});
 
 test("the contact form goes under a thread the site has", () => {
   assert.deepEqual(problemsIn(sampleConfig({ contactForm: { tab: "work" } })), []);

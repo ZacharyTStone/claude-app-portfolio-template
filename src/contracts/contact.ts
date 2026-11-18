@@ -2,7 +2,9 @@
    /contact as any form does, and the Worker emails them to the site's
    owner. With JavaScript the page sends the same fields and asks for JSON
    back (a ContactReply); without it, the Worker sends the visitor back to
-   the page, at the note that says how it went (CONTACT_NOTE_IDS). */
+   the page, at the note that says how it went (CONTACT_NOTE_IDS). On a site
+   Netlify serves, Netlify Forms takes them instead, at the form's own tab's
+   page, and answers with that page. */
 
 import { isRecord } from "./guards.ts";
 import { PAGE_IDS } from "./page-ids.ts";
@@ -26,6 +28,22 @@ export const MAX_MESSAGE_LENGTH = 2000;
     message in any script, percent-encoded as a form sends it (9 bytes for
     a character of Japanese), and the rest of the fields. */
 export const MAX_CONTACT_BYTES = 24 * 1024;
+
+/** Who takes the form's messages, which the form says (DATA.contactReceiver)
+    so the page's script knows how it's answered: the site's Worker, at
+    /contact, with a ContactReply; or Netlify Forms, with a page, so that
+    any 2xx says it went (src/site/contact-form.ts has which, by host). */
+export const CONTACT_RECEIVERS = ["worker", "netlify"] as const;
+
+export type ContactReceiver = (typeof CONTACT_RECEIVERS)[number];
+
+/** The field Netlify reads the form's name from, which says which form a
+    message is for. */
+export const NETLIFY_FORM_NAME_FIELD = "form-name";
+
+/** What a language's form is called in Netlify ("contact-en"): one form
+    for each language's pages, each sending visitors back to its own. */
+export const netlifyFormName = (code: string): string => `contact-${code}`;
 
 /** What the page asks for, in Accept, to be answered with a ContactReply
     instead of being sent back to the page. */
