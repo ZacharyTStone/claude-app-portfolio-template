@@ -1,0 +1,13 @@
+{
+  "qiita": {
+    "user": "sam-sample",
+    "posts": []
+  },
+  "zenn": {
+    "user": "sam_sample",
+    "posts": []
+  },
+  "feeds": {
+    "https://note.com/sam_sample/rss": "feeds/note-no-posts.xml"
+  }
+}

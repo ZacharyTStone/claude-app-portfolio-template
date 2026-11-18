@@ -12,6 +12,7 @@ import { linksOfTheSite } from "../context-links.ts";
 import { tabLinkPath, tabPath, tabsWithPages } from "../pages.ts";
 import type { Site } from "../site.ts";
 import { dayPosted, type Post } from "../writing/post.ts";
+import { comeFromPlaces } from "../writing/tab.ts";
 import type { Repo } from "../activity/github.ts";
 
 /** Between two paragraphs or headings, as in Markdown. */
@@ -45,11 +46,14 @@ export function llmsTxt(site: Site): string {
 }
 
 /** "- [A post's title](https://qiita.com/…): 2026-10-01 · TypeScript, Astro",
-    for each post in the Writing tab, newest first. */
+    for each post in the Writing tab, newest first, with where it was posted
+    ("2026-10-01 · Zenn · …") where the tab has posts from more than one
+    place, as its cards do. */
 const postList = (posts: Post[]): string =>
   posts
     .map((post) => {
-      const about = [dayPosted(post), post.tags.join(", ")].filter(Boolean).join(" · ");
+      const place = comeFromPlaces(posts) ? post.place : "";
+      const about = [dayPosted(post), place, post.tags.join(", ")].filter(Boolean).join(" · ");
       return `- [${post.title.replace(/[[\]]/g, "\\$&")}](${post.url}): ${about}`;
     })
     .join("\n");

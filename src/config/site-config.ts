@@ -69,11 +69,11 @@ export type SiteConfig = {
       Each language then needs strings.viewerOpen and strings.viewerClose.
       Leave out for no viewer. */
   viewer?: Record<string, string>;
-  /** A Writing tab, listing your posts elsewhere: { qiita: "alex-example" }.
+  /** A Writing tab, listing your posts on Qiita, Zenn, DEV, note, Medium,
+      Substack, Hatena Blog or any blog's feed: { qiita: "alex-example" }.
       The build fetches them, and stops if it can't, so a new post shows
       once the site is built again (docs/writing.md). Each language then
-      needs the writing* strings (English has them). With viewer: true, a
-      post opens in the site's viewer. Leave out for none. */
+      needs the writing* strings (English has them). Leave out for none. */
   writing?: Writing;
   /** Your recent public activity, in a section of the details panel: the
       public repos you pushed to most recently, each with the day:

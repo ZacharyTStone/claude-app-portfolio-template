@@ -9,7 +9,7 @@ export const SITEMAP_FILE = "sitemap.xml";
 
 /** Safe as XML's content or inside a double-quoted attribute. The & goes
     first, or it would rewrite the entities the others make. */
-const xmlSafe = (text: string): string =>
+export const xmlSafe = (text: string): string =>
   text.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;").replaceAll('"', "&quot;");
 
 /** One page, with a link to each of its versions by language (hreflang),

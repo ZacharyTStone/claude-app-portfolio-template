@@ -17,18 +17,24 @@ import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { tabPagePath } from "../../src/contracts/tab-pages.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { HEADERS_FILE, headersFile, pagePolicy } from "../../src/site/files/headers-file.ts";
+import {
+  WRITING_FEED_TYPE,
+  writingFeedPath,
+  writingFeedTitle,
+  writingFeedXml,
+} from "../../src/site/files/writing-feed.ts";
 import { frameOrigins, REFERRER_POLICY } from "../../src/site/security-headers.ts";
 import { makeSite } from "../../src/site/site.ts";
 import { panelId } from "../../src/contracts/page-ids.ts";
 import { ACTIVITY_SECTION } from "../../src/config/activity.ts";
-import { WRITING_ICON, WRITING_PLACE, WRITING_TAB } from "../../src/config/writing.ts";
+import { WRITING_ICON, WRITING_TAB } from "../../src/config/writing.ts";
 import { ROOT } from "../../src/site/repo.ts";
 import { postPages } from "../../src/site/writing/post-pages.ts";
 import { dayPosted } from "../../src/site/writing/post.ts";
 import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
-import { SAMPLE_QIITA, SAMPLE_QIITA_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/qiita.ts";
+import { SAMPLE_WRITING, SAMPLE_WRITING_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/writing.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
@@ -45,7 +51,7 @@ test("the sample site builds", () => {
   assert.equal(built.status, 0, built.stderr || built.stdout);
 });
 
-test("the sample site has a home page for each of its two languages, a page for each of their tabs, a page for each post, and a 404 page", () => {
+test("the sample site has a home page for each of its two languages, a page for each of their tabs, a page for each Qiita post, and a 404 page", () => {
   const tabPages = ["about/index.html", "work/index.html", "writing/index.html", "personal-fun/index.html"];
   assert.deepEqual(
     sample.pages.map(({ file }) => [file, sample.hasFile(file)]),
@@ -54,7 +60,7 @@ test("the sample site has a home page for each of its two languages, a page for 
       ["fr/index.html", true],
       ...tabPages.map((file) => [file, true]),
       ...tabPages.map((file) => [`fr/${file}`, true]),
-      ...posts.map((post) => [`writing/${post.id}/index.html`, true]),
+      ...posts.flatMap((post) => (post.body === undefined ? [] : [[`writing/${post.id}/index.html`, true]])),
       ["404.html", true],
     ],
   );
@@ -66,10 +72,10 @@ test("the sample's host reads a _headers file, so the build writes the site's he
   assert.equal(sample.read(HEADERS_FILE), headersFile(sampleSite));
 });
 
-test("the sample has a Writing tab, and the build says its posts are the tests' fixture, not Qiita's", () => {
+test("the sample has a Writing tab, and the build says its posts are the tests' fixture, not the places'", () => {
   assert.match(
     built.stdout,
-    new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_QIITA)}, not Qiita's`),
+    new RegExp(`the Writing tab's posts are the fixture ${escapeRegExp(SAMPLE_WRITING)}, not the places'`),
   );
 });
 
@@ -225,6 +231,17 @@ test("the policy a page carries lets frames come from the site itself, for its p
   assert.match(policy, new RegExp(`(^|; )frame-src 'self' ${frameOrigins(sampleConfig.viewer).join(" ")}(;|$)`));
 });
 
+/** With posts, the feed says it changed when the newest was posted, whenever it's built. */
+const FEED_BUILT_AT_ANY_TIME = new Date(0);
+
+test("the sample's Writing tab has its feed, and each language's home page points at it", () => {
+  assert.equal(sample.read(writingFeedPath(sampleSite).slice(1)), writingFeedXml(sampleSite, FEED_BUILT_AT_ANY_TIME));
+  const pointer = `<link rel="alternate" type="${WRITING_FEED_TYPE}" title="${writingFeedTitle(sampleSite)}" href="${sampleSite.fileUrl(writingFeedPath(sampleSite))}">`;
+  for (const { file } of sample.languagePages) {
+    assert.ok(sample.read(file).includes(pointer), file);
+  }
+});
+
 /** Each post's own page, as built. */
 const postPagesBuilt = postPages(sampleSite).map((page) => ({
   ...page,
@@ -232,7 +249,7 @@ const postPagesBuilt = postPages(sampleSite).map((page) => ({
   html: sample.read(`${page.path.slice(1)}index.html`),
 }));
 
-test("the sample's posts each have a page of the site's own, one in Japanese and one in the main language", () => {
+test("the sample's Qiita posts each have a page of the site's own, one in Japanese and one in the main language", () => {
   assert.deepEqual(
     postPagesBuilt.map(({ html }) => html.match(/<html lang="([^"]*)"/)?.[1]),
     postPagesBuilt.map(({ lang }) => lang),
@@ -241,18 +258,18 @@ test("the sample's posts each have a page of the site's own, one in Japanese and
 });
 
 for (const { post, file, html } of postPagesBuilt) {
-  test(`${file} is headed by the post's title, with the day it was posted and a link to it on ${WRITING_PLACE}`, () => {
+  test(`${file} is headed by the post's title, with the day it was posted and a link to it on ${post.place}`, () => {
     assert.ok(html.includes(`<h1>${post.title}</h1>`));
     assert.ok(html.includes(`<time datetime="${post.posted}">${dayPosted(post)}</time>`));
     assert.match(
       html,
       new RegExp(
-        `<a [^>]*href="${escapeRegExp(post.url)}" target="_blank" rel="noopener noreferrer">${WRITING_PLACE}</a>`,
+        `<a [^>]*href="${escapeRegExp(post.url)}" target="_blank" rel="noopener noreferrer">${post.place}</a>`,
       ),
     );
   });
 
-  test(`${file} names the post on ${WRITING_PLACE} as its canonical address, and is marked as made from what was fetched`, () => {
+  test(`${file} names the post on ${post.place} as its canonical address, and is marked as made from what was fetched`, () => {
     assert.ok(html.includes(`<link rel="canonical" href="${post.url}">`));
     assert.match(html, new RegExp(`<body ${DATA.fetched}>`));
   });
@@ -293,10 +310,10 @@ test("each post's page is valid HTML, as `npm run lint:html` holds a site's own 
   assert.equal(validated.status, 0, validated.stdout || validated.stderr);
 });
 
-/** The sample before its first post on Qiita (tests/sample/qiita-no-posts.json): it has no Writing tab, and
+/** The sample before its first post anywhere (tests/sample/writing-no-posts.json): it has no Writing tab, and
     nothing on the site points at the tab's page, which isn't there. */
 const NO_POSTS_BUILD_FOLDER = join(folder, "no-posts-dist");
-const builtWithNoPosts = buildSample(NO_POSTS_BUILD_FOLDER, SAMPLE_CONFIG, SAMPLE_QIITA_WITH_NO_POSTS);
+const builtWithNoPosts = buildSample(NO_POSTS_BUILD_FOLDER, SAMPLE_CONFIG, SAMPLE_WRITING_WITH_NO_POSTS);
 const sampleWithNoPosts = builtSite("the sample before its first post", NO_POSTS_BUILD_FOLDER, sampleConfig);
 
 /** Anything that names the Writing tab's page, its answer or its id. */
@@ -307,14 +324,15 @@ test("the sample builds before its first post, saying it has no Writing tab unti
   assert.match(
     builtWithNoPosts.stdout,
     new RegExp(
-      `${sampleFixture().user} has no public posts on Qiita yet, so the site has no Writing tab until the first`,
+      `there are no public posts on Qiita \\(${sampleFixture().qiita?.user}\\), Zenn \\(${sampleFixture().zenn?.user}\\) and note yet, so the site has no Writing tab until the first`,
     ),
   );
 });
 
-test("the sample before its first post has no page for the Writing tab, in any language", () => {
+test("the sample before its first post has no page for the Writing tab, in any language, and no feed", () => {
   const writingPages = sampleWithNoPosts.languagePages.map(({ file }) => file.replace(/index\.html$/, WRITING_TAB));
   assert.deepEqual(writingPages.filter(sampleWithNoPosts.hasFolder), []);
+  assert.equal(sampleWithNoPosts.hasFile(writingFeedPath(sampleSite).slice(1)), false);
 });
 
 testBuiltSite(sampleWithNoPosts);

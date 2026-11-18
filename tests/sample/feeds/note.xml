@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:note="https://note.com">
+  <channel>
+    <title>サム・サンプル｜note</title>
+    <link>https://note.com/sam_sample</link>
+    <description>Made up, for the tests.</description>
+    <item>
+      <title>朝の散歩で考えたこと</title>
+      <description><![CDATA[<p>A post's text is never read: <script>alert(1)</script></p>]]></description>
+      <note:creatorName>サム・サンプル</note:creatorName>
+      <pubDate>Sat, 04 Jul 2026 07:30:00 +0900</pubDate>
+      <link>https://note.com/sam_sample/n/n0000000000ab</link>
+      <guid>https://note.com/sam_sample/n/n0000000000ab</guid>
+    </item>
+  </channel>
+</rss>

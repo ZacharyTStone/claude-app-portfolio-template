@@ -56,7 +56,7 @@ test.describe("the Writing tab, opened from its row in the sidebar", () => {
   });
 });
 
-test("a post's card says what the build listed: its title, then the day, its LGTMs and its tags", async ({
+test("a post's card says what the build listed: its title, then the day, its place, its likes and its tags", async ({
   page,
   writingTab,
 }) => {

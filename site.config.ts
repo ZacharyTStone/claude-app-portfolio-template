@@ -62,16 +62,17 @@ export default {
   // file on the site itself. With the resume in Google Docs, it would be
   // the line below. See "The viewer" in docs/content.md.
   // viewer: { [me.resume]: "https://docs.google.com/document/d/YOUR-DOC-ID/preview" },
-  // Writing (optional): a Writing tab after Contact, listing your posts on
-  // Qiita, newest first, each linking to Qiita. The build fetches them, and
-  // stops if it can't, so a site that's up stays as it was. The sample has
-  // none, because it has no posts anywhere: a copy of this file would ask
-  // Qiita for someone else's. With your own Qiita user id, it's the line
-  // below. With viewer: true beside the id, a post opens beside the
-  // conversation, as a page of the site's own, in place of a new tab.
-  // docs/writing.md has it all, and a rebuild each day that brings new
-  // posts in.
-  // writing: { qiita: "your-qiita-id" },
+  // Writing (optional): a Writing tab after Contact, listing your posts,
+  // newest first, each linking to where it was posted: Qiita, Zenn, DEV,
+  // note, Medium, Substack, Hatena Blog, or any blog's RSS or Atom feed, as
+  // many as you like together. The build fetches them, and stops if it
+  // can't, so a site that's up stays as it was. The sample has none,
+  // because it has no posts anywhere: a copy of this file would ask for
+  // someone else's. With your own accounts, it's a line like the one below.
+  // With viewer: true, a Qiita post opens beside the conversation, as a page
+  // of the site's own, in place of a new tab. docs/writing.md has it all,
+  // and a rebuild each day that brings new posts in.
+  // writing: { qiita: "your-qiita-id", note: "your-note-id", feeds: [{ url: "https://your.blog/rss" }] },
   // GitHub activity (optional): a quiet section at the foot of the details
   // panel, "Recent public repos", listing the public repos you pushed to
   // most recently, each with the day. The build fetches it from GitHub's

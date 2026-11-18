@@ -51,15 +51,19 @@ in the code, see the security policy in the template's repository.
   another's: its frame may load the site's stylesheet and fonts and open
   a link in a new tab, and it may run no script, so nothing in the frame
   can reach the page around it.
-- With a [Writing tab](writing.md), it's the build that asks Qiita for
-  your posts, not a visitor's browser: the pages still load nothing from
-  another site. What Qiita sends is checked before any of it reaches a
-  page, only what a card shows is kept, a card links to `qiita.com` and
-  nowhere else, and a title is text, never markup. With `writing.viewer`
-  a post's text is kept too, and read from its Markdown into the parts of
-  a page, never as HTML: no markup in a post reaches a page, a link in it
-  goes to a web address or is just its words, and a picture is a link,
-  so the page loads nothing from another site either.
+- With a [Writing tab](writing.md), it's the build that asks Qiita, Zenn,
+  DEV or a blog's feed for your posts, not a visitor's browser: the pages
+  still load nothing from another site. What each sends is checked before
+  any of it reaches a page, only what a card shows is kept, a card links
+  to the place the post is on and nowhere else (a feed's post, to the
+  blog's own site), and a title is text, never markup. A feed is read as
+  XML that declares no entities of its own, and nothing of a post's text
+  in it is read. With `writing.viewer` a Qiita post's text is kept too,
+  and read from its Markdown into the parts of a page, never as HTML: no
+  markup in a post reaches a page, a link in it goes to a web address or
+  is just its words, and a picture is a link, so the page loads nothing
+  from another site either. No other place's post has a page, since every
+  other place gives a post's text only as HTML.
 - With [GitHub activity](github-activity.md), it's the build too that asks
   GitHub, for public events only. What GitHub sends is checked, only a
   repo's name and a day are kept, a row links to `github.com` and nowhere

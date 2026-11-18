@@ -79,18 +79,35 @@ test.describe("a post's card, clicked", () => {
   });
 });
 
-test("every post's card opens its own page, each under its own title", async ({
+test("every card of a post with a page opens it, each under its own title", async ({
   page,
   writingTab,
   postInViewer: _,
 }) => {
   await page.goto(writingTab.path);
-  for (const post of writingTab.posts) {
-    expect(post.page, "the post has a page of the site's own").not.toBeNull();
+  for (const post of writingTab.posts.filter((each) => each.page !== null)) {
     await page.locator(`#${WRITING_TAB} a[href="${post.href}"]`).click();
     await expect(page.locator(VIEWER_FRAME)).toHaveAttribute("src", post.page ?? "");
     await expect(page.frameLocator(VIEWER_FRAME).locator(`${CLASS.post} h1`)).toHaveText(post.title ?? "");
   }
+});
+
+test("a post from a place with no page of its own opens where it was posted, in a new tab, not in the viewer", async ({
+  page,
+  writingTab,
+  postInViewer: _,
+}) => {
+  const elsewhere = writingTab.posts.find((post) => post.page === null);
+  test.skip(!elsewhere, "every post of the site's has a page");
+  // The tab it opens gets a page of the test's, so nothing leaves the machine.
+  await page.context().route(elsewhere?.href ?? "", (route) => route.fulfill({ body: "", contentType: "text/plain" }));
+  await page.goto(writingTab.path);
+  const card = page.locator(`#${WRITING_TAB} a[href="${elsewhere?.href}"]`);
+  await expect(card).toHaveAttribute("target", "_blank");
+  const opened = page.context().waitForEvent("page");
+  await card.click();
+  await (await opened).close();
+  await expect(page.locator(VIEWER_FRAME)).toHaveCount(0);
 });
 
 test.describe("with JavaScript off", () => {
@@ -140,7 +157,7 @@ test.describe("on a phone", () => {
     writingTab,
     postInViewer: _,
   }) => {
-    for (const post of writingTab.posts) {
+    for (const post of writingTab.posts.filter((each) => each.page !== null)) {
       await page.goto(post.page ?? "");
       const column = page.locator(CLASS.post);
       await expect(column).toBeVisible();

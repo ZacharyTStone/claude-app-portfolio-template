@@ -17,7 +17,7 @@ function titleLanguage(title: string, pageLanguage: string): string | undefined 
 }
 
 /** The day as the page's language writes it: "Oct 1, 2026", "2026/10/01".
-    Written as Qiita has it ("2026-10-01") for a language the platform
+    Written as the post has it ("2026-10-01") for a language the platform
     doesn't know. */
 function dayInWords(day: string, pageLanguage: string): string {
   const [year = 0, month = 1, date = 1] = day.split("-").map(Number);
@@ -30,10 +30,34 @@ function dayInWords(day: string, pageLanguage: string): string {
   }
 }
 
-/** A post as a link card: its title, over the day, its LGTMs and its tags
-    ("Oct 1, 2026 · 12 LGTM · TypeScript, Astro"). */
-export function postCard(post: Post, pageLanguage: string): LinkCard {
-  const kind = [dayInWords(dayPosted(post), pageLanguage), `${post.likes} LGTM`, post.tags.join(", ")];
+/** How a card says a post's likes, in the page's language: "12 LGTM" on
+    Qiita, "1,527 likes" (strings.writingLikes) elsewhere; nothing where the
+    place doesn't count them. */
+function likesInWords(post: Post, strings: Strings, pageLanguage: string): string {
+  if (!post.likes) return "";
+  return `${countInWords(post.likes.count, pageLanguage)} ${post.likes.word ?? strings.writingLikes ?? ""}`;
+}
+
+/** A count as the page's language writes it: "1,527", or "1527" in a
+    language the platform doesn't know. */
+function countInWords(count: number, pageLanguage: string): string {
+  try {
+    return new Intl.NumberFormat(pageLanguage).format(count);
+  } catch {
+    return String(count);
+  }
+}
+
+/** What a card is shown with: the page's language and wording, and whether
+    the tab has posts from more than one place, so each card names its own. */
+export type CardWording = { pageLanguage: string; strings: Strings; namesPlace: boolean };
+
+/** A post as a link card: its title, over the day, where it was posted (in a
+    tab with more than one place), its likes and its tags
+    ("Oct 1, 2026 · Zenn · 12 likes · TypeScript, Astro"). */
+export function postCard(post: Post, { pageLanguage, strings, namesPlace }: CardWording): LinkCard {
+  const day = dayInWords(dayPosted(post), pageLanguage);
+  const kind = [day, namesPlace ? post.place : "", likesInWords(post, strings, pageLanguage), post.tags.join(", ")];
   return {
     name: post.title,
     kind: kind.filter(Boolean).join(" · "),
@@ -43,12 +67,16 @@ export function postCard(post: Post, pageLanguage: string): LinkCard {
   };
 }
 
+/** Whether the posts come from more than one place. */
+export const comeFromPlaces = (posts: Post[]): boolean => new Set(posts.map((post) => post.place)).size > 1;
+
 /** The tab in one language's words: its question, then the posts newest
     first under a line that says so, or a line that there are none. A
     string the language leaves out is "", for the config's checks to name. */
 export function writingThread(posts: Post[], strings: Strings, pageLanguage: string): Thread {
+  const wording = { pageLanguage, strings, namesPlace: comeFromPlaces(posts) };
   const answer: Block[] = posts.length
-    ? [strings.writingIntro ?? "", ...posts.map((post) => ({ link: postCard(post, pageLanguage) }))]
+    ? [strings.writingIntro ?? "", ...posts.map((post) => ({ link: postCard(post, wording) }))]
     : [strings.writingEmpty ?? ""];
   return {
     id: WRITING_TAB,

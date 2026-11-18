@@ -6,7 +6,7 @@ import { FAVICONS } from "../../../src/site/icons.ts";
 import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite } from "../../../src/site/site.ts";
 import { sampleRepos } from "../../sample/github.ts";
-import { samplePosts } from "../../sample/qiita.ts";
+import { samplePosts } from "../../sample/writing.ts";
 import { sampleConfig } from "../sample.ts";
 
 /** The sample's posts in its Writing tab, as its build has them. */
@@ -85,16 +85,26 @@ test("a panel row that links to a tab is listed at the tab's page", () => {
   assert.ok(llmsTxt(makeSite(withALinkToATab)).includes("- [My work](https://example.com/portfolio/work/): Tab\n"));
 });
 
-test("llms.txt lists the Writing tab's posts, newest first, each by its title with its address, day and tags", () => {
+test("llms.txt lists the Writing tab's posts, newest first, each by its title with its address, day, place and tags", () => {
   assert.ok(
     llmsText.includes(
       [
         "\n## Writing\n",
-        "- [Astroで静的サイトを組み立てる](https://qiita.com/sam-sample/items/c0ffee0000000000c0f1): 2026-10-01 · Astro, TypeScript",
-        "- [Testing a static site in Playwright](https://qiita.com/sam-sample/items/c0ffee0000000000c0f3): 2026-06-15 · Playwright\n",
+        "- [Astroで静的サイトを組み立てる](https://qiita.com/sam-sample/items/c0ffee0000000000c0f1): 2026-10-01 · Qiita · Astro, TypeScript",
+        "- [Sam's notes on testing, on Zenn](https://zenn.dev/sam_sample/articles/5a3p1e0000000a): 2026-09-09 · Zenn",
+        "- [朝の散歩で考えたこと](https://note.com/sam_sample/n/n0000000000ab): 2026-07-03 · note",
+        "- [Testing a static site in Playwright](https://qiita.com/sam-sample/items/c0ffee0000000000c0f3): 2026-06-15 · Qiita · Playwright\n",
       ].join("\n"),
     ),
+    llmsText,
   );
+});
+
+test("a tab of posts from one place doesn't name it in llms.txt, as its cards don't", () => {
+  const onQiita = posts.filter((post) => post.place === "Qiita");
+  const [first] = onQiita;
+  assert.ok(first);
+  assert.ok(llmsTxt(makeSite(sampleConfig(), onQiita)).includes(`(${first.url}): 2026-10-01 · Astro, TypeScript\n`));
 });
 
 test("a post's title can't end the link it's written in", () => {

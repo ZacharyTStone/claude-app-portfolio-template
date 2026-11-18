@@ -128,17 +128,24 @@ sent.
 A build fetches two things: the Writing tab's posts
 (`src/integrations/writing.ts`, `src/site/writing/`) and the panel's
 GitHub activity (`src/integrations/activity.ts`, `src/site/activity/`).
-What their requests share, the time limit and the one more try, is
-`src/site/fetching.ts`. No test reaches Qiita or GitHub. A unit test
-passes `qiitaPosts()` or `recentRepos()` a `fetch` of its own. A build the
-tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`, the paths of
-`tests/sample/qiita.json` and `tests/sample/github.json`
-(`tests/build/astro-build.ts`), and asks those files in place of Qiita
-and GitHub; each answers for the sample's user alone, so it can stand in
-for no real site's. A new test that builds a site goes through
+The Writing tab's places are each a module of `src/site/writing/`
+(`qiita.ts`, `zenn.ts`, `dev.ts`, and `feeds.ts` for every place read from
+a feed), listed together in `sources.ts`; a new place is a module there
+that gives `Post`s, a field of `Writing` (`src/config/writing.ts`), a row
+in `src/site/checks/writing.ts`, and a part of the stand-in
+(`src/site/writing/fixture.ts`). What their requests share, the time
+limit and the one more try, is `src/site/fetching.ts` (and, for the
+Writing tab's places, `src/site/writing/source.ts`). No test reaches any
+of them. A unit test passes a place's function (`qiitaPosts()`,
+`zennPosts()`, `feedPosts()`, `recentRepos()`…) a `fetch` of its own. A
+build the tests make is given `WRITING_FIXTURE` and `ACTIVITY_FIXTURE`,
+the paths of `tests/sample/writing.json` and `tests/sample/github.json`
+(`tests/build/astro-build.ts`), and asks those files in place of the
+places and GitHub; each answers for the sample's users alone, so it can
+stand in for no real site's. A new test that builds a site goes through
 `astroBuild()` too; one of a site before its first post gives it
-`tests/sample/qiita-no-posts.json` in place of `qiita.json`.
-[Writing](writing.md#without-qiita-in-the-tests) and
+`tests/sample/writing-no-posts.json` in place of `writing.json`.
+[Writing](writing.md#without-the-places-in-the-tests) and
 [GitHub activity](github-activity.md#without-github-in-the-tests) say the
 same for a site's owner.
 

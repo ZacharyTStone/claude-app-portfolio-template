@@ -8,8 +8,8 @@ import { ENGLISH_STRINGS } from "../../../src/config/english-strings.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../../src/config/writing.ts";
 import { makeSite, type SiteLanguage } from "../../../src/site/site.ts";
 import type { Post } from "../../../src/site/writing/post.ts";
-import { postCard } from "../../../src/site/writing/tab.ts";
-import { samplePosts } from "../../sample/qiita.ts";
+import { postCard, type CardWording } from "../../../src/site/writing/tab.ts";
+import { samplePosts } from "../../sample/writing.ts";
 import { languageOf, sampleConfig } from "../sample.ts";
 
 const posts = await samplePosts();
@@ -31,9 +31,15 @@ const post: Post = {
   title: "Astroで静的サイトを組み立てる",
   url: "https://qiita.com/sam-sample/items/c0ffee0000000000c0f1",
   posted: "2026-10-01T09:30:00+09:00",
-  likes: 12,
+  place: "Qiita",
+  likes: { count: 12, word: "LGTM" },
   tags: ["Astro", "TypeScript"],
 };
+
+/** A card on a page in `pageLanguage`, in English's words, in a tab of one
+    place's posts, unless a test says otherwise. */
+const cardOf = (one: Post, pageLanguage: string, wording: Partial<CardWording> = {}) =>
+  postCard(one, { pageLanguage, strings: ENGLISH_STRINGS, namesPlace: false, ...wording });
 
 for (const code of site.codes) {
   test(`${code}: the Writing tab comes after the page's own threads, marked as made from what was fetched`, () => {
@@ -69,7 +75,7 @@ test("every language lists the same posts, each with its title as its author wro
 
 test("a post's card has its title over the day, in the page's language, its LGTMs and its tags", () => {
   assert.deepEqual(
-    ["en", "fr", "ja"].map((code) => postCard(post, code).kind),
+    ["en", "fr", "ja"].map((code) => cardOf(post, code).kind),
     [
       "Oct 1, 2026 · 12 LGTM · Astro, TypeScript",
       "1 oct. 2026 · 12 LGTM · Astro, TypeScript",
@@ -77,34 +83,55 @@ test("a post's card has its title over the day, in the page's language, its LGTM
     ],
   );
   assert.deepEqual(
-    { name: postCard(post, "en").name, href: postCard(post, "en").href, icon: postCard(post, "en").icon },
+    { name: cardOf(post, "en").name, href: cardOf(post, "en").href, icon: cardOf(post, "en").icon },
     { name: post.title, href: post.url, icon: WRITING_ICON },
   );
 });
 
 test("the day is the author's, not the build's: a post from just after midnight in Tokyo is that day's", () => {
   const justAfterMidnight = { ...post, posted: "2026-10-01T00:10:00+09:00" };
-  assert.match(postCard(justAfterMidnight, "en").kind, /^Oct 1, 2026 · /);
+  assert.match(cardOf(justAfterMidnight, "en").kind, /^Oct 1, 2026 · /);
 });
 
-test("in a language the platform can't write a date in, the day is written as Qiita has it", () => {
-  assert.match(postCard(post, "en-x1").kind, /^2026-10-01 · /);
+test("in a language the platform can't write a date in, the day is written as the post has it", () => {
+  assert.match(cardOf(post, "en-x1").kind, /^2026-10-01 · /);
+});
+
+test("a post from a place with no word of its own for likes counts them in the page's, and one that doesn't count them shows none", () => {
+  const onZenn = { ...post, place: "Zenn", likes: { count: 1527 } };
+  assert.equal(cardOf(onZenn, "en").kind, "Oct 1, 2026 · 1,527 likes · Astro, TypeScript");
+  const japanese = { ...ENGLISH_STRINGS, writingLikes: "いいね" };
+  assert.equal(cardOf(onZenn, "ja", { strings: japanese }).kind, "2026/10/01 · 1,527 いいね · Astro, TypeScript");
+  const fromAFeed = { ...post, place: "note", likes: undefined, tags: [] };
+  assert.equal(cardOf(fromAFeed, "en").kind, "Oct 1, 2026");
+});
+
+test("in a tab of posts from more than one place, each card names its own", () => {
+  assert.equal(cardOf(post, "en", { namesPlace: true }).kind, "Oct 1, 2026 · Qiita · 12 LGTM · Astro, TypeScript");
+});
+
+test("the sample's tab has posts from three places, so each of its cards names its own", () => {
+  const places = new Set(posts.map((one) => one.place));
+  assert.deepEqual([...places].toSorted(), ["Qiita", "Zenn", "note"]);
+  for (const [at, card] of cardsIn(site.language(site.main)).entries()) {
+    assert.ok(card.kind?.includes(` · ${posts[at]?.place}`), `${card.name}'s card names ${posts[at]?.place}`);
+  }
 });
 
 test("a post without tags has none in its card", () => {
-  assert.equal(postCard({ ...post, tags: [] }, "en").kind, "Oct 1, 2026 · 12 LGTM");
+  assert.equal(cardOf({ ...post, tags: [] }, "en").kind, "Oct 1, 2026 · 12 LGTM");
 });
 
 test("a title in Japanese is marked as Japanese on a page in another language, and not on a Japanese page", () => {
   assert.deepEqual(
-    ["en", "fr", "ja", "ja-JP"].map((code) => postCard(post, code).lang),
+    ["en", "fr", "ja", "ja-JP"].map((code) => cardOf(post, code).lang),
     ["ja", "ja", undefined, undefined],
   );
 });
 
 test("a title with no kana isn't marked: it could be in English, or in Chinese", () => {
   for (const title of ["Testing a static site in Playwright", "静的網站"]) {
-    assert.equal(postCard({ ...post, title }, "en").lang, undefined);
+    assert.equal(cardOf({ ...post, title }, "en").lang, undefined);
   }
 });
 

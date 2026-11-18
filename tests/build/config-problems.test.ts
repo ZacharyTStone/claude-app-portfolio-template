@@ -48,7 +48,7 @@ test("a build stops when the Writing tab's posts can't be fetched, and says why 
   assert.equal(withPostsItCantFetch.status, 1);
   assert.ok(
     withPostsItCantFetch.said.includes(
-      "The Writing tab's posts couldn't be fetched, so the build stops, and a host keeps the site it has: Qiita has no user by that id (not_found), at https://qiita.com/api/v2/users/someone-else/items?page=1&per_page=100. Build again once Qiita answers, or remove writing from the config to build without the tab (docs/writing.md).",
+      "The Writing tab's posts couldn't be fetched, so the build stops, and a host keeps the site it has: Qiita has no user by that id (not_found), at https://qiita.com/api/v2/users/someone-else/items?page=1&per_page=100. Build again once it answers, or remove writing from the config to build without the tab (docs/writing.md).",
     ),
     withPostsItCantFetch.said,
   );

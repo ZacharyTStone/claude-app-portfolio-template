@@ -37,7 +37,7 @@ a fact.
 | The 404 page | `notFound` | `src/config/language.ts` |
 | Buttons, tooltips and what the script says | `strings` | `src/config/strings.ts` |
 | What an answer is made of | a message's `a` | `src/config/blocks.ts` |
-| The Writing tab: your posts on Qiita, fetched as the site builds | `writing` | `src/config/writing.ts` |
+| The Writing tab: your posts on Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any blog's feed, fetched as the site builds | `writing` | `src/config/writing.ts` |
 | Your recent public repos on GitHub, in the panel, fetched as the site builds | `activity` | `src/config/activity.ts` |
 
 Everything from `home` down belongs to one language: it is inside
@@ -163,15 +163,18 @@ then `{question}`) rather than a place in a sentence.
 ## The Writing tab
 
 `writing: { qiita: "your-qiita-id" }` adds a tab that lists your posts on
-Qiita, newest first, each a link card to the post. The build fetches
-them, so the tab is as it was at the last build, and it comes with your
-first post. Its row comes last of the sidebar's top rows unless you give
-it one of your own. Its id is `writing`, which no thread of yours can then
-have. With `viewer: true` beside your id, a post opens in the viewer, as
-a page of the site's own. [Writing](writing.md) has the rest: the wording
-a language needs for it, a post in the viewer, the tab before your first
-post, what happens when Qiita is down, and a rebuild each day that brings
-new posts in.
+Qiita, newest first, each a link card to the post. It can list Zenn, DEV,
+note, Medium, Substack, Hatena Blog and any blog's RSS or Atom feed too,
+together (`writing: { zenn: "…", note: "…" }`). The build fetches them,
+so the tab is as it was at the last build, and it comes with your first
+post, with a feed of its own at `/writing/feed.xml`. Its row comes last of
+the sidebar's top rows unless you give it one of your own. Its id is
+`writing`, which no thread of yours can then have. With `viewer: true`, a
+Qiita post opens in the viewer, as a page of the site's own.
+[Writing](writing.md) has the rest: each place and what it wants, the
+wording a language needs, a post in the viewer, the tab before your first
+post, what happens when a place is down, and a rebuild each day that
+brings new posts in.
 
 ## GitHub activity
 

@@ -13,7 +13,7 @@ import {
   type PageHead,
 } from "../../src/site/pages.ts";
 import { makeSite } from "../../src/site/site.ts";
-import { samplePosts } from "../sample/qiita.ts";
+import { samplePosts } from "../sample/writing.ts";
 import { languageOf, sampleConfig } from "./sample.ts";
 
 const config = sampleConfig();

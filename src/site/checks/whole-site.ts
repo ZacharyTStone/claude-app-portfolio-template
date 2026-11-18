@@ -18,7 +18,6 @@ import {
   isLanguageCode,
   isPathOnSite,
   isPixelCount,
-  isQiitaUserId,
   isSiteAddress,
   isTimeZone,
   isWebAddress,
@@ -143,13 +142,6 @@ const SETTING_FORMATS: SettingFormat[] = [
     field: "person.image",
     looksRight: isPathOnSite,
     shouldBe: `a path on this site, like "/assets/portrait.webp"`,
-    mayBeLeftOut: true,
-  },
-  // The build asks Qiita for this user's posts by it.
-  {
-    field: "writing.qiita",
-    looksRight: isQiitaUserId,
-    shouldBe: `a Qiita user id, as in your profile's address (qiita.com/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
   // The build asks GitHub for this user's public activity by it.

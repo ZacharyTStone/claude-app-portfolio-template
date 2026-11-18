@@ -36,7 +36,13 @@ export const SAMPLE_ANSWERS: AskAnswer[] = [
     title: "Writing",
     q: "what have they written?",
     // The public posts in qiita.json, newest first: each title is a line.
-    text: ["Posts, newest first:", "Astroで静的サイトを組み立てる", "Testing a static site in Playwright"].join("\n"),
+    text: [
+      "Posts, newest first:",
+      "Astroで静的サイトを組み立てる",
+      "Sam's notes on testing, on Zenn",
+      "朝の散歩で考えたこと",
+      "Testing a static site in Playwright",
+    ].join("\n"),
   },
   { id: "personal-fun.1", title: "for fun?", q: "for fun?", text: "Reading.\nMostly the blog, and a list." },
 ];

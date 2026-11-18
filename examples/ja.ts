@@ -475,9 +475,11 @@ export default function japanese(me: SampleFacts): Language {
       // With `writing` in site.config.ts: the Writing tab.
       writingTitle: "執筆",
       writingQuestion: `${ja.first}は何を書いているの？`,
-      writingIntro: "Qiitaに書いた記事です。新しい順に：",
+      writingIntro: "書いた記事です。新しい順に：",
       // With writing.showWhenEmpty: what the tab says before the first post.
       writingEmpty: "まだ記事はありません。",
+      // With writing.zenn or writing.dev: after a post's count of likes.
+      writingLikes: "いいね",
       // With `activity` in site.config.ts: the panel's GitHub activity.
       activityTitle: "最近の公開リポジトリ",
       askFrom: "「{tab}」タブより",

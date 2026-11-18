@@ -59,10 +59,20 @@ export const isEmailAddress = looksLike(/^[^\s@"'<>\\]+@[^\s@"'<>\\]+$/);
 /** A size in pixels a picture can have. */
 export const isPixelCount = (size: unknown): boolean => typeof size === "number" && Number.isInteger(size) && size > 0;
 
-/** "alex-example": a Qiita user id, letters, digits, "-" and "_", as the
-    address of its profile has it. Not "@alex-example", and not the
-    profile's whole address. */
-export const isQiitaUserId = looksLike(/^[A-Za-z0-9_-]+$/);
+/** "alex-example": a user id on Qiita, Zenn, DEV or note, letters, digits,
+    "-" and "_", as the address of its profile has it. Not "@alex-example",
+    and not the profile's whole address. */
+export const isAccountName = looksLike(/^[A-Za-z0-9_-]+$/);
+
+/** "alex.example": a Medium user name, which may have dots, without its "@". */
+export const isMediumUserName = looksLike(/^[A-Za-z0-9._-]+$/);
+
+/** "alexexample": one part of a domain name, as a Substack's is. */
+export const isSubdomainName = looksLike(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/);
+
+/** "alex-example.hatenablog.com": a domain name, in lower case, with no
+    "https://" or path. */
+export const isDomainName = looksLike(/^([a-z0-9]([a-z0-9-]*[a-z0-9])?\.)+[a-z]{2,}$/);
 
 /** "alex-example": a GitHub user name, letters, digits and single inner
     hyphens, up to 39 of them, as the address of its profile has it. Not

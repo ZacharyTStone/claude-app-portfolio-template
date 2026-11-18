@@ -79,7 +79,8 @@ export type WritingTab = Thread & {
   posts: Array<{
     /** Where the card links: the post's page. */
     href: string;
-    /** The card's text: its title, then the day, its LGTMs and its tags. */
+    /** The card's text: its title, then the day, where it was posted (with
+        more than one place), its likes and its tags. */
     text: string;
     /** The language its title is marked as being in, if it's marked. */
     lang: string | null;

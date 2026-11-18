@@ -101,7 +101,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab and GitHub activity",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn and GitHub activity",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -114,6 +114,7 @@ testEachProblem([
       ...CONTACT_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (contactForm needs it)`),
       ...ASK_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (ask with contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
+      "fr: strings.writingLikes is missing (writing.zenn needs it)",
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
     ],
   },

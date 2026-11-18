@@ -58,6 +58,7 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   writingQuestion: "what have they written?",
   writingIntro: "Posts, newest first:",
   writingEmpty: "Nothing posted yet.",
+  writingLikes: "likes",
   activityTitle: "Recent public repos",
 };
 
