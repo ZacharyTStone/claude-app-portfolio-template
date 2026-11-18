@@ -65,6 +65,16 @@ testEachProblem([
     problems: [`writing.feeds[0].url should be a feed's web address, like "https://…"`],
   },
   {
+    wrong: "the most posts the tab lists isn't a count",
+    change: (sample) => (sample.writing = { qiita: "sam-sample", latest: 2.5 }),
+    problems: ["writing.latest should be how many posts the tab lists at most, a whole number like 30"],
+  },
+  {
+    wrong: "the tab is to list no posts at all",
+    change: (sample) => (sample.writing = { qiita: "sam-sample", latest: 0 }),
+    problems: ["writing.latest should be how many posts the tab lists at most, a whole number like 30"],
+  },
+  {
     wrong: "a feed's name is blank",
     change: (sample) => (sample.writing = { feeds: [{ url: "https://blog.example.com/rss", name: " " }] }),
     problems: ["writing.feeds[0].name should have words in it"],

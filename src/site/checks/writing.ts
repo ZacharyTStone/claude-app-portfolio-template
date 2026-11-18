@@ -80,5 +80,14 @@ const checkFeeds: SiteCheck = ({ config }, problemUnless) => {
   }
 };
 
+/** The most posts the tab lists is a count of them. */
+const checkLatest: SiteCheck = ({ config }, problemUnless) => {
+  const latest = config.writing?.latest;
+  problemUnless(
+    latest === undefined || (Number.isInteger(latest) && latest > 0),
+    "writing.latest should be how many posts the tab lists at most, a whole number like 30",
+  );
+};
+
 /** The checks of `writing`, in the order their problems are listed. */
-export const WRITING_CHECKS: SiteCheck[] = [checkHasAPlace, checkAccounts, checkFeeds];
+export const WRITING_CHECKS: SiteCheck[] = [checkHasAPlace, checkAccounts, checkFeeds, checkLatest];

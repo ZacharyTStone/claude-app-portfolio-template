@@ -35,11 +35,12 @@ export function sourcesOf(writing: Writing, options: WritingOptions): Source[] {
 const eachOnce = (posts: Post[]): Post[] =>
   posts.filter((post, at) => posts.findIndex((other) => other.url === post.url) === at);
 
-/** Every post of every place `writing` names, newest first. Throws, saying
-    which place and why, if any can't be had. */
+/** Every post of every place `writing` names, newest first, or the newest
+    `writing.latest` of them. Throws, saying which place and why, if any
+    can't be had. */
 export async function postsOfEveryPlace(writing: Writing, options: WritingOptions): Promise<Post[]> {
   const fetched = await Promise.all(sourcesOf(writing, options).map((source) => source.posts()));
-  return newestFirst(eachOnce(fetched.flat()));
+  return newestFirst(eachOnce(fetched.flat())).slice(0, writing.latest);
 }
 
 /** How many posts came from each place, as the build says it: "3 on Qiita,

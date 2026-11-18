@@ -29,6 +29,18 @@ test("the places are asked in the config's order, each named as what's said name
   );
 });
 
+test("with writing.latest, the tab lists only the newest that many, from every place together", async () => {
+  const everyPost = await samplePosts();
+  const newest = await postsOfEveryPlace(
+    { ...sampleWriting(), latest: 2 },
+    { fetch: fixtureFetch(sampleFixture()), timeZone: "UTC", retryAfterMs: NO_WAIT },
+  );
+  assert.deepEqual(
+    newest,
+    everyPost.slice(0, 2).map(({ body: _kept, ...post }) => post),
+  );
+});
+
 test("a post two feeds both list is listed once", async () => {
   const fixture = sampleFixture();
   const [note = "", xml = ""] = Object.entries(fixture.feeds)[0] ?? [];

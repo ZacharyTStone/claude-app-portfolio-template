@@ -75,6 +75,11 @@ leads nowhere ([Before your first post](#before-your-first-post)).
   Blogger, Ameba (`https://rssblog.ameba.jp/<id>/rss20.xml`), Tumblr,
   Hashnode, a site of your own. `name` is what a card calls it; left out,
   it's the feed's host (`blog.alex.example`).
+- **How many**: every post, unless `latest` says how many the tab lists
+  at most (`latest: 30`, the newest thirty, from every place together). A
+  long list makes a long page, and Ask reads every title for every
+  question ([Ask and llms.txt](#ask-and-llmstxt)), so a prolific writer
+  may want one.
 - **More than one place**: the posts are one list, newest first, and each
   card names where its post is ("Oct 1, 2026 · Zenn · 12 likes · Astro").
   With one place, a card doesn't name it. A post two feeds both list is

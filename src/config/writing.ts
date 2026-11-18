@@ -29,6 +29,10 @@ export type Writing = {
   /** Any other blog's RSS or Atom feed: Ghost, WordPress, Blogger, Ameba,
       Tumblr, Hashnode, your own. Each lists the posts the feed has. */
   feeds?: WritingFeed[];
+  /** The most posts the tab lists, the newest: 30 lists your latest
+      thirty, from every place together. Left out, it lists them all. Each
+      post's title is a line Ask reads for every question. */
+  latest?: number;
   /** true for the tab to be there before your first post, saying
       writingEmpty. Left out, the tab, its row, its page and its answer in
       Ask come with the first post. Anything else of the config's that opens
