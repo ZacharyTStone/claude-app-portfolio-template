@@ -1,0 +1,66 @@
+---
+/* Every week of the history: a row a year, oldest first, its year at the
+   left and its total at the right, and between them a strip of its weeks,
+   each shaded by how much was done in it. The marks the config names sit
+   at their weeks. The strip is a picture of the numbers beside it, so
+   screen readers get the years, the totals and the marks, and not the
+   cells. Scrolled to, the rows come in one after another
+   (src/styles/motion.css). */
+import type { HistoryMark } from "../config/github-history.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import type { History } from "../site/history/history.ts";
+import { historyStats } from "../site/history/stats.ts";
+import { calendarRows, LEVELS } from "../site/history/weeks.ts";
+import { writtenMonth, writtenNumber } from "../site/history/words.ts";
+import type { Page } from "../site/site.ts";
+import HistoryCell from "./HistoryCell.astro";
+import { calendarCells } from "./history-parts.ts";
+
+interface Props {
+  history: History;
+  marks: HistoryMark[];
+  page: Page;
+  /** The part's own: data-fetched and data-github. */
+  attributes: Record<string, string>;
+}
+const { history, marks, page, attributes } = Astro.props;
+const { code } = page;
+const { strings } = page.language;
+const rows = calendarRows(history, marks);
+const title = (strings.historyCalendar ?? "").replace("{year}", String(rows[0]?.year ?? ""));
+---
+
+<figure class={`${PAGE_CLASSES.figure} ${PAGE_CLASSES.historyCalendar}`} {...attributes}>
+  <figcaption>
+    {title} <b>{writtenNumber(code, historyStats(history).total)}</b>
+  </figcaption>
+  <dl>
+    {rows.map((row) => (
+      <div class:list={{ "history-marked": row.marks.length > 0 }}>
+        <dt>{row.year}</dt>
+        <dd>
+          <span class={PAGE_CLASSES.historyStrip} aria-hidden="true">
+            {calendarCells(row, code).map((cell) => (
+              <HistoryCell cell={cell} />
+            ))}
+          </span>
+          {row.marks.map((mark) => (
+            <span class={PAGE_CLASSES.srOnly}>
+              {mark.label}, {writtenMonth(code, mark.at)}
+            </span>
+          ))}
+          <span class="history-total">{writtenNumber(code, row.total)}</span>
+        </dd>
+      </div>
+    ))}
+  </dl>
+  <p class="history-key" aria-hidden="true">
+    {strings.historyLess}
+    <span>
+      {LEVELS.map((level) => (
+        <HistoryCell cell={{ level }} />
+      ))}
+    </span>
+    {strings.historyMore}
+  </p>
+</figure>

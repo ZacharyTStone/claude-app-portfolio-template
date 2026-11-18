@@ -1,0 +1,36 @@
+---
+/* The history's numbers, a tile each: its label over its value in the
+   serif, and a line under it. Where GitHub counts private work, a note
+   under the tiles says how much of it is in the count. */
+import type { History } from "../site/history/history.ts";
+import type { Page } from "../site/site.ts";
+import { PAGE_CLASSES } from "../contracts/page-classes.ts";
+import { privateNote, statTiles } from "./history-parts.ts";
+
+interface Props {
+  history: History;
+  page: Page;
+  /** The part's own: data-fetched and data-github. */
+  attributes: Record<string, string>;
+}
+const { history, page, attributes } = Astro.props;
+const tiles = statTiles(history, page.language.strings, page.code);
+const note = privateNote(history, page.language.strings, page.code);
+---
+
+<figure class={`${PAGE_CLASSES.figure} history-stats`} {...attributes}>
+  <dl>
+    {tiles.map((tile) => (
+      <div>
+        <dt>{tile.label}</dt>
+        <dd>
+          <span class="history-value">
+            {tile.value.map((piece) => (piece.isNumber ? <b>{piece.text}</b> : piece.text))}
+          </span>
+          {tile.under && <span class="history-under">{tile.under}</span>}
+        </dd>
+      </div>
+    ))}
+  </dl>
+  {note && <figcaption>{note}</figcaption>}
+</figure>

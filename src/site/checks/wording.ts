@@ -5,6 +5,7 @@ import { answerBlocksIn, picturesIn } from "../../config/blocks.ts";
 import { isEnglish } from "../../config/english-strings.ts";
 import { PAGE_STRING_NAMES, PART_STRINGS, REQUIRED_SCRIPT_STRING_NAMES } from "../../config/strings.ts";
 import { formForQuestions } from "../site.ts";
+import { checkHistoryPlaceholders } from "./history.ts";
 import { isFilledIn, type LanguageCheck } from "./reporting.ts";
 
 /** English is the one language with wording of its own to fall back on
@@ -89,6 +90,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
       nameInProblem: "writing.showWhenEmpty",
     },
     activity: { isOnTheSite: Boolean(site.config.activity), nameInProblem: "activity" },
+    githubHistory: { isOnTheSite: Boolean(site.config.githubHistory), nameInProblem: "githubHistory" },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {
     const part = parts[partName];
@@ -106,4 +108,5 @@ export const WORDING_CHECKS: LanguageCheck[] = [
   checkLanguageRow,
   checkLinkedInWording,
   checkPartWording,
+  checkHistoryPlaceholders,
 ];

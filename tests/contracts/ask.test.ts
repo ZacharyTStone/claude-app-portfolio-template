@@ -137,8 +137,14 @@ test("one field tells a reply's kind: a reply's text is only read from an answer
   assert.equal(replied?.reply, REPLY);
 });
 
-const LABELS = ["(picture: A)", "(link: B (C))"];
-const NOT_LABELS = ["(An aside.)", "picture: A", "(picture: A) and more", "He said (link: B)"];
+const LABELS = ["(picture: A)", "(link: B (C))", labelled("GitHub", "5,002 contributions since 2019 (1,099 private).")];
+const NOT_LABELS = [
+  "(An aside.)",
+  "picture: A",
+  "(picture: A) and more",
+  "He said (link: B)",
+  "(github: lowercase is no kind of label)",
+];
 
 for (const line of LABELS) {
   test(`a label: ${line}`, () => {
@@ -147,7 +153,7 @@ for (const line of LABELS) {
 }
 
 for (const line of NOT_LABELS) {
-  test(`not a label, which is a whole line that names a picture or a link: ${line}`, () => {
+  test(`not a label, which is a whole line that names a picture or a link, or says what GitHub counts: ${line}`, () => {
     assert.equal(isLabel(line), false);
   });
 }

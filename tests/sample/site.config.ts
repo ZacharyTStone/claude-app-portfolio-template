@@ -4,9 +4,10 @@
    opens in the viewer, a panel whose Context gathers the answers' links,
    one of each kind of figure, a picture that moves all the time, a
    Writing tab of posts on Qiita, each with a page of the site's own that
-   the viewer shows, and its recent public activity on GitHub in the panel,
-   which the tests' builds are given from qiita.json and github.json: no
-   test reaches Qiita or GitHub.
+   the viewer shows, its recent public activity on GitHub in the panel, and
+   its whole history on GitHub as the four parts of an answer, which the
+   tests' builds are given from qiita.json, github.json and
+   github-history.json: no test reaches Qiita or GitHub.
 
    tests/sample/ask-answers.ts has its English answers word for word, for
    the Worker's tests: a change to an answer here is a change there. */
@@ -114,6 +115,10 @@ function sampleLanguage(label: string, locale: string, strings?: Strings): Langu
               },
               { quote: { text: "Sam got it done.", by: "A coworker" } },
               { heading: { label: "Project", title: "The icon" } },
+              { github: "stats" },
+              { github: "calendar" },
+              { github: "languages" },
+              { github: "rhythm" },
             ],
           },
         ],
@@ -192,8 +197,16 @@ const config: SiteConfig = {
   // Its posts are made up: the tests' builds read them from qiita.json. Each
   // opens in the viewer too, as a page of the site's own.
   writing: { qiita: "sam-sample", viewer: true },
-  // So is its activity on GitHub, read from github.json.
+  // So is its activity on GitHub, read from github.json, and its whole
+  // history there, from github-history.json, with two moments marked on it.
   activity: { github: "sam-sample" },
+  githubHistory: {
+    user: "sam-sample",
+    marks: [
+      { at: "2021-06", label: "Sample Co" },
+      { at: "2024-02", label: "Example Labs" },
+    ],
+  },
   llms: { summary: "A sample.", about: "Sam is a sample." },
   // English leaves the interface's strings to English's own.
   languages: {

@@ -14,6 +14,7 @@ import {
   type ContactForm,
   type GatheredContext,
   type GitHubActivity,
+  type GitHubHistory,
   type MovingPicture,
   type PlayedPicture,
   type PostInViewer,
@@ -65,6 +66,7 @@ type SiteParts = {
   postInViewer: PostInViewer;
   githubActivity: GitHubActivity;
   gatheredContext: GatheredContext;
+  githubHistory: GitHubHistory;
 };
 
 type PageErrors = {
@@ -182,6 +184,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   postInViewer: partOrSkip(postInViewerOf, "the site's viewer shows no posts"),
   githubActivity: partOrSkip((site) => site.activity, "the site has no GitHub activity in its panel"),
   gatheredContext: partOrSkip((site) => site.context, "the panel's Context gathers no links from the answers"),
+  githubHistory: partOrSkip((site) => site.githubHistory, "no answer on the site shows a part of a GitHub history"),
 });
 
 // Chromium with a phone's screen, touch and user agent: the device's own

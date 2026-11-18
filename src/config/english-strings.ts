@@ -59,6 +59,17 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   writingIntro: "Posts, newest first:",
   writingEmpty: "Nothing posted yet.",
   activityTitle: "Recent public repos",
+  historyContributions: "Contributions",
+  historySince: "Since",
+  historyStreak: "Longest streak",
+  historyBusiest: "Busiest day",
+  historyPrivate: "Includes {n} in private repos, counted but not shown.",
+  historyCalendar: "Contributions, every week since {year}",
+  historyLess: "Less",
+  historyMore: "More",
+  historyLanguages: "Languages in public repos",
+  historyOther: "Other",
+  historyRhythm: "Contributions by day of the week",
 };
 
 /** Whether a language's page falls back on ENGLISH_STRINGS: "en", "en-GB". */

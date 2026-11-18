@@ -7,6 +7,7 @@ import Bars from "./Bars.astro";
 import FileCard from "./FileCard.astro";
 import Flow from "./Flow.astro";
 import Gallery from "./Gallery.astro";
+import GitHubPart from "./GitHubPart.astro";
 import Heading from "./Heading.astro";
 import Inline from "./Inline.astro";
 import LinkCard from "./LinkCard.astro";
@@ -24,7 +25,7 @@ const { block, page, fetched } = Astro.props;
 const { code } = page;
 
 const byKind: Partial<BlockByKind> = typeof block === "object" && !Array.isArray(block) ? block : {};
-const { card, link, bars, flow, image, images, quote, heading, ...kindsNotDrawn } = byKind;
+const { card, link, bars, flow, image, images, quote, heading, github, ...kindsNotDrawn } = byKind;
 // A kind added to Block and not drawn below would be left in here, and this line would be a type error.
 kindsNotDrawn satisfies Record<string, never>;
 ---
@@ -51,3 +52,4 @@ kindsNotDrawn satisfies Record<string, never>;
 {images && <Gallery pictures={images} page={page} />}
 {quote && <Quote quote={quote} />}
 {heading && <Heading heading={heading} />}
+{github && <GitHubPart part={github} page={page} />}

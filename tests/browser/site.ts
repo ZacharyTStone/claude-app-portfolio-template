@@ -5,6 +5,7 @@
    (fixtures.ts), which skips the check there. */
 import type { Browser, Locator, Page } from "@playwright/test";
 import type { ClockWording } from "../../src/app/clock.ts";
+import type { GitHubPart } from "../../src/config/github-history.ts";
 import type { Prompt } from "../../src/config/home.ts";
 import { CLOCK_MOODS, type ClockMood } from "../../src/config/language.ts";
 import { WRITING_TAB } from "../../src/config/writing.ts";
@@ -118,6 +119,11 @@ export type GatheredContext = {
   /** The text of each of Context's own rows. */
   ownRows: string[];
 };
+
+/** The parts of the GitHub history the answers show: the tab the first is
+    in, each part there in the page's order, and the years its calendar
+    has, oldest first (none without a calendar). */
+export type GitHubHistory = { tab: string; parts: GitHubPart[]; years: string[] };
 
 /** The tab with the most quotes and file cards in it, and the answer its
     last one is in, as /ask names it ("about.4"). */
@@ -233,6 +239,8 @@ export type Site = {
   activity: GitHubActivity | null;
   /** The panel's Context, on a site whose Context gathers links. */
   context: GatheredContext | null;
+  /** The GitHub history's parts, on a site whose answers show any. */
+  githubHistory: GitHubHistory | null;
 };
 
 /** The tab a link on the page opens: "about" for href="/about/" (or for
@@ -297,6 +305,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     ),
     activity: await readActivity(page),
     context: await readGatheredContext(page),
+    githubHistory: await readGitHubHistory(page),
   };
   await context.close();
   return site;
@@ -395,6 +404,16 @@ async function readGatheredContext(page: Page): Promise<GatheredContext | null> 
   if (!lists.length) return null;
   const ownRows = await page.locator(OWN_CONTEXT_ROWS).evaluateAll((rows) => rows.map((row) => row.textContent ?? ""));
   return { lists, ownRows };
+}
+
+async function readGitHubHistory(page: Page): Promise<GitHubHistory | null> {
+  const tab = page.locator(`${BUILT_TAB}:has(${ATTRIBUTE.githubPart})`).first();
+  if (!(await tab.count())) return null;
+  return {
+    tab: (await tab.getAttribute("id")) ?? "",
+    parts: (await attributeOfEach(tab.locator(ATTRIBUTE.githubPart), DATA.githubPart)) as GitHubPart[],
+    years: await tab.locator(`${CLASS.historyCalendar} dt`).allTextContents(),
+  };
 }
 
 async function readSidebarGroups(page: Page): Promise<SidebarGroup[]> {

@@ -1,10 +1,10 @@
 /* Builds the sample site (tests/sample) and checks what the repo's own
    site may not show: a site under a path, in two languages, with Ask on, a
    viewer, a picture that has a still, a Writing tab whose posts each have
-   a page of the site's own for the viewer, and GitHub activity in the
-   panel; the same site on a host that reads no headers; and the same site
-   before its first post. The builds share Astro's working folder, so
-   they're made one after another, in this file. */
+   a page of the site's own for the viewer, GitHub activity in the panel,
+   and a GitHub history in an answer; the same site on a host that reads no
+   headers; and the same site before its first post. The builds share
+   Astro's working folder, so they're made one after another, in this file. */
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
 import { join } from "node:path";
@@ -28,6 +28,7 @@ import { dayPosted } from "../../src/site/writing/post.ts";
 import { folderForConfigs, SAMPLE_CONFIG, writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import { SAMPLE_GITHUB, sampleRepos } from "../sample/github.ts";
+import { SAMPLE_GITHUB_HISTORY } from "../sample/github-history.ts";
 import { SAMPLE_QIITA, SAMPLE_QIITA_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/qiita.ts";
 import sampleConfig from "../sample/site.config.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
@@ -80,6 +81,13 @@ test("the sample has GitHub activity, and the build says its repos are the tests
   );
 });
 
+test("the sample has a GitHub history, and the build says it's the tests' fixture, not GitHub's", () => {
+  assert.match(
+    built.stdout,
+    new RegExp(`the GitHub history is the fixture ${escapeRegExp(SAMPLE_GITHUB_HISTORY)}, not GitHub's`),
+  );
+});
+
 test("the sample's llms.txt lists its public repos", () => {
   const llms = sample.read("llms.txt");
   assert.deepEqual(
@@ -127,6 +135,18 @@ for (const { file, url } of sample.languagePages) {
     assert.deepEqual(
       fetchedLinks.map(([, href]) => href),
       posts.map((post) => post.url),
+    );
+  });
+
+  test(`${file} has the four parts of the sample's GitHub history in its answer, each a figure marked as fetched and as its part`, () => {
+    const tab = tabIn(sample.read(file), "work");
+    const figure = new RegExp(
+      `<figure class="${PAGE_CLASSES.figure} [^"]*" ${DATA.fetched} ${DATA.githubPart}="([a-z]+)">`,
+      "g",
+    );
+    assert.deepEqual(
+      [...tab.matchAll(figure)].map(([, part]) => part),
+      ["stats", "calendar", "languages", "rhythm"],
     );
   });
 

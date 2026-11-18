@@ -6,6 +6,7 @@ import {
   ACTIVITY_STRING_NAMES,
   ASK_FORM_STRING_NAMES,
   CONTACT_FORM_STRING_NAMES,
+  HISTORY_STRING_NAMES,
   PAGE_STRING_NAMES,
   REQUIRED_SCRIPT_STRING_NAMES,
   WRITING_STRING_NAMES,
@@ -101,7 +102,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab and GitHub activity",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab, GitHub activity and a GitHub history",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -115,7 +116,23 @@ testEachProblem([
       ...ASK_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (ask with contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
+      ...HISTORY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory needs it)`),
     ],
+  },
+  {
+    wrong: "a GitHub history without its calendar's title, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).historyCalendar),
+    problems: ["fr: strings.historyCalendar is missing (githubHistory needs it)"],
+  },
+  {
+    wrong: "the calendar's title without {year}",
+    change: inFrench((french) => (statedStrings(french).historyCalendar = "Every week")),
+    problems: ["fr: strings.historyCalendar should have {year} in it, where the page writes the number"],
+  },
+  {
+    wrong: "the note on private work without {n}",
+    change: inEveryLanguage((language) => (statedStrings(language).historyPrivate = "Some are private.")),
+    problems: inBothLanguages("strings.historyPrivate should have {n} in it, where the page writes the number"),
   },
   {
     wrong: "GitHub activity without its heading, in a language other than English",
@@ -192,6 +209,18 @@ test("a site without GitHub activity needs no words for it", () => {
   const withoutActivity = sampleConfig({ activity: undefined });
   for (const name of ACTIVITY_STRING_NAMES) delete statedStrings(languageOf(withoutActivity, "fr"))[name];
   assert.deepEqual(problemsIn(withoutActivity), []);
+});
+
+test("a site without a GitHub history needs no words for it", () => {
+  const withoutHistory = sampleConfig({ githubHistory: undefined });
+  for (const language of Object.values(withoutHistory.languages)) {
+    for (const thread of language.threads) {
+      for (const message of thread.messages)
+        message.a = message.a.filter((block) => !(typeof block === "object" && "github" in block));
+    }
+  }
+  for (const name of HISTORY_STRING_NAMES) delete statedStrings(languageOf(withoutHistory, "fr"))[name];
+  assert.deepEqual(problemsIn(withoutHistory), []);
 });
 
 test("a site without a LinkedIn profile needs no words for one", () => {

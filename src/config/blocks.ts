@@ -10,6 +10,7 @@
    The pages draw each block (src/components/Block.astro); Ask and llms.txt
    read it as a line of plain text (src/site/plain-answers.ts). */
 
+import type { GitHubPart } from "./github-history.ts";
 import type { Language } from "./language.ts";
 import type { Markdown } from "./markdown.ts";
 
@@ -51,6 +52,12 @@ type NamedBlock =
   | {
       /** A heading inside a long answer, to set its parts apart. */
       heading: Heading;
+    }
+  | {
+      /** A part of your history on GitHub, as the build fetched it (the
+          config's `githubHistory`): "stats", "calendar", "languages" or
+          "rhythm". */
+      github: GitHubPart;
     };
 
 export type Block = TextBlock | NamedBlock;

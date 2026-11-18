@@ -1,0 +1,68 @@
+/* A row of tiles, each its label over its number, set large in the serif; two by two where the figure is
+   narrow. The note on private work runs under them all. */
+.history-stats dl {
+  display: grid;
+  grid-auto-columns: minmax(0, 1fr);
+  grid-auto-flow: column;
+}
+.history-stats dl > div {
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  padding: 13px 16px 14px;
+}
+.history-stats dl > div + div {
+  box-shadow: inset 1px 0 0 var(--line);
+}
+.history-stats dt {
+  color: var(--text-2);
+  font: 400 13px/18px var(--sans);
+}
+.history-stats dd {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+}
+.history-value {
+  color: var(--text-2);
+  font: 400 14px/1 var(--sans);
+}
+.history-value b {
+  color: var(--text);
+  font: 400 34px/1 var(--serif);
+  font-variant-numeric: lining-nums;
+  letter-spacing: -0.01em;
+}
+.history-under {
+  color: var(--text-2);
+  font: 400 12.5px/16px var(--sans);
+}
+.history-stats figcaption {
+  padding: 10px 16px 11px;
+  box-shadow: inset 0 1px 0 var(--line);
+  font-size: 12.5px;
+  line-height: 18px;
+}
+@container (max-width: 519px) {
+  .history-stats dl {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-auto-flow: row;
+  }
+  .history-stats dl > div + div {
+    box-shadow: none;
+  }
+  .history-stats dl > :nth-child(even) {
+    box-shadow: inset 1px 0 0 var(--line);
+  }
+  .history-stats dl > :nth-child(n + 3) {
+    box-shadow: inset 0 1px 0 var(--line);
+  }
+  .history-stats dl > :nth-child(n + 3):nth-child(even) {
+    box-shadow:
+      inset 1px 0 0 var(--line),
+      inset 0 1px 0 var(--line);
+  }
+  .history-value b {
+    font-size: 28px;
+  }
+}
