@@ -30,7 +30,7 @@ const withATypeError = buildOfAConfigWith(A_MISSPELT_SETTING, "type-error");
 // The tests' stand-in for Qiita has the sample's user alone: for any other,
 // it answers as Qiita does for an id it hasn't got.
 const withPostsItCantFetch = buildOfAConfigWith('config.writing = { qiita: "someone-else" };', "no-posts");
-// And the stand-in for GitHub, the same.
+// And the stand-in for GitHub, GitLab and Codeberg, the same.
 const withActivityItCantFetch = buildOfAConfigWith('config.activity = { github: "someone-else" };', "no-activity");
 
 test("a build stops at a problem the config's checks find, and names it under the config's file", () => {
@@ -54,11 +54,11 @@ test("a build stops when the Writing tab's posts can't be fetched, and says why 
   );
 });
 
-test("a build stops when the panel's GitHub activity can't be fetched, and says why and what to do", () => {
+test("a build stops when the panel's activity can't be fetched, and says why and what to do", () => {
   assert.equal(withActivityItCantFetch.status, 1);
   assert.ok(
     withActivityItCantFetch.said.includes(
-      "The panel's GitHub activity couldn't be fetched, so the build stops, and a host keeps the site it has: GitHub has no user by that name (Not Found), at https://api.github.com/users/someone-else/events/public?per_page=100. Build again once GitHub answers, or remove activity from the config to build without it (docs/github-activity.md).",
+      "The panel's activity couldn't be fetched, so the build stops, and a host keeps the site it has: GitHub has no user by that name (Not Found), at https://api.github.com/users/someone-else/events/public?per_page=100. Build again later, or remove activity from the config to build without it (docs/activity.md).",
     ),
     withActivityItCantFetch.said,
   );

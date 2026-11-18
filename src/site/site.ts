@@ -1,7 +1,7 @@
 /* A site as the build reads it: the config, and what's worked out from it
    once (who serves it, its languages in order, where everything is, every
    string a page says, the Writing tab made from the posts the build
-   fetched, and the repos the panel's GitHub activity lists). */
+   fetched, and the repos the panel's activity lists). */
 
 import { omitBy, pick, trimEnd } from "es-toolkit";
 import { ENGLISH_STRINGS, isEnglish } from "../config/english-strings.ts";
@@ -9,7 +9,7 @@ import type { Language, Thread } from "../config/language.ts";
 import type { Host, SiteConfig } from "../config/site-config.ts";
 import { PAGE_STRING_NAMES, REQUIRED_SCRIPT_STRING_NAMES, type Strings } from "../config/strings.ts";
 import { readsAsAnotherSite } from "../contracts/links.ts";
-import type { Repo } from "./activity/github.ts";
+import type { Repo } from "./activity/repo.ts";
 import { basePath } from "./url.ts";
 import type { Post } from "./writing/post.ts";
 import { withWritingRow, writingThread } from "./writing/tab.ts";
@@ -36,7 +36,7 @@ export type Site = {
   /** The Writing tab's posts, newest first: none on a site without
       `writing`, or until the build has fetched them. */
   posts: Post[];
-  /** The public repos the panel's GitHub activity lists, the latest pushed
+  /** The public repos the panel's activity lists, the latest pushed
       first: none on a site without `activity`, or until the build has
       fetched them. */
   repos: Repo[];
@@ -113,7 +113,7 @@ const hasWritingTab = ({ writing }: SiteConfig, posts: Post[]): boolean =>
     none has no tab, unless its config asks for it, and then the tab says
     there are none. The config's checks see the site with none, so nothing
     of the config's can open a tab that may not be there. `repos` are the
-    panel's GitHub activity's (src/site/activity), and a site with none has
+    panel's activity's (src/site/activity), and a site with none has
     no section. */
 export function makeSite(config: SiteConfig, posts: Post[] = [], repos: Repo[] = []): Site {
   const withTheTab = hasWritingTab(config, posts);

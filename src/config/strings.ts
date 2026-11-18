@@ -132,7 +132,7 @@ export const WRITING_STRING_NAMES = [
 /** The name in WritingStrings that the tab shows with none. */
 export const EMPTY_WRITING_STRING_NAMES = ["writingEmpty"] as const satisfies readonly (keyof WritingStrings)[];
 
-/** The page's wording for the panel's GitHub activity, on a site with
+/** The page's wording for the panel's activity, on a site with
     `activity` (PART_STRINGS). */
 export type ActivityStrings = {
   /** The heading of the panel's section, which says the repos are only
@@ -221,8 +221,8 @@ export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as Scri
 /** The strings a site needs only when it has the part (the build says
     which are missing): the script's, the contact form's (and its link
     from Ask's reply), the Writing tab's (and its line for no posts, on a
-    site whose tab is there before the first) and the panel's GitHub
-    activity's own. */
+    site whose tab is there before the first) and the panel's activity's
+    own. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],

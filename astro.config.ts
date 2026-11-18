@@ -2,7 +2,7 @@
    into dist/: static HTML with no script but the site's own and nothing
    inline, so the Content-Security-Policy in src/site/security-headers.ts holds. */
 import { defineConfig } from "astro/config";
-import { githubActivity } from "./src/integrations/activity.ts";
+import { recentActivity } from "./src/integrations/activity.ts";
 import { checkConfig } from "./src/integrations/check-config.ts";
 import { hostFiles } from "./src/integrations/host-files.ts";
 import { writingPosts } from "./src/integrations/writing.ts";
@@ -37,6 +37,6 @@ export default defineConfig({
     resolve: { alias: [{ find: IMPORT_OF_SITE_CONFIG, replacement: filePath }] },
   },
   // The posts and the activity are fetched once the config is known to be right.
-  integrations: [checkConfig(loaded), writingPosts(loaded), githubActivity(loaded), hostFiles(config)],
+  integrations: [checkConfig(loaded), writingPosts(loaded), recentActivity(loaded), hostFiles(config)],
   devToolbar: { enabled: false },
 });

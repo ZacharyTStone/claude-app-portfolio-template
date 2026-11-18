@@ -27,10 +27,10 @@ const sectionsOfRows = SECTIONS_OF_ROWS_IN_ORDER.flatMap((name) => {
 // page shows its open tab's (none on the home page), and the script the one for each tab it opens. They and the
 // rows are in one <div>: what the section's heading folds is the one element after it (src/app/folding.ts).
 const gatheredLists = contextLists(site, code);
-// The GitHub activity the build fetched, after the config's own sections:
+// The activity the build fetched, after the config's own sections:
 // none on a site without `activity`, or with no recent public pushes.
 const { activity, timezone } = site.config;
-const activityRowsHere = activity ? activityRows(site.repos, activity.github, code, timezone) : [];
+const activityRowsHere = activity ? activityRows(site.repos, activity, code, timezone) : [];
 ---
 
 <aside class="panel" id={PAGE_IDS.panel} aria-label={strings.panel}>

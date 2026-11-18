@@ -478,7 +478,7 @@ export default function japanese(me: SampleFacts): Language {
       writingIntro: "Qiitaに書いた記事です。新しい順に：",
       // With writing.showWhenEmpty: what the tab says before the first post.
       writingEmpty: "まだ記事はありません。",
-      // With `activity` in site.config.ts: the panel's GitHub activity.
+      // With `activity` in site.config.ts: the panel's activity.
       activityTitle: "最近の公開リポジトリ",
       askFrom: "「{tab}」タブより",
       askFromPersonal: "「{tab}」より",

@@ -94,14 +94,15 @@ export type WritingTab = Thread & {
 /** A post whose card opens it in the viewer, as the site's own page of it. */
 export type PostInViewer = { href: string; page: string; title: string };
 
-/** The panel's GitHub activity, made from the repos the build fetched: its
+/** The panel's activity, made from the repos the build fetched: its
     heading, and each repo's row, in the page's order. */
-export type GitHubActivity = {
+export type PanelActivity = {
   title: string;
   repos: Array<{
-    /** Where the row links: the repo's page on GitHub. */
+    /** Where the row links: the repo's page, on its own place. */
     href: string;
-    /** The row's text: the repo's name, then the day it was pushed to. */
+    /** The row's text: the repo's name, then the day it was pushed to
+        (after its place, on a site that reads more than one). */
     text: string;
   }>;
 };
@@ -228,9 +229,9 @@ export type Site = {
   contactForm: ContactForm | null;
   /** The Writing tab, on a site with `writing`. */
   writing: WritingTab | null;
-  /** The panel's GitHub activity, on a site with `activity` and public
+  /** The panel's activity, on a site with `activity` and public
       pushes lately. */
-  activity: GitHubActivity | null;
+  activity: PanelActivity | null;
   /** The panel's Context, on a site whose Context gathers links. */
   context: GatheredContext | null;
 };
@@ -372,7 +373,7 @@ async function readWriting(page: Page, threadsBuilt: Thread[]): Promise<WritingT
   return { ...thread, posts };
 }
 
-async function readActivity(page: Page): Promise<GitHubActivity | null> {
+async function readActivity(page: Page): Promise<PanelActivity | null> {
   const section = page.locator(ACTIVITY_IN_THE_PANEL);
   if (!(await section.count())) return null;
   const repos = await section

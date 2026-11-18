@@ -1,5 +1,5 @@
 /* What the build's requests to another site have in common: the Writing
-   tab's posts (writing/) and the panel's GitHub activity (activity/). Each
+   tab's posts (writing/) and the panel's activity (activity/). Each
    request has a time limit, and one that fails in a way that might pass is
    tried once more, a moment later. */
 import { setTimeout as sleep } from "node:timers/promises";
