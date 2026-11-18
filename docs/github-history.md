@@ -113,7 +113,8 @@ make it look like little. GitHub counts private work only if you turn on
 **Include private contributions on my profile** (on your profile, under
 the contribution graph, **Contribution settings**). Then the counts and
 the calendar include it, and the stats say how much of the count it is:
-"Includes 1,099 in private repos, counted but not shown." The page never
+"Includes 1,099 contributions to private repos, in every count and in the
+calendar. The repos stay private." The page never
 says which repos they were, or what was done: GitHub doesn't say either.
 With the setting off, everything is public work only, there's no note,
 and a quiet stretch on the calendar may be a busy stretch in private:

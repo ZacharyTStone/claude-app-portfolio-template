@@ -64,7 +64,8 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   historySince: "Since",
   historyStreak: "Longest streak",
   historyBusiest: "Busiest day",
-  historyPrivate: "Includes {n} in private repos, counted but not shown.",
+  historyPrivate:
+    "Includes {n} contributions to private repos, in every count and in the calendar. The repos stay private.",
   historyCalendar: "Contributions, every week since {year}",
   historyLess: "Less",
   historyMore: "More",
