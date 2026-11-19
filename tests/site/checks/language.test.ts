@@ -2,6 +2,7 @@
    problem's wording, and what's allowed. */
 import assert from "node:assert/strict";
 import { test } from "node:test";
+import { MAX_HOME_PROMPTS } from "../../../src/config/home.ts";
 import type { Topic } from "../../../src/config/question-card.ts";
 import { WRITING_TAB } from "../../../src/config/writing.ts";
 import { inBothLanguages, inEveryLanguage, problemsAfter, testEachProblem, type Change } from "./problems.ts";
@@ -47,6 +48,19 @@ testEachProblem([
     change: inEveryLanguage((language) => (language.home.prompts = [{ q: "What does Sam do?", answer: "work.2" }])),
     problems: inBothLanguages(
       `the home prompt "What does Sam do?" gets the answer "work.2", which isn't one: a thread's nth answer is "<thread>.<n>", and a personal answer "personal-<id>.1"`,
+    ),
+  },
+  {
+    wrong: "more questions to start with than the home screen shows",
+    change: inEveryLanguage(
+      (language) =>
+        (language.home.prompts = Array.from({ length: MAX_HOME_PROMPTS + 1 }, () => ({
+          q: "What does Sam do?",
+          answer: "work.1",
+        }))),
+    ),
+    problems: inBothLanguages(
+      `home.prompts has ${MAX_HOME_PROMPTS + 1} questions, and the home screen shows at most ${MAX_HOME_PROMPTS}`,
     ),
   },
   {

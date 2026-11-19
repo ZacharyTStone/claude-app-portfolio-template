@@ -15,10 +15,13 @@ export type Home = {
       visit starts on a phone. Leave out for the name alone. */
   tagline?: string;
   /** Questions to start with, under the box to type in (which needs
-      JavaScript, as they do): a few, each short enough for one line.
-      Leave out for the box alone. */
+      JavaScript, as they do): at most MAX_HOME_PROMPTS, each short enough
+      for one line. Leave out for the box alone. */
   prompts?: Prompt[];
 };
+
+/** How many questions to start with the home screen shows at most. */
+export const MAX_HOME_PROMPTS = 3;
 
 /** The home screen's heading, by the visitor's time of day (the hours are
     HOURS.greeting, in src/contracts/day-parts.ts). */

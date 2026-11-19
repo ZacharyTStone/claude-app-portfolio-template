@@ -54,9 +54,11 @@ states every string itself, and the build names one that is missing.
 The home screen's greeting is picked by the visitor's time of day:
 `morning` from 5:00, `afternoon` from 12:00, `evening` from 18:00 and
 `late` from 23:00. The page is built with `default`, which is what shows
-without JavaScript. The account menu's clock says what you're likely
-doing by your own time: `morning` from 5:00, `day` from 10:00, `evening`
-from 18:00 and `late` from 23:00.
+without JavaScript. Under the box to type in, `prompts` are at most three
+questions to start with, each a line long: the build stops at a fourth.
+The account menu's clock says what you're likely doing by your own time:
+`morning` from 5:00, `day` from 10:00, `evening` from 18:00 and `late`
+from 23:00.
 
 ## Threads
 
