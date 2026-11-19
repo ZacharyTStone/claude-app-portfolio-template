@@ -1,6 +1,7 @@
 /* The checks of one language's parts: what each points at (a thread, an
    answer, an icon, a file) and what its ids look like. */
 
+import { MAX_HOME_PROMPTS } from "../../config/home.ts";
 import { ID_PATTERN } from "../../config/language.ts";
 import { WRITING_TAB } from "../../config/writing.ts";
 import { parseAnswerId, personalAnswerId, threadAnswerId } from "../../contracts/ask.ts";
@@ -43,7 +44,12 @@ const checkHomePrompts: LanguageCheck = ({ site, language, problemUnless }) => {
     ),
     ...language.questions.personal.map((personalAnswer) => personalAnswerId(personalAnswer.id)),
   ]);
-  for (const prompt of language.home.prompts ?? []) {
+  const prompts = language.home.prompts ?? [];
+  problemUnless(
+    prompts.length <= MAX_HOME_PROMPTS,
+    `home.prompts has ${prompts.length} questions, and the home screen shows at most ${MAX_HOME_PROMPTS}`,
+  );
+  for (const prompt of prompts) {
     problemUnless(
       answerIds.has(prompt.answer),
       `the home prompt "${prompt.q}" gets the answer "${prompt.answer}", ${whyNotAnAnswer(site, prompt.answer)}`,
