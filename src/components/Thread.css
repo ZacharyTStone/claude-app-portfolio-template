@@ -5,6 +5,7 @@
   border-radius: 12px;
   background: var(--bubble);
   overflow-wrap: anywhere;
+  text-wrap: balance;
   transition: box-shadow 0.6s var(--ease);
 }
 .answer {
@@ -20,6 +21,10 @@
   gap: 6px;
   padding-left: 22px;
   list-style: disc;
+}
+/* Set, not poured: a paragraph never ends on a word alone. */
+.answer :is(p, li) {
+  text-wrap: pretty;
 }
 .answer li::marker {
   color: var(--text-2);

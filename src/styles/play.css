@@ -58,4 +58,14 @@
     clip-path: inset(50%);
     white-space: nowrap;
   }
+  /* And it leaves the picture for the top right of the caption, which keeps
+     room for it, so it covers nothing the picture draws. A picture without
+     a caption keeps it in its corner. */
+  .played-figure:has(figcaption) figcaption {
+    padding-right: 52px;
+  }
+  .playing:has(figcaption) .play-button {
+    top: calc(100% + 22px);
+    left: calc(100% - 10px);
+  }
 }

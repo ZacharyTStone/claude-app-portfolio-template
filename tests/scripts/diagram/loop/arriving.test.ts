@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { box, dot, loopOf } from "../../../../scripts/diagram.ts";
+import { box, COLOR, dot, loopOf } from "../../../../scripts/diagram.ts";
 import { aBox, pictureOf } from "../helpers.ts";
 
 const loop = loopOf(10);
@@ -24,8 +24,22 @@ test("What glides rests where it went", () => {
   assert.match(still, /<g transform="translate\(60 70\)"><g><circle cx="0" cy="0"/);
 });
 
-test("What pops in swells past its size and settles", () => {
-  assert.match(movingPicture, /<animateTransform [^>]*type="scale"[^>]*values="0;0;1\.16;1;1"/);
+test("What pops in swells past its size, dips under it and settles, as a spring does", () => {
+  assert.match(movingPicture, /<animateTransform [^>]*type="scale"[^>]*values="0;0;1\.18;0\.95;1;1"/);
+});
+
+const aMarker = loop.popping(dot({ x: 0, y: 0 }, 10, { fill: COLOR.accent }), { x: 50, y: 50 }, 2);
+
+test("A small pop of the accent throws a ring of sparks while the picture moves, and the still has none", () => {
+  const sparks = pictureOf([aMarker], "moving").match(/<circle [^>]*fill="#f0a184" opacity="0">/g) ?? [];
+  assert.equal(sparks.length, 6);
+  assert.doesNotMatch(pictureOf([aMarker], "still"), /#f0a184/);
+});
+
+test("A pop that isn't the accent's, or is too big, throws none", () => {
+  assert.doesNotMatch(movingPicture, /#f0a184/, "a grey box");
+  const big = loop.popping(dot({ x: 0, y: 0 }, 40, { fill: COLOR.accent }), { x: 50, y: 50 }, 2);
+  assert.doesNotMatch(pictureOf([big], "moving"), /#f0a184/, "a dot wider than a marker");
 });
 
 test("What rises comes up into its place", () => {

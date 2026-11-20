@@ -499,3 +499,40 @@
     }
   }
 }
+
+/* What a visitor presses gives a little: a row, a suggestion, a card or a
+   Play button sinks a touch while it's held. A link card's arrow leans
+   toward where it goes as the pointer comes over it. And the sparkle by the
+   home screen's greeting shimmers: every few seconds a glint crosses it,
+   a brighter band in the star's own fill that its icon mask cuts to the
+   star's shape, then it rests. */
+@media (prefers-reduced-motion: no-preference) {
+  :is(.side a, .prompts button, .link-card, .play-button, .account-row):active {
+    scale: 0.98;
+  }
+  .link-card::after {
+    transition: translate 0.25s var(--ease);
+  }
+  .link-card:hover::after {
+    translate: 2px -2px;
+  }
+  .hello::before {
+    background: linear-gradient(
+        115deg,
+        var(--accent) 34%,
+        color-mix(in srgb, var(--accent) 35%, #fff) 50%,
+        var(--accent) 66%
+      )
+      110% 0 / 250% 100%;
+    animation: star-shimmer 5s ease-in-out 1s infinite;
+  }
+  @keyframes star-shimmer {
+    0% {
+      background-position: 110% 0;
+    }
+    36%,
+    100% {
+      background-position: -10% 0;
+    }
+  }
+}

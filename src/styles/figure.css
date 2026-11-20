@@ -13,6 +13,7 @@
   gap: 2px 16px;
   color: var(--text-2);
   font: 400 13px/20px var(--sans);
+  text-wrap: balance;
 }
 .figure figcaption b {
   color: var(--text);

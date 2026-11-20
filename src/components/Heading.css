@@ -1,6 +1,7 @@
 /* Each part after the first starts under a rule, so a long answer reads as its parts. */
 .answer h2 {
   display: grid;
+  text-wrap: balance;
   gap: 3px;
   margin: 0;
   font: 500 17px/24px var(--sans);

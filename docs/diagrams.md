@@ -97,6 +97,28 @@ and nothing else, and each name is documented in the module behind it, in
     is the moment just before one, so that a value held until then changes
     all at once.
 
+## The finish every picture has
+
+A diagram draws its story; the kit finishes it, the same in every
+picture, without the diagram asking (`scripts/diagram/finish.ts`):
+
+- **A warm light** falls from the top of every picture, the accent's
+  colour, faint, over the ground.
+- **A surface lifts.** A `box` of a surface's colour (a box, a panel, a
+  highlighted box), rounded and at least 100 × 60, sits on a soft shadow;
+  one smaller, square (a piece of another) or of another colour stays
+  flat. A plain or highlighted outline is lit along its top edge. Fills
+  are never changed, so a window drawn as a box and a bar shows no seam.
+- **A pop springs.** What `loop.popping` brings in swells past its size,
+  dips a little under it and settles. A small one of the accent's colour
+  (a tick's disc, a marker: nothing wider than 64) throws a ring of sparks
+  as it lands.
+- **A traveller trails.** A `loop.traveller` dot is followed along its
+  path by three smaller, fainter dots, each a moment behind.
+
+The still has the light, the shadows and the lit outlines; the sparks
+and trails are there only while it moves.
+
 ## How to draw one well
 
 - **A diagram plays once, then waits to be played.** Motion beside text

@@ -45,7 +45,8 @@
   --control-small: 28px;
   --column: 824px;
   --gutter: 24px;
-  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  /* How everything that moves eases: quick to start, then a long, soft settle (an ease-out quint). */
+  --ease: cubic-bezier(0.22, 1, 0.36, 1);
 
   /* What lies over what, from the page up. */
   --layer-resizer: 12;
