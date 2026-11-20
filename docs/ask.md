@@ -94,9 +94,14 @@ reply is written, and the lines are quoted.
 
 ### Questions it turns away
 
-Two models read every question. The picker flags a rude one, or one that
-tries to give it other orders, and Llama Guard reads each question too.
-Either blocks that visitor's address from Ask for an hour
+Before either model, a question with a word no question about someone
+needs (an obscenity, a sexual word or a slur, in English or Japanese:
+`src/worker/ask/crude.ts`) is turned away at once, at no cost: a crude
+word on its own can pass Llama Guard, which looks for harm. Then two
+models read every question. The picker flags a rude one, a crude or
+sexual word on its own, or one that tries to give it other orders, and
+Llama Guard reads each question too. Any of these blocks that visitor's
+address from Ask for an hour
 (`ASK_BLOCK_HOURS`), or until midnight UTC if that comes first: an
 address can be a whole office's, and a model can be wrong about a
 question.

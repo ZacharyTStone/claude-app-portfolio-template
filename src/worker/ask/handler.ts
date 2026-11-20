@@ -6,6 +6,7 @@ import { admit, type Admitted } from "./admit.ts";
 import { ownerNames, type Choices } from "./answers.ts";
 import { NO_TOKENS, neuronCost } from "./cost.ts";
 import { covers } from "./coverage.ts";
+import { isCrude } from "./crude.ts";
 import { earlierQuestions, earlierTurns } from "./earlier.ts";
 import { LLAMA_GUARD_MODEL, priceOf } from "./known-models.ts";
 import { lineFor, type LogSink } from "./log.ts";
@@ -50,6 +51,9 @@ async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<O
   const choices = await admitted.choicesBeingRead;
   const earlier = earlierTurns(admitted.askRequest.earlier, choices);
   const asking = { question, earlier };
+  // A word no question needs turns it away before either model reads it (crude.ts).
+  if (isCrude(question))
+    return { kind: "flagged", ...asking, picked: CRUDE, visitorHash: admitted.visitorHash, neurons: 0 };
   const { picked, isInappropriate, costNeurons } = await pickWhileModerating(ai, settings, asking, choices);
   const asked = { ...asking, picked };
   if (isInappropriate) return { kind: "flagged", ...asked, visitorHash: admitted.visitorHash, neurons: costNeurons };
@@ -69,6 +73,13 @@ async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<O
   const neurons = costNeurons + neuronCost(saidToOwner?.tokens ?? NO_TOKENS, settings.price);
   return { kind: "unanswered", ...asked, ...allowance, uncoveredId, saidToOwner, neurons };
 }
+
+/** What a question with a word no question needs is taken as: called inappropriate, with no model asked. */
+const CRUDE: Picked = {
+  id: INAPPROPRIATE,
+  thought: "A word on the list no question needs (crude.ts).",
+  tokens: NO_TOKENS,
+};
 
 /** What the picker chose, and what the two models made of the question. */
 type ModeratedPick = {

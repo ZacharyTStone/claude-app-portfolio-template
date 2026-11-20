@@ -77,6 +77,14 @@ test("an inappropriate question is blocked, and so is its asker (hashed), for AS
   assert.equal(firstAsked(set.guard, "block")?.hours, 2);
 });
 
+test("a word no question needs turns the question away before either model reads it, and blocks its asker", async () => {
+  const { askJson, guard, calls, guardCalls, logged } = stubs({ run: models(toolCall("about.1")) });
+  assert.deepEqual(await askJson("penis"), { blocked: true, flagged: true });
+  assert.equal(calls.length + guardCalls.length, 0, "no model was asked");
+  assert.ok(firstAsked(guard, "block"), "the guard was told to block");
+  assert.deepEqual(costs(logged), [0], "and it cost nothing");
+});
+
 test("only a tool call can call a question inappropriate: a word in the model's text blocks no one", async () => {
   const { askJson, guard } = stubs({
     run: models({ response: "Nothing inappropriate here, but none of the answers fit." }),
