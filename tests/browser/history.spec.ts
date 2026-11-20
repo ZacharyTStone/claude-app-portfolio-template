@@ -204,6 +204,9 @@ test.describe("on a phone", () => {
     await calendar.scrollIntoViewIfNeeded();
     const strip = calendar.locator(CLASS.historyStrip).first();
     const lastWeek = strip.locator("i").last();
+    // Each week comes in by growing from a fifth of its size, once the calendar is in view: measure it when it has.
+    await expect(calendar).toContainClass(PAGE_CLASSES.seen);
+    await lastWeek.evaluate((week) => Promise.all(week.getAnimations().map((animation) => animation.finished)));
     expect((await lastWeek.boundingBox())?.width, "a week is drawn").toBeGreaterThan(1);
     expect(await rightEdgeOf(lastWeek)).toBeLessThanOrEqual((await rightEdgeOf(strip)) + A_ROUNDING);
   });

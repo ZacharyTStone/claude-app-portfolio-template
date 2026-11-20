@@ -1,4 +1,5 @@
 import { PLAYS_ATTRIBUTE } from "../../src/contracts/picture-files.ts";
+import { FINISH_ID, LIGHT, RIMS, SHADOW } from "./finish.ts";
 import { COLOR, FONT } from "./palette.ts";
 
 /** One element of a picture: its SVG tag, attributes and what's inside. */
@@ -53,11 +54,49 @@ export function svgOf({ width, height, plays, shapes }: Drawing, how: "moving" |
     "font-family": FONT.sans,
     [PLAYS_ATTRIBUTE]: isMoving ? plays : undefined,
   });
-  const ground = shape("rect", { width, height, fill: COLOR.ground });
-  const drawn = isMoving ? [ground, ...shapes] : atRest([ground, ...shapes]);
+  const ground = [shape("rect", { width, height, fill: COLOR.ground }), finishDefinitions(), light(width, height)];
+  const drawn = isMoving ? [...ground, ...shapes] : atRest([...ground, ...shapes]);
   // A line for each of the picture's top shapes, so a change reads in a diff.
   return `<svg${writtenAttributes(root.attributes)}>\n${drawn.map(written).join("\n")}\n</svg>\n`;
 }
+
+/** The finish's definitions (finish.ts), which a box's shadow and lit outline name: the light, the shadow, and
+    the two rims. */
+function finishDefinitions(): Shape {
+  const rim = (id: keyof typeof RIMS) =>
+    shape(
+      "linearGradient",
+      { id, x1: 0, y1: 0, x2: 0, y2: 1 },
+      ...RIMS[id].map(([offset, colour]) => shape("stop", { offset, "stop-color": colour })),
+    );
+  return shape(
+    "defs",
+    {},
+    shape(
+      "radialGradient",
+      { id: FINISH_ID.light, cx: "50%", cy: "0%", r: LIGHT.reach },
+      shape("stop", { offset: "0", "stop-color": COLOR.accent, "stop-opacity": LIGHT.opacity }),
+      shape("stop", { offset: "1", "stop-color": COLOR.accent, "stop-opacity": 0 }),
+    ),
+    shape(
+      "filter",
+      { id: FINISH_ID.lift, x: "-15%", y: "-20%", width: "130%", height: "160%" },
+      shape("feDropShadow", {
+        dx: 0,
+        dy: SHADOW.down,
+        stdDeviation: SHADOW.soft,
+        "flood-color": "#000",
+        "flood-opacity": SHADOW.opacity,
+      }),
+    ),
+    rim(FINISH_ID.rim),
+    rim(FINISH_ID.warmRim),
+  );
+}
+
+/** The finish's light from the top, over the whole picture. */
+const light = (width: number, height: number): Shape =>
+  shape("rect", { width, height, fill: `url(#${FINISH_ID.light})` });
 
 /** The shapes without their motion, and without those that are only there while the picture moves. */
 function atRest(children: Array<Shape | string>): Array<Shape | string> {

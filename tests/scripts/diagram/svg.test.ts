@@ -24,7 +24,22 @@ test("The still picture is the same shapes without their motion, and without wha
   const still = pictureOf(movingAndPassing, "still");
   assert.doesNotMatch(still, /<animate /);
   assert.doesNotMatch(still, /id="passing"/);
-  assert.equal(still.match(/<rect /g)?.length, 2, "the ground and the box are both still there");
+  assert.equal(still.match(/<rect /g)?.length, 3, "the ground, its light and the box are all still there");
+});
+
+test("Every picture, moving or still, has the finish's light over its ground, and the definitions it names", () => {
+  for (const how of ["moving", "still"] as const) {
+    const picture = pictureOf([aBox()], how);
+    assert.match(
+      picture,
+      /^<svg[^>]*>\n<rect [^>]*fill="#1f1f1f"\/>\n<defs>/,
+      `the ${how} picture's ground comes first`,
+    );
+    assert.match(picture, /<radialGradient id="finish-light"/);
+    assert.match(picture, /<filter id="finish-lift"[^>]*><feDropShadow /);
+    assert.match(picture, /<linearGradient id="finish-rim"/);
+    assert.match(picture, /<rect width="100" height="100" fill="url\(#finish-light\)"\/>/);
+  }
 });
 
 const played: Drawing = { width: 100, height: 100, plays: 8.25, shapes: [aBox()] };

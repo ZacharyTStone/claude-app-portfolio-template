@@ -1,3 +1,4 @@
+import { surfaceLook } from "./finish.ts";
 import { COLOR, FONT } from "./palette.ts";
 import type { Place, Point } from "./places.ts";
 import { rounded, shape, type Attributes, type Shape } from "./svg.ts";
@@ -30,13 +31,15 @@ export function restingAt(target: Shape, opacity: number | undefined): Shape {
 
 const DASHED = "10 12";
 
-/** A rounded box. A `line` of "none" leaves it without an outline. */
+/** A rounded box. A `line` of "none" leaves it without an outline. It takes the finish's look (finish.ts): a
+    surface big enough is lifted on a shadow, and its outline is lit along the top. */
 export function box(
   at: Place,
   look: { radius?: number; fill?: string; line?: string; lineWidth?: number; dashed?: boolean; opacity?: number } = {},
 ): Shape {
   const { radius = 22, fill = COLOR.box, line = COLOR.boxLine, lineWidth = 2, dashed = false, opacity } = look;
   const hasOutline = line !== "none";
+  const finish = surfaceLook(at, { fill, line, radius });
   return shape("rect", {
     x: at.x,
     y: at.y,
@@ -44,10 +47,11 @@ export function box(
     height: at.height,
     rx: radius,
     fill,
-    stroke: hasOutline ? line : undefined,
+    stroke: hasOutline ? finish.stroke : undefined,
     "stroke-width": hasOutline ? lineWidth : undefined,
     "stroke-dasharray": dashed ? DASHED : undefined,
     opacity,
+    filter: finish.filter,
   });
 }
 
