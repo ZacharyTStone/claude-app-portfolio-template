@@ -484,6 +484,23 @@
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent);
     }
   }
+  /* The open tab's highlight glides from row to row in the sidebar (src/app/sidebar-glide.ts). */
+  .side a[aria-current="page"]:not(.glides-in)::after {
+    transition: inset 0.34s var(--ease);
+  }
+  /* An answer comes into a chat a word at a time (src/app/conversation/stream.ts): each word of its running
+     text, and each of its other parts (a picture, a card, a quote) whole, comes into focus at its place in
+     the order. */
+  .streaming .streamed,
+  .streaming > :is(:not(p, ul, ol), .reply) {
+    animation: stream-in 0.36s var(--ease) calc(var(--place, 0) * var(--pace)) both;
+  }
+  @keyframes stream-in {
+    from {
+      opacity: 0;
+      filter: blur(4px);
+    }
+  }
   /* The globe's marker fades in as the globe lands, and its ring keeps going out from the place, as a
      map's marker does. */
   .globe-marker {

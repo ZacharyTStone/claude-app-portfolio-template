@@ -4,6 +4,7 @@ import type { Locator, Page } from "@playwright/test";
 import { HOURS, type GreetingPart } from "../../src/contracts/day-parts.ts";
 import { parseAnswerId } from "../../src/contracts/ask.ts";
 import { DATA, MENU_KEYS } from "../../src/contracts/page-attributes.ts";
+import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { PAGE_IDS } from "../../src/contracts/page-ids.ts";
 import {
   ATTRIBUTE_SELECTOR as ATTRIBUTE,
@@ -26,6 +27,10 @@ import { halfPast } from "./time.ts";
 import { pasteIntoTheCard, renameTab, revisit } from "./visitor.ts";
 
 const HOME_BOX = `${ID.home} ${CLASS.homeAsk} input`;
+
+/** How long a reply that comes in a word at a time has to be all in: it
+    takes about three seconds at most. */
+const REPLY_IN_WITHIN_MS = 8000;
 
 /** How long Share has to say its own name again after "Copied", in
     milliseconds. */
@@ -134,6 +139,30 @@ test.describe("a question to start with, clicked on the home screen", () => {
     const howTheReplyStarts = (await textAsRead(reply)).slice(0, answerInItsTab.length);
     expect(howTheReplyStarts, "the reply is that answer, word for word").toBe(answerInItsTab);
     expect(ask.requests, "the page names the answer, so /ask isn't asked").toHaveLength(0);
+  });
+
+  test("gets its answer a word at a time, every word in the page from the start", async ({ page }) => {
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} > ${CLASS.answer}`).first();
+    await expect(reply).toContainClass(PAGE_CLASSES.streaming);
+    const words = reply.locator(CLASS.streamed);
+    expect(await words.count(), "its words are each a part that comes in at its turn").toBeGreaterThan(1);
+    await expect(reply, "once it's all in, it stays in").not.toContainClass(PAGE_CLASSES.streaming, {
+      timeout: REPLY_IN_WITHIN_MS,
+    });
+  });
+});
+
+test.describe("a question to start with, with motion reduced", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("gets its answer whole, at once", async ({ page, ask, startingPrompt }) => {
+    await ask.returns("fail");
+    await page.goto("./");
+    await page.locator(`${ID.home} [${DATA.prompt}="${startingPrompt.answer}"]`).first().click();
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} > ${CLASS.answer}`).first();
+    await expect(reply).toBeVisible();
+    await expect(reply).not.toContainClass(PAGE_CLASSES.streaming);
+    await expect(reply.locator(CLASS.streamed)).toHaveCount(0);
   });
 });
 

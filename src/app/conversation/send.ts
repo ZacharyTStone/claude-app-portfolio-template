@@ -23,9 +23,12 @@ import {
   showQuestionIn,
 } from "./messages.ts";
 import { answersReadIn, firstQuestionOf, isOnPage } from "./page-answers.ts";
+import { finishStreaming, streamIn } from "./stream.ts";
 import { thinkingLine } from "./thinking.ts";
 
-/** The least a reply takes, "thinking", before it comes. */
+/** The least a reply takes, "thinking", before it comes, and the least
+    between one of its messages and the next (which waits for the one
+    before to come in, a word at a time: stream.ts). */
 const THINKING_MS = 750;
 const BETWEEN_MESSAGES_MS = 140;
 
@@ -126,15 +129,26 @@ function begin(tab: HTMLElement, exchange: Exchange, earlier: AskTurn[]): Delive
   return delivery;
 }
 
-function showNext(delivery: Delivery): void {
+/** Puts the reply's next message in, coming in a word at a time unless the
+    reply is hurried, and says how long that takes. */
+function showNext(delivery: Delivery): number {
   const message = delivery.replyMessages?.[delivery.shownCount++];
-  if (message) add(delivery, message);
+  if (!message) return 0;
+  const takes = delivery.isHurried ? 0 : streamIn(message);
+  add(delivery, message);
+  return takes;
+}
+
+/** All of a reply that's in shows whole. */
+function finishAll(delivery: Delivery): void {
+  for (const message of delivery.replyMessages ?? []) finishStreaming(message);
 }
 
 /** The rest of a reply goes in now; one that hasn't come yet will go in all
     at once, in the "thinking" line's place. */
 function hurry(delivery: Delivery): void {
   delivery.isHurried = true;
+  finishAll(delivery);
   while (delivery.replyMessages && delivery.shownCount < delivery.replyMessages.length) showNext(delivery);
 }
 
@@ -171,11 +185,12 @@ function putInTheRest(delivery: Delivery, messages: Element[]): void {
     else is sent (the rest then goes in at once) or another tab opens. */
 async function showOneByOne(delivery: Delivery, messages: Element[]): Promise<void> {
   delivery.replyMessages = messages;
+  let comingIn = 0;
   while (delivery.shownCount < messages.length) {
-    if (delivery.shownCount > 0) await pause(BETWEEN_MESSAGES_MS);
+    if (delivery.shownCount > 0) await pause(Math.max(BETWEEN_MESSAGES_MS, comingIn));
     if (delivery.isHurried) return;
     if (delivery.isStopped) return putInTheRest(delivery, messages);
-    showNext(delivery);
+    comingIn = showNext(delivery);
   }
   if (current === delivery) current = null;
 }
@@ -202,7 +217,10 @@ export async function send(tab: HTMLElement, exchange: Exchange): Promise<void> 
 
 /** Back to the portfolio's own messages, when another tab opens. */
 export function resetThreads(): void {
-  if (current) current.isStopped = true;
+  if (current) {
+    current.isStopped = true;
+    finishAll(current);
+  }
   current = null;
   openTab = null;
   for (const message of document.querySelectorAll(SENT_INTO_THE_SITES_OWN_THREADS)) message.remove();
