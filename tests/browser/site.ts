@@ -62,6 +62,10 @@ type LanguagePage = { href: string; lang: string };
     when the clock names none). */
 export type Clock = ClockWording & { zone: string };
 
+/** The globe behind the home screen's text: the owner's time zone, for the
+    time beside its marker, and the place's name before it, if it has one. */
+export type Globe = { zone: string; place: string | null };
+
 /** A link in a thread that opens in the viewer (the config's `viewer`). */
 export type ViewerLink = {
   /** The tab it's in. */
@@ -229,6 +233,7 @@ export type Site = {
       there); null on a site in one language. */
   languageLink: string | null;
   clock: Clock | null;
+  globe: Globe | null;
   /** Whether a thread has a status line ("Read …"). */
   statusLine: boolean;
   /** The first link in a thread that opens in the viewer. */
@@ -298,6 +303,7 @@ export async function readSite(browser: Browser, home: string): Promise<Site> {
     languages: await readLanguages(page),
     languageLink: await attributeOfFirst(page.locator(ATTRIBUTE.langLink), "href"),
     clock: await readClock(page),
+    globe: await readGlobe(page),
     statusLine: (await page.locator(`${CLASS.tab} ${CLASS.status} summary b`).count()) > 0,
     viewer: await readViewerLink(page),
     movingPictures: await readMovingPictures(page),
@@ -450,6 +456,16 @@ async function readClock(page: Page): Promise<Clock | null> {
     ahead: await wording(DATA.clockAhead),
     behind: await wording(DATA.clockBehind),
     moods,
+  };
+}
+
+async function readGlobe(page: Page): Promise<Globe | null> {
+  const globe = page.locator(CLASS.globe);
+  if (!(await globe.count())) return null;
+  const place = globe.locator(`${CLASS.globeMarker} > :not(${CLASS.globeTime})`);
+  return {
+    zone: (await globe.getAttribute(DATA.globeZone)) ?? "UTC",
+    place: (await place.count()) ? await place.textContent() : null,
   };
 }
 

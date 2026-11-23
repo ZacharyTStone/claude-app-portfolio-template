@@ -24,21 +24,21 @@ a fact.
 
 ## Which part is which
 
-| On the page | In the config | Its type is in |
-| --- | --- | --- |
-| The address, the host, your name, links and time zone | the top level | `src/config/site-config.ts` |
-| The home screen: greeting, intro, questions to start with | `home` | `src/config/home.ts` |
-| The sidebar's rows and groups | `sidebar` | `src/config/sidebar.ts` |
-| The tabs, each a short conversation | `threads` | `src/config/language.ts` |
-| The question card under every thread, and the personal answers | `questions` | `src/config/question-card.ts` |
-| "Something else", the reply to a question the site can't answer | `asked` | `src/config/asked.ts` |
-| The details panel on the right | `panel` | `src/config/language.ts` |
-| The account menu and its clock | `account` | `src/config/language.ts` |
-| The 404 page | `notFound` | `src/config/language.ts` |
-| Buttons, tooltips and what the script says | `strings` | `src/config/strings.ts` |
-| What an answer is made of | a message's `a` | `src/config/blocks.ts` |
-| The Writing tab: your posts on Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any blog's feed, fetched as the site builds | `writing` | `src/config/writing.ts` |
-| Your recent public repos on GitHub, GitLab or Codeberg, in the panel, fetched as the site builds | `activity` | `src/config/activity.ts` |
+| On the page                                                                                                                         | In the config   | Its type is in                |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------- |
+| The address, the host, your name, links and time zone                                                                               | the top level   | `src/config/site-config.ts`   |
+| The home screen: greeting, intro, questions to start with                                                                           | `home`          | `src/config/home.ts`          |
+| The sidebar's rows and groups                                                                                                       | `sidebar`       | `src/config/sidebar.ts`       |
+| The tabs, each a short conversation                                                                                                 | `threads`       | `src/config/language.ts`      |
+| The question card under every thread, and the personal answers                                                                      | `questions`     | `src/config/question-card.ts` |
+| "Something else", the reply to a question the site can't answer                                                                     | `asked`         | `src/config/asked.ts`         |
+| The details panel on the right                                                                                                      | `panel`         | `src/config/language.ts`      |
+| The account menu and its clock                                                                                                      | `account`       | `src/config/language.ts`      |
+| The 404 page                                                                                                                        | `notFound`      | `src/config/language.ts`      |
+| Buttons, tooltips and what the script says                                                                                          | `strings`       | `src/config/strings.ts`       |
+| What an answer is made of                                                                                                           | a message's `a` | `src/config/blocks.ts`        |
+| The Writing tab: your posts on Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any blog's feed, fetched as the site builds | `writing`       | `src/config/writing.ts`       |
+| Your recent public repos on GitHub, GitLab or Codeberg, in the panel, fetched as the site builds                                    | `activity`      | `src/config/activity.ts`      |
 
 Everything from `home` down belongs to one language: it is inside
 `languages.en`, and again inside each other language
@@ -103,18 +103,18 @@ prompt and link that still points at it.
 
 An answer is a list of blocks, shown top to bottom:
 
-| Block | Written as |
-| --- | --- |
-| A paragraph | a string |
-| A list | an array of strings, an item each |
-| A file card | `{ card: { file, lines } }` |
-| A link card | `{ link: { name, kind, href, icon } }` |
-| Bars, two to six amounts on one scale | `{ bars: { title, rows } }` |
-| A flow, two to five steps in order | `{ flow: { title, steps } }` |
-| A picture, or pictures side by side | `{ image: { src, alt, width, height } }`, `{ images: [ … ] }` |
-| A quote | `{ quote: { text, by } }` |
-| A heading inside a long answer | `{ heading: { title } }` |
-| A part of your GitHub history | `{ github: "stats" }`, `"calendar"`, `"languages"` or `"rhythm"` |
+| Block                                 | Written as                                                       |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| A paragraph                           | a string                                                         |
+| A list                                | an array of strings, an item each                                |
+| A file card                           | `{ card: { file, lines } }`                                      |
+| A link card                           | `{ link: { name, kind, href, icon } }`                           |
+| Bars, two to six amounts on one scale | `{ bars: { title, rows } }`                                      |
+| A flow, two to five steps in order    | `{ flow: { title, steps } }`                                     |
+| A picture, or pictures side by side   | `{ image: { src, alt, width, height } }`, `{ images: [ … ] }`    |
+| A quote                               | `{ quote: { text, by } }`                                        |
+| A heading inside a long answer        | `{ heading: { title } }`                                         |
+| A part of your GitHub history         | `{ github: "stats" }`, `"calendar"`, `"languages"` or `"rhythm"` |
 
 Text is a little Markdown and never HTML: `**bold**`, `*italic*`, code
 between backticks, and `[a link](#about)`. A link goes to a thread
@@ -202,6 +202,35 @@ week, a row a year, with moments you mark on it), `"languages"` and
 GitHub, and says how much of the count is private work.
 [GitHub history](github-history.md) has the rest: each part, what it
 leaves out, the token, and what happens when GitHub is down.
+
+## A globe on the home screen
+
+A globe behind the home screen's text, its top showing under the
+questions to start with, turns to your city when the home screen first
+shows, as a line draws to it from where you're from:
+
+```ts
+globe: {
+  here: { latitude: 40.71, longitude: -74.01 }, // your city: New York
+  from: { latitude: 41.88, longitude: -87.63 }, // where you're from: Chicago
+},
+```
+
+Your city alone is enough: `globe: { here: { latitude: 40.71, longitude:
+-74.01 } }` turns the globe to it and marks it with a pulsing dot. `from`
+adds the line, and each language's `home.place` ("New York",
+"ニューヨーク") puts the city's name beside the dot, with the time there
+(the site's `timezone`). A map app shows a place's latitude and longitude
+when you press and hold it, latitude first; south and west are below 0.
+
+Day and night on it are the sun's as the visitor opens the page, with a
+town's lights here and there on the night side. Its colours are the
+`--globe-day`, `--globe-night` and `--globe-light` of `.globe`, and the
+page's `--accent`: a site can set them in `site.css`. Only the script draws
+it, so it isn't there without JavaScript; a visitor who asks for less
+motion sees it already turned, and a screen too short to show it under
+the text leaves it out. Its land is a script of its own (about 12 KB),
+which loads only when the home screen first shows.
 
 ## The panel's Context
 

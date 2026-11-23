@@ -14,6 +14,10 @@ export type Home = {
   /** One line under your name at the top of a new chat, which is where a
       visit starts on a phone. Leave out for the name alone. */
   tagline?: string;
+  /** Beside the globe's marker (the site's `globe`), before the time
+      there: the name of where you are, "Tokyo". Leave out for the mark
+      alone. */
+  place?: string;
   /** Questions to start with, under the box to type in (which needs
       JavaScript, as they do): at most MAX_HOME_PROMPTS, each short enough
       for one line. Leave out for the box alone. */

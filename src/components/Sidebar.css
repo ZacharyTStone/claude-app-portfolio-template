@@ -138,7 +138,17 @@
   flex: none;
 }
 
-/* The script marks the open tab's row, or "New tab", with aria-current. */
+/* The script marks the open tab's row, or "New tab", with aria-current. Its highlight is behind it, so that
+   it can start over the row that had it and glide into place (src/app/sidebar-glide.ts). */
 .side a[aria-current="page"] {
+  position: relative;
+  isolation: isolate;
+}
+.side a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  inset: var(--glide-top, 0px) 0 var(--glide-bottom, 0px);
+  z-index: -1;
+  border-radius: 8px;
   background: var(--row-selected);
 }

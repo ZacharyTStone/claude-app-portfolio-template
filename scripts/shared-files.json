@@ -8,6 +8,7 @@
     "scripts/diagram.ts",
     "scripts/diagram",
     "scripts/diagrams.ts",
+    "scripts/globe.ts",
     "scripts/template.ts",
     "scripts/shared-files.json",
     "scripts/update-template.ts",

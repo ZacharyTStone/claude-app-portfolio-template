@@ -9,7 +9,7 @@ import {
   ID_SELECTOR as ID,
 } from "../../src/contracts/page-selectors.ts";
 import { expect, test } from "./fixtures.ts";
-import { PANEL_SECTIONS } from "./parts.ts";
+import { PANEL_SECTIONS, sidebarRow } from "./parts.ts";
 import { revisit } from "./visitor.ts";
 
 /** How far the sidebar's edge is dragged, in pixels, and in how many moves
@@ -49,9 +49,25 @@ test.describe("a sidebar group, folded", () => {
   });
 });
 
+/** Where an open row's highlight is, from the top of its row: it starts
+    over the row that had it. Read in the same moment the row is clicked. */
+const highlightTopOnClick = (row: Locator): Promise<string> =>
+  row.evaluate((element) => {
+    if (element instanceof HTMLElement) element.click();
+    return getComputedStyle(element, "::after").top;
+  });
+const highlightTop = (row: Locator): Promise<string> =>
+  row.evaluate((element) => getComputedStyle(element, "::after").top);
+
 test.describe("the sidebar, beside an open tab", () => {
   test.beforeEach(async ({ page, site }) => {
     await page.goto(site.firstThread.path);
+  });
+
+  test("its highlight glides from the tab's row to the row of the next tab opened", async ({ page, otherThread }) => {
+    const row = sidebarRow(page, otherThread.id);
+    expect(await highlightTopOnClick(row), "it starts over the row that had it").not.toBe("0px");
+    await expect.poll(() => highlightTop(row), { message: "it ends on its own row" }).toBe("0px");
   });
 
   test("ArrowDown takes the focus from its first row to its second", async ({ page }) => {
@@ -267,3 +283,12 @@ async function dragDistancePastTheSecondSection(page: Page): Promise<number> {
   const middleOf = (box: { y: number; height: number }) => box.y + box.height / 2;
   return middleOf(second) - middleOf(first) + PAST_THE_MIDDLE_PX;
 }
+
+test.describe("the sidebar, with motion reduced", () => {
+  test.use({ reducedMotion: "reduce" });
+
+  test("marks the row of the next tab opened at once", async ({ page, site, otherThread }) => {
+    await page.goto(site.firstThread.path);
+    expect(await highlightTopOnClick(sidebarRow(page, otherThread.id))).toBe("0px");
+  });
+});

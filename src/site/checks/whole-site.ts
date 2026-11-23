@@ -15,6 +15,7 @@ import type { Site } from "../site.ts";
 import {
   isCodebergUserName,
   isColour,
+  isPlace,
   isEmailAddress,
   isFrameableAddress,
   isHttpsAddress,
@@ -125,6 +126,8 @@ type SettingFormat = {
   mayBeLeftOut?: true;
 };
 
+const PLACE = "a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 35.69, longitude: 139.69 }";
+
 /** The pages write these into attributes and addresses as they are, in the
     order their problems are listed. */
 const SETTING_FORMATS: SettingFormat[] = [
@@ -170,6 +173,9 @@ const SETTING_FORMATS: SettingFormat[] = [
     shouldBe: `a Codeberg user name, as in your profile's address (codeberg.org/alex-example is "alex-example")`,
     mayBeLeftOut: true,
   },
+  // The page writes each into an attribute, and the globe turns to them.
+  { field: "globe.here", looksRight: isPlace, shouldBe: PLACE, mayBeLeftOut: true },
+  { field: "globe.from", looksRight: isPlace, shouldBe: PLACE, mayBeLeftOut: true },
   // The build asks GitHub for this user's history by it.
   {
     field: "githubHistory.user",

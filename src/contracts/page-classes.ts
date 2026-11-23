@@ -63,6 +63,12 @@ const WRITTEN_BY_A_COMPONENT = {
   homeAsk: "home-ask",
   homeSend: "home-send",
   prompts: "prompts",
+  /** On a site with a globe (the config's `globe`): behind the home
+      screen's text, what holds the canvas the browser code draws it on and
+      the marker it places over it, and in the marker, the time there. */
+  globe: "globe",
+  globeMarker: "globe-marker",
+  globeTime: "globe-time",
   /** In an answer: bars, a flow or a picture. */
   figure: "figure",
   /** A figure whose picture a visitor plays; in it, what holds the picture
@@ -142,6 +148,16 @@ type NoKeyOf<Taken> = Record<string, string> & { readonly [Key in keyof Taken]?:
 /** The classes only the script (src/app) puts on an element: no built page
     has one. */
 const ADDED_BY_THE_SCRIPT = {
+  /** On the globe, once it has turned to where you are: its marker shows. */
+  landed: "landed",
+  /** On an answer while it comes into a chat a word at a time
+      (src/app/conversation/stream.ts), and on each word of its running
+      text, which comes in at its turn. */
+  streaming: "streaming",
+  streamed: "streamed",
+  /** On the sidebar's open row for a frame, while its highlight is put
+      over the row that had it, before it glides in (src/app/sidebar-glide.ts). */
+  glidesIn: "glides-in",
   /** On <html>: what needs JavaScript can show. */
   js: "js",
   /** On the sidebar, as a phone's drawer. */

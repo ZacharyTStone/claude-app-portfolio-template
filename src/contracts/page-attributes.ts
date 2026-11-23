@@ -117,6 +117,13 @@ export const DATA = {
       a plain number ("4812" for "4,812"). As the part comes in, the script
       counts up to it over the number's own animation (src/app/count-up.ts). */
   count: "data-count",
+  /** On the home screen's globe: where you are, and where the way it draws
+      starts (the config's globe.here and globe.from), each a longitude and
+      a latitude in degrees with a space between ("139.69 35.69"); and your
+      time zone, for the time beside its marker. */
+  globeHere: "data-globe-here",
+  globeFrom: "data-globe-from",
+  globeZone: "data-globe-zone",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

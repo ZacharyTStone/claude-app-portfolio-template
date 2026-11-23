@@ -14,6 +14,10 @@ const me = {
   github: "https://github.com/your-github",
   linkedin: "https://www.linkedin.com/in/your-linkedin/",
   place: "New York",
+  // Where your city is, for the globe on the home screen: a map app shows a
+  // place's latitude and longitude when you press and hold it. South of the
+  // equator and west of Greenwich are below 0.
+  city: { latitude: 40.71, longitude: -74.01 },
   role: "Software Engineer",
   resume: "https://example.com/resume.pdf",
   jobs: {
@@ -82,6 +86,13 @@ export default {
   // `writing`. With your own GitHub user name, it's the line below.
   // docs/activity.md has it all.
   // activity: { github: "your-github-name" },
+  // The globe (optional): behind the home screen's text, a globe that turns
+  // to your city and marks it with a pulsing dot. Set your city in `me`
+  // above, or remove this line for no globe. It can also draw a line from
+  // where you're from (`from`), and put your city's name and the time there
+  // beside the dot (each language's home.place): "A globe on the home
+  // screen" in docs/content.md has those.
+  globe: { here: me.city },
   // GitHub history (optional): your whole history of contributions on
   // GitHub, which an answer shows in parts, each a block where it fits:
   // { github: "stats" }, "calendar", "languages" and "rhythm" (the Skills

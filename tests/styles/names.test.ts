@@ -16,7 +16,7 @@ const STYLESHEET_FOLDERS = ["src/components", "src/styles"];
 const MARKUP_FOLDERS = ["src/components", "src/pages", "src/app"];
 
 /** Classes that are written with no rule on purpose: the browser code and the checks find an element by them. */
-const HOOKS_WITHOUT_A_RULE = ["new-tab", "asked-question", "reply", "viewer-open", "viewer-close"];
+const HOOKS_WITHOUT_A_RULE = ["new-tab", "asked-question", "viewer-open", "viewer-close"];
 
 const filesIn = (folder: string, extensions: string[]): string[] =>
   readdirSync(join(ROOT, folder), { recursive: true, encoding: "utf8" })

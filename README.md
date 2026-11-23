@@ -9,9 +9,12 @@ Everything the site says is in one file, `site.config.ts`. Astro builds it
 into static HTML and CSS that work with JavaScript off, plus one small
 script for the chats, menus and question card. An answer can hold more
 than text: file cards, bars, flows, pictures, quotes, and diagrams that
-move. A link you choose, such as a resume in Google Docs, can open in a
-viewer beside the conversation instead of a new tab. Each tab has a page
-of its own (`/about/`), so a link to one opens on it and previews as it.
+move. A globe behind the home screen turns to your city as the page
+opens and marks it, and an answer sent into a chat comes in a word at a
+time, as a model's does. A link you choose, such as
+a resume in Google Docs, can open in a viewer beside the conversation
+instead of a new tab. Each tab has a page of its own (`/about/`), so a
+link to one opens on it and previews as it.
 A Writing tab can list your posts from Qiita, Zenn, DEV, note, Medium,
 Substack, Hatena Blog or any blog's feed, fetched as the site builds, with
 a feed of its own; a Qiita post can open in the viewer too.
@@ -32,6 +35,7 @@ form instead.
    ```
 
    The site is at http://localhost:4321 and reloads as you edit.
+
 3. Make it yours in two lines. `site.config.ts` begins with `me`, the
    facts the rest of the file reads: change `name` and `first`, save, and
    every tab is about you.
@@ -95,20 +99,20 @@ with the template, the guides and `AGENTS.md` among it, and never touches
 your config, README, pictures, diagrams or `src/styles/site.css`:
 [Updating](docs/updating.md) has the list.
 
-| To… | Read |
-| --- | --- |
-| change what the site says: threads, answers, pictures, the viewer | [What the site says](docs/content.md) |
-| put it online, on Cloudflare or any static host | [Deploying](docs/deploy.md) |
-| add a language, or cut the Japanese fonts | [Languages and fonts](docs/languages.md) |
-| draw a diagram that moves | [Diagrams](docs/diagrams.md) |
-| show your whole GitHub history in an answer: its stats, every week with your public repos along it, its languages | [GitHub history](docs/github-history.md) |
-| let visitors type a question, and know what that can cost | [Ask](docs/ask.md) |
-| let visitors email you from the site | [The contact form](docs/contact-form.md) |
-| list your posts from Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any feed in a Writing tab, rebuilt each day | [Writing](docs/writing.md) |
-| show your recent public repos on GitHub, GitLab or Codeberg in the panel | [Activity](docs/activity.md) |
-| know what protects the site and its visitors | [Security](docs/security.md) |
-| take the template's later changes | [Updating](docs/updating.md) |
-| change the code itself | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |
+| To…                                                                                                                       | Read                                                                   |
+| ------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------- |
+| change what the site says: threads, answers, pictures, the viewer                                                         | [What the site says](docs/content.md)                                  |
+| put it online, on Cloudflare or any static host                                                                           | [Deploying](docs/deploy.md)                                            |
+| add a language, or cut the Japanese fonts                                                                                 | [Languages and fonts](docs/languages.md)                               |
+| draw a diagram that moves                                                                                                 | [Diagrams](docs/diagrams.md)                                           |
+| show your whole GitHub history in an answer: its stats, every week with your public repos along it, its languages         | [GitHub history](docs/github-history.md)                               |
+| let visitors type a question, and know what that can cost                                                                 | [Ask](docs/ask.md)                                                     |
+| let visitors email you from the site                                                                                      | [The contact form](docs/contact-form.md)                               |
+| list your posts from Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any feed in a Writing tab, rebuilt each day | [Writing](docs/writing.md)                                             |
+| show your recent public repos on GitHub, GitLab or Codeberg in the panel                                                  | [Activity](docs/activity.md)                                           |
+| know what protects the site and its visitors                                                                              | [Security](docs/security.md)                                           |
+| take the template's later changes                                                                                         | [Updating](docs/updating.md)                                           |
+| change the code itself                                                                                                    | [AGENTS.md](AGENTS.md), [Changing the code](docs/changing-the-code.md) |
 
 Two of the sample's files are written to be copied:
 
@@ -123,15 +127,15 @@ Two of the sample's files are written to be copied:
 
 ## Commands
 
-| Command | What it does |
-| --- | --- |
-| `npm run dev` | The site at localhost:4321, rebuilt as you edit |
-| `npm run build` | Checks `site.config.ts`, then builds the site into `dist/` |
-| `npm run preview` | Serves `dist/` as built |
-| `npm run deploy` | Deploys to Cloudflare ([Deploying](docs/deploy.md)) |
-| `npm run format` | Formats the code with Prettier |
-| `npm run verify` | Everything CI checks: formatting, ESLint, unused code, types, the build and the unit tests, the HTML, the fonts and the pages in a browser |
-| `npm run update-template` | Takes the template's latest shared code |
+| Command                   | What it does                                                                                                                               |
+| ------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
+| `npm run dev`             | The site at localhost:4321, rebuilt as you edit                                                                                            |
+| `npm run build`           | Checks `site.config.ts`, then builds the site into `dist/`                                                                                 |
+| `npm run preview`         | Serves `dist/` as built                                                                                                                    |
+| `npm run deploy`          | Deploys to Cloudflare ([Deploying](docs/deploy.md))                                                                                        |
+| `npm run format`          | Formats the code with Prettier                                                                                                             |
+| `npm run verify`          | Everything CI checks: formatting, ESLint, unused code, types, the build and the unit tests, the HTML, the fonts and the pages in a browser |
+| `npm run update-template` | Takes the template's latest shared code                                                                                                    |
 
 CI runs `npm run verify` on every pull request and every push to `main`.
 To run it yourself, which matters once you change more than the config,

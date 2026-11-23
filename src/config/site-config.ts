@@ -5,6 +5,7 @@
 
 import type { Activity } from "./activity.ts";
 import type { GitHubHistory } from "./github-history.ts";
+import type { Globe } from "./globe.ts";
 import type { Language } from "./language.ts";
 import type { Writing } from "./writing.ts";
 
@@ -89,6 +90,10 @@ export type SiteConfig = {
       if it can't (docs/github-history.md). Each language then needs the
       history* strings (English has them). Leave out for none. */
   githubHistory?: GitHubHistory;
+  /** A globe behind the home screen's text that turns to where you are
+      when it first shows, and marks it with the time there and each
+      language's home.place. Leave out for none. */
+  globe?: Globe;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every
       question with its answer, in the main language. */

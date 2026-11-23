@@ -12,6 +12,7 @@ import { unfold } from "./folding.ts";
 import { clone, find, findAll } from "./lib/dom.ts";
 import { showContextOf } from "./panel-context.ts";
 import { askedTab, homeGreeting, homePath, homeTitle, sidebar, siteName } from "./page.ts";
+import { glideInto, highlightOf } from "./sidebar-glide.ts";
 import { addressOfPlace, openTabIn, ownAddress, placeOfLink, type Here, type IdKind } from "./tab-addresses.ts";
 
 /** Whether a tab is a visitor's chat, not one of the portfolio's threads. */
@@ -82,10 +83,15 @@ export function showTabName(tab: HTMLElement, name: string): void {
 }
 
 function markCurrentRow(currentRow: Element | null): void {
-  for (const row of findAll(sidebar, SIDEBAR_ROWS)) {
+  const rows = findAll(sidebar, SIDEBAR_ROWS);
+  const markedBefore = rows.find((row) => row.getAttribute("aria-current") === "page") ?? null;
+  if (markedBefore === currentRow) return;
+  const highlightWas = highlightOf(markedBefore);
+  for (const row of rows) {
     if (row === currentRow) row.setAttribute("aria-current", "page");
     else row.removeAttribute("aria-current");
   }
+  glideInto(currentRow, highlightWas);
 }
 
 /** The home screen and a chat with nothing sent in it yet have no row of
