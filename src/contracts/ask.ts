@@ -149,6 +149,13 @@ export const isReplyText = (value: unknown): value is string => isShowableText(v
 
 export const isQuestionToOwner = (value: unknown): value is string => isShowableText(value, MAX_QUESTION_LENGTH);
 
+// A language tag as a page's <html lang> writes one: "ja", "en-GB", "zh-Hant".
+const LANGUAGE_CODE = /^[a-z]{2,3}(?:-[A-Za-z0-9]{2,8})*$/;
+
+/** A language tag the page can put in a lang attribute. */
+export const isLanguageCode = (value: unknown): value is string =>
+  typeof value === "string" && LANGUAGE_CODE.test(value);
+
 export const isCitedLines = (value: unknown): value is string[] =>
   Array.isArray(value) &&
   value.length >= 1 &&
@@ -179,6 +186,9 @@ const AskRepliedSchema = v.strictObject({
       show under it: each a line of the answer as /ask.json has it, in the
       answer's order. Never with a reply that is those lines themselves. */
   cited: v.optional(v.custom<string[]>(isCitedLines)),
+  /** The language the reply and its lines are in, when it isn't the page's:
+      the question was written in another of the site's languages. */
+  lang: v.optional(v.custom<string>(isLanguageCode)),
   /** The questions the visitor has left today, when they're few. */
   left: v.optional(Count),
 });

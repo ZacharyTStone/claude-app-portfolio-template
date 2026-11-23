@@ -5,7 +5,7 @@
    another window rewrites the list from what it can read: an entry it
    can't read would be lost, and a field it doesn't know it writes back.
    tests/app/saved-chats.test.ts holds every entry a page has written. */
-import { isQuestionToOwner, isCitedLines, isReplyText } from "../../contracts/ask.ts";
+import { isQuestionToOwner, isCitedLines, isLanguageCode, isReplyText } from "../../contracts/ask.ts";
 import { isArrayOf, isCount, isOptionalString, isRecord, isString } from "../../contracts/guards.ts";
 import { byOutcome, type ByOutcome, type Exchange, type Outcome } from "./exchange.ts";
 
@@ -22,6 +22,8 @@ type SavedQuestion = {
   reply?: string;
   /** The site's own lines that reply was written from. */
   cited?: string[];
+  /** The language that reply is in, when it isn't the page's. */
+  lang?: string;
   /** The question as /ask said it to the owner, when it picked no answer. */
   toOwner?: string;
   /** The visitor was blocked. */
@@ -59,6 +61,7 @@ function isSavedSource(value: unknown): value is SavedSource {
     (value.answer === null || isAbsentOr(value.answer, isString)) &&
     isAbsentOr(value.cited, (cited): cited is string[] => isArrayOf(cited, isString)) &&
     isOptionalString(value.toOwner) &&
+    isOptionalString(value.lang) &&
     isAbsentOr(value.blocked, (blocked): blocked is true => blocked === true) &&
     isAbsentOr(value.limited, isCount)
   );
@@ -103,10 +106,11 @@ export function withChat(saved: SavedChat[], chat: SavedChat): SavedChat[] {
 const SAVED_OUTCOME: ByOutcome<Omit<SavedQuestion, "question">> = {
   unasked: () => ({}),
   answered: ({ outcome }) => ({ answer: outcome.answerId }),
-  replied: ({ outcome: { answerId, replyText, citedLines } }) => ({
+  replied: ({ outcome: { answerId, replyText, citedLines, replyLang } }) => ({
     answer: answerId,
     reply: replyText,
     ...(citedLines.length ? { cited: citedLines } : {}),
+    ...(replyLang ? { lang: replyLang } : {}),
   }),
   unanswered: ({ outcome }) => ({ answer: null, ...(outcome.toOwner ? { toOwner: outcome.toOwner } : {}) }),
   blocked: ({ outcome }) => ({ blocked: true, ...(outcome.isRemoved ? { removed: true } : {}) }),
@@ -131,9 +135,10 @@ function readOutcome(saved: SavedQuestion): Outcome {
   return isQuestionToOwner(saved.toOwner) ? { kind: "unanswered", toOwner: saved.toOwner } : { kind: "unanswered" };
 }
 
-function readAnswer(answerId: string, { reply, cited }: SavedQuestion): Outcome {
+function readAnswer(answerId: string, { reply, cited, lang }: SavedQuestion): Outcome {
   if (!isReplyText(reply)) return { kind: "answered", answerId };
-  return { kind: "replied", answerId, replyText: reply, citedLines: isCitedLines(cited) ? cited : [] };
+  const replyLang = isLanguageCode(lang) ? { replyLang: lang } : {};
+  return { kind: "replied", answerId, replyText: reply, citedLines: isCitedLines(cited) ? cited : [], ...replyLang };
 }
 
 /** What was saved, as the exchange it was. */

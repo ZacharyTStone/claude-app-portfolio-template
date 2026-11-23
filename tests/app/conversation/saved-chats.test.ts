@@ -71,6 +71,10 @@ const GOLDEN_SOURCES = {
       cited: ["Sam writes TypeScript.", "Since 2019."],
     },
   },
+  "a question with a reply in another language than the page's": {
+    saved: '{"question":"TypeScript?","answer":"work.2","reply":"Sam has written TypeScript since 2019.","lang":"en"}',
+    read: { question: "TypeScript?", answer: "work.2", reply: "Sam has written TypeScript since 2019.", lang: "en" },
+  },
   "a question from a blocked visitor": {
     saved: '{"question":"Where are you based?","blocked":true}',
     read: { question: "Where are you based?", blocked: true },
@@ -256,6 +260,13 @@ const GOLDEN_EXCHANGES: Record<keyof typeof GOLDEN_SOURCES, Exchange> = {
     answerId: "work.2",
     replyText: REPLY,
     citedLines: CITED,
+  }),
+  "a question with a reply in another language than the page's": typed("TypeScript?", {
+    kind: "replied",
+    answerId: "work.2",
+    replyText: REPLY,
+    citedLines: [],
+    replyLang: "en",
   }),
   "a question from a blocked visitor": typed("Where are you based?", { kind: "blocked", isRemoved: false }),
   "a question /ask found inappropriate, as pages saved it before they marked it removed": typed("Question removed", {

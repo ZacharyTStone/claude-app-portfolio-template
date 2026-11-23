@@ -59,7 +59,8 @@ async function answer(ai: Ai, settings: Settings, admitted: Admitted): Promise<O
   if (isInappropriate) return { kind: "flagged", ...asked, visitorHash: admitted.visitorHash, neurons: costNeurons };
   if (picked.ranOutOfTime) return { kind: "timedOut", ...asked, neurons: costNeurons };
 
-  const allowance = { questionsLeft: admitted.questionsLeft, visitorLimit: settings.visitorLimit };
+  const answeredIn = choices.lang === admitted.askRequest.lang ? {} : { lang: choices.lang };
+  const allowance = { questionsLeft: admitted.questionsLeft, visitorLimit: settings.visitorLimit, ...answeredIn };
   // A pick has to cover the question as it was typed: a follow-up that
   // names nothing ("how long?") is covered by any answer.
   const { answer: answerShown, uncoveredId } = answerToShow(picked.id, question, choices);

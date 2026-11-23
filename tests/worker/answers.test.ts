@@ -15,6 +15,27 @@ test("the Japanese page's answers are the ones offered for it", async () => {
   assert.ok(systemMessage(calls).includes(japanese.q));
 });
 
+test("a question in English on the Japanese page is offered the English answers, and replied to in English", async () => {
+  const { ask, calls } = stubs({ run: () => toolCall("skills.2") });
+  const response = await ask({ question: "What is Alex's Japanese level?", lang: "ja" });
+  const english = EN.find((a) => a.id === "skills.2");
+  const japanese = JA.find((a) => a.id === "skills.2");
+  assert.ok(english && japanese);
+  assert.ok(systemMessage(calls).includes(english.q));
+  assert.ok(!systemMessage(calls).includes(japanese.q));
+  const body: unknown = await response.json();
+  assert.ok(typeof body === "object" && body !== null && "id" in body && body.id === "skills.2");
+  if ("reply" in body) assert.equal((body as { lang?: unknown }).lang, "en");
+});
+
+test("a question in Japanese on the English page is offered the Japanese answers", async () => {
+  const { ask, calls } = stubs({ run: () => toolCall("skills.2") });
+  await ask({ question: "日本語のレベルは？", lang: "en" });
+  const japanese = JA.find((a) => a.id === "skills.2");
+  assert.ok(japanese);
+  assert.ok(systemMessage(calls).includes(japanese.q));
+});
+
 test("a language the site doesn't have, or none, gets its main language's answers", async () => {
   for (const lang of ["fr", undefined, 42, "main", "__proto__"]) {
     const { ask, calls } = stubs();

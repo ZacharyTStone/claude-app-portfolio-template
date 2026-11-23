@@ -28,7 +28,7 @@ answered from.
    name, and never only in what the visitor typed, then or earlier in the
    chat. The check also refuses
    a reply with a character no reader can see, or a letter from a script
-   the page's language doesn't use. Any word with a dot (`t.me/x`,
+   the reply's language doesn't use. Any word with a dot (`t.me/x`,
    `Site.com/cv`) is an address the lines must have whole, and a
    number's unit ("5K") and a sentence's first word are checked too. A
    reply that fails is asked for once more, then thrown away: the lines
@@ -39,6 +39,18 @@ answered from.
    it, then a link to the tab they're in. Lines of more than 800
    characters together are too long to quote: the reply then has only the
    link.
+
+A question is answered in the language it's written in, when that's
+another of your site's: "Does Alex speak Spanish?" typed on the Japanese
+page is picked from your English answers and replied to in English, with
+your English lines under it, and a question in Japanese on the English page
+the other way round (`src/worker/ask/question-language.ts`). Only the
+question's script tells: most of its letters in kana or kanji is Japanese,
+most in Latin letters is the language in Latin letters, so "Reactの経験は？"
+is Japanese. Two of your languages in the same script (English and Spanish)
+aren't told apart, and a question in neither keeps the page's. The log's
+`lang` says which language a question was answered in when it wasn't the
+page's.
 
 ### Follow-ups
 

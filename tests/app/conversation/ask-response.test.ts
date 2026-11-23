@@ -30,6 +30,14 @@ const KINDS_OF_REPLY: Record<string, Reading> = {
     sent: { id: "work.2", reply: REPLY, cited: CITED, left: 0 },
     read: { id: "work.2", reply: REPLY, cited: CITED, left: 0 },
   },
+  "a reply in another language than the page's": {
+    sent: { id: "work.2", reply: REPLY, cited: CITED, lang: "en" },
+    read: { id: "work.2", reply: REPLY, cited: CITED, lang: "en" },
+  },
+  "a reply with a language that isn't a language tag": {
+    sent: { id: "work.2", reply: REPLY, lang: "en lang" },
+    read: { id: "work.2", reply: REPLY },
+  },
   "no answer": { sent: { id: null }, read: { id: null } },
   "no answer, with the question said to the owner": {
     sent: { id: null, toOwner: TO_OWNER, left: 1 },
