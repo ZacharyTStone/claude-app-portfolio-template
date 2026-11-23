@@ -195,17 +195,16 @@ testEachProblem([
   },
   {
     wrong: "the globe's city has its latitude and longitude the wrong way round",
-    change: (sample) => (sample.globe = { here: { latitude: 140.47, longitude: 37.75 } }),
+    change: (sample) => (sample.globe = { here: { latitude: 139.69, longitude: 35.69 } }),
     problems: [
-      "globe.here should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 37.75, longitude: 140.47 }",
+      "globe.here should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 35.69, longitude: 139.69 }",
     ],
   },
   {
     wrong: "where the globe's way starts is a place's name",
-    change: (sample) =>
-      (sample.globe = { here: { latitude: 37.75, longitude: 140.47 }, from: "Philadelphia" as never }),
+    change: (sample) => (sample.globe = { here: { latitude: 35.69, longitude: 139.69 }, from: "Chicago" as never }),
     problems: [
-      "globe.from should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 37.75, longitude: 140.47 }",
+      "globe.from should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 35.69, longitude: 139.69 }",
     ],
   },
   {

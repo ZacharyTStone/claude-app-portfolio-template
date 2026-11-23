@@ -28,7 +28,7 @@ test("about a quarter of the globe is land, leaving out Antarctica", () => {
 });
 
 const LAND_PLACES: Array<[string, Coordinates]> = [
-  ["Fukushima", [140.47, 37.75]],
+  ["the middle of Honshu, Japan's main island", [138.2, 36.2]],
   ["the Sahara", [10, 23]],
   ["Greenland", [-40, 72]],
   // Natural Earth's Russia crosses the 180th meridian.

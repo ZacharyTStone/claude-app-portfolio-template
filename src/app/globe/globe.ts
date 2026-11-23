@@ -43,7 +43,7 @@ export function initGlobe(): void {
   watcher.observe(holder);
 }
 
-/** "140.47 37.75", as the page carries a place. */
+/** "139.69 35.69", as the page carries a place. */
 function coordinatesIn(element: HTMLElement, attribute: string): Coordinates | undefined {
   const [longitude, latitude] = (element.getAttribute(attribute) ?? "").split(" ").map(Number);
   if (longitude === undefined || latitude === undefined) return undefined;

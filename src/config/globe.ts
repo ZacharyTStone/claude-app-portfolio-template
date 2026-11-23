@@ -3,8 +3,7 @@
 
 /** A place on the globe, in degrees: north of the equator and east of
     Greenwich are above 0. A map app shows both when you press and hold a
-    place, latitude first: Fukushima is { latitude: 37.75, longitude:
-    140.47 }. */
+    place, latitude first: Tokyo is { latitude: 35.69, longitude: 139.69 }. */
 export type Place = {
   /** How far north of the equator, from -90 to 90: south is below 0. */
   latitude: number;

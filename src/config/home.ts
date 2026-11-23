@@ -15,7 +15,7 @@ export type Home = {
       visit starts on a phone. Leave out for the name alone. */
   tagline?: string;
   /** Beside the globe's marker (the site's `globe`), before the time
-      there: the name of where you are, "Fukushima". Leave out for the time
+      there: the name of where you are, "Tokyo". Leave out for the time
       alone. */
   place?: string;
   /** Questions to start with, under the box to type in (which needs

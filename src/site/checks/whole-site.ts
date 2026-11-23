@@ -126,7 +126,7 @@ type SettingFormat = {
   mayBeLeftOut?: true;
 };
 
-const PLACE = "a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 37.75, longitude: 140.47 }";
+const PLACE = "a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 35.69, longitude: 139.69 }";
 
 /** The pages write these into attributes and addresses as they are, in the
     order their problems are listed. */

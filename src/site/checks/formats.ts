@@ -90,7 +90,7 @@ export const isGitLabUserName = looksLike(/^(?=.{1,255}$)([A-Za-z0-9_.][A-Za-z0-
     has it. Not "@alex-example", and not the profile's whole address. */
 export const isCodebergUserName = looksLike(/^(?=.{1,40}$)[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$/);
 
-/** { latitude: 37.75, longitude: 140.47 }: a latitude from -90 to 90 and
+/** { latitude: 35.69, longitude: 139.69 }: a latitude from -90 to 90 and
     a longitude from -180 to 180, in degrees. */
 export function isPlace(place: unknown): boolean {
   if (!isRecord(place)) return false;

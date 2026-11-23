@@ -24,21 +24,21 @@ a fact.
 
 ## Which part is which
 
-| On the page | In the config | Its type is in |
-| --- | --- | --- |
-| The address, the host, your name, links and time zone | the top level | `src/config/site-config.ts` |
-| The home screen: greeting, intro, questions to start with | `home` | `src/config/home.ts` |
-| The sidebar's rows and groups | `sidebar` | `src/config/sidebar.ts` |
-| The tabs, each a short conversation | `threads` | `src/config/language.ts` |
-| The question card under every thread, and the personal answers | `questions` | `src/config/question-card.ts` |
-| "Something else", the reply to a question the site can't answer | `asked` | `src/config/asked.ts` |
-| The details panel on the right | `panel` | `src/config/language.ts` |
-| The account menu and its clock | `account` | `src/config/language.ts` |
-| The 404 page | `notFound` | `src/config/language.ts` |
-| Buttons, tooltips and what the script says | `strings` | `src/config/strings.ts` |
-| What an answer is made of | a message's `a` | `src/config/blocks.ts` |
-| The Writing tab: your posts on Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any blog's feed, fetched as the site builds | `writing` | `src/config/writing.ts` |
-| Your recent public repos on GitHub, GitLab or Codeberg, in the panel, fetched as the site builds | `activity` | `src/config/activity.ts` |
+| On the page                                                                                                                         | In the config   | Its type is in                |
+| ----------------------------------------------------------------------------------------------------------------------------------- | --------------- | ----------------------------- |
+| The address, the host, your name, links and time zone                                                                               | the top level   | `src/config/site-config.ts`   |
+| The home screen: greeting, intro, questions to start with                                                                           | `home`          | `src/config/home.ts`          |
+| The sidebar's rows and groups                                                                                                       | `sidebar`       | `src/config/sidebar.ts`       |
+| The tabs, each a short conversation                                                                                                 | `threads`       | `src/config/language.ts`      |
+| The question card under every thread, and the personal answers                                                                      | `questions`     | `src/config/question-card.ts` |
+| "Something else", the reply to a question the site can't answer                                                                     | `asked`         | `src/config/asked.ts`         |
+| The details panel on the right                                                                                                      | `panel`         | `src/config/language.ts`      |
+| The account menu and its clock                                                                                                      | `account`       | `src/config/language.ts`      |
+| The 404 page                                                                                                                        | `notFound`      | `src/config/language.ts`      |
+| Buttons, tooltips and what the script says                                                                                          | `strings`       | `src/config/strings.ts`       |
+| What an answer is made of                                                                                                           | a message's `a` | `src/config/blocks.ts`        |
+| The Writing tab: your posts on Qiita, Zenn, DEV, note, Medium, Substack, Hatena Blog or any blog's feed, fetched as the site builds | `writing`       | `src/config/writing.ts`       |
+| Your recent public repos on GitHub, GitLab or Codeberg, in the panel, fetched as the site builds                                    | `activity`      | `src/config/activity.ts`      |
 
 Everything from `home` down belongs to one language: it is inside
 `languages.en`, and again inside each other language
@@ -103,18 +103,18 @@ prompt and link that still points at it.
 
 An answer is a list of blocks, shown top to bottom:
 
-| Block | Written as |
-| --- | --- |
-| A paragraph | a string |
-| A list | an array of strings, an item each |
-| A file card | `{ card: { file, lines } }` |
-| A link card | `{ link: { name, kind, href, icon } }` |
-| Bars, two to six amounts on one scale | `{ bars: { title, rows } }` |
-| A flow, two to five steps in order | `{ flow: { title, steps } }` |
-| A picture, or pictures side by side | `{ image: { src, alt, width, height } }`, `{ images: [ … ] }` |
-| A quote | `{ quote: { text, by } }` |
-| A heading inside a long answer | `{ heading: { title } }` |
-| A part of your GitHub history | `{ github: "stats" }`, `"calendar"`, `"languages"` or `"rhythm"` |
+| Block                                 | Written as                                                       |
+| ------------------------------------- | ---------------------------------------------------------------- |
+| A paragraph                           | a string                                                         |
+| A list                                | an array of strings, an item each                                |
+| A file card                           | `{ card: { file, lines } }`                                      |
+| A link card                           | `{ link: { name, kind, href, icon } }`                           |
+| Bars, two to six amounts on one scale | `{ bars: { title, rows } }`                                      |
+| A flow, two to five steps in order    | `{ flow: { title, steps } }`                                     |
+| A picture, or pictures side by side   | `{ image: { src, alt, width, height } }`, `{ images: [ … ] }`    |
+| A quote                               | `{ quote: { text, by } }`                                        |
+| A heading inside a long answer        | `{ heading: { title } }`                                         |
+| A part of your GitHub history         | `{ github: "stats" }`, `"calendar"`, `"languages"` or `"rhythm"` |
 
 Text is a little Markdown and never HTML: `**bold**`, `*italic*`, code
 between backticks, and `[a link](#about)`. A link goes to a thread
@@ -211,13 +211,13 @@ shows, as a line draws to it from where you're from:
 
 ```ts
 globe: {
-  here: { latitude: 37.75, longitude: 140.47 }, // your city
-  from: { latitude: 39.95, longitude: -75.17 }, // where you're from
+  here: { latitude: 40.71, longitude: -74.01 }, // your city: New York
+  from: { latitude: 41.88, longitude: -87.63 }, // where you're from: Chicago
 },
 ```
 
 Then it marks your city with its name, each language's `home.place`
-("Fukushima", "福島"), and the time there (the site's `timezone`). A map
+("New York", "ニューヨーク"), and the time there (the site's `timezone`). A map
 app shows a place's latitude and longitude when you press and hold it,
 latitude first; south and west are below 0. Leave `from` out for no line,
 and `place` out for the time alone.

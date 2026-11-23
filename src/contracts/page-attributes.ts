@@ -119,7 +119,7 @@ export const DATA = {
   count: "data-count",
   /** On the home screen's globe: where you are, and where the way it draws
       starts (the config's globe.here and globe.from), each a longitude and
-      a latitude in degrees with a space between ("140.47 37.75"); and your
+      a latitude in degrees with a space between ("139.69 35.69"); and your
       time zone, for the time beside its marker. */
   globeHere: "data-globe-here",
   globeFrom: "data-globe-from",
