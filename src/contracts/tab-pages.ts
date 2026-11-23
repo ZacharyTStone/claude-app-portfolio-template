@@ -29,3 +29,9 @@ export const SEPARATOR = " · ";
 /** The window's title while a tab is open: "About · Alex Example". A tab's
     page is built with it, and the script gives it to each tab it opens. */
 export const tabWindowTitle = (tabName: string, siteName: string): string => `${tabName}${SEPARATOR}${siteName}`;
+
+/** The hreflang of the <link rel="alternate"> in a page's head to its
+    version for a visitor in any language the site isn't in: the main
+    language's. The script reads them to send a visitor to their own
+    language's page (src/app/preferred-language.ts). */
+export const ANY_OTHER_LANGUAGE = "x-default";

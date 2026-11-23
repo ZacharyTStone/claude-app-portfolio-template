@@ -11,7 +11,7 @@
 
 import type { Block } from "../config/blocks.ts";
 import { PAGE_IDS, personalTabId } from "../contracts/page-ids.ts";
-import { tabPagePath, tabWindowTitle } from "../contracts/tab-pages.ts";
+import { ANY_OTHER_LANGUAGE, tabPagePath, tabWindowTitle } from "../contracts/tab-pages.ts";
 import { describe } from "./description.ts";
 import type { Site, SiteLanguage } from "./site.ts";
 
@@ -115,7 +115,7 @@ export function alternatesOf(site: Site, { versions }: PageHead): Array<{ hrefla
   const mainVersion = versions[site.main];
   return [
     ...Object.entries(versions).map(([code, path]) => ({ hreflang: code, href: site.fileUrl(path) })),
-    ...(mainVersion === undefined ? [] : [{ hreflang: "x-default", href: site.fileUrl(mainVersion) }]),
+    ...(mainVersion === undefined ? [] : [{ hreflang: ANY_OTHER_LANGUAGE, href: site.fileUrl(mainVersion) }]),
   ];
 }
 
