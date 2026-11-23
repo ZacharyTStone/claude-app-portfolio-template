@@ -13,6 +13,7 @@ import ownConfig from "../../site.config.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { ASK_PATH } from "../../src/contracts/ask.ts";
 import { CONTACT_PATH } from "../../src/contracts/contact.ts";
+import { VISITS_PATH } from "../../src/contracts/globe.ts";
 import { contactFormReceiver } from "../../src/site/contact-form.ts";
 import { makeSite } from "../../src/site/site.ts";
 import type { Env } from "../../src/worker/env.ts";
@@ -182,6 +183,17 @@ test("it binds Workers AI and the rate limit by the names the Worker reads", (t)
 test("Ask's questions go where wrangler.jsonc runs the Worker first", (t) => {
   const wrangler = askOn(t);
   if (wrangler) assert.ok(wrangler.assets?.run_worker_first?.includes(ASK_PATH));
+});
+
+test("a site whose globe shows its visitors has the Worker run first for /visits, with AskGuard to count them", (t) => {
+  if (!siteConfig.globe?.visitors) return t.skip("site.config.ts's globe shows no visitors");
+  const { wrangler } = wranglerWithTheWorkerOn() ?? {};
+  assert.ok(wrangler, "wrangler.jsonc turns the Worker on");
+  assert.ok(wrangler.assets?.run_worker_first?.includes(VISITS_PATH), `"${VISITS_PATH}" in assets.run_worker_first`);
+  assert.ok(
+    (wrangler.durable_objects?.bindings ?? []).some(({ name }) => name === BINDINGS.guard),
+    `the Durable Object ${BINDINGS.guard}`,
+  );
 });
 
 test("it binds the contact form's email by the name the Worker reads, to one address only", (t) => {

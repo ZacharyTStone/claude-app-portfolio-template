@@ -6,15 +6,19 @@ import { HOSTS, type Host } from "../../../src/config/site-config.ts";
 import { headersFile, pagePolicy } from "../../../src/site/files/headers-file.ts";
 import { contentSecurityPolicy } from "../../../src/site/security-headers.ts";
 import { makeSite } from "../../../src/site/site.ts";
-import { sampleConfig } from "../sample.ts";
+import { sampleConfig, withoutVisitors } from "../sample.ts";
 
 const HOSTS_THAT_READ_A_HEADERS_FILE: Host[] = ["cloudflare", "netlify"];
 const HOSTS_THAT_READ_NONE = HOSTS.filter((host) => !HOSTS_THAT_READ_A_HEADERS_FILE.includes(host));
 
-/** The sample on `host`, with neither Ask, the contact form, a viewer nor a Writing tab: its policy allows
-    nothing beyond the site's own files. */
+/** The sample on `host`, with neither Ask, the contact form, the globe's visitors, a viewer nor a Writing
+    tab: its policy allows nothing beyond the site's own files. */
 const plainSiteOn = (host: Host) =>
-  makeSite(sampleConfig({ host, ask: undefined, contactForm: undefined, viewer: undefined, writing: undefined }));
+  makeSite(
+    withoutVisitors(
+      sampleConfig({ host, ask: undefined, contactForm: undefined, viewer: undefined, writing: undefined }),
+    ),
+  );
 
 /** Written out, so that a change to a header fails here, not only in the function that writes it. */
 const PLAIN_SITES_HEADERS_FILE = [
@@ -73,13 +77,15 @@ test("a site with the contact form may post a form, to itself, and fetch from it
     `viewer` false, in a new tab. */
 const withAWritingTab = (viewer: boolean, host: Host) =>
   makeSite(
-    sampleConfig({
-      host,
-      ask: undefined,
-      contactForm: undefined,
-      viewer: undefined,
-      writing: { qiita: "sam-sample", viewer },
-    }),
+    withoutVisitors(
+      sampleConfig({
+        host,
+        ask: undefined,
+        contactForm: undefined,
+        viewer: undefined,
+        writing: { qiita: "sam-sample", viewer },
+      }),
+    ),
   );
 
 test("a site whose viewer shows its posts may frame its own pages, and only it may frame them", () => {

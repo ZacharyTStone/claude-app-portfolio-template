@@ -32,6 +32,8 @@ const ENDS_EAST_OF_HERE = 6;
     when there's nowhere it's from. */
 const STARTS_EAST_OF_FROM = 10;
 const TURN_WITHOUT_FROM = 60;
+/** The least a turn turns, in degrees of longitude. */
+const SHORTEST_TURN = 30;
 
 /** When each part of the turn starts and how long it takes, in ms. */
 const PLAY = {
@@ -65,10 +67,15 @@ export function placeGlobe(width: number, height: number, textBottom: number, la
 }
 
 /** From a little east of `from`, the short way round, to a little east of
-    `here`. */
+    `here`; from further off when `from` is close by. */
 export function turnOf(here: Coordinates, from: Coordinates | undefined): Turn {
-  const start = from ? from[0] + STARTS_EAST_OF_FROM : here[0] + ENDS_EAST_OF_HERE + TURN_WITHOUT_FROM;
-  return { start, end: turnTowards(start, here[0] + ENDS_EAST_OF_HERE) };
+  const end = here[0] + ENDS_EAST_OF_HERE;
+  const fromStart = from ? from[0] + STARTS_EAST_OF_FROM : end + TURN_WITHOUT_FROM;
+  // From somewhere close by (a visitor in the same country), the globe
+  // still turns: from as far off as it would with nowhere it's from.
+  const isShort = Math.abs(turnTowards(fromStart, end) - fromStart) < SHORTEST_TURN;
+  const start = isShort ? end + TURN_WITHOUT_FROM : fromStart;
+  return { start, end: turnTowards(start, end) };
 }
 
 /** Where the turn is `ms` after it starts. */

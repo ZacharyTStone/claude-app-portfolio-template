@@ -124,6 +124,8 @@ export const DATA = {
   globeHere: "data-globe-here",
   globeFrom: "data-globe-from",
   globeZone: "data-globe-zone",
+  /** On the same globe, when it shows its visitors: where /visits is. */
+  globeVisits: "data-globe-visits",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

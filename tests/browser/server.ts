@@ -83,6 +83,7 @@ export async function serve(config: SiteConfig, builtFolder: string): Promise<Se
   const policy = {
     ask,
     contactForm: Boolean(config.contactForm),
+    globeVisitors: Boolean(config.globe?.visitors),
     frames: frameOrigins(config.viewer),
     ownFrames: Boolean(config.writing?.viewer),
   };

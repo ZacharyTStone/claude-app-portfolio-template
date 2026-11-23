@@ -155,6 +155,7 @@
   --globe-day: #ece9e2;
   --globe-night: #aab4d2;
   --globe-light: #ffc48c;
+  --globe-visit: #8fb8ff;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -211,4 +212,43 @@
   border-radius: 50%;
   background: currentColor;
   vertical-align: middle;
+}
+
+/* The owner's name, over their mark's dot. */
+.globe-name {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 4px;
+  translate: -50% 0;
+  color: var(--text);
+  font: 500 13px/16px var(--sans);
+  text-shadow: 0 1px 8px var(--page);
+}
+/* The visitor's own mark, in the visitors' colour. */
+.globe-you::before {
+  background: var(--globe-visit);
+  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--globe-visit) 60%, transparent);
+}
+.globe-you::after {
+  box-shadow: 0 0 0 1px var(--globe-visit);
+}
+/* What takes a drag to turn the globe: over the part of it that shows. The text above keeps its own
+   clicks, and empty space in the home screen lets a drag through to the globe. */
+.globe-grab {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  pointer-events: auto;
+  cursor: grab;
+  touch-action: pan-y;
+}
+.globe-grab:active {
+  cursor: grabbing;
+}
+.home:has(.globe) .home-body {
+  pointer-events: none;
+}
+.home:has(.globe) .home-body > :not(.under) {
+  pointer-events: auto;
 }

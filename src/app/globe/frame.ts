@@ -1,6 +1,7 @@
 /* One frame of the globe on its canvas: the warm air round its rim, its
    land as dots lit by the sun (with a town's lights here and there on the
-   night side), and the way drawn from where its owner is from. */
+   night side), the way drawn to where its owner is (from this visitor, or
+   from where the owner is from), and where the site's visitors came from. */
 import type { Moment, Placing } from "./placing.ts";
 import { clamp, seeAll, seenFrom, type Vector } from "./sphere.ts";
 
@@ -8,7 +9,10 @@ import { clamp, seeAll, seenFrom, type Vector } from "./sphere.ts";
 export type Rgb = readonly [red: number, green: number, blue: number];
 
 /** The globe's colours, from its stylesheet. */
-export type Colours = { day: Rgb; night: Rgb; light: Rgb; accent: Rgb; page: Rgb };
+export type Colours = { day: Rgb; night: Rgb; light: Rgb; accent: Rgb; page: Rgb; visit: Rgb };
+
+/** Where the site's visitors came from: a dot, its radius in pixels. */
+type VisitDot = { point: Vector; size: number };
 
 /** Dots of one colour, as indexes into the land. */
 export type DotGroup = { colour: Rgb; points: Uint32Array };
@@ -26,6 +30,8 @@ export type Scene = {
       points along it. */
   way: Vector[];
   colours: Colours;
+  /** The site's visitors' places, once /visits has said them. */
+  visits: VisitDot[];
 };
 
 /** How high above the globe the way rises in its middle, as a share of
@@ -39,6 +45,8 @@ const WAY_GLOW = 10;
     the rim it fades in, so it comes over the horizon. */
 const WAY_DIMS = 0.5;
 const WAY_FADES_OVER = 0.12;
+/** How the visitors' dots glow. */
+const VISIT_GLOW = 8;
 /** How the far side of the land dims and shrinks, towards the rim. */
 const AT_RIM = { brightness: 0.35, size: 0.9 };
 
@@ -52,6 +60,19 @@ export function drawFrame(context: CanvasRenderingContext2D, scene: Scene, placi
   for (const group of scene.groups) drawDots(context, scene, group, { placing, shown: moment.shown });
   context.globalAlpha = 1;
   drawWay(context, scene, placing, moment);
+  if (moment.settled > 0) drawVisits(context, scene, placing, moment);
+}
+
+/** Each place visitors came from, as a soft dot in the visitors' colour. */
+function drawVisits(context: CanvasRenderingContext2D, { visits, colours }: Scene, placing: Placing, moment: Moment) {
+  context.save();
+  Object.assign(context, { shadowBlur: VISIT_GLOW, shadowColor: rgba(colours.visit, 0.8) });
+  for (const { point, size } of visits) {
+    const { x, y, depth } = onScreen(point, placing, moment.longitude);
+    if (depth <= 0) continue;
+    fillCircle(context, rgba(colours.visit, (0.35 + 0.5 * depth) * moment.settled), x, y, size * (0.6 + 0.4 * depth));
+  }
+  context.restore();
 }
 
 /** A soft warm glow round the rim, and the globe's face, a little lit

@@ -24,6 +24,7 @@ const EVERY_PATH = "/*";
 const policyOptions = ({ config }: Site): PolicyOptions => ({
   ask: Boolean(config.ask),
   contactForm: Boolean(config.contactForm),
+  globeVisitors: Boolean(config.globe?.visitors),
   frames: frameOrigins(config.viewer),
   ownFrames: Boolean(config.writing?.viewer),
 });

@@ -51,6 +51,7 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   askLeft: "Heads up: asking runs on a free service, so it’s capped per day: {n} left today.",
   askFromPersonal: "From “{tab}”",
   viewerOpen: "Open in a new tab",
+  globeYou: "You",
   viewerClose: "Close",
   play: "Play",
   pause: "Pause",

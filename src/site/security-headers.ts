@@ -12,6 +12,8 @@ export type PolicyOptions = {
   /** The contact form is on: the page may post it to /contact, as a form
       and, with JavaScript, with fetch. */
   contactForm?: boolean;
+  /** The globe shows its visitors: the page may post to /visits. */
+  globeVisitors?: boolean;
   /** The sites the viewer may show in a frame (frameOrigins), if any. */
   frames?: readonly string[];
   /** The viewer shows the site's own pages of its posts in a frame (the
@@ -36,6 +38,10 @@ const frameSources = ({ frames = [], ownFrames }: PolicyOptions): string[] => [
   ...frames,
 ];
 
+/** Whether the page fetches anything: /ask, /contact or /visits. */
+const fetchesFromItself = ({ ask, contactForm, globeVisitors }: PolicyOptions): boolean =>
+  Boolean(ask || contactForm || globeVisitors);
+
 /** The Content-Security-Policy, directive by directive: only same-origin
     scripts, styles, images and fonts, nothing inline, and Trusted Types
     required, so no script can turn a string into markup. A site with a
@@ -47,7 +53,7 @@ const frameSources = ({ frames = [], ownFrames }: PolicyOptions): string[] => [
     With `meta`, it's the policy for a page to carry in a <meta> tag: the
     same, less frame-ancestors, which browsers only take from a header. */
 export function contentSecurityPolicy(options: PolicyOptions & { meta?: boolean }): string {
-  const { ask, contactForm = false, ownFrames = false, meta = false } = options;
+  const { contactForm = false, ownFrames = false, meta = false } = options;
   const frames = frameSources(options);
   const directives = [
     "default-src 'none'",
@@ -55,8 +61,8 @@ export function contentSecurityPolicy(options: PolicyOptions & { meta?: boolean 
     "style-src 'self'",
     "img-src 'self'",
     "font-src 'self'",
-    // The page fetches only /ask and /contact, and only when each is on.
-    ...(ask || contactForm ? ["connect-src 'self'"] : []),
+    // The page fetches only /ask, /contact and /visits, and only when each is on.
+    ...(fetchesFromItself(options) ? ["connect-src 'self'"] : []),
     // Frames only for the viewer, and only from the sites it names.
     ...(frames.length ? [`frame-src ${frames.join(" ")}`] : []),
     "base-uri 'none'",

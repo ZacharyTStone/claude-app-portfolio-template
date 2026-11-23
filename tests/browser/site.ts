@@ -64,7 +64,12 @@ export type Clock = ClockWording & { zone: string };
 
 /** The globe behind the home screen's text: the owner's time zone, for the
     time beside its marker, and the place's name before it, if it has one. */
-export type Globe = { zone: string; place: string | null };
+export type Globe = {
+  zone: string;
+  place: string | null;
+  /** Where the page asks /visits, with globe.visitors. */
+  visits: string | null;
+};
 
 /** A link in a thread that opens in the viewer (the config's `viewer`). */
 export type ViewerLink = {
@@ -462,10 +467,11 @@ async function readClock(page: Page): Promise<Clock | null> {
 async function readGlobe(page: Page): Promise<Globe | null> {
   const globe = page.locator(CLASS.globe);
   if (!(await globe.count())) return null;
-  const place = globe.locator(`${CLASS.globeMarker} > :not(${CLASS.globeTime})`);
+  const place = globe.locator(`${CLASS.globeMarker} > ${CLASS.globePlace}`);
   return {
     zone: (await globe.getAttribute(DATA.globeZone)) ?? "UTC",
     place: (await place.count()) ? await place.textContent() : null,
+    visits: await globe.getAttribute(DATA.globeVisits),
   };
 }
 

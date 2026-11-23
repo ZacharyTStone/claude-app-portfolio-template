@@ -222,6 +222,19 @@ adds the line, and each language's `home.place` ("New York",
 "ニューヨーク") puts the city's name beside the dot, with the time there
 (the site's `timezone`). A map app shows a place's latitude and longitude
 when you press and hold it, latitude first; south and west are below 0.
+Your name is over your mark.
+
+Once it has turned, a visitor can turn it themselves: a drag spins it, and
+it keeps spinning a moment when let go. With `visitors: true` (Cloudflare
+only: its Worker counts them), it also marks the visitor, with "You"
+(`strings.globeYou`), their town and their own time, draws the line to
+your city from them in place of `from`, and shows a dot wherever the
+site's visitors have come from, each to the nearest whole degree and
+counted once a day. The Worker keeps the counts in AskGuard, the Durable
+Object Ask and the contact form use, so `wrangler.jsonc` needs it bound,
+and `"/visits"` in `assets.run_worker_first` (a check fails without
+either). [Security](security.md) says what's kept; if your site promises
+no tracking, say there what the globe counts.
 
 Day and night on it are the sun's as the visitor opens the page, with a
 town's lights here and there on the night side. Its colours are the
