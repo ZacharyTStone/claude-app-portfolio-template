@@ -121,15 +121,18 @@ function sitesAnswer(asked: QuestionWith<"answered">): Element[] {
 /** The reply /ask made, as text; under it the site's own lines it was
     written from, word for word, and a link to the tab the rest is in. */
 function madeReply(asked: QuestionWith<"replied">): Element[] {
-  const { answerId, replyText, citedLines } = asked.outcome;
+  const { answerId, replyText, citedLines, replyLang } = asked.outcome;
   const answer = findAnswer(answerId);
   if (!answer) return somethingElseAsTyped(asked);
+  // In another language than the page's, when the question was.
+  const inItsLanguage = replyLang ? { lang: replyLang } : {};
   const quotedLines = citedLines.map((line) => make("p", {}, line));
-  const quoted = quotedLines.length ? [make("blockquote", { class: PAGE_CLASSES.cited }, ...quotedLines)] : [];
+  const quoted = quotedLines.length
+    ? [make("blockquote", { class: PAGE_CLASSES.cited, ...inItsLanguage }, ...quotedLines)]
+    : [];
   const from = fromLine(answer.tab, isPersonalTab(answer.tab) ? words.askFromPersonal : words.askFrom);
-  return [
-    make("div", { class: PAGE_CLASSES.answer }, make("p", { class: PAGE_CLASSES.reply }, replyText), ...quoted, from),
-  ];
+  const reply = make("p", { class: PAGE_CLASSES.reply, ...inItsLanguage }, replyText);
+  return [make("div", { class: PAGE_CLASSES.answer }, reply, ...quoted, from)];
 }
 
 /** Past the day's questions: a reminder that it's a free service. */

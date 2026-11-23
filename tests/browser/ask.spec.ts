@@ -160,6 +160,25 @@ test.describe("a reply /ask sends with the answer", () => {
     await expectTheReply(page, OPEN_CHAT, { from: fromTheSecondThread(site), cited: CITED });
   });
 
+  test("in another language than the page's, is marked as in it, as are its lines, then and on the next visit", async ({
+    page,
+    site,
+    ask,
+  }) => {
+    const replyLang = "es";
+    await ask.returns({ id: threadAnswerId(site.secondThread.id, 1), reply: REPLY, cited: CITED, lang: replyLang });
+    await page.goto("./");
+    await askInNewChat(page, "A question in another language");
+    const reply = page.locator(`${OPEN_CHAT} ${CLASS.thread} ${CLASS.reply}`);
+    const cited = page.locator(`${OPEN_CHAT} ${CLASS.thread} ${CLASS.cited}`);
+    await expect(reply).toHaveAttribute("lang", replyLang);
+    await expect(cited).toHaveAttribute("lang", replyLang);
+    await revisit(page, "./");
+    await firstChatRow(page).click();
+    await expect(reply).toHaveAttribute("lang", replyLang);
+    await expect(cited).toHaveAttribute("lang", replyLang);
+  });
+
   test("is kept by a chat, with where it's from, for the next visit", async ({ page, site, ask }) => {
     await ask.returns({ id: threadAnswerId(site.secondThread.id, 1), reply: REPLY });
     await page.goto("./");

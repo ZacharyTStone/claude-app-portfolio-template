@@ -227,14 +227,17 @@ test("no call is made when an answer is shown, the question is turned away, or t
     ["the site's day is spent", { run: models(toolCall(NONE)), guardSays: ASK_GUARD_REPLY.spent }],
     ["Ask is off", { run: models(toolCall(NONE)), vars: { ASK_ENABLED: "false" } }],
     ["the picker failed", { run: pickerFails }],
-    ["the page is in Japanese", { run: models(toolCall(NONE)) }, "ja"],
+    ["the page and the question are in Japanese", { run: models(toolCall(NONE)) }, "ja"],
   ];
   for (const [why, options, lang = "en"] of cases) {
     const { askJson, rewriteCalls } = stubs({ ...options, rewrites: [wrote("What do you do?")] });
-    const said = await askJson("What does Alex do?", lang);
+    const said = await askJson(lang === "ja" ? "アレックスの仕事は？" : "What does Alex do?", lang);
     assert.equal(rewriteCalls.length, 0, why);
     assert.ok(!Object.hasOwn(said as object, "toOwner"), why);
   }
+  // A question in English on the Japanese page is answered in English, and rewritten.
+  const englishOnJapanese = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(TO_OWNER)] });
+  assert.deepEqual(await englishOnJapanese.askJson(QUESTION, "ja"), { id: null, toOwner: TO_OWNER });
   // A page in a language the site doesn't have gets the site's main one's answers, and its rewrite.
   const french = stubs({ run: models(toolCall(NONE)), rewrites: [wrote(TO_OWNER)] });
   assert.deepEqual(await french.askJson(QUESTION, "fr"), { id: null, toOwner: TO_OWNER });

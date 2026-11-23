@@ -40,6 +40,9 @@ type Summary = {
   unaddressed?: NotSaid;
   /** The model ran out of room to write before it had picked. */
   cut?: true;
+  /** The language the question was answered in, when it was written in
+      another than the page's. */
+  lang?: string;
 };
 
 /** What it says only with ASK_LOG_QUESTIONS on: each of these may repeat
@@ -82,10 +85,11 @@ function errorCode(error: unknown): string {
 const shownBefore = (earlier: readonly EarlierTurn[]): string | undefined =>
   earlier.length ? earlier.map(({ answer }) => answer?.id ?? NONE).join(" ") : undefined;
 
-function answeredSummary({ answer, reply, neurons, earlier }: Extract<Outcome, { kind: "answered" }>): Summary {
+function answeredSummary({ answer, reply, neurons, earlier, lang }: Extract<Outcome, { kind: "answered" }>): Summary {
   const { written, quoted } = reply;
   return {
     ask: answer.id,
+    lang,
     neurons: rounded(neurons),
     after: shownBefore(earlier),
     wrote: written?.outcome,
@@ -96,9 +100,10 @@ function answeredSummary({ answer, reply, neurons, earlier }: Extract<Outcome, {
 }
 
 function unansweredSummary(outcome: Extract<Outcome, { kind: "unanswered" }>): Summary {
-  const { uncoveredId, saidToOwner, picked, neurons, earlier } = outcome;
+  const { uncoveredId, saidToOwner, picked, neurons, earlier, lang } = outcome;
   return {
     ask: "none",
+    lang,
     neurons: rounded(neurons),
     after: shownBefore(earlier),
     uncovered: uncoveredId,

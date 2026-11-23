@@ -10,8 +10,9 @@ export type Outcome =
   /** One of the site's answers, shown word for word. */
   | { kind: "answered"; answerId: string }
   /** The reply /ask made from one of the site's answers, shown with the
-      site's lines it was written from (none, when /ask sent none). */
-  | { kind: "replied"; answerId: string; replyText: string; citedLines: string[] }
+      site's lines it was written from (none, when /ask sent none), in
+      `replyLang` when it isn't the page's language. */
+  | { kind: "replied"; answerId: string; replyText: string; citedLines: string[]; replyLang?: string }
   /** No answer: how to reach the owner, with the question as /ask said it
       to them if it did. */
   | { kind: "unanswered"; toOwner?: string }
@@ -79,7 +80,14 @@ export function outcomeOf(response: AskResponse | null, isOnPage: (answerId: str
   if (response.limited) return { kind: "limited", limit: response.limit };
   if (!response.id || !isOnPage(response.id)) return unanswered(response.toOwner);
   if (!response.reply) return { kind: "answered", answerId: response.id };
-  return { kind: "replied", answerId: response.id, replyText: response.reply, citedLines: response.cited ?? [] };
+  const replyLang = response.lang ? { replyLang: response.lang } : {};
+  return {
+    kind: "replied",
+    answerId: response.id,
+    replyText: response.reply,
+    citedLines: response.cited ?? [],
+    ...replyLang,
+  };
 }
 
 /** The question with what came of it. One /ask found inappropriate is kept

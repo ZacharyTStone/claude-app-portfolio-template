@@ -3,6 +3,7 @@
    to the page's script. A test holds this reader to that schema. */
 import {
   isCitedLines,
+  isLanguageCode,
   isQuestionToOwner,
   isReplyText,
   type AskBlocked,
@@ -61,5 +62,6 @@ function readPick(data: Fields): AskPicked | AskReplied | AskUnanswered {
   }
   if (!isReplyText(data.reply)) return { id: data.id, ...questionsLeft };
   const cited = isCitedLines(data.cited) ? { cited: data.cited } : {};
-  return { id: data.id, reply: data.reply, ...cited, ...questionsLeft };
+  const lang = isLanguageCode(data.lang) ? { lang: data.lang } : {};
+  return { id: data.id, reply: data.reply, ...cited, ...lang, ...questionsLeft };
 }

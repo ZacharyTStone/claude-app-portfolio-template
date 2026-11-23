@@ -17,8 +17,10 @@ type Asked = {
   neurons: number;
 };
 
-/** How near the visitor is to the most they may ask today. */
-type Allowance = { questionsLeft: number; visitorLimit: number };
+/** How near the visitor is to the most they may ask today, and the
+    language the question was answered in (`lang`) when it isn't the page's:
+    it was written in another of the site's (question-language.ts). */
+type Allowance = { questionsLeft: number; visitorLimit: number; lang?: string };
 
 export type Outcome =
   /** The request isn't one /ask reads. */
@@ -79,7 +81,7 @@ function answered(outcome: Extract<Outcome, { kind: "answered" }>): AskResponse 
   const { answer, reply } = outcome;
   const left = leftToSay(outcome);
   if (reply.text === undefined) return { id: answer.id, left };
-  return { id: answer.id, reply: reply.text, cited: reply.cited, left };
+  return { id: answer.id, reply: reply.text, cited: reply.cited, lang: outcome.lang, left };
 }
 
 function askResponseTo(outcome: Exclude<Outcome, { kind: "rejected" }>): AskResponse {

@@ -56,7 +56,7 @@ export async function admit(
   if ("error" in askRequest) return { kind: "rejected", rejection: askRequest };
   // The answers are read while AskGuard (in North America) is asked, not
   // after: one less wait.
-  const choicesBeingRead = readChoices(env.ASSETS, request, askRequest.lang);
+  const choicesBeingRead = readChoices(env.ASSETS, request, askRequest);
   choicesBeingRead.catch(() => {}); // a reply before it's awaited leaves it unhandled otherwise
   const networkHash = await hashAddress(visitorNetwork(request), settings.salt, day);
   const gate = await guard.takeQuestion({ visitorHash, networkHash });
