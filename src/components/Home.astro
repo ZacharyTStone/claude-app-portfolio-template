@@ -39,10 +39,10 @@ const greetingsForScript = {
   {globeAttributes && (
     <div class={PAGE_CLASSES.globe} aria-hidden="true" data-js-only {...globeAttributes}>
       <canvas />
-      <p class={PAGE_CLASSES.globeMarker}>
+      <div class={PAGE_CLASSES.globeMarker}>
         {place && <span class="globe-place">{place}</span>}
-        <span class={PAGE_CLASSES.globeTime} />
-      </p>
+        {place && <span class={PAGE_CLASSES.globeTime} />}
+      </div>
     </div>
   )}
   <Topbar strings={strings} />

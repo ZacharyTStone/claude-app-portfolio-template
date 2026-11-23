@@ -38,17 +38,24 @@ const pixelsDrawn = (page: Page): Promise<number> =>
   });
 
 test.describe("the home screen's globe", () => {
-  test("turns to where the owner is, and marks it with the time there", async ({ page, globe }) => {
+  test("turns to where the owner is, and marks it", async ({ page, globe: _globe }) => {
     await page.goto("./");
     await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
     await expect(page.locator(MARKER)).toBeVisible();
-    await expect(page.locator(`${MARKER} ${CLASS.globeTime}`)).toHaveText(await timeThere(page, globe));
   });
 
-  test("names the place before the time", async ({ page, globe }) => {
+  test("names the place, then the time there", async ({ page, globe }) => {
     test.skip(!globe.place, "the globe's marker names no place");
     await page.goto("./");
     await expect(page.locator(MARKER)).toHaveText(new RegExp(`^${globe.place}`));
+    await expect(page.locator(`${MARKER} ${CLASS.globeTime}`)).toHaveText(await timeThere(page, globe));
+  });
+
+  test("with no place named, marks it with the dot alone", async ({ page, globe }) => {
+    test.skip(Boolean(globe.place), "the globe's marker names its place");
+    await page.goto("./");
+    await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+    await expect(page.locator(MARKER)).toHaveText("");
   });
 
   test("is drawn on its canvas under the text", async ({ page, globe: _globe }) => {

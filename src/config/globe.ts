@@ -12,12 +12,14 @@ export type Place = {
 };
 
 /** The globe the home screen draws behind its text, once it shows: it
-    turns to `here` as a line draws to it from `from`, then marks it with
-    the time there (the site's `timezone`) and each language's `home.place`.
-    Only the script draws it; with motion reduced it shows already turned. */
+    turns to `here`, your city, and marks it. With `from`, a line draws to
+    it from there as it turns; with each language's `home.place`, the mark
+    has the city's name and the time there (the site's `timezone`). Only the
+    script draws it; with motion reduced it shows already turned. */
 export type Globe = {
   /** Your city, which the globe turns to and marks. */
   here: Place;
-  /** Where the line it draws starts: where you're from. Leave out for none. */
+  /** Where a line to your city starts: where you're from. Leave out for
+      none. */
   from?: Place;
 };

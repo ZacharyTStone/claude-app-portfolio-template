@@ -216,11 +216,12 @@ globe: {
 },
 ```
 
-Then it marks your city with its name, each language's `home.place`
-("New York", "ニューヨーク"), and the time there (the site's `timezone`). A map
-app shows a place's latitude and longitude when you press and hold it,
-latitude first; south and west are below 0. Leave `from` out for no line,
-and `place` out for the time alone.
+Your city alone is enough: `globe: { here: { latitude: 40.71, longitude:
+-74.01 } }` turns the globe to it and marks it with a pulsing dot. `from`
+adds the line, and each language's `home.place` ("New York",
+"ニューヨーク") puts the city's name beside the dot, with the time there
+(the site's `timezone`). A map app shows a place's latitude and longitude
+when you press and hold it, latitude first; south and west are below 0.
 
 Day and night on it are the sun's as the visitor opens the page, with a
 town's lights here and there on the night side. Its colours are the
