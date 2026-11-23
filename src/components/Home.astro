@@ -1,6 +1,7 @@
 ---
 /* The home screen, shown when no tab is open. Without JavaScript its box for a question is hidden, and the
    hint points at the tabs. On a site with a globe, it's behind the text, for the script to draw. */
+import type { Place } from "../config/globe.ts";
 import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
@@ -18,9 +19,11 @@ const { code, language } = Astro.props.page;
 const { strings } = language;
 const { greeting, intro, hint, tagline, place, prompts = [] } = language.home;
 const { globe, timezone } = site.config;
+// Each place as the script reads it: its longitude, a space, its latitude.
+const placeAttribute = ({ latitude, longitude }: Place): string => `${longitude} ${latitude}`;
 const globeAttributes = globe && {
-  [DATA.globeHere]: globe.here.join(" "),
-  ...(globe.from ? { [DATA.globeFrom]: globe.from.join(" ") } : {}),
+  [DATA.globeHere]: placeAttribute(globe.here),
+  ...(globe.from ? { [DATA.globeFrom]: placeAttribute(globe.from) } : {}),
   [DATA.globeZone]: timezone,
 };
 // The box asks what the question card asks, and its button is the card's.

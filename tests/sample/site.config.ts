@@ -193,7 +193,7 @@ const config: SiteConfig = {
   themeColor: "#191919",
   ask: { role: "an engineer" },
   // From New York to London, where its clock is.
-  globe: { here: [-0.13, 51.51], from: [-74.01, 40.71] },
+  globe: { here: { latitude: 51.51, longitude: -0.13 }, from: { latitude: 40.71, longitude: -74.01 } },
   // Under the About thread, the one thread with one answer.
   contactForm: { tab: "about" },
   // Sam's notes open in the viewer, at the address that shows them in a frame.

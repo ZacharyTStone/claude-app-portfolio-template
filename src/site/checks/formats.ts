@@ -2,6 +2,7 @@
    The pages escape what they write, but escaping doesn't make a
    javascript: link safe to follow, or "../en" a folder's name. */
 
+import { isRecord } from "../../contracts/guards.ts";
 import { readsAsAnotherSite } from "../../contracts/links.ts";
 
 /** A check that a value is text of one pattern. Anything that isn't text
@@ -89,13 +90,12 @@ export const isGitLabUserName = looksLike(/^(?=.{1,255}$)([A-Za-z0-9_.][A-Za-z0-
     has it. Not "@alex-example", and not the profile's whole address. */
 export const isCodebergUserName = looksLike(/^(?=.{1,40}$)[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$/);
 
-/** [140.47, 37.75]: a longitude from -180 to 180, then a latitude from -90
-    to 90, in degrees. */
-export function isCoordinates(place: unknown): boolean {
-  if (!Array.isArray(place) || place.length !== 2) return false;
-  const [longitude, latitude]: unknown[] = place;
+/** { latitude: 37.75, longitude: 140.47 }: a latitude from -90 to 90 and
+    a longitude from -180 to 180, in degrees. */
+export function isPlace(place: unknown): boolean {
+  if (!isRecord(place)) return false;
   const within = (value: unknown, limit: number) => typeof value === "number" && Math.abs(value) <= limit;
-  return within(longitude, 180) && within(latitude, 90);
+  return within(place.latitude, 90) && within(place.longitude, 180);
 }
 
 /** Whether the account menu's clock can tell the time in `zone`: it uses

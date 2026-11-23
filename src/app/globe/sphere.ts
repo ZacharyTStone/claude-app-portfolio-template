@@ -2,7 +2,6 @@
    looks from above a place, the way from one place to another, and where
    the sun is. The browser draws with it, and scripts/globe.ts finds the
    land with the same points, so the two always agree. */
-import type { Coordinates } from "../../config/globe.ts";
 
 const RADIANS_PER_DEGREE = Math.PI / 180;
 /** The turn between one point of the lattice and the next, which spreads
@@ -16,6 +15,10 @@ const TILT_DEGREES = 23.44;
     sphere of radius 1. */
 const DUSK_STARTS = -0.08;
 const DUSK_WIDTH = 0.25;
+
+/** A place as the globe's arithmetic takes it, in degrees: its longitude,
+    then its latitude (the config's Place, in the order x and y go). */
+export type Coordinates = readonly [longitude: number, latitude: number];
 
 /** A point on a sphere of radius 1: x towards 0° on the equator, y towards
     90° east, z towards the north pole. */

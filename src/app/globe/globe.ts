@@ -3,7 +3,6 @@
    owner is from to where they are, drawing the way between, and then marks
    where they are with the time there. With motion reduced, it shows the end
    at once. Its land is a script of its own, loaded only then. */
-import type { Coordinates } from "../../config/globe.ts";
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
@@ -13,7 +12,7 @@ import { drawFrame, onScreen, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
 import { sceneOf } from "./scene.ts";
-import { vectorOf } from "./sphere.ts";
+import { vectorOf, type Coordinates } from "./sphere.ts";
 
 /** How often the time beside the marker is told again. */
 const TIME_EVERY_MS = 30_000;

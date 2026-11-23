@@ -4,8 +4,7 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import { LAND } from "../../../src/app/globe/land.ts";
 import { landPoints } from "../../../src/app/globe/land-points.ts";
-import { vectorOf } from "../../../src/app/globe/sphere.ts";
-import type { Coordinates } from "../../../src/config/globe.ts";
+import { vectorOf, type Coordinates } from "../../../src/app/globe/sphere.ts";
 
 const land = landPoints(LAND);
 

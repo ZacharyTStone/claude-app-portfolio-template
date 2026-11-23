@@ -205,13 +205,22 @@ leaves out, the token, and what happens when GitHub is down.
 
 ## A globe on the home screen
 
-`globe: { here: [140.47, 37.75], from: [-75.17, 39.95] }` draws a globe
-behind the home screen's text, its top showing under the questions to
-start with. The first time the home screen shows, the globe turns from
-`from` to `here` as a line draws between them, then marks `here` with the
-time there (the site's `timezone`) and each language's `home.place` before
-it ("Fukushima"). Each place is a longitude, then a latitude, in degrees:
-west and south are below 0. Leave `from` out for no line.
+A globe behind the home screen's text, its top showing under the
+questions to start with, turns to your city when the home screen first
+shows, as a line draws to it from where you're from:
+
+```ts
+globe: {
+  here: { latitude: 37.75, longitude: 140.47 }, // your city
+  from: { latitude: 39.95, longitude: -75.17 }, // where you're from
+},
+```
+
+Then it marks your city with its name, each language's `home.place`
+("Fukushima", "福島"), and the time there (the site's `timezone`). A map
+app shows a place's latitude and longitude when you press and hold it,
+latitude first; south and west are below 0. Leave `from` out for no line,
+and `place` out for the time alone.
 
 Day and night on it are the sun's as the visitor opens the page, with a
 town's lights here and there on the night side. Its colours are the

@@ -1,7 +1,6 @@
 /* The globe's arithmetic (src/app/globe/sphere.ts). */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import type { Coordinates } from "../../../src/config/globe.ts";
 import {
   coordinatesOf,
   daylight,
@@ -11,6 +10,7 @@ import {
   turnTowards,
   vectorOf,
   wayBetween,
+  type Coordinates,
   type Vector,
 } from "../../../src/app/globe/sphere.ts";
 

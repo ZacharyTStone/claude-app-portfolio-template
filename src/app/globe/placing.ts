@@ -1,8 +1,7 @@
 /* Where the globe sits under the home screen's text, and where it is at
    each moment of its turn: worked out with no page, so the unit tests use
    it as it is. */
-import type { Coordinates } from "../../config/globe.ts";
-import { clamp, easeInOut, turnTowards } from "./sphere.ts";
+import { clamp, easeInOut, turnTowards, type Coordinates } from "./sphere.ts";
 
 /** Where the globe sits on its canvas, in CSS pixels: the canvas's size,
     the globe's middle and radius, and the latitude it's seen from. Its

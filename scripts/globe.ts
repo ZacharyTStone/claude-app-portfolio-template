@@ -5,8 +5,7 @@
 import { writeFileSync } from "node:fs";
 import { fileURLToPath, pathToFileURL } from "node:url";
 import worldLand from "world-atlas/land-110m.json" with { type: "json" };
-import type { Coordinates } from "../src/config/globe.ts";
-import { coordinatesOf, latticePoint } from "../src/app/globe/sphere.ts";
+import { coordinatesOf, latticePoint, type Coordinates } from "../src/app/globe/sphere.ts";
 
 /** How many points the globe has, land and sea: one about every 0.86°, as close as its dots can sit at the
     size the home screen draws them. */

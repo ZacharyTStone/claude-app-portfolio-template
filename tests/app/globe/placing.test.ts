@@ -2,8 +2,7 @@
 import assert from "node:assert/strict";
 import { test } from "node:test";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf } from "../../../src/app/globe/placing.ts";
-import { seenFrom, vectorOf } from "../../../src/app/globe/sphere.ts";
-import type { Coordinates } from "../../../src/config/globe.ts";
+import { seenFrom, vectorOf, type Coordinates } from "../../../src/app/globe/sphere.ts";
 
 const FUKUSHIMA: Coordinates = [140.47, 37.75];
 const PHILADELPHIA: Coordinates = [-75.17, 39.95];

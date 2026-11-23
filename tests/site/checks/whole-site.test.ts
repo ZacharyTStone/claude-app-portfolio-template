@@ -194,17 +194,18 @@ testEachProblem([
     ],
   },
   {
-    wrong: "the globe's place is written latitude first",
-    change: (sample) => (sample.globe = { here: [37.75, 140.47] }),
+    wrong: "the globe's city has its latitude and longitude the wrong way round",
+    change: (sample) => (sample.globe = { here: { latitude: 140.47, longitude: 37.75 } }),
     problems: [
-      "globe.here should be a longitude from -180 to 180, then a latitude from -90 to 90, like [140.47, 37.75]",
+      "globe.here should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 37.75, longitude: 140.47 }",
     ],
   },
   {
     wrong: "where the globe's way starts is a place's name",
-    change: (sample) => (sample.globe = { here: [140.47, 37.75], from: "Philadelphia" as never }),
+    change: (sample) =>
+      (sample.globe = { here: { latitude: 37.75, longitude: 140.47 }, from: "Philadelphia" as never }),
     problems: [
-      "globe.from should be a longitude from -180 to 180, then a latitude from -90 to 90, like [140.47, 37.75]",
+      "globe.from should be a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 37.75, longitude: 140.47 }",
     ],
   },
   {

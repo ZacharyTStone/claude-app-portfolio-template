@@ -1,9 +1,8 @@
 /* What every frame of the globe draws, worked out once when it starts: each
    point of land's brightness by the sun as it is now, which of them are a
    town's lights at night, the way, and the colours from the stylesheet. */
-import type { Coordinates } from "../../config/globe.ts";
 import type { Colours, DotGroup, Rgb, Scene } from "./frame.ts";
-import { daylight, sunAt, wayBetween, type Vector } from "./sphere.ts";
+import { daylight, sunAt, wayBetween, type Coordinates, type Vector } from "./sphere.ts";
 
 /** How bright a dot is by day, by night and as a town's lights. */
 const BRIGHTNESS = { day: 0.66, night: 0.34, light: 0.95 };
