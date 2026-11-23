@@ -5,6 +5,20 @@ each tab's page at `/<id>/`. Each other one is at `/<code>/`, its tabs'
 pages at `/<code>/<id>/`, with a switch in the sidebar that goes to the
 tab that's open in the other language.
 
+## A visitor's own language
+
+A visitor who comes in at a page in the main language, from another site
+or a typed address, and whose browser lists one of the site's other
+languages before it (`navigator.languages`: "ja-JP" finds `ja`), is sent to
+that language's version of the page, the same tab open, before the page
+starts. Once they follow a language link themselves (the sidebar's switch,
+the account menu's row), that's their pick, kept in this browser, and
+they're never sent anywhere again. Nobody is sent from a page in another
+language, from a link on the site, on a refresh or Back, or from a chat's
+address (`/#chat-…`). Without JavaScript every visitor stays where they
+came in, and search engines find each version by the page's `hreflang`
+links as before. A site in one language does nothing.
+
 ## Adding a language
 
 A language is one `Language` object (`src/config/language.ts`): everything

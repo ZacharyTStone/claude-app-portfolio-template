@@ -14,6 +14,7 @@ import { initHistoryRepos } from "./history-repos.ts";
 import { focusHome, greet, initHome } from "./home.ts";
 import { finishOpening, goHome, openNewChat, startOnPhone } from "./navigation.ts";
 import { askedTab, root, sidebar } from "./page.ts";
+import { goToPreferredLanguage, rememberPickedLanguage } from "./preferred-language.ts";
 import { initPanel, tellPanelToggles } from "./panel.ts";
 import { initPlay } from "./play.ts";
 import { closePopup, closePopupAndReturnFocus, initPopup, isPopupOpen } from "./popup.ts";
@@ -35,6 +36,8 @@ type OwnParts = { tabs: HTMLElement[]; tabRows: HTMLElement[]; groupHeadings: HT
 start();
 
 function start(): void {
+  // A visitor on their way to their own language's page sees nothing here.
+  if (goToPreferredLanguage()) return;
   // For the stylesheet: what needs JavaScript can show, and the tab that
   // shows is the one the script says.
   root.classList.add(PAGE_CLASSES.js);
@@ -61,6 +64,7 @@ function readOwnParts(): OwnParts {
 
 function startFeatures(tabPattern: HTMLElement): void {
   initToast();
+  rememberPickedLanguage();
   initChats({ tabPattern, wireTab, addRowMenu, goHome });
   greet();
   initSidebar();
