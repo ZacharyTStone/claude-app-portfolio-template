@@ -203,6 +203,25 @@ GitHub, and says how much of the count is private work.
 [GitHub history](github-history.md) has the rest: each part, what it
 leaves out, the token, and what happens when GitHub is down.
 
+## A globe on the home screen
+
+`globe: { here: [140.47, 37.75], from: [-75.17, 39.95] }` draws a globe
+behind the home screen's text, its top showing under the questions to
+start with. The first time the home screen shows, the globe turns from
+`from` to `here` as a line draws between them, then marks `here` with the
+time there (the site's `timezone`) and each language's `home.place` before
+it ("Fukushima"). Each place is a longitude, then a latitude, in degrees:
+west and south are below 0. Leave `from` out for no line.
+
+Day and night on it are the sun's as the visitor opens the page, with a
+town's lights here and there on the night side. Its colours are the
+`--globe-day`, `--globe-night` and `--globe-light` of `.globe`, and the
+page's `--accent`: a site can set them in `site.css`. Only the script draws
+it, so it isn't there without JavaScript; a visitor who asks for less
+motion sees it already turned, and a screen too short to show it under
+the text leaves it out. Its land is a script of its own (about 12 KB),
+which loads only when the home screen first shows.
+
 ## The panel's Context
 
 The details panel's `context` is your own rows: where else to find you.

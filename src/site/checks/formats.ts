@@ -89,6 +89,15 @@ export const isGitLabUserName = looksLike(/^(?=.{1,255}$)([A-Za-z0-9_.][A-Za-z0-
     has it. Not "@alex-example", and not the profile's whole address. */
 export const isCodebergUserName = looksLike(/^(?=.{1,40}$)[A-Za-z0-9]+([._-][A-Za-z0-9]+)*$/);
 
+/** [140.47, 37.75]: a longitude from -180 to 180, then a latitude from -90
+    to 90, in degrees. */
+export function isCoordinates(place: unknown): boolean {
+  if (!Array.isArray(place) || place.length !== 2) return false;
+  const [longitude, latitude]: unknown[] = place;
+  const within = (value: unknown, limit: number) => typeof value === "number" && Math.abs(value) <= limit;
+  return within(longitude, 180) && within(latitude, 90);
+}
+
 /** Whether the account menu's clock can tell the time in `zone`: it uses
     this constructor (src/app), which throws for a zone it doesn't know
     ("Tokyo", for "Asia/Tokyo"). */

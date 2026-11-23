@@ -11,6 +11,7 @@ import { initCountUp } from "./count-up.ts";
 import { dropEmptyChat, forgetChats, initChats, restoreChats } from "./conversation/chats.ts";
 import { foldable } from "./folding.ts";
 import { initHistoryRepos } from "./history-repos.ts";
+import { initGlobe } from "./globe/globe.ts";
 import { focusHome, greet, initHome } from "./home.ts";
 import { finishOpening, goHome, openNewChat, startOnPhone } from "./navigation.ts";
 import { askedTab, root, sidebar } from "./page.ts";
@@ -74,6 +75,7 @@ function startFeatures(tabPattern: HTMLElement): void {
   initShare();
   initAccountMenu();
   initHome();
+  initGlobe();
   initViewer();
   initRevealOnScroll();
   initCountUp();

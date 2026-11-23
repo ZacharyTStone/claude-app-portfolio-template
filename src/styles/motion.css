@@ -484,6 +484,25 @@
       box-shadow: 0 0 0 4px color-mix(in srgb, var(--blue) 28%, transparent);
     }
   }
+  /* The globe's marker fades in as the globe lands, and its ring keeps going out from the place, as a
+     map's marker does. */
+  .globe-marker {
+    transition: opacity 0.5s var(--ease);
+  }
+  .globe-marker::after {
+    box-shadow: 0 0 0 1px var(--accent);
+    animation: ripple 2.2s cubic-bezier(0.2, 0.6, 0.35, 1) infinite;
+  }
+  @keyframes ripple {
+    from {
+      opacity: 0.7;
+      scale: 1;
+    }
+    to {
+      opacity: 0;
+      scale: 5.5;
+    }
+  }
   .pop,
   .follow-card {
     animation: pop-in 0.14s var(--ease);

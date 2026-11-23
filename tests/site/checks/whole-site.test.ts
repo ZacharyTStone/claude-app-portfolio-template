@@ -194,6 +194,20 @@ testEachProblem([
     ],
   },
   {
+    wrong: "the globe's place is written latitude first",
+    change: (sample) => (sample.globe = { here: [37.75, 140.47] }),
+    problems: [
+      "globe.here should be a longitude from -180 to 180, then a latitude from -90 to 90, like [140.47, 37.75]",
+    ],
+  },
+  {
+    wrong: "where the globe's way starts is a place's name",
+    change: (sample) => (sample.globe = { here: [140.47, 37.75], from: "Philadelphia" as never }),
+    problems: [
+      "globe.from should be a longitude from -180 to 180, then a latitude from -90 to 90, like [140.47, 37.75]",
+    ],
+  },
+  {
     wrong: "the history's GitHub user is its profile's whole address",
     change: (sample) => (sample.githubHistory = { user: "https://github.com/sam-sample" }),
     problems: [

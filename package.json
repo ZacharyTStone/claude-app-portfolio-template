@@ -24,7 +24,8 @@
     "format:check": "prettier --check \"**/*.{ts,js,json,astro,css}\"",
     "lint": "eslint",
     "knip": "knip --no-config-hints",
-    "lint:html": "node scripts/require-build.ts && html-validate dist"
+    "lint:html": "node scripts/require-build.ts && html-validate dist",
+    "globe": "node scripts/globe.ts"
   },
   "devDependencies": {
     "@astrojs/check": "0.9.12",
@@ -47,7 +48,8 @@
     "satteri": "0.11.7",
     "subset-font": "2.9.0",
     "typescript": "6.0.3",
-    "typescript-eslint": "8.72.2"
+    "typescript-eslint": "8.72.2",
+    "world-atlas": "2.0.2"
   },
   "dependencies": {
     "es-toolkit": "1.53.2",

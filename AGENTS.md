@@ -44,6 +44,7 @@ call anything done, run `npm run verify`.
 | `npm run test:browser` | The built pages in Chromium, with the real security headers, on the site and on the sample |
 | `npm run build` | Type-checks `site.config.ts`, checks what a type can't, then builds `dist/` |
 | `npm run diagrams` | Writes each diagram in `diagrams/` as SVG files in `public/assets/` |
+| `npm run globe` | Writes which of the home screen globe's points are land (`src/app/globe/land.ts`) |
 | `npm run deploy` | Deploys to Cloudflare with one pinned Wrangler (`npm run wrangler` for its other commands) |
 | `npm run update-template` | In a site: replaces the shared files with the template's latest |
 
@@ -73,7 +74,7 @@ call anything done, run `npm run verify`.
 | `src/shared/config.ts` | Only the path an older site's config imports its types from |
 | `public/` | Files served as they are: favicons, the social card, pictures, icons, fonts |
 | `diagrams/` | Pictures that move, as code (each site's own) |
-| `scripts/` | The diagram kit (`diagram.ts`), the fonts (`fonts.ts`), the update and its list |
+| `scripts/` | The diagram kit (`diagram.ts`), the fonts (`fonts.ts`), the globe's land (`globe.ts`), the update and its list |
 | `tests/` | Unit tests mirroring `src/`, the browser checks (`tests/browser/`), the sample site, Ask's eval |
 | `playwright.config.ts` | How the browser checks run: the two sites (and the sample on Netlify, for the contact form), the visitor's time zone |
 | `docs/` | The guides: see the last section |
@@ -121,10 +122,12 @@ call anything done, run `npm run verify`.
 - **Ask answers only from what the site says, and shows it.** What its
   models are told and what is checked in a reply are a safety property:
   change them only as `docs/changing-the-code.md` says.
-- **Nothing built is committed**, but for two things a script writes into
-  `public/`: the cut-down fonts (`npm run fonts`: the Latin serif, shared,
-  and a site's Japanese subsets) and the diagrams' SVG files
-  (`npm run diagrams`). A check fails while either is out of date.
+- **Nothing built is committed**, but for three things a script writes:
+  the cut-down fonts (`npm run fonts`: the Latin serif, shared, and a
+  site's Japanese subsets) and the diagrams' SVG files
+  (`npm run diagrams`), in `public/`, and the globe's land
+  (`npm run globe`), in `src/app/globe/land.ts`. A check fails while any
+  is out of date.
 - **The update runs on Node alone.** `scripts/template.ts` and
   `scripts/update-template.ts` import only `node:` modules and each other.
 - **TypeScript that Node runs as is** (outside `.astro` files): no enums,

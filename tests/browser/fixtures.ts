@@ -10,6 +10,7 @@ import { serve, type Served } from "./server.ts";
 import {
   readSite,
   type Clock,
+  type Globe,
   type ComesIntoView,
   type ContactForm,
   type GatheredContext,
@@ -57,6 +58,7 @@ type SiteParts = {
   startingPrompt: Prompt;
   personalAnswer: PersonalAnswer;
   clock: Clock;
+  globe: Globe;
   viewerLink: ViewerLink;
   playedPicture: PlayedPicture;
   movingPicture: MovingPicture;
@@ -175,6 +177,7 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
   startingPrompt: partOrSkip((site) => site.prompts[0], "the home screen has no questions to start with"),
   personalAnswer: partOrSkip((site) => site.questions.personal[0], "the site has no personal answers"),
   clock: partOrSkip((site) => site.clock, "the account menu has no clock"),
+  globe: partOrSkip((site) => site.globe, "the site has no globe"),
   viewerLink: partOrSkip((site) => site.viewer, "the site has no viewer"),
   playedPicture: partOrSkip((site) => site.playedPictures[0], "the site has no picture a visitor plays"),
   movingPicture: partOrSkip((site) => site.movingPictures[0], "the site has no picture that moves all the time"),
