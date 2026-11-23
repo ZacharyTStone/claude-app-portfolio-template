@@ -52,11 +52,12 @@ test.describe("the home screen's globe", () => {
     await expect(page.locator(`${MARKER} ${CLASS.globeTime}`)).toHaveText(await timeThere(page, globe));
   });
 
-  test("with no place named, marks it with the dot alone", async ({ page, globe }) => {
+  test("with no place named, marks it with the owner's name alone: no place and no time", async ({ page, globe }) => {
     test.skip(Boolean(globe.place), "the globe's marker names its place");
     await page.goto("./");
     await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
-    await expect(page.locator(MARKER)).toHaveText("");
+    await expect(page.locator(`${MARKER} ${CLASS.globePlace}`)).toHaveCount(0);
+    await expect(page.locator(`${MARKER} ${CLASS.globeTime}`)).toHaveCount(0);
   });
 
   test("is drawn on its canvas under the text", async ({ page, globe: _globe }) => {
