@@ -225,22 +225,8 @@ and west are below 0. Your name is over your mark.
 
 Once it has turned, it turns slowly east by itself, as the Earth does, and
 a visitor can turn it themselves: a drag spins it, and it keeps spinning a
-moment when let go. With motion reduced it stays still. With `visitors: true` (Cloudflare
-only: its Worker counts them), it also marks the visitor with "You"
-(`strings.globeYou`) and nothing more (never their town), draws the line to
-your city from them in place of `from`, and shows a dot wherever the
-site's visitors have come from, each to the nearest whole degree and
-counted once a day; each language's `home.globeNote` puts a line under
-the globe saying so ("Rough visitor locations are saved anonymously").
-`seed`
-adds places visitors came from before the Worker counted them, from your
-host's analytics say, each `{ latitude, longitude, visits }`: they're dots
-with the counted ones, with or without `visitors`. The
-Worker keeps the counts in AskGuard, the Durable
-Object Ask and the contact form use, so `wrangler.jsonc` needs it bound,
-and `"/visits"` in `assets.run_worker_first` (a check fails without
-either). [Security](security.md) says what's kept; if your site promises
-no tracking, say there what the globe counts.
+moment when let go. With motion reduced it stays still. It knows nothing
+of its visitors: it asks the site for nothing, and keeps nothing.
 
 Day and night on it are the sun's as the visitor opens the page, with a
 town's lights here and there on the night side. Its colours are the

@@ -10,8 +10,18 @@ export type Placing = { width: number; height: number; x: number; y: number; rad
 
 /** One moment of the turn: the longitude the globe faces, how much of the
     way is drawn, how far it has settled since landing, and how far the
-    whole globe has faded in, each of the last three 0 to 1. */
-export type Moment = { longitude: number; drawn: number; settled: number; shown: number };
+    whole globe has faded in, each of the last three 0 to 1. Once it has
+    landed, and only where motion isn't reduced: the time (`at`, in ms), by
+    which the towns' lights twinkle, and how far along the way the spark is
+    that now and then runs it again (`spark`, 0 to 1), if one is. */
+export type Moment = {
+  longitude: number;
+  drawn: number;
+  settled: number;
+  shown: number;
+  at?: number;
+  spark?: number;
+};
 
 /** The longitudes the turn starts and ends at. */
 export type Turn = { start: number; end: number };
@@ -45,6 +55,11 @@ const PLAY = {
   lands: 2300,
   settleMs: 600,
 } as const;
+
+/** Once it has landed, the way's journey runs again now and then: a spark
+    runs its length, from where the owner is from to where they are, first
+    a moment after landing, then every so often. */
+const SPARK = { firstAfterMs: 2500, everyMs: 9000, runMs: 3400 } as const;
 
 /** When the globe lands on where its owner is, and its marker shows. */
 export const LANDS_MS = PLAY.lands;
@@ -86,4 +101,11 @@ export function momentAt(ms: number, { start, end }: Turn): Moment {
     settled: clamp((ms - PLAY.lands) / PLAY.settleMs),
     shown: clamp(ms / PLAY.fadeMs),
   };
+}
+
+/** How far along the way the spark is, `sinceLanding` ms after the globe
+    landed, 0 to 1: none between its runs. */
+export function sparkAt(sinceLanding: number): number | undefined {
+  const into = (sinceLanding - SPARK.firstAfterMs) % SPARK.everyMs;
+  return sinceLanding < SPARK.firstAfterMs || into > SPARK.runMs ? undefined : easeInOut(into / SPARK.runMs);
 }

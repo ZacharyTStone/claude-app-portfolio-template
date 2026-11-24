@@ -1,6 +1,4 @@
-import type { VisitedPlace } from "../../contracts/globe.ts";
 import type { Settings } from "../settings.ts";
-import { readSaidPlaces } from "./visit-counts.ts";
 import {
   ASK_GUARD_NAME,
   readMessageTaken,
@@ -28,10 +26,6 @@ export type Guard = {
   /** Takes one of the contact form's messages from the day's allowances,
       the visitor's and the site's, and says whether it can be sent. */
   takeMessage(visitorHash: string): Promise<MessageGate>;
-  /** Counts a visit from a square of the globe, once a day for each
-      visitor, and says where the site's visitors have come from: none
-      when the guard can't be reached. */
-  countVisit(visitorHash: string, square: string | null): Promise<VisitedPlace[] | null>;
 };
 
 const DOWN = { state: "down" } as const satisfies Gate & MessageGate;
@@ -42,7 +36,6 @@ const NO_GUARD: Guard = {
   blockVisitor: async () => {},
   spendNeurons: async () => {},
   takeMessage: async () => DOWN,
-  countVisit: async () => null,
 };
 
 /** However many addresses ask, the day's questions can't all be asked in
@@ -102,14 +95,6 @@ export function guardFor(namespace: DurableObjectNamespace | undefined, settings
         await ask({ ask: "spend", neurons: neurons > 0 ? neurons : 0 });
       } catch {
         // The question is answered all the same; only its cost goes uncounted.
-      }
-    },
-    async countVisit(visitorHash, square) {
-      try {
-        const response = await ask({ ask: "visit", visitorHash, square });
-        return response.ok ? readSaidPlaces(await response.text()) : null;
-      } catch {
-        return null;
       }
     },
     async takeMessage(visitorHash) {

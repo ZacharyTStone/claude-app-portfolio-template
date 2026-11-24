@@ -3,7 +3,6 @@
    place's name, at once with motion reduced, and isn't there at all
    without the script. */
 import type { Page } from "@playwright/test";
-import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { expect, test } from "./fixtures.ts";
@@ -14,8 +13,8 @@ const LANDS_WITHIN_MS = 8000;
 const SHOWS_AT_ONCE_WITHIN_MS = 2000;
 
 const GLOBE = CLASS.globe;
-/** The owner's mark: the visitor's own, with globe.visitors, is another. */
-const MARKER = `${GLOBE} ${CLASS.globeMarker}:not(${CLASS.globeYou})`;
+/** The owner's mark: the only one. */
+const MARKER = `${GLOBE} ${CLASS.globeMarker}`;
 
 /** How many of the canvas's pixels something is drawn on. */
 const pixelsDrawn = (page: Page): Promise<number> =>
@@ -79,17 +78,10 @@ test.describe("the home screen's globe", () => {
   });
 });
 
-test.describe("the home screen's globe, with its visitors", () => {
-  test("marks the visitor where they are, saying only that it's them: no town, no time", async ({
-    page,
-    site,
-    globe,
-  }) => {
-    test.skip(!globe.visits, "the globe doesn't show its visitors");
-    await page.goto("./");
-    await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
-    await expect(page.locator(`${GLOBE} ${CLASS.globeYou}`)).toHaveText(site.words.globeYou ?? "");
-  });
+test("the globe marks its owner alone, and nothing of the visitor", async ({ page, globe: _globe }) => {
+  await page.goto("./");
+  await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+  await expect(page.locator(`${GLOBE} ${CLASS.globeMarker}`)).toHaveCount(1);
 });
 
 test("the globe turns under a drag, and its marks follow their places", async ({ page, globe: _globe }) => {
@@ -152,21 +144,6 @@ test.describe("the owner's mark, turned to the globe's side", () => {
   }
 });
 
-test("a visitor in the owner's own town has their words under the owner's, not over them", async ({ page, globe }) => {
-  test.skip(!globe.visits, "the globe doesn't show its visitors");
-  const [longitude = 0, latitude = 0] = (
-    (await page.goto("./").then(() => page.locator(GLOBE).getAttribute(DATA.globeHere))) ?? ""
-  )
-    .split(" ")
-    .map(Number);
-  await page.route(`**${new URL(globe.visits ?? "", "https://example.com").pathname}`, (route) =>
-    route.fulfill({ json: { you: { latitude, longitude, town: "Next door" }, places: [] } }),
-  );
-  await page.reload();
-  await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
-  await expect(page.locator(`${GLOBE} ${CLASS.globeYou}`)).toContainClass(PAGE_CLASSES.globeCrowded);
-});
-
 test.describe("the home screen's globe, once it has landed", () => {
   const ownerLeft = (page: Page): Promise<number> =>
     page.locator(MARKER).evaluate((marker) => marker.getBoundingClientRect().left);
@@ -187,6 +164,17 @@ test.describe("the home screen's globe, once it has landed", () => {
       const before = await ownerLeft(page);
       await page.waitForTimeout(1500);
       expect(await ownerLeft(page)).toBe(before);
+    });
+
+    test("draws nothing new: its lights don't twinkle, and no spark runs its line", async ({ page, globe: _globe }) => {
+      await page.goto("./");
+      await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+      const drawing = () =>
+        page.locator(`${GLOBE} canvas`).evaluate((canvas) => (canvas as HTMLCanvasElement).toDataURL());
+      const before = await drawing();
+      // Longer than a spark waits after landing.
+      await page.waitForTimeout(3500);
+      expect(await drawing()).toBe(before);
     });
   });
 });

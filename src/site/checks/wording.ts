@@ -100,7 +100,6 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
     activity: { isOnTheSite: Boolean(site.config.activity), nameInProblem: "activity" },
     githubHistory: { isOnTheSite: Boolean(site.config.githubHistory), nameInProblem: "githubHistory" },
     githubRepos: { isOnTheSite: Boolean(site.config.githubHistory?.repos), nameInProblem: "githubHistory.repos" },
-    globeVisitors: { isOnTheSite: Boolean(site.config.globe?.visitors), nameInProblem: "globe.visitors" },
   } satisfies Record<keyof typeof PART_STRINGS, OptionalPart>;
   for (const partName of Object.keys(PART_STRINGS) as Array<keyof typeof PART_STRINGS>) {
     const part = parts[partName];

@@ -27,22 +27,18 @@ type MessageLimits = { siteLimit: number; visitorLimit: number };
 /** What AskGuard is asked: to take one question from the day's allowances,
     to block a visitor, to pay for a question it took with what that cost
     (nothing, for one that failed), or to take one of the contact form's
-    messages from the day's; or, for the home screen's globe, to count a
-    visit from a square of the globe (with none, only to say where
-    visitors have come from). */
+    messages from the day's. */
 export type Asked =
   | ({ ask: "take"; limits: DayLimits } & Asker)
   | { ask: "block"; visitorHash: string; hours: number }
   | { ask: "spend"; neurons: number }
-  | { ask: "message"; visitorHash: string; limits: MessageLimits }
-  | { ask: "visit"; visitorHash: string; square: string | null };
+  | { ask: "message"; visitorHash: string; limits: MessageLimits };
 
 export const ASK_GUARD_PATH = {
   take: "/take",
   block: "/block",
   spend: "/spend",
   message: "/message",
-  visit: "/visit",
 } as const;
 
 // Any host does: a Durable Object gets whatever it's sent.
@@ -66,8 +62,6 @@ function queryOf(asked: Asked): Record<string, string> {
       return { neurons: String(asked.neurons) };
     case "message":
       return { limit: String(asked.limits.siteLimit), each: String(asked.limits.visitorLimit), who: asked.visitorHash };
-    case "visit":
-      return { who: asked.visitorHash, ...(asked.square ? { at: asked.square } : {}) };
   }
 }
 
@@ -110,21 +104,11 @@ function readMessage(query: URLSearchParams): Asked | undefined {
     : undefined;
 }
 
-/** A square is "36,140": whole degrees of latitude, then longitude. */
-const SQUARE = /^-?\d{1,2},-?\d{1,3}$/;
-
-function readVisit(query: URLSearchParams): Asked | undefined {
-  const [visitorHash, square] = [query.get("who"), query.get("at")];
-  if (!visitorHash || (square !== null && !SQUARE.test(square))) return undefined;
-  return { ask: "visit", visitorHash, square };
-}
-
 const READERS: ReadonlyMap<string, (query: URLSearchParams) => Asked | undefined> = new Map([
   [ASK_GUARD_PATH.take, readTake],
   [ASK_GUARD_PATH.block, readBlock],
   [ASK_GUARD_PATH.spend, readSpend],
   [ASK_GUARD_PATH.message, readMessage],
-  [ASK_GUARD_PATH.visit, readVisit],
 ]);
 
 /** What a request asks: "unknown" at a path AskGuard doesn't have, and

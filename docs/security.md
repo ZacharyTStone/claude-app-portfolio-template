@@ -8,8 +8,8 @@ in the code, see the security policy in the template's repository.
 
 - The Content-Security-Policy is `default-src 'none'`, with only the site's
   own scripts, styles, images and fonts. Nothing inline runs, the page may
-  fetch only from the site itself, and only with Ask, the contact form
-  or the globe's visitors on, and there is no `<base>`, and no form post but the contact form's,
+  fetch only from the site itself, and only with Ask or the contact form
+  on, and there is no `<base>`, and no form post but the contact form's,
   to the site itself. No other site can show the pages in a frame,
   and the pages show none themselves, unless you set `viewer`: then
   `frame-src` names the sites the viewer shows, and no other. With
@@ -39,12 +39,6 @@ in the code, see the security policy in the template's repository.
   site by itself: the fonts and icons are its own files. Chats and layout
   are kept in `localStorage`, in the visitor's browser only. A link to
   another site opens with `noopener noreferrer`.
-- With `globe.visitors`, the Worker counts where each visitor is from, to
-  the nearest whole degree (about 100 km) and once a day, in AskGuard: the
-  address is only hashed with the day's salt, that hash is deleted at the
-  day's end, and the town Cloudflare places them in is never read, kept or
-  shown.
-  If your site promises no tracking, say there what the globe counts.
 - The one exception is the viewer, and only on a site that sets `viewer`
   ([What the site says](content.md#the-viewer)). When a visitor opens a
   link in it, that page loads from its own site, in a frame, and that site

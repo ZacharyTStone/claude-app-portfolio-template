@@ -68,8 +68,8 @@ const WRITTEN_BY_A_COMPONENT = {
       the marker it places over it. */
   globe: "globe",
   globeMarker: "globe-marker",
-  /** In a mark on the globe: the place's name ("You", for the visitor's).
-      Over the owner's mark's dot: their name. */
+  /** In the owner's mark on the globe: the place's name, and over its
+      dot, their name. */
   globePlace: "globe-place",
   globeName: "globe-name",
   /** In an answer: bars, a flow or a picture. */
@@ -154,13 +154,8 @@ const ADDED_BY_THE_SCRIPT = {
   /** On the globe, once it has turned to where you are: its marker shows. */
   landed: "landed",
   /** Over the globe's part that shows, once it has landed: what takes a drag
-      to turn it. Beside the owner's mark, the visitor's own, with
-      globe.visitors. */
+      to turn it. */
   globeGrab: "globe-grab",
-  globeYou: "globe-you",
-  /** On the visitor's mark, when it's so close to the owner's that its
-      words go a line lower, under theirs. */
-  globeCrowded: "globe-crowded",
   /** On a mark too near the globe's right edge for its words to fit after
       its dot: they go before it. */
   globeFlipped: "globe-flipped",

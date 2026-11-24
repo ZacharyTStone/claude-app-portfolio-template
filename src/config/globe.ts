@@ -22,21 +22,4 @@ export type Globe = {
   /** Where a line to your city starts: where you're from. Leave out for
       none. */
   from?: Place;
-  /** Visitors on the globe (Cloudflare only: its Worker counts them). Each
-      sees roughly where they are, marked "You", and dots where the site's
-      visitors have come from, each to the nearest whole degree and counted
-      once a day; no address or town is kept or shown. Leave out for none. */
-  visitors?: true;
-  /** Places visitors came from before the Worker counted them (from your
-      host's analytics, say), each with how many came: dots on the globe
-      with those it counts, whether or not `visitors` is on. Leave out for
-      none. */
-  seed?: SeedPlace[];
-};
-
-/** A place visitors came from, and how many: { latitude: 35.68,
-    longitude: 139.69, visits: 66 }. */
-type SeedPlace = Place & {
-  /** How many visitors came from there: a whole number above 0. */
-  visits: number;
 };

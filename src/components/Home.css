@@ -155,7 +155,6 @@
   --globe-day: #ece9e2;
   --globe-night: #aab4d2;
   --globe-light: #ffc48c;
-  --globe-visit: #8fb8ff;
   position: absolute;
   inset: 0;
   overflow: hidden;
@@ -214,18 +213,6 @@
   font: 500 13px/16px var(--sans);
   text-shadow: 0 1px 8px var(--page);
 }
-/* The visitor's own mark, in the visitors' colour. */
-.globe-you::before {
-  background: var(--globe-visit);
-  box-shadow: 0 0 12px 2px color-mix(in srgb, var(--globe-visit) 60%, transparent);
-}
-.globe-you::after {
-  box-shadow: 0 0 0 1px var(--globe-visit);
-}
-/* Close to the owner's mark, the visitor's words go a line lower, under theirs; the dot stays on its place. */
-.globe-crowded > * {
-  translate: 0 18px;
-}
 /* Near the globe's right edge, a mark's words go before its dot, so the panel beside it doesn't cut them off;
    the dot stays on its place, and the name stays over it. */
 .globe-flipped {
@@ -261,14 +248,4 @@
 }
 .home:has(.globe) .home-body > :not(.under) {
   pointer-events: auto;
-}
-
-/* How the globe's visitors are counted, under the globe, in its quieter grey; on a phone, beside the credit. */
-.home .under {
-  flex-wrap: wrap;
-  column-gap: 16px;
-  row-gap: 2px;
-}
-.globe-note {
-  color: var(--text-3);
 }

@@ -7,19 +7,11 @@ import type { Strings } from "../../src/config/strings.ts";
 import sample from "../sample/site.config.ts";
 
 /** The sample's config, with `overrides` in place of its own settings. An
-    override of `undefined` leaves a setting out. On another host than
-    Cloudflare, where no Worker runs, its globe shows no visitors. */
-export function sampleConfig(overrides: Partial<SiteConfig> = {}): SiteConfig {
-  const config = { ...structuredClone(sample), ...overrides };
-  return config.host === "cloudflare" ? config : withoutVisitors(config);
-}
-
-/** `config` with its globe's visitors left out, for a host with no Worker. */
-export function withoutVisitors(config: SiteConfig): SiteConfig {
-  if (!config.globe) return config;
-  const { visitors: _left, ...globe } = config.globe;
-  return { ...config, globe };
-}
+    override of `undefined` leaves a setting out. */
+export const sampleConfig = (overrides: Partial<SiteConfig> = {}): SiteConfig => ({
+  ...structuredClone(sample),
+  ...overrides,
+});
 
 /** One of a sample config's languages, which it has. */
 export function languageOf(config: SiteConfig, code: string): Language {

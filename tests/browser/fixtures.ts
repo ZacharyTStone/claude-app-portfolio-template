@@ -6,7 +6,6 @@ import { devices, expect, test as base, type Request } from "@playwright/test";
 import type { Prompt } from "../../src/config/home.ts";
 import type { PersonalAnswer } from "../../src/config/question-card.ts";
 import type { AskResponse } from "../../src/contracts/ask.ts";
-import type { Visits } from "../../src/contracts/globe.ts";
 import { serve, type Served } from "./server.ts";
 import {
   readSite,
@@ -78,17 +77,6 @@ type PageErrors = {
   expected(matching: RegExp): void;
 };
 
-/** What /visits says in every check: a visitor in Osaka, and the places
-    the site's visitors have come from. */
-const VISITS_STAND_IN: Visits = {
-  you: { latitude: 34.7, longitude: 135.5 },
-  places: [
-    [35, 135, 4],
-    [41, -74, 2],
-    [52, 0, 1],
-  ],
-};
-
 type ForEachCheck = SiteParts & {
   site: Site;
   /** Where the visitor is: the time zone playwright.config.ts gives every check. */
@@ -96,9 +84,6 @@ type ForEachCheck = SiteParts & {
   ask: AskStandIn;
   /** Every check fails on an error the page or its console reports. */
   pageErrors: PageErrors;
-  /** On a site whose globe shows its visitors: /visits, stood in for with
-      VISITS_STAND_IN, so no check reaches the network. */
-  visits: Visits;
 };
 
 type ForEachWorker = {
@@ -166,17 +151,6 @@ export const test = base.extend<ForEachCheck, ForEachWorker>({
       },
     });
   },
-
-  visits: [
-    async ({ context, site }, use) => {
-      const address = site.globe?.visits;
-      // Every window of the check's, not only its first page.
-      if (address)
-        await context.route(new URL(address, site.askUrl).href, (route) => route.fulfill({ json: VISITS_STAND_IN }));
-      await use(VISITS_STAND_IN);
-    },
-    { auto: true },
-  ],
 
   pageErrors: [
     async ({ context, site, ask }, use, testInfo) => {

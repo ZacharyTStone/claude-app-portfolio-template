@@ -103,7 +103,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn, activity in the panel, a GitHub history and the globe's visitors",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn, activity in the panel and a GitHub history",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -120,7 +120,6 @@ testEachProblem([
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
       ...HISTORY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory needs it)`),
       ...HISTORY_REPO_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory.repos needs it)`),
-      "fr: strings.globeYou is missing (globe.visitors needs it)",
     ],
   },
   {

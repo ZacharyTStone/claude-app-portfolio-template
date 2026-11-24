@@ -8,7 +8,6 @@
 import { chunk } from "es-toolkit";
 import * as v from "valibot";
 import { utcDay } from "../lib/time.ts";
-import { VISIT_KEYS, countVisit } from "./visit-counts.ts";
 import {
   ASK_GUARD_REPLY,
   readAsked,
@@ -31,8 +30,6 @@ import {
     - messages: { day, asked }, the contact form's messages the site sent
       that day;
     - message + who: { day, asked }, one visitor's.
-    For the home screen's globe, visit-counts.ts keeps VISIT_KEYS: where
-    visitors have come from, and who's been counted today.
     What's kept under a visitor's or a network's hash is deleted when the
     day ends. */
 export const ASK_GUARD_KEYS = {
@@ -117,6 +114,12 @@ const endOfDay = (now: number) => (Math.floor(now / MS_PER_DAY) + 1) * MS_PER_DA
     cost, once one has been paid for. */
 type Counts = { site: SiteCount; usedThisHour: number; asked: number; networkAsked: number; dearest?: number };
 
+/** Where the globe once kept which visitors it had counted that day,
+    under each one's hash, before the site stopped counting them: what's
+    left there goes at the day's end with the rest, so none of it outlives
+    its day. */
+export const COUNTED_VISITORS_ONCE = "visited:";
+
 // A question is paid for only once it's answered, so each one that isn't
 // yet is counted at the most one has cost: a burst takes the day past its
 // budget by little more than one question's cost. Before any has been paid
@@ -163,11 +166,6 @@ export class AskGuard implements DurableObject {
         return ASK_GUARD_REPLY.ok;
       case "message":
         return (await this.takeMessage(asked, now)).state;
-      case "visit": {
-        const places = await countVisit(this.storage, asked.visitorHash, asked.square);
-        await this.forgetVisitorsAtEndOf(now);
-        return places;
-      }
     }
   }
 
@@ -224,7 +222,7 @@ export class AskGuard implements DurableObject {
       ASK_GUARD_KEYS.network,
       ASK_GUARD_KEYS.block,
       ASK_GUARD_KEYS.message,
-      VISIT_KEYS.visited,
+      COUNTED_VISITORS_ONCE,
     ];
     for (const prefix of kept) {
       keys.push(...(await this.storage.list({ prefix })).keys());
