@@ -1,5 +1,5 @@
 /* The marks over the globe: the owner's, at their city, with their name
-   above it, or the city's name beside it (written by the page), and this
+   above it and the city's name beside it (written by the page), and this
    visitor's, at their own place, with "You" (made here). Each follows its place as the globe turns, and hides behind it.
    Near the globe's right edge its words go before its dot rather than be
    cut off, and once its dot and the name over it would be, it hides. */

@@ -69,7 +69,7 @@ const WRITTEN_BY_A_COMPONENT = {
   globe: "globe",
   globeMarker: "globe-marker",
   /** In a mark on the globe: the place's name ("You", for the visitor's).
-      Over the owner's mark's dot, when it names no place: their name. */
+      Over the owner's mark's dot: their name. */
   globePlace: "globe-place",
   globeName: "globe-name",
   /** In an answer: bars, a flow or a picture. */

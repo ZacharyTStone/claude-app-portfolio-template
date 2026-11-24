@@ -1,7 +1,7 @@
 /* The globe behind the home screen's text (the config's `globe`; frame.ts
    draws it). The first time the home screen shows, it turns from where its
    owner is from to where they are, drawing the way between, and marks
-   where they are with the city's name (or theirs, with none). Then it's
+   where they are with their name and the city's. Then it's
    the visitor's to turn (spin.ts). With globe.visitors the way is drawn
    from this visitor, who is marked too, with "You" and nothing else, and
    dots show where the site's visitors have come from. With motion reduced, it shows
