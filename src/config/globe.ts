@@ -22,4 +22,9 @@ export type Globe = {
   /** Where a line to your city starts: where you're from. Leave out for
       none. */
   from?: Place;
+  /** Visitors on the globe (Cloudflare only: its Worker counts them). Each
+      sees roughly where they are, with their own time, and dots where the
+      site's visitors have come from, each to the nearest whole degree and
+      counted once a day; no address is kept. Leave out for none. */
+  visitors?: true;
 };

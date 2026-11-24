@@ -3,6 +3,7 @@
    hint points at the tabs. On a site with a globe, it's behind the text, for the script to draw. */
 import type { Place } from "../config/globe.ts";
 import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
+import { VISITS_PATH } from "../contracts/globe.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -25,6 +26,7 @@ const globeAttributes = globe && {
   [DATA.globeHere]: placeAttribute(globe.here),
   ...(globe.from ? { [DATA.globeFrom]: placeAttribute(globe.from) } : {}),
   [DATA.globeZone]: timezone,
+  ...(globe.visitors ? { [DATA.globeVisits]: site.link(VISITS_PATH) } : {}),
 };
 // The box asks what the question card asks, and its button is the card's.
 const { ask: cardQuestion, ui: cardWords } = language.questions;
@@ -40,7 +42,10 @@ const greetingsForScript = {
     <div class={PAGE_CLASSES.globe} aria-hidden="true" data-js-only {...globeAttributes}>
       <canvas />
       <div class={PAGE_CLASSES.globeMarker}>
-        {place && <span class="globe-place">{place}</span>}
+        <span class="globe-name" lang={site.config.nameLang}>
+          {site.config.name}
+        </span>
+        {place && <span class={PAGE_CLASSES.globePlace}>{place}</span>}
         {place && <span class={PAGE_CLASSES.globeTime} />}
       </div>
     </div>

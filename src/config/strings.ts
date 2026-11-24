@@ -284,6 +284,9 @@ export const SCRIPT_STRING_ATTRIBUTES = {
   play: "data-play",
   /** The same button while the picture plays: "Pause". */
   pause: "data-pause",
+  /** With the globe's visitors (globe.visitors): beside the visitor's own
+      place on it, before their town and time: "You". */
+  globeYou: "data-globe-you",
 } as const;
 
 type ScriptStringName = keyof typeof SCRIPT_STRING_ATTRIBUTES;
@@ -308,6 +311,7 @@ export const PART_STRINGS = {
   activity: ACTIVITY_STRING_NAMES,
   githubHistory: HISTORY_STRING_NAMES,
   githubRepos: HISTORY_REPO_STRING_NAMES,
+  globeVisitors: ["globeYou"],
 } as const satisfies Record<
   string,
   readonly (

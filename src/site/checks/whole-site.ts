@@ -219,6 +219,15 @@ const checkAskRunsOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
   );
 };
 
+/** The globe's visitors are counted by the Worker, as Ask's questions are
+    answered by it. */
+const checkGlobeVisitorsRunOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
+  problemUnless(
+    !config.globe?.visitors || host === WORKER_HOST,
+    `globe.visitors needs Cloudflare Workers, where its Worker (src/worker) counts them, but host is "${host}": remove globe.visitors, or set host to "${WORKER_HOST}"`,
+  );
+};
+
 /** On a host with nothing to take its messages, the form would post to an
     address with nothing there. Its thread is the main language's: the
     others have the same threads (checkLanguagesMatch). */
@@ -295,6 +304,7 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkSettingFormats,
   checkHsts,
   checkAskRunsOnItsHost,
+  checkGlobeVisitorsRunOnItsHost,
   checkContactForm,
   checkViewer,
   checkActivityNamesAPlace,

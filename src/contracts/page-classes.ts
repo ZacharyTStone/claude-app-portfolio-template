@@ -69,6 +69,8 @@ const WRITTEN_BY_A_COMPONENT = {
   globe: "globe",
   globeMarker: "globe-marker",
   globeTime: "globe-time",
+  /** In a mark on the globe: the place's name ("You", for the visitor's). */
+  globePlace: "globe-place",
   /** In an answer: bars, a flow or a picture. */
   figure: "figure",
   /** A figure whose picture a visitor plays; in it, what holds the picture
@@ -150,6 +152,11 @@ type NoKeyOf<Taken> = Record<string, string> & { readonly [Key in keyof Taken]?:
 const ADDED_BY_THE_SCRIPT = {
   /** On the globe, once it has turned to where you are: its marker shows. */
   landed: "landed",
+  /** Over the globe's part that shows, once it has landed: what takes a drag
+      to turn it. Beside the owner's mark, the visitor's own, with
+      globe.visitors. */
+  globeGrab: "globe-grab",
+  globeYou: "globe-you",
   /** On an answer while it comes into a chat a word at a time
       (src/app/conversation/stream.ts), and on each word of its running
       text, which comes in at its turn. */

@@ -151,11 +151,11 @@
 
   "assets": {
     "directory": "dist",
-    // Worker (Ask, the contact form or the daily rebuild): it reaches the
-    // files through this binding, and runs first for /ask and /contact
-    // (otherwise only for paths with no file).
+    // Worker (Ask, the contact form, the globe's visitors or the daily
+    // rebuild): it reaches the files through this binding, and runs first
+    // for /ask, /contact and /visits (otherwise only for paths with no file).
     // "binding": "ASSETS",
-    // "run_worker_first": ["/ask", "/contact"],
+    // "run_worker_first": ["/ask", "/contact", "/visits"],
     // Serve /404.html for paths that don't exist.
     "not_found_handling": "404-page",
   },
