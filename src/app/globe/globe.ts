@@ -129,7 +129,7 @@ function fit(globe: Globe): void {
 }
 
 /** How far down the globe's holder the home screen's text ends: every part
-    of it but the last, the credit, which may sit over the globe. */
+    of it but the last, the line under it, which may sit over the globe. */
 function textBottomIn(holder: HTMLElement): number {
   const body = holder.parentElement ? query(holder.parentElement, CLASS_SELECTOR.homeBody) : null;
   const text = body ? [...body.children].slice(0, -1) : [];

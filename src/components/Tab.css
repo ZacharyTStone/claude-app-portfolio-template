@@ -146,6 +146,10 @@ a.composer:focus-visible {
   font: 400 12px/20px var(--sans);
   color: var(--text-2);
 }
+/* Beside the panel the credit is at its foot: here, it shows only on a narrow screen, which has no panel. */
+.under .credit {
+  display: none;
+}
 .under .model {
   margin-left: auto;
   color: var(--text);

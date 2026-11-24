@@ -257,7 +257,7 @@
   pointer-events: auto;
 }
 
-/* How the globe's visitors are counted, beside the credit, in its quieter grey. */
+/* How the globe's visitors are counted, under the globe, in its quieter grey; on a phone, beside the credit. */
 .home .under {
   flex-wrap: wrap;
   column-gap: 16px;

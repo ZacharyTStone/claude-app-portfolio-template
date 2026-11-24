@@ -43,6 +43,8 @@ const activityRowsHere = activity ? activityRows(site.repos, activity, code, tim
     aria-label={strings.closePanel}
     title={strings.closePanelTitle}
   ></button>
+  {/* Shown at the panel's foot (Panel.css), under the sections, which the script may put in another order. */}
+  <p class="panel-credit">{strings.credit}</p>
   {progress && (
     <PanelSection name="progress" title={progress.title}>
       <ol class="steps">
