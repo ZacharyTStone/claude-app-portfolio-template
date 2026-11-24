@@ -208,6 +208,17 @@ testEachProblem([
     ],
   },
   {
+    wrong: "a place the globe is seeded with has no visits",
+    change: (sample) =>
+      (sample.globe = {
+        here: { latitude: 35.69, longitude: 139.69 },
+        seed: [{ latitude: 48.86, longitude: 2.35, visits: 0 }],
+      }),
+    problems: [
+      "globe.seed's 1st place should be a latitude, a longitude and a whole number of visits above 0, like { latitude: 35.68, longitude: 139.69, visits: 66 }",
+    ],
+  },
+  {
     wrong: "the history's GitHub user is its profile's whole address",
     change: (sample) => (sample.githubHistory = { user: "https://github.com/sam-sample" }),
     problems: [

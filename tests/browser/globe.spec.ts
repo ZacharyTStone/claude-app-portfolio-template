@@ -3,6 +3,7 @@
    time there, at once with motion reduced, and isn't there at all without
    the script. */
 import type { Page } from "@playwright/test";
+import { DATA } from "../../src/contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../src/contracts/page-classes.ts";
 import { CLASS_SELECTOR as CLASS } from "../../src/contracts/page-selectors.ts";
 import { expect, test, VISITS_STAND_IN } from "./fixtures.ts";
@@ -114,4 +115,43 @@ test("the globe turns under a drag, and its marks follow their places", async ({
   await page.mouse.move(x + 60, y, { steps: 6 });
   await page.mouse.up();
   await expect.poll(() => owner.evaluate((marker) => marker.getBoundingClientRect().left)).toBeGreaterThan(before + 20);
+});
+
+test("a visitor in the owner's own town has their words under the owner's, not over them", async ({ page, globe }) => {
+  test.skip(!globe.visits, "the globe doesn't show its visitors");
+  const [longitude = 0, latitude = 0] = (
+    (await page.goto("./").then(() => page.locator(GLOBE).getAttribute(DATA.globeHere))) ?? ""
+  )
+    .split(" ")
+    .map(Number);
+  await page.route(`**${new URL(globe.visits ?? "", "https://example.com").pathname}`, (route) =>
+    route.fulfill({ json: { you: { latitude, longitude, town: "Next door" }, places: [] } }),
+  );
+  await page.reload();
+  await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+  await expect(page.locator(`${GLOBE} ${CLASS.globeYou}`)).toContainClass(PAGE_CLASSES.globeCrowded);
+});
+
+test.describe("the home screen's globe, once it has landed", () => {
+  const ownerLeft = (page: Page): Promise<number> =>
+    page.locator(MARKER).evaluate((marker) => marker.getBoundingClientRect().left);
+
+  test("turns slowly by itself, east as the Earth does", async ({ page, globe: _globe }) => {
+    await page.goto("./");
+    await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+    const before = await ownerLeft(page);
+    await expect.poll(() => ownerLeft(page)).toBeGreaterThan(before + 4);
+  });
+
+  test.describe("with motion reduced", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("stays where it is", async ({ page, globe: _globe }) => {
+      await page.goto("./");
+      await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+      const before = await ownerLeft(page);
+      await page.waitForTimeout(1500);
+      expect(await ownerLeft(page)).toBe(before);
+    });
+  });
 });

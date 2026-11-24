@@ -8,7 +8,10 @@ export type Turned = { longitude: number; tilt: number };
 
 /** How much a turn slows each frame once let go, and the slowest it keeps
     going at, in degrees a frame. */
-const SLOWS_TO = 0.94;
+const SLOWS_TO = 0.955;
+/** How much further than the pointer a drag turns it: a little more than
+    held, so a flick spins it. */
+const SENSITIVITY = 1.6;
 const STOPS_BELOW = 0.02;
 
 type Spinning = {
@@ -31,7 +34,7 @@ export function makeSpinnable(area: HTMLElement, spinning: Spinning): void {
   });
   area.addEventListener("pointermove", (event) => {
     if (!last) return;
-    const perPixel = spinning.degreesPerPixel();
+    const perPixel = spinning.degreesPerPixel() * SENSITIVITY;
     velocity = {
       longitude: -(event.clientX - last.clientX) * perPixel,
       tilt: (event.clientY - last.clientY) * perPixel,

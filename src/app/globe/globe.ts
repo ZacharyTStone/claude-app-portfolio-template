@@ -9,17 +9,19 @@
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
-import type { Visits, You } from "../../contracts/globe.ts";
+import type { You } from "../../contracts/globe.ts";
 import { find, make, query } from "../lib/dom.ts";
 import { isMotionReduced } from "../lib/motion.ts";
 import { words } from "../page.ts";
+import { drift } from "./drift.ts";
 import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
-import { placeMarker, tellYourTime, youMarker } from "./markers.ts";
+import { keepWordsApart, placeMarker, tellYourTime, youMarker } from "./markers.ts";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
+import { seedPlaces, togetherPlaces } from "./places.ts";
 import { sceneOf, withVisits } from "./scene.ts";
 import { makeSpinnable, type Turned } from "./spin.ts";
-import { clamp, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
+import { clamp, degreesApart, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
 import { askForVisits } from "./visits.ts";
 
 /** How often the times beside the marks are told again. */
@@ -47,6 +49,9 @@ type Globe = {
   you: { marker: HTMLElement; point: Vector; place: You } | null;
   grab: HTMLElement | null;
   isDrawingSoon: boolean;
+  /** When a visitor last turned it (performance.now()), so its own slow
+      turn rests a while after. */
+  turnedAt: number;
 };
 
 /** Waits for the home screen to show, then turns the globe. */
@@ -75,20 +80,36 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   const [{ LAND }, visits] = await Promise.all([import("./land.ts"), soonOrNone(visiting)]);
   const context = holder.querySelector("canvas")?.getContext("2d");
   if (!context) return;
-  // The way is drawn from this visitor, when the site knows where they are.
   const you = visits?.you;
-  const from = you ? ([you.longitude, you.latitude] as const) : coordinatesIn(holder, DATA.globeFrom);
-  const scene = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
+  const from = wayFrom(holder, here, you);
+  const seed = seedPlaces(holder.getAttribute(DATA.globeSeed));
+  const land = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
+  const scene = withVisits(land, togetherPlaces(seed, visits?.places ?? []));
   const owner = find(holder, CLASS_SELECTOR.globeMarker);
   const globe: Globe = {
     ...{ holder, context, owner, here, scene, turn: turnOf(here, from), placing: null, isDone: false },
-    ...{ view: { longitude: 0, tilt: 0 }, you: null, grab: null, isDrawingSoon: false },
+    ...{ view: { longitude: 0, tilt: 0 }, you: null, grab: null, isDrawingSoon: false, turnedAt: 0 },
   };
   fit(globe);
   new ResizeObserver(() => fit(globe)).observe(holder);
-  if (visits) showVisits(globe, visits);
+  if (visits?.you) showYou(globe, visits.you);
   play(globe);
 }
+
+/** Where the way starts: this visitor, when the site knows where they are
+    and they're further off than the owner's own town (from next door, a
+    way would be a stub, so there's none); or else where the owner is from. */
+function wayFrom(holder: HTMLElement, here: Coordinates, you: You | null | undefined): Coordinates | undefined {
+  if (!you) return coordinatesIn(holder, DATA.globeFrom);
+  return farEnough([you.longitude, you.latitude], here);
+}
+
+/** Within a degree (about 100 km), a place is next door: no way is drawn
+    from it. */
+const NEXT_DOOR_DEGREES = 1;
+
+const farEnough = (place: Coordinates, here: Coordinates): Coordinates | undefined =>
+  degreesApart(place, here) > NEXT_DOOR_DEGREES ? place : undefined;
 
 const soonOrNone = <T>(coming: Promise<T | null>): Promise<T | null> =>
   Promise.race([coming, new Promise<null>((resolve) => setTimeout(() => resolve(null), WAITS_FOR_VISITS_MS))]);
@@ -143,6 +164,14 @@ function land(globe: Globe): void {
     isOnGlobe: (event) => isOnGlobe(globe, event),
     turn: (by) => turnBy(globe, by),
   });
+  drift({
+    isShowing: () => globe.placing !== null && globe.holder.clientWidth > 0,
+    lastTurnedAt: () => globe.turnedAt,
+    turn: (degrees) => {
+      globe.view = { ...globe.view, longitude: globe.view.longitude + degrees };
+      draw(globe, PLAY_MS);
+    },
+  });
   fit(globe);
 }
 
@@ -154,6 +183,7 @@ function isOnGlobe({ holder, placing }: Globe, event: PointerEvent): boolean {
 }
 
 function turnBy(globe: Globe, by: Turned): void {
+  globe.turnedAt = performance.now();
   globe.view = {
     longitude: globe.view.longitude + by.longitude,
     tilt: clamp(globe.view.tilt + by.tilt, -MOST_TILT, MOST_TILT),
@@ -176,22 +206,19 @@ function draw(globe: Globe, ms: number): void {
     : momentAt(ms, globe.turn);
   drawFrame(globe.context, globe.scene, placing, moment);
   const longitude = globe.isDone ? moment.longitude : globe.turn.end;
-  placeMarker(globe.owner, vectorOf(globe.here), placing, longitude);
-  if (globe.you) placeMarker(globe.you.marker, globe.you.point, placing, longitude);
+  const owners = placeMarker(globe.owner, vectorOf(globe.here), placing, longitude);
+  if (!globe.you) return;
+  const yours = placeMarker(globe.you.marker, globe.you.point, placing, longitude);
+  keepWordsApart(globe.you.marker, yours, owners);
 }
 
-/** With globe.visitors, once /visits has said: the site's visitors' places,
-    and this visitor's own mark. */
-function showVisits(globe: Globe, visits: Visits): void {
-  globe.scene = withVisits(globe.scene, visits.places);
-  const { you } = visits;
-  if (you) {
-    const marker = youMarker(words.globeYou ?? "");
-    globe.holder.append(marker);
-    globe.you = { marker, point: vectorOf([you.longitude, you.latitude]), place: you };
-    tellYourTime(marker, you);
-  }
-  draw(globe, PLAY_MS);
+/** With globe.visitors, once /visits has said where they are: this
+    visitor's own mark. */
+function showYou(globe: Globe, you: You): void {
+  const marker = youMarker(words.globeYou ?? "");
+  globe.holder.append(marker);
+  globe.you = { marker, point: vectorOf([you.longitude, you.latitude]), place: you };
+  tellYourTime(marker, you);
 }
 
 function tellTimes(globe: Globe): void {

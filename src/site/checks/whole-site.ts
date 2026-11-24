@@ -126,6 +126,8 @@ type SettingFormat = {
   mayBeLeftOut?: true;
 };
 
+const SEED =
+  "a latitude, a longitude and a whole number of visits above 0, like { latitude: 35.68, longitude: 139.69, visits: 66 }";
 const PLACE = "a latitude from -90 to 90 and a longitude from -180 to 180, like { latitude: 35.69, longitude: 139.69 }";
 
 /** The pages write these into attributes and addresses as they are, in the
@@ -228,6 +230,15 @@ const checkGlobeVisitorsRunOnItsHost: SiteCheck = ({ config, host }, problemUnle
   );
 };
 
+/** Each place a globe is seeded with is a place, with a whole number of
+    visits above 0. */
+const checkGlobeSeed: SiteCheck = ({ config }, problemUnless) => {
+  (config.globe?.seed ?? []).forEach((seed, place) => {
+    const hasVisits = Number.isInteger(seed.visits) && seed.visits > 0;
+    problemUnless(isPlace(seed) && hasVisits, `globe.seed's ${ordinal(place + 1)} place should be ${SEED}`);
+  });
+};
+
 /** On a host with nothing to take its messages, the form would post to an
     address with nothing there. Its thread is the main language's: the
     others have the same threads (checkLanguagesMatch). */
@@ -305,6 +316,7 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkHsts,
   checkAskRunsOnItsHost,
   checkGlobeVisitorsRunOnItsHost,
+  checkGlobeSeed,
   checkContactForm,
   checkViewer,
   checkActivityNamesAPlace,

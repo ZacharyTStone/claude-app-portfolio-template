@@ -232,6 +232,10 @@
 .globe-you::after {
   box-shadow: 0 0 0 1px var(--globe-visit);
 }
+/* Close to the owner's mark, the visitor's words go a line lower, under theirs; the dot stays on its place. */
+.globe-crowded > * {
+  translate: 0 18px;
+}
 /* What takes a drag to turn the globe: over the part of it that shows. The text above keeps its own
    clicks, and empty space in the home screen lets a drag through to the globe. */
 .globe-grab {
@@ -251,4 +255,14 @@
 }
 .home:has(.globe) .home-body > :not(.under) {
   pointer-events: auto;
+}
+
+/* How the globe's visitors are counted, beside the credit, in its quieter grey. */
+.home .under {
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 2px;
+}
+.globe-note {
+  color: var(--text-3);
 }
