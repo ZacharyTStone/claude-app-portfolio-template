@@ -82,6 +82,12 @@ export function seenFrom(view: View, point: Vector): Seen {
   return { across, up, depth };
 }
 
+/** How far apart two places are over the globe, in degrees. */
+export function degreesApart(a: Coordinates, b: Coordinates): number {
+  const [[ax, ay, az], [bx, by, bz]] = [vectorOf(a), vectorOf(b)];
+  return Math.acos(clamp(ax * bx + ay * by + az * bz, -1, 1)) / RADIANS_PER_DEGREE;
+}
+
 /** The longitude a turn from `start` ends at to face `end` the short way
     round, which may be past ±180 so that what's between is the turn. */
 export function turnTowards(start: number, end: number): number {

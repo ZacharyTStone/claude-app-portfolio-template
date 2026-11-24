@@ -13,11 +13,27 @@ import type { Vector } from "./sphere.ts";
 /** How far round the near side a place has to be for its mark to show. */
 const SHOWS_FROM_DEPTH = 0.03;
 
-/** Puts `marker` over `point` as the globe is seen now, or hides it. */
-export function placeMarker(marker: HTMLElement, point: Vector, placing: Placing, longitude: number): void {
+/** How close the visitor's mark can come to the owner's, across and up or
+    down, before its words would sit on theirs. */
+const CROWDED = { across: 160, upOrDown: 20 };
+
+type Spot = { x: number; y: number };
+
+/** Puts `marker` over `point` as the globe is seen now, or hides it, and
+    says where it put it. */
+export function placeMarker(marker: HTMLElement, point: Vector, placing: Placing, longitude: number): Spot {
   const { x, y, depth } = onScreen(point, placing, longitude);
   marker.hidden = depth < SHOWS_FROM_DEPTH;
   [marker.style.left, marker.style.top] = [`${x}px`, `${y}px`];
+  return { x, y };
+}
+
+/** When the visitor is close to the owner (in the same town, or the next),
+    their words go a line lower, under the owner's, so neither covers the
+    other. */
+export function keepWordsApart(you: HTMLElement, yours: Spot, owners: Spot): void {
+  const isCrowded = Math.abs(yours.x - owners.x) < CROWDED.across && Math.abs(yours.y - owners.y) < CROWDED.upOrDown;
+  you.classList.toggle(PAGE_CLASSES.globeCrowded, isCrowded);
 }
 
 /** The visitor's own mark: "You", then their town, if Cloudflare knows it,

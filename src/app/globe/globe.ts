@@ -15,11 +15,11 @@ import { isMotionReduced } from "../lib/motion.ts";
 import { words } from "../page.ts";
 import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
-import { placeMarker, tellYourTime, youMarker } from "./markers.ts";
+import { keepWordsApart, placeMarker, tellYourTime, youMarker } from "./markers.ts";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
 import { sceneOf, withVisits } from "./scene.ts";
 import { makeSpinnable, type Turned } from "./spin.ts";
-import { clamp, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
+import { clamp, degreesApart, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
 import { askForVisits } from "./visits.ts";
 
 /** How often the times beside the marks are told again. */
@@ -75,9 +75,12 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   const [{ LAND }, visits] = await Promise.all([import("./land.ts"), soonOrNone(visiting)]);
   const context = holder.querySelector("canvas")?.getContext("2d");
   if (!context) return;
-  // The way is drawn from this visitor, when the site knows where they are.
+  // The way is drawn from this visitor, when the site knows where they are
+  // and they're further off than the owner's own town: from next door, a
+  // way would be a stub, so there's none.
   const you = visits?.you;
-  const from = you ? ([you.longitude, you.latitude] as const) : coordinatesIn(holder, DATA.globeFrom);
+  const yourPlace = you ? ([you.longitude, you.latitude] as const) : undefined;
+  const from = yourPlace ? farEnough(yourPlace, here) : coordinatesIn(holder, DATA.globeFrom);
   const scene = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
   const owner = find(holder, CLASS_SELECTOR.globeMarker);
   const globe: Globe = {
@@ -89,6 +92,13 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   if (visits) showVisits(globe, visits);
   play(globe);
 }
+
+/** Within a degree (about 100 km), a place is next door: no way is drawn
+    from it. */
+const NEXT_DOOR_DEGREES = 1;
+
+const farEnough = (place: Coordinates, here: Coordinates): Coordinates | undefined =>
+  degreesApart(place, here) > NEXT_DOOR_DEGREES ? place : undefined;
 
 const soonOrNone = <T>(coming: Promise<T | null>): Promise<T | null> =>
   Promise.race([coming, new Promise<null>((resolve) => setTimeout(() => resolve(null), WAITS_FOR_VISITS_MS))]);
@@ -176,8 +186,10 @@ function draw(globe: Globe, ms: number): void {
     : momentAt(ms, globe.turn);
   drawFrame(globe.context, globe.scene, placing, moment);
   const longitude = globe.isDone ? moment.longitude : globe.turn.end;
-  placeMarker(globe.owner, vectorOf(globe.here), placing, longitude);
-  if (globe.you) placeMarker(globe.you.marker, globe.you.point, placing, longitude);
+  const owners = placeMarker(globe.owner, vectorOf(globe.here), placing, longitude);
+  if (!globe.you) return;
+  const yours = placeMarker(globe.you.marker, globe.you.point, placing, longitude);
+  keepWordsApart(globe.you.marker, yours, owners);
 }
 
 /** With globe.visitors, once /visits has said: the site's visitors' places,

@@ -157,6 +157,9 @@ const ADDED_BY_THE_SCRIPT = {
       globe.visitors. */
   globeGrab: "globe-grab",
   globeYou: "globe-you",
+  /** On the visitor's mark, when it's so close to the owner's that its
+      words go a line lower, under theirs. */
+  globeCrowded: "globe-crowded",
   /** On an answer while it comes into a chat a word at a time
       (src/app/conversation/stream.ts), and on each word of its running
       text, which comes in at its turn. */

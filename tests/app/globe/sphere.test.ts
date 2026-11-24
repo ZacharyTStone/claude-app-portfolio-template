@@ -4,6 +4,7 @@ import { test } from "node:test";
 import {
   coordinatesOf,
   daylight,
+  degreesApart,
   latticePoint,
   seenFrom,
   sunAt,
@@ -88,4 +89,10 @@ test("under the sun it's day, and on the far side it's night", () => {
   const sun = sunAt(new Date("2026-06-21T12:00:00Z"));
   assert.equal(daylight(sun, sun), 1);
   assert.equal(daylight([-sun[0], -sun[1], -sun[2]], sun), 0);
+});
+
+test("two places are as far apart as the angle between them over the globe", () => {
+  near(degreesApart([0, 0], [90, 0]), 90);
+  near(degreesApart(NEW_YORK, NEW_YORK), 0);
+  assert.ok(degreesApart([140.47, 37.75], [140.36, 37.4]) < 1, "Fukushima and Koriyama are next door");
 });
