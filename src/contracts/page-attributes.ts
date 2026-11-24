@@ -126,6 +126,10 @@ export const DATA = {
   globeZone: "data-globe-zone",
   /** On the same globe, when it shows its visitors: where /visits is. */
   globeVisits: "data-globe-visits",
+  /** And with globe.seed: the places it seeds, each its latitude, its
+      longitude and its visits with spaces between, and a ";" after each but
+      the last ("35.68 139.69 66;52.37 4.9 69"). */
+  globeSeed: "data-globe-seed",
 } as const;
 
 /** In the clock, the time that's the visitor's own: data-zone="local". */

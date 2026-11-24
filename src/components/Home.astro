@@ -27,6 +27,9 @@ const globeAttributes = globe && {
   ...(globe.from ? { [DATA.globeFrom]: placeAttribute(globe.from) } : {}),
   [DATA.globeZone]: timezone,
   ...(globe.visitors ? { [DATA.globeVisits]: site.link(VISITS_PATH) } : {}),
+  ...(globe.seed?.length
+    ? { [DATA.globeSeed]: globe.seed.map((seed) => `${seed.latitude} ${seed.longitude} ${seed.visits}`).join(";") }
+    : {}),
 };
 // The box asks what the question card asks, and its button is the card's.
 const { ask: cardQuestion, ui: cardWords } = language.questions;

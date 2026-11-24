@@ -9,7 +9,7 @@
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
-import type { Visits, You } from "../../contracts/globe.ts";
+import type { You } from "../../contracts/globe.ts";
 import { find, make, query } from "../lib/dom.ts";
 import { isMotionReduced } from "../lib/motion.ts";
 import { words } from "../page.ts";
@@ -18,6 +18,7 @@ import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
 import { keepWordsApart, placeMarker, tellYourTime, youMarker } from "./markers.ts";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
+import { seedPlaces, togetherPlaces } from "./places.ts";
 import { sceneOf, withVisits } from "./scene.ts";
 import { makeSpinnable, type Turned } from "./spin.ts";
 import { clamp, degreesApart, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
@@ -79,13 +80,11 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   const [{ LAND }, visits] = await Promise.all([import("./land.ts"), soonOrNone(visiting)]);
   const context = holder.querySelector("canvas")?.getContext("2d");
   if (!context) return;
-  // The way is drawn from this visitor, when the site knows where they are
-  // and they're further off than the owner's own town: from next door, a
-  // way would be a stub, so there's none.
   const you = visits?.you;
-  const yourPlace = you ? ([you.longitude, you.latitude] as const) : undefined;
-  const from = yourPlace ? farEnough(yourPlace, here) : coordinatesIn(holder, DATA.globeFrom);
-  const scene = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
+  const from = wayFrom(holder, here, you);
+  const seed = seedPlaces(holder.getAttribute(DATA.globeSeed));
+  const land = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
+  const scene = withVisits(land, togetherPlaces(seed, visits?.places ?? []));
   const owner = find(holder, CLASS_SELECTOR.globeMarker);
   const globe: Globe = {
     ...{ holder, context, owner, here, scene, turn: turnOf(here, from), placing: null, isDone: false },
@@ -93,8 +92,16 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   };
   fit(globe);
   new ResizeObserver(() => fit(globe)).observe(holder);
-  if (visits) showVisits(globe, visits);
+  if (visits?.you) showYou(globe, visits.you);
   play(globe);
+}
+
+/** Where the way starts: this visitor, when the site knows where they are
+    and they're further off than the owner's own town (from next door, a
+    way would be a stub, so there's none); or else where the owner is from. */
+function wayFrom(holder: HTMLElement, here: Coordinates, you: You | null | undefined): Coordinates | undefined {
+  if (!you) return coordinatesIn(holder, DATA.globeFrom);
+  return farEnough([you.longitude, you.latitude], here);
 }
 
 /** Within a degree (about 100 km), a place is next door: no way is drawn
@@ -205,18 +212,13 @@ function draw(globe: Globe, ms: number): void {
   keepWordsApart(globe.you.marker, yours, owners);
 }
 
-/** With globe.visitors, once /visits has said: the site's visitors' places,
-    and this visitor's own mark. */
-function showVisits(globe: Globe, visits: Visits): void {
-  globe.scene = withVisits(globe.scene, visits.places);
-  const { you } = visits;
-  if (you) {
-    const marker = youMarker(words.globeYou ?? "");
-    globe.holder.append(marker);
-    globe.you = { marker, point: vectorOf([you.longitude, you.latitude]), place: you };
-    tellYourTime(marker, you);
-  }
-  draw(globe, PLAY_MS);
+/** With globe.visitors, once /visits has said where they are: this
+    visitor's own mark. */
+function showYou(globe: Globe, you: You): void {
+  const marker = youMarker(words.globeYou ?? "");
+  globe.holder.append(marker);
+  globe.you = { marker, point: vectorOf([you.longitude, you.latitude]), place: you };
+  tellYourTime(marker, you);
 }
 
 function tellTimes(globe: Globe): void {

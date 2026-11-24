@@ -232,7 +232,10 @@ only: its Worker counts them), it also marks the visitor, with "You"
 your city from them in place of `from`, and shows a dot wherever the
 site's visitors have come from, each to the nearest whole degree and
 counted once a day; each language's `home.globeNote` puts a line beside
-the credit saying so ("Visitor locations are added anonymously"). The
+the credit saying so ("Visitor locations are added anonymously"). `seed`
+adds places visitors came from before the Worker counted them, from your
+host's analytics say, each `{ latitude, longitude, visits }`: they're dots
+with the counted ones, with or without `visitors`. The
 Worker keeps the counts in AskGuard, the Durable
 Object Ask and the contact form use, so `wrangler.jsonc` needs it bound,
 and `"/visits"` in `assets.run_worker_first` (a check fails without
