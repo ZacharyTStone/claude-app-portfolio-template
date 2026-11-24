@@ -2,8 +2,11 @@
    and the made-up sample (tests/sample), which has what a starter site may
    not: Ask, a viewer, a second language, a path it's served under. The
    contact form's checks run on the sample on Netlify too, where Netlify
-   Forms takes its messages. */
+   Forms takes its messages. The sample's checks test the template's shared
+   code on a made-up site, so they run in the template alone: a site made
+   from it runs its own site's. */
 import { join } from "node:path";
+import { isTheTemplate } from "../../scripts/template.ts";
 import siteConfig from "../../site.config.ts";
 import type { SiteConfig } from "../../src/config/site-config.ts";
 import { OUTPUT, ROOT } from "../../src/site/repo.ts";
@@ -15,6 +18,10 @@ export type SiteUnderTest = {
   /** The folder it's built into. */
   builtFolder: string;
 };
+
+/** Whether the checks run on the sample too: in the template, and not in a
+    site made from it. */
+export const CHECKS_THE_SAMPLE = isTheTemplate(ROOT);
 
 /** The repo's own site, as `npm run build` builds it. */
 export const OWN_SITE: SiteUnderTest = { config: siteConfig, builtFolder: join(ROOT, OUTPUT) };

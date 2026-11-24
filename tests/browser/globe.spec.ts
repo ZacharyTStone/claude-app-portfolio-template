@@ -18,16 +18,18 @@ const GLOBE = CLASS.globe;
 /** The owner's mark: the visitor's own, with globe.visitors, is another. */
 const MARKER = `${GLOBE} ${CLASS.globeMarker}:not(${CLASS.globeYou})`;
 
-const timeThere = async (page: Page, { zone }: Globe): Promise<string> =>
-  page.evaluate(
-    (timeZone) =>
-      new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
-        timeZone,
-        hour: "numeric",
-        minute: "2-digit",
-      }).format(new Date()),
-    zone,
-  );
+/** The time where the globe's owner is, now and a minute before: the mark
+    is told it as the globe lands, so by the time it's read the clock may
+    have moved on a minute. */
+const timesThere = async (page: Page, { zone }: Globe): Promise<string[]> =>
+  page.evaluate((timeZone) => {
+    const format = new Intl.DateTimeFormat(document.documentElement.lang || undefined, {
+      timeZone,
+      hour: "numeric",
+      minute: "2-digit",
+    });
+    return [Date.now(), Date.now() - 60_000].map((at) => format.format(at));
+  }, zone);
 
 /** How many of the canvas's pixels something is drawn on. */
 const pixelsDrawn = (page: Page): Promise<number> =>
@@ -50,7 +52,9 @@ test.describe("the home screen's globe", () => {
     test.skip(!globe.place, "the globe's marker names no place");
     await page.goto("./");
     await expect(page.locator(`${MARKER} ${CLASS.globePlace}`)).toHaveText(globe.place ?? "");
-    await expect(page.locator(`${MARKER} ${CLASS.globeTime}`)).toHaveText(await timeThere(page, globe));
+    const time = page.locator(`${MARKER} ${CLASS.globeTime}`);
+    await expect(time).not.toBeEmpty();
+    expect(await timesThere(page, globe)).toContain(await time.textContent());
   });
 
   test("with no place named, marks it with the owner's name alone: no place and no time", async ({ page, globe }) => {

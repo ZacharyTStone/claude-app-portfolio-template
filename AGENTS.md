@@ -38,10 +38,10 @@ call anything done, run `npm run verify`.
 | `npm run lint` | ESLint (`eslint.config.js`): the rules under "Rules" |
 | `npm run knip` | Fails on a file, an export or a dependency nothing uses: remove it |
 | `npm run typecheck` | `astro check` for the components, then `tsc` for the browser code, the Worker and the tests |
-| `npm test` | Builds, then runs the unit tests (`tests/**/*.test.ts`); some read `dist/`, some build `tests/sample` |
+| `npm test` | Builds, then runs the unit tests (`tests/**/*.test.ts`); some read `dist/`, and two build `tests/sample`, in the template alone |
 | `npm run lint:html` | Validates every built page |
 | `npm run fonts:check` | The cut-down fonts have every character they need: the Latin serif its set, the Japanese fonts what the built Japanese page uses |
-| `npm run test:browser` | The built pages in Chromium, with the real security headers, on the site and on the sample |
+| `npm run test:browser` | The built pages in Chromium, with the real security headers, on the site, and in the template on the sample too |
 | `npm run build` | Type-checks `site.config.ts`, checks what a type can't, then builds `dist/` |
 | `npm run diagrams` | Writes each diagram in `diagrams/` as SVG files in `public/assets/` |
 | `npm run globe` | Writes which of the home screen globe's points are land (`src/app/globe/land.ts`) |
@@ -76,7 +76,7 @@ call anything done, run `npm run verify`.
 | `diagrams/` | Pictures that move, as code (each site's own) |
 | `scripts/` | The diagram kit (`diagram.ts`), the fonts (`fonts.ts`), the globe's land (`globe.ts`), the update and its list |
 | `tests/` | Unit tests mirroring `src/`, the browser checks (`tests/browser/`), the sample site, Ask's eval |
-| `playwright.config.ts` | How the browser checks run: the two sites (and the sample on Netlify, for the contact form), the visitor's time zone |
+| `playwright.config.ts` | How the browser checks run: the site, and in the template the sample (and the sample on Netlify, for the contact form), the visitor's time zone |
 | `docs/` | The guides: see the last section |
 
 `dist/` is what Astro builds and the host serves. It is never committed.

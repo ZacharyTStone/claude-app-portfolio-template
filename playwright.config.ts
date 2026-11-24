@@ -1,5 +1,11 @@
 import { defineConfig } from "@playwright/test";
-import { OWN_SITE, SAMPLE_ON_NETLIFY, SAMPLE_SITE, type SiteUnderTest } from "./tests/browser/sites.ts";
+import {
+  CHECKS_THE_SAMPLE,
+  OWN_SITE,
+  SAMPLE_ON_NETLIFY,
+  SAMPLE_SITE,
+  type SiteUnderTest,
+} from "./tests/browser/sites.ts";
 
 /** How long a check waits for the page to do what it should, in
     milliseconds: far longer than the page takes, so it only bounds a
@@ -10,6 +16,8 @@ export default defineConfig<object, { siteUnderTest: SiteUnderTest }>({
   testDir: "tests/browser",
   globalSetup: "./tests/browser/global-setup.ts",
   fullyParallel: true,
+  // On CI the runner is the checks' alone, so they take every core it has; on a machine, half, the default.
+  ...(process.env.CI ? { workers: "100%" } : {}),
   forbidOnly: Boolean(process.env.CI),
   reporter: [["list"], ["./tests/browser/skip-reasons.ts"]],
   expect: { timeout: WAIT_LIMIT_MS },
@@ -22,9 +30,13 @@ export default defineConfig<object, { siteUnderTest: SiteUnderTest }>({
   },
   projects: [
     { name: "site", use: { siteUnderTest: OWN_SITE } },
-    { name: "sample", use: { siteUnderTest: SAMPLE_SITE } },
-    // On Netlify only the contact form differs: the rest would be the
-    // sample's checks again.
-    { name: "netlify", testMatch: "contact-form.spec.ts", use: { siteUnderTest: SAMPLE_ON_NETLIFY } },
+    ...(CHECKS_THE_SAMPLE
+      ? [
+          { name: "sample", use: { siteUnderTest: SAMPLE_SITE } },
+          // On Netlify only the contact form differs: the rest would be the
+          // sample's checks again.
+          { name: "netlify", testMatch: "contact-form.spec.ts", use: { siteUnderTest: SAMPLE_ON_NETLIFY } },
+        ]
+      : []),
   ],
 });

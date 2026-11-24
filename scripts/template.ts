@@ -3,11 +3,37 @@
 
    This file imports only Node's own modules, and has to stay that way: a site's older copy of the update imports
    the template's copy of it from a fresh clone, where nothing is installed. */
+import { execFileSync } from "node:child_process";
 import { cpSync, lstatSync, mkdirSync, readdirSync, readFileSync, rmSync } from "node:fs";
 import { dirname, join, posix, relative, sep, win32 } from "node:path";
 import { fileURLToPath } from "node:url";
 
 export const TEMPLATE = "https://github.com/ZacharyTStone/claude-app-portfolio-template";
+
+/** "owner/name", from a repo's address, its clone's remote, or the name GitHub Actions gives it. */
+const ownerAndName = (address: string): string =>
+  address
+    .trim()
+    .replace(/\.git$/, "")
+    .split(/[/:]/)
+    .slice(-2)
+    .join("/")
+    .toLowerCase();
+
+/** Whether the repo at `root` is the template itself, not a site made from it: GitHub Actions names the repo it
+    runs in, and on a machine the clone's `origin` does. The checks that only test the template's shared code, on
+    its sample site, run in the template alone: a site has the same code, already checked there. */
+export function isTheTemplate(root: string): boolean {
+  return ownerAndName(process.env.GITHUB_REPOSITORY || originOf(root)) === ownerAndName(TEMPLATE);
+}
+
+function originOf(root: string): string {
+  try {
+    return execFileSync("git", ["remote", "get-url", "origin"], { cwd: root, encoding: "utf8", stdio: "pipe" });
+  } catch {
+    return "";
+  }
+}
 
 /** Where a repo lists what it shares, from its root. The list is data: an update reads the template's, and
     runs nothing of the template's to get it. */
