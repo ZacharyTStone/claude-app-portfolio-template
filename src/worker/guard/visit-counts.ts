@@ -3,7 +3,7 @@
    side (about 100 km), and which visitors have been counted today, under
    the day's hash of their address, which AskGuard deletes when the day
    ends. Nothing else of a visitor is kept: not their address, not when
-   they came, not their town. */
+   they came, not their town, which the Worker never reads. */
 import { MOST_PLACES, type VisitedPlace } from "../../contracts/globe.ts";
 
 /** What it keeps: `places`, each square's count, by "latitude,longitude"

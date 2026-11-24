@@ -19,13 +19,12 @@ interface Props {
 const { code, language } = Astro.props.page;
 const { strings } = language;
 const { greeting, intro, hint, tagline, place, globeNote, prompts = [] } = language.home;
-const { globe, timezone } = site.config;
+const { globe } = site.config;
 // Each place as the script reads it: its longitude, a space, its latitude.
 const placeAttribute = ({ latitude, longitude }: Place): string => `${longitude} ${latitude}`;
 const globeAttributes = globe && {
   [DATA.globeHere]: placeAttribute(globe.here),
   ...(globe.from ? { [DATA.globeFrom]: placeAttribute(globe.from) } : {}),
-  [DATA.globeZone]: timezone,
   ...(globe.visitors ? { [DATA.globeVisits]: site.link(VISITS_PATH) } : {}),
   ...(globe.seed?.length
     ? { [DATA.globeSeed]: globe.seed.map((seed) => `${seed.latitude} ${seed.longitude} ${seed.visits}`).join(";") }
@@ -45,11 +44,13 @@ const greetingsForScript = {
     <div class={PAGE_CLASSES.globe} aria-hidden="true" data-js-only {...globeAttributes}>
       <canvas />
       <div class={PAGE_CLASSES.globeMarker}>
-        <span class="globe-name" lang={site.config.nameLang}>
-          {site.config.name}
-        </span>
-        {place && <span class={PAGE_CLASSES.globePlace}>{place}</span>}
-        {place && <span class={PAGE_CLASSES.globeTime} />}
+        {place ? (
+          <span class={PAGE_CLASSES.globePlace}>{place}</span>
+        ) : (
+          <span class={PAGE_CLASSES.globeName} lang={site.config.nameLang}>
+            {site.config.name}
+          </span>
+        )}
       </div>
     </div>
   )}

@@ -1,10 +1,10 @@
 /* The globe behind the home screen's text (the config's `globe`; frame.ts
    draws it). The first time the home screen shows, it turns from where its
    owner is from to where they are, drawing the way between, and marks
-   where they are with their name, the city's and the time there. Then it's
+   where they are with the city's name (or theirs, with none). Then it's
    the visitor's to turn (spin.ts). With globe.visitors the way is drawn
-   from this visitor, who is marked too, with their time, and dots show
-   where the site's visitors have come from. With motion reduced, it shows
+   from this visitor, who is marked too, with "You" and nothing else, and
+   dots show where the site's visitors have come from. With motion reduced, it shows
    the end at once. Its land is a script of its own, loaded only then. */
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
@@ -16,7 +16,7 @@ import { words } from "../page.ts";
 import { drift } from "./drift.ts";
 import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
-import { keepWordsApart, placeMarker, tellYourTime, youMarker } from "./markers.ts";
+import { keepWordsApart, placeMarker, widthsOf, youMarker, type Mark } from "./markers.ts";
 import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
 import { seedPlaces, togetherPlaces } from "./places.ts";
 import { sceneOf, withVisits } from "./scene.ts";
@@ -24,8 +24,6 @@ import { makeSpinnable, type Turned } from "./spin.ts";
 import { clamp, degreesApart, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
 import { askForVisits } from "./visits.ts";
 
-/** How often the times beside the marks are told again. */
-const TIME_EVERY_MS = 30_000;
 /** How far the globe tilts, up or down, under a drag, in degrees. */
 const MOST_TILT = 35;
 /** How far above the rim a drag can start. */
@@ -46,7 +44,7 @@ type Globe = {
   isDone: boolean;
   /** Where the visitor has turned it to, once it has landed. */
   view: Turned;
-  you: { marker: HTMLElement; point: Vector; place: You } | null;
+  you: { marker: HTMLElement; point: Vector } | null;
   grab: HTMLElement | null;
   isDrawingSoon: boolean;
   /** When a visitor last turned it (performance.now()), so its own slow
@@ -150,13 +148,11 @@ function play(globe: Globe): void {
   requestAnimationFrame(frame);
 }
 
-/** The turn is over: the marks show with their times, kept up to date, and
-    the globe is the visitor's to turn. */
+/** The turn is over: the marks show, and the globe is the visitor's to
+    turn. */
 function land(globe: Globe): void {
   Object.assign(globe, { isDone: true, view: { longitude: globe.turn.end, tilt: 0 } });
   globe.holder.classList.add(PAGE_CLASSES.landed);
-  tellTimes(globe);
-  setInterval(() => tellTimes(globe), TIME_EVERY_MS);
   globe.grab = make("div", { class: PAGE_CLASSES.globeGrab, "aria-hidden": "true" });
   globe.holder.append(globe.grab);
   makeSpinnable(globe.grab, {
@@ -206,9 +202,11 @@ function draw(globe: Globe, ms: number): void {
     : momentAt(ms, globe.turn);
   drawFrame(globe.context, globe.scene, placing, moment);
   const longitude = globe.isDone ? moment.longitude : globe.turn.end;
-  const owners = placeMarker(globe.owner, vectorOf(globe.here), placing, longitude);
-  if (!globe.you) return;
-  const yours = placeMarker(globe.you.marker, globe.you.point, placing, longitude);
+  const owner: Mark = { marker: globe.owner, point: vectorOf(globe.here) };
+  const [ownersWidths, yourWidths] = [widthsOf(owner.marker), globe.you && widthsOf(globe.you.marker)];
+  const owners = placeMarker(owner, ownersWidths, placing, longitude);
+  if (!globe.you || !yourWidths) return;
+  const yours = placeMarker(globe.you, yourWidths, placing, longitude);
   keepWordsApart(globe.you.marker, yours, owners);
 }
 
@@ -217,16 +215,5 @@ function draw(globe: Globe, ms: number): void {
 function showYou(globe: Globe, you: You): void {
   const marker = youMarker(words.globeYou ?? "");
   globe.holder.append(marker);
-  globe.you = { marker, point: vectorOf([you.longitude, you.latitude]), place: you };
-  tellYourTime(marker, you);
-}
-
-function tellTimes(globe: Globe): void {
-  const time = query(globe.owner, CLASS_SELECTOR.globeTime);
-  const timeZone = globe.holder.getAttribute(DATA.globeZone);
-  if (globe.you) tellYourTime(globe.you.marker, globe.you.place);
-  if (!time || !timeZone) return;
-  const language = document.documentElement.lang || undefined;
-  const format = new Intl.DateTimeFormat(language, { timeZone, hour: "numeric", minute: "2-digit" });
-  time.textContent = format.format(new Date());
+  globe.you = { marker, point: vectorOf([you.longitude, you.latitude]) };
 }

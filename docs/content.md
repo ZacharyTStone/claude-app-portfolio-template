@@ -219,16 +219,16 @@ globe: {
 Your city alone is enough: `globe: { here: { latitude: 40.71, longitude:
 -74.01 } }` turns the globe to it and marks it with a pulsing dot. `from`
 adds the line, and each language's `home.place` ("New York",
-"ニューヨーク") puts the city's name beside the dot, with the time there
-(the site's `timezone`). A map app shows a place's latitude and longitude
-when you press and hold it, latitude first; south and west are below 0.
-Your name is over your mark.
+"ニューヨーク") puts the city's name beside the dot, and that's all the mark
+says; without it, your name is over the dot. A map app shows a place's
+latitude and longitude when you press and hold it, latitude first; south
+and west are below 0.
 
 Once it has turned, it turns slowly east by itself, as the Earth does, and
 a visitor can turn it themselves: a drag spins it, and it keeps spinning a
 moment when let go. With motion reduced it stays still. With `visitors: true` (Cloudflare
-only: its Worker counts them), it also marks the visitor, with "You"
-(`strings.globeYou`), their town and their own time, draws the line to
+only: its Worker counts them), it also marks the visitor with "You"
+(`strings.globeYou`) and nothing more (never their town), draws the line to
 your city from them in place of `from`, and shows a dot wherever the
 site's visitors have come from, each to the nearest whole degree and
 counted once a day; each language's `home.globeNote` puts a line under

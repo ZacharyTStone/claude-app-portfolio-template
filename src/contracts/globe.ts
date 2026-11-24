@@ -1,10 +1,10 @@
 /* What the home screen's globe and the Worker agree on, when the globe
    shows its visitors (the config's globe.visitors): the page posts to
-   /visits once it shows, and is told roughly where the visitor is (the
-   town Cloudflare places them in, to a tenth of a degree, said to them
-   alone) and where the site's visitors have come from (each to the nearest
-   whole degree, about 100 km, with how many came from there). Nothing that
-   could single out a visitor is kept or sent. */
+   /visits once it shows, and is told roughly where the visitor is (to a
+   tenth of a degree, said to them alone) and where the site's visitors
+   have come from (each to the nearest whole degree, about 100 km, with how
+   many came from there). No town is said, and nothing that could single
+   out a visitor is kept or sent. */
 
 import { isRecord } from "./guards.ts";
 
@@ -13,9 +13,8 @@ export const VISITS_PATH = "/visits";
 /** A place, in degrees: north and east are above 0. */
 type Spot = { latitude: number; longitude: number };
 
-/** Roughly where this visitor is, and their town's name when Cloudflare
-    knows it. */
-export type You = Spot & { town?: string };
+/** Roughly where this visitor is. */
+export type You = Spot;
 
 /** One square of the globe, a degree on a side, and how many visitors have
     come from it: its middle's latitude, then longitude, then the count. */
@@ -31,8 +30,7 @@ const isNumberWithin = (value: unknown, limit: number): value is number =>
 
 function readYou(said: unknown): You | null {
   if (!isRecord(said) || !isNumberWithin(said.latitude, 90) || !isNumberWithin(said.longitude, 180)) return null;
-  const town = typeof said.town === "string" && said.town ? said.town : undefined;
-  return { latitude: said.latitude, longitude: said.longitude, ...(town ? { town } : {}) };
+  return { latitude: said.latitude, longitude: said.longitude };
 }
 
 function readPlace(said: unknown): VisitedPlace | null {

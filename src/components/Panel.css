@@ -7,12 +7,14 @@
   overflow-y: auto;
   font: 400 14px/21px var(--sans);
 }
-/* The credit, at the panel's foot on the right, after the sections in whatever order they're in. */
+/* The credit, at the panel's foot on the right, after the sections in whatever order they're in. Its two
+   lines are near the same length, so neither is a word or two tucked into the corner. */
 .panel-credit {
   order: 1;
   margin-top: auto;
   padding-top: 24px;
   text-align: right;
+  text-wrap: balance;
   font: 400 12px/18px var(--sans);
   color: var(--text-2);
 }

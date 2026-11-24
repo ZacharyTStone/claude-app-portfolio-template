@@ -3,7 +3,7 @@
    degree and once a day (AskGuard keeps the counts: guard/visit-counts.ts),
    and tells them roughly where they are and where the site's visitors have
    come from. Their address is only ever hashed, with the day's salt, and
-   their town is said to them alone and never kept. */
+   the town Cloudflare places them in is never read. */
 import { VISITS_PATH, type Visits, type You } from "../contracts/globe.ts";
 import type { Env } from "./env.ts";
 import { guardFor } from "./guard/client.ts";
@@ -20,12 +20,12 @@ const TENTHS = 10;
 
 const tenthOf = (degrees: number): number => Math.round(degrees * TENTHS) / TENTHS;
 
-/** Where Cloudflare places the request's visitor, if it does. */
+/** Where Cloudflare places the request's visitor, if it does: not their
+    town, which nothing on the globe says. */
 export function youFrom(cf: Record<string, unknown> | undefined): You | null {
   const [latitude, longitude] = [Number(cf?.latitude), Number(cf?.longitude)];
   if (!cf || cf.latitude === undefined || !Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-  const town = typeof cf.city === "string" && cf.city ? cf.city : undefined;
-  return { latitude: tenthOf(latitude), longitude: tenthOf(longitude), ...(town ? { town } : {}) };
+  return { latitude: tenthOf(latitude), longitude: tenthOf(longitude) };
 }
 
 export async function handleVisits(request: Request, env: Env): Promise<Response> {

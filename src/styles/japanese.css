@@ -1,10 +1,10 @@
-/* Strict line breaking, headings broken at phrase boundaries, proportional
+/* Strict line breaking, headings and the credit broken at phrase boundaries, proportional
    kana spacing (palt) on headings and interface labels but not in running
    text, and more line height, which Japanese needs at these sizes. */
 :lang(ja) :is(p, li) {
   line-break: strict;
 }
-:lang(ja) :is(.hello, .intro, .question, .row-words, .pop, .figure, .prompts) {
+:lang(ja) :is(.hello, .intro, .question, .row-words, .pop, .figure, .prompts, .credit, .panel-credit) {
   word-break: auto-phrase;
 }
 :lang(ja)
