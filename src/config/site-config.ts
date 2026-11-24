@@ -91,8 +91,8 @@ export type SiteConfig = {
       history* strings (English has them). Leave out for none. */
   githubHistory?: GitHubHistory;
   /** A globe behind the home screen's text that turns to where you are
-      when it first shows, and marks it with the time there and each
-      language's home.place. Leave out for none. */
+      when it first shows, and marks it with each language's home.place.
+      Leave out for none. */
   globe?: Globe;
   /** llms.txt, the site as plain text for a model reading it on someone's
       behalf. The build adds the panel's links, how to reach you, and every

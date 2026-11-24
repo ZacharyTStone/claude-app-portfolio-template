@@ -203,18 +203,8 @@
   color: var(--text);
   font-weight: 500;
 }
-.globe-place + .globe-time::before {
-  content: "";
-  display: inline-block;
-  width: 3px;
-  height: 3px;
-  margin: 0 8px 0 0;
-  border-radius: 50%;
-  background: currentColor;
-  vertical-align: middle;
-}
 
-/* The owner's name, over their mark's dot. */
+/* The owner's name, over their mark's dot, when it names no place. */
 .globe-name {
   position: absolute;
   bottom: calc(100% + 4px);
@@ -235,6 +225,22 @@
 /* Close to the owner's mark, the visitor's words go a line lower, under theirs; the dot stays on its place. */
 .globe-crowded > * {
   translate: 0 18px;
+}
+/* Near the globe's right edge, a mark's words go before its dot, so the panel beside it doesn't cut them off;
+   the dot stays on its place, and the name stays over it. */
+.globe-flipped {
+  padding: 0 20px 0 0;
+  translate: calc(4px - 100%) -50%;
+}
+.globe-flipped::before,
+.globe-flipped::after {
+  right: 0;
+  left: auto;
+}
+.globe-flipped .globe-name {
+  right: 4px;
+  left: auto;
+  translate: 50% 0;
 }
 /* What takes a drag to turn the globe: over the part of it that shows. The text above keeps its own
    clicks, and empty space in the home screen lets a drag through to the globe. */

@@ -80,8 +80,8 @@ type PageErrors = {
 
 /** What /visits says in every check: a visitor in Osaka, and the places
     the site's visitors have come from. */
-export const VISITS_STAND_IN: Visits = {
-  you: { latitude: 34.7, longitude: 135.5, town: "Osaka" },
+const VISITS_STAND_IN: Visits = {
+  you: { latitude: 34.7, longitude: 135.5 },
   places: [
     [35, 135, 4],
     [41, -74, 2],

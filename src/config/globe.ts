@@ -13,9 +13,9 @@ export type Place = {
 
 /** The globe the home screen draws behind its text, once it shows: it
     turns to `here`, your city, and marks it. With `from`, a line draws to
-    it from there as it turns; with each language's `home.place`, the mark
-    has the city's name and the time there (the site's `timezone`). Only the
-    script draws it; with motion reduced it shows already turned. */
+    it from there as it turns. The mark has each language's `home.place`
+    beside it, or with none, your name over it. Only the script draws it;
+    with motion reduced it shows already turned. */
 export type Globe = {
   /** Your city, which the globe turns to and marks. */
   here: Place;
@@ -23,9 +23,9 @@ export type Globe = {
       none. */
   from?: Place;
   /** Visitors on the globe (Cloudflare only: its Worker counts them). Each
-      sees roughly where they are, with their own time, and dots where the
-      site's visitors have come from, each to the nearest whole degree and
-      counted once a day; no address is kept. Leave out for none. */
+      sees roughly where they are, marked "You", and dots where the site's
+      visitors have come from, each to the nearest whole degree and counted
+      once a day; no address or town is kept or shown. Leave out for none. */
   visitors?: true;
   /** Places visitors came from before the Worker counted them (from your
       host's analytics, say), each with how many came: dots on the globe

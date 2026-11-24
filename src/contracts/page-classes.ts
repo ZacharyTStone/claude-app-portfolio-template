@@ -65,12 +65,13 @@ const WRITTEN_BY_A_COMPONENT = {
   prompts: "prompts",
   /** On a site with a globe (the config's `globe`): behind the home
       screen's text, what holds the canvas the browser code draws it on and
-      the marker it places over it, and in the marker, the time there. */
+      the marker it places over it. */
   globe: "globe",
   globeMarker: "globe-marker",
-  globeTime: "globe-time",
-  /** In a mark on the globe: the place's name ("You", for the visitor's). */
+  /** In a mark on the globe: the place's name ("You", for the visitor's).
+      Over the owner's mark's dot, when it names no place: their name. */
   globePlace: "globe-place",
+  globeName: "globe-name",
   /** In an answer: bars, a flow or a picture. */
   figure: "figure",
   /** A figure whose picture a visitor plays; in it, what holds the picture
@@ -160,6 +161,9 @@ const ADDED_BY_THE_SCRIPT = {
   /** On the visitor's mark, when it's so close to the owner's that its
       words go a line lower, under theirs. */
   globeCrowded: "globe-crowded",
+  /** On a mark too near the globe's right edge for its words to fit after
+      its dot: they go before it. */
+  globeFlipped: "globe-flipped",
   /** On an answer while it comes into a chat a word at a time
       (src/app/conversation/stream.ts), and on each word of its running
       text, which comes in at its turn. */

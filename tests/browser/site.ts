@@ -62,10 +62,9 @@ type LanguagePage = { href: string; lang: string };
     when the clock names none). */
 export type Clock = ClockWording & { zone: string };
 
-/** The globe behind the home screen's text: the owner's time zone, for the
-    time beside its marker, and the place's name before it, if it has one. */
+/** The globe behind the home screen's text: the place's name beside its
+    marker, if it has one. */
 export type Globe = {
-  zone: string;
   place: string | null;
   /** Where the page asks /visits, with globe.visitors. */
   visits: string | null;
@@ -469,7 +468,6 @@ async function readGlobe(page: Page): Promise<Globe | null> {
   if (!(await globe.count())) return null;
   const place = globe.locator(`${CLASS.globeMarker} > ${CLASS.globePlace}`);
   return {
-    zone: (await globe.getAttribute(DATA.globeZone)) ?? "UTC",
     place: (await place.count()) ? await place.textContent() : null,
     visits: await globe.getAttribute(DATA.globeVisits),
   };

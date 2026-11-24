@@ -42,7 +42,8 @@ in the code, see the security policy in the template's repository.
 - With `globe.visitors`, the Worker counts where each visitor is from, to
   the nearest whole degree (about 100 km) and once a day, in AskGuard: the
   address is only hashed with the day's salt, that hash is deleted at the
-  day's end, and the visitor's town is said to them alone and never kept.
+  day's end, and the town Cloudflare places them in is never read, kept or
+  shown.
   If your site promises no tracking, say there what the globe counts.
 - The one exception is the viewer, and only on a site that sets `viewer`
   ([What the site says](content.md#the-viewer)). When a visitor opens a

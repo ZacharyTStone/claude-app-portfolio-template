@@ -24,8 +24,8 @@ function visit(stored: Stored, address: string, cf: Record<string, unknown> | un
   return handleVisits(request, env);
 }
 
-test("a visitor is told where they are to a tenth of a degree, with their town", () => {
-  assert.deepEqual(youFrom(OSAKA), { latitude: 34.7, longitude: 135.5, town: "Osaka" });
+test("a visitor is told where they are to a tenth of a degree, and nothing of their town", () => {
+  assert.deepEqual(youFrom(OSAKA), { latitude: 34.7, longitude: 135.5 });
 });
 
 test("a visitor Cloudflare can't place is told nothing of where they are", () => {
@@ -61,7 +61,7 @@ test("a square that isn't whole degrees is refused", () => {
 test("a visitor is counted where they are, and told where the site's visitors have come from", async () => {
   const stored: Stored = new Map();
   const reply = readVisits(await (await visit(stored, "203.0.113.9")).json());
-  assert.deepEqual(reply, { you: { latitude: 34.7, longitude: 135.5, town: "Osaka" }, places: [[35, 136, 1]] });
+  assert.deepEqual(reply, { you: { latitude: 34.7, longitude: 135.5 }, places: [[35, 136, 1]] });
 });
 
 test("the same visitor is counted once a day, however often they come", async () => {

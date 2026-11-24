@@ -285,7 +285,7 @@ export const SCRIPT_STRING_ATTRIBUTES = {
   /** The same button while the picture plays: "Pause". */
   pause: "data-pause",
   /** With the globe's visitors (globe.visitors): beside the visitor's own
-      place on it, before their town and time: "You". */
+      place on it, and all it says of them: "You". */
   globeYou: "data-globe-you",
 } as const;
 
