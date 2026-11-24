@@ -18,7 +18,7 @@ interface Props {
 }
 const { code, language } = Astro.props.page;
 const { strings } = language;
-const { greeting, intro, hint, tagline, place, prompts = [] } = language.home;
+const { greeting, intro, hint, tagline, place, globeNote, prompts = [] } = language.home;
 const { globe, timezone } = site.config;
 // Each place as the script reads it: its longitude, a space, its latitude.
 const placeAttribute = ({ latitude, longitude }: Place): string => `${longitude} ${latitude}`;
@@ -90,6 +90,11 @@ const greetingsForScript = {
     {hint && <p class="hint icon i-back">{hint}</p>}
     <p class="under">
       <span class="credit">{strings.credit}</span>
+      {globe?.visitors && globeNote && (
+        <span class="globe-note" data-js-only>
+          {globeNote}
+        </span>
+      )}
     </p>
   </div>
 </section>

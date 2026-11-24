@@ -131,3 +131,27 @@ test("a visitor in the owner's own town has their words under the owner's, not o
   await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
   await expect(page.locator(`${GLOBE} ${CLASS.globeYou}`)).toContainClass(PAGE_CLASSES.globeCrowded);
 });
+
+test.describe("the home screen's globe, once it has landed", () => {
+  const ownerLeft = (page: Page): Promise<number> =>
+    page.locator(MARKER).evaluate((marker) => marker.getBoundingClientRect().left);
+
+  test("turns slowly by itself, east as the Earth does", async ({ page, globe: _globe }) => {
+    await page.goto("./");
+    await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+    const before = await ownerLeft(page);
+    await expect.poll(() => ownerLeft(page)).toBeGreaterThan(before + 4);
+  });
+
+  test.describe("with motion reduced", () => {
+    test.use({ reducedMotion: "reduce" });
+
+    test("stays where it is", async ({ page, globe: _globe }) => {
+      await page.goto("./");
+      await expect(page.locator(GLOBE)).toContainClass(PAGE_CLASSES.landed, { timeout: LANDS_WITHIN_MS });
+      const before = await ownerLeft(page);
+      await page.waitForTimeout(1500);
+      expect(await ownerLeft(page)).toBe(before);
+    });
+  });
+});

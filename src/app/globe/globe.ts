@@ -13,6 +13,7 @@ import type { Visits, You } from "../../contracts/globe.ts";
 import { find, make, query } from "../lib/dom.ts";
 import { isMotionReduced } from "../lib/motion.ts";
 import { words } from "../page.ts";
+import { drift } from "./drift.ts";
 import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
 import { keepWordsApart, placeMarker, tellYourTime, youMarker } from "./markers.ts";
@@ -47,6 +48,9 @@ type Globe = {
   you: { marker: HTMLElement; point: Vector; place: You } | null;
   grab: HTMLElement | null;
   isDrawingSoon: boolean;
+  /** When a visitor last turned it (performance.now()), so its own slow
+      turn rests a while after. */
+  turnedAt: number;
 };
 
 /** Waits for the home screen to show, then turns the globe. */
@@ -85,7 +89,7 @@ async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
   const owner = find(holder, CLASS_SELECTOR.globeMarker);
   const globe: Globe = {
     ...{ holder, context, owner, here, scene, turn: turnOf(here, from), placing: null, isDone: false },
-    ...{ view: { longitude: 0, tilt: 0 }, you: null, grab: null, isDrawingSoon: false },
+    ...{ view: { longitude: 0, tilt: 0 }, you: null, grab: null, isDrawingSoon: false, turnedAt: 0 },
   };
   fit(globe);
   new ResizeObserver(() => fit(globe)).observe(holder);
@@ -153,6 +157,14 @@ function land(globe: Globe): void {
     isOnGlobe: (event) => isOnGlobe(globe, event),
     turn: (by) => turnBy(globe, by),
   });
+  drift({
+    isShowing: () => globe.placing !== null && globe.holder.clientWidth > 0,
+    lastTurnedAt: () => globe.turnedAt,
+    turn: (degrees) => {
+      globe.view = { ...globe.view, longitude: globe.view.longitude + degrees };
+      draw(globe, PLAY_MS);
+    },
+  });
   fit(globe);
 }
 
@@ -164,6 +176,7 @@ function isOnGlobe({ holder, placing }: Globe, event: PointerEvent): boolean {
 }
 
 function turnBy(globe: Globe, by: Turned): void {
+  globe.turnedAt = performance.now();
   globe.view = {
     longitude: globe.view.longitude + by.longitude,
     tilt: clamp(globe.view.tilt + by.tilt, -MOST_TILT, MOST_TILT),

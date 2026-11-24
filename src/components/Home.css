@@ -256,3 +256,13 @@
 .home:has(.globe) .home-body > :not(.under) {
   pointer-events: auto;
 }
+
+/* How the globe's visitors are counted, beside the credit, in its quieter grey. */
+.home .under {
+  flex-wrap: wrap;
+  column-gap: 16px;
+  row-gap: 2px;
+}
+.globe-note {
+  color: var(--text-3);
+}

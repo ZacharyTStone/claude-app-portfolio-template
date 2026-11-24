@@ -18,6 +18,10 @@ export type Home = {
       there: the name of where you are, "Tokyo". Leave out for the mark
       alone. */
   place?: string;
+  /** Beside the credit at the foot of the home screen, with the globe's
+      visitors (globe.visitors): a line saying how they're counted, "Visitor
+      locations are added anonymously". Leave out for none. */
+  globeNote?: string;
   /** Questions to start with, under the box to type in (which needs
       JavaScript, as they do): at most MAX_HOME_PROMPTS, each short enough
       for one line. Leave out for the box alone. */

@@ -224,13 +224,16 @@ adds the line, and each language's `home.place` ("New York",
 when you press and hold it, latitude first; south and west are below 0.
 Your name is over your mark.
 
-Once it has turned, a visitor can turn it themselves: a drag spins it, and
-it keeps spinning a moment when let go. With `visitors: true` (Cloudflare
+Once it has turned, it turns slowly east by itself, as the Earth does, and
+a visitor can turn it themselves: a drag spins it, and it keeps spinning a
+moment when let go. With motion reduced it stays still. With `visitors: true` (Cloudflare
 only: its Worker counts them), it also marks the visitor, with "You"
 (`strings.globeYou`), their town and their own time, draws the line to
 your city from them in place of `from`, and shows a dot wherever the
 site's visitors have come from, each to the nearest whole degree and
-counted once a day. The Worker keeps the counts in AskGuard, the Durable
+counted once a day; each language's `home.globeNote` puts a line beside
+the credit saying so ("Visitor locations are added anonymously"). The
+Worker keeps the counts in AskGuard, the Durable
 Object Ask and the contact form use, so `wrangler.jsonc` needs it bound,
 and `"/visits"` in `assets.run_worker_first` (a check fails without
 either). [Security](security.md) says what's kept; if your site promises
