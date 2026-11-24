@@ -13,6 +13,7 @@
     "scripts/shared-files.json",
     "scripts/update-template.ts",
     "scripts/require-build.ts",
+    "scripts/unit-tests.ts",
     "tests/browser",
     "tests/build",
     "tests/components",

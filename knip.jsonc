@@ -1,7 +1,8 @@
 {
   "$schema": "https://unpkg.com/knip@6/schema.json",
-  // What other repos import: the diagram kit, and the path a site made before src/config imports its types from.
-  "entry": ["scripts/diagram.ts", "src/shared/config.ts"],
+  // What other repos import: the diagram kit, and the path a site made before src/config imports its types from;
+  // and the unit tests, which scripts/unit-tests.ts finds as files.
+  "entry": ["scripts/diagram.ts", "src/shared/config.ts", "tests/**/*.test.ts"],
   // A site's own content.
   "ignore": ["site.config.ts", "diagrams/**", "examples/**"],
   // Temporary: the exports nothing imported on the day knip came. Delete a line, run `npm run knip`, and

@@ -250,7 +250,7 @@ Give the build the token in the environment variable `GITHUB_TOKEN`:
   Pages, [Deploying](deploy.md#github-pages)), as a repository secret
   passed to its build step: `env: GITHUB_TOKEN: ${{ secrets.BUILD_GITHUB_TOKEN }}`;
 - for the repo's own checks (`.github/workflows/check.yml`, which runs
-  `npm run verify` and so builds the site), as the repository secret
+  what `npm run verify` runs, and so builds the site), as the repository secret
   `BUILD_GITHUB_TOKEN`, which the workflow passes on. GitHub doesn't
   give a secret to a pull request from a fork, so such a request's
   checks fail at the build;

@@ -1,9 +1,20 @@
 .panel {
   position: relative;
+  display: flex;
+  flex-direction: column;
   border-left: 1px solid var(--line);
   padding: 0 16px 16px;
   overflow-y: auto;
   font: 400 14px/21px var(--sans);
+}
+/* The credit, at the panel's foot on the right, after the sections in whatever order they're in. */
+.panel-credit {
+  order: 1;
+  margin-top: auto;
+  padding-top: 24px;
+  text-align: right;
+  font: 400 12px/18px var(--sans);
+  color: var(--text-2);
 }
 /* Above the sections, which are positioned for their drag grips. */
 .panel-close {

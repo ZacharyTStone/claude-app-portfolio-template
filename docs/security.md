@@ -184,10 +184,11 @@ out: GitHub Pages' upload does unless told not to
 
 ## The code
 
-- `npm run verify` runs on each pull request
+- What `npm run verify` runs, runs on each pull request
   (`.github/workflows/check.yml`): formatting, ESLint, knip, types, the
-  unit tests (after a build), the HTML, the fonts, and the browser checks,
-  which are served with the real security headers. The workflow's token
+  unit tests (after a build), the HTML and the fonts in one job, and the
+  browser checks, which are served with the real security headers, split
+  across three more beside it. The workflow's token
   can only read the repository, and each action it uses is pinned to a
   commit.
 - Dependabot opens a pull request each month for the npm packages and the

@@ -231,8 +231,9 @@ only: its Worker counts them), it also marks the visitor, with "You"
 (`strings.globeYou`), their town and their own time, draws the line to
 your city from them in place of `from`, and shows a dot wherever the
 site's visitors have come from, each to the nearest whole degree and
-counted once a day; each language's `home.globeNote` puts a line beside
-the credit saying so ("Visitor locations are added anonymously"). `seed`
+counted once a day; each language's `home.globeNote` puts a line under
+the globe saying so ("Rough visitor locations are saved anonymously").
+`seed`
 adds places visitors came from before the Worker counted them, from your
 host's analytics say, each `{ latitude, longitude, visits }`: they're dots
 with the counted ones, with or without `visitors`. The

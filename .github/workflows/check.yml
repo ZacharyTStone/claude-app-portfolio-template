@@ -9,8 +9,17 @@ on:
 permissions:
   contents: read
 
+# A newer push to the same pull request or branch makes an older run's answer moot, so that run is stopped.
+concurrency:
+  group: check-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+# What `npm run verify` runs on your machine, one after another, in two jobs side by side: the code's checks, and
+# the browser checks, split three ways. A site with a GitHub history builds with the token in the repo's secret
+# BUILD_GITHUB_TOKEN (docs/github-history.md); without the secret, GITHUB_TOKEN is empty, and the build asks
+# GitHub as it would with none.
 jobs:
-  check:
+  code:
     runs-on: ubuntu-latest
     steps:
       # Each action is pinned to a commit, with its version beside it: a tag can be moved, a commit can't.
@@ -20,11 +29,30 @@ jobs:
           node-version-file: .node-version
           cache: npm
       - run: npm ci
-      - run: npx playwright install --with-deps chromium
-
-      # Everything, in order, as it runs on your machine: the chain is `verify` in package.json. A site with a
-      # GitHub history builds with the token in the repo's secret BUILD_GITHUB_TOKEN (docs/github-history.md);
-      # without the secret, GITHUB_TOKEN is empty, and the build asks GitHub as it would with none.
-      - run: npm run verify
+      - run: npm run format:check
+      - run: npm run lint
+      - run: npm run knip
+      - run: npm run typecheck
+      - run: npm test
         env:
           GITHUB_TOKEN: ${{ secrets.BUILD_GITHUB_TOKEN }}
+      - run: npm run lint:html
+      - run: npm run fonts:check
+
+  browser:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        part: [1, 2, 3]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .node-version
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run build
+        env:
+          GITHUB_TOKEN: ${{ secrets.BUILD_GITHUB_TOKEN }}
+      - run: npm run test:browser -- --shard=${{ matrix.part }}/3

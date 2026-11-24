@@ -182,8 +182,13 @@ project `site`) and the made-up one in `tests/sample` (the project
 `sample`), which has what a starter site may not: Ask, a viewer, a second
 language, a path it's served under. The contact form's checks also run on
 the sample as Netlify serves it (the project `netlify`,
-`tests/sample/on-netlify.ts`), where Netlify Forms takes its messages. It
-needs `npm run build` first, and says so.
+`tests/sample/on-netlify.ts`), where Netlify Forms takes its messages.
+The sample's projects test the template's shared code, so they run in the
+template alone (`isTheTemplate` in `scripts/template.ts`, by the repo
+GitHub Actions or the clone's `origin` names): a site made from it runs
+`site` alone, and so do the two unit tests that build the sample. It
+needs `npm run build` first, and says so. On CI the checks take every
+core, split three ways across jobs side by side.
 
 - **Run less than everything while you work.**
   `npx playwright test viewer.spec` runs one file, `-g "words from its

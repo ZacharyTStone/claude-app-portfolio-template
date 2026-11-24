@@ -9,7 +9,7 @@ import { OUTPUT, ROOT } from "../../src/site/repo.ts";
 import { writeSampleConfig } from "../sample/as-a-file.ts";
 import { buildSample } from "../sample/build.ts";
 import { ON_NETLIFY } from "../sample/on-netlify.ts";
-import { SAMPLE_BUILT_IN, SAMPLE_ON_NETLIFY_BUILT_IN } from "./sites.ts";
+import { CHECKS_THE_SAMPLE, SAMPLE_BUILT_IN, SAMPLE_ON_NETLIFY_BUILT_IN } from "./sites.ts";
 
 /** Stops the run, saying only `whatToDo`: where in this file it stopped
     would tell the reader nothing. */
@@ -55,9 +55,10 @@ function buildTheSample(change?: string): { builtIn: string; made: string[] } {
 
 type Teardown = () => void;
 
-export default async function globalSetup(): Promise<Teardown> {
+export default async function globalSetup(): Promise<Teardown | undefined> {
   requireTheBuiltSite();
   await requireChromium();
+  if (!CHECKS_THE_SAMPLE) return undefined;
   // One after the other: Astro's builds share its working folder.
   const sample = buildTheSample();
   const onNetlify = buildTheSample(ON_NETLIFY);
