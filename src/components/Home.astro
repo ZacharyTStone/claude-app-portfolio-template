@@ -44,13 +44,10 @@ const greetingsForScript = {
     <div class={PAGE_CLASSES.globe} aria-hidden="true" data-js-only {...globeAttributes}>
       <canvas />
       <div class={PAGE_CLASSES.globeMarker}>
-        {place ? (
-          <span class={PAGE_CLASSES.globePlace}>{place}</span>
-        ) : (
-          <span class={PAGE_CLASSES.globeName} lang={site.config.nameLang}>
-            {site.config.name}
-          </span>
-        )}
+        <span class={PAGE_CLASSES.globeName} lang={site.config.nameLang}>
+          {site.config.name}
+        </span>
+        {place && <span class={PAGE_CLASSES.globePlace}>{place}</span>}
       </div>
     </div>
   )}

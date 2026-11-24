@@ -219,10 +219,9 @@ globe: {
 Your city alone is enough: `globe: { here: { latitude: 40.71, longitude:
 -74.01 } }` turns the globe to it and marks it with a pulsing dot. `from`
 adds the line, and each language's `home.place` ("New York",
-"ニューヨーク") puts the city's name beside the dot, and that's all the mark
-says; without it, your name is over the dot. A map app shows a place's
+"ニューヨーク") puts the city's name beside the dot. A map app shows a place's
 latitude and longitude when you press and hold it, latitude first; south
-and west are below 0.
+and west are below 0. Your name is over your mark.
 
 Once it has turned, it turns slowly east by itself, as the Earth does, and
 a visitor can turn it themselves: a drag spins it, and it keeps spinning a

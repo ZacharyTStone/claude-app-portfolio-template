@@ -13,9 +13,9 @@ export type Place = {
 
 /** The globe the home screen draws behind its text, once it shows: it
     turns to `here`, your city, and marks it. With `from`, a line draws to
-    it from there as it turns. The mark has each language's `home.place`
-    beside it, or with none, your name over it. Only the script draws it;
-    with motion reduced it shows already turned. */
+    it from there as it turns. Your name is over the mark, and each
+    language's `home.place` beside it. Only the script draws it; with
+    motion reduced it shows already turned. */
 export type Globe = {
   /** Your city, which the globe turns to and marks. */
   here: Place;

@@ -34,10 +34,16 @@ test.describe("the home screen's globe", () => {
     await expect(page.locator(MARKER)).toBeVisible();
   });
 
-  test("names the place, and says nothing else", async ({ page, globe }) => {
+  test("names the owner over their mark and the place beside it, and says nothing else: no time", async ({
+    page,
+    site,
+    globe,
+  }) => {
     test.skip(!globe.place, "the globe's marker names no place");
     await page.goto("./");
-    await expect(page.locator(MARKER)).toHaveText(globe.place ?? "");
+    await expect(page.locator(`${MARKER} ${CLASS.globeName}`)).toHaveText(site.name);
+    await expect(page.locator(`${MARKER} ${CLASS.globePlace}`)).toHaveText(globe.place ?? "");
+    await expect(page.locator(`${MARKER} > *`)).toHaveCount(2);
   });
 
   test("with no place named, marks it with the owner's name alone", async ({ page, site, globe }) => {

@@ -14,9 +14,8 @@ export type Home = {
   /** One line under your name at the top of a new chat, which is where a
       visit starts on a phone. Leave out for the name alone. */
   tagline?: string;
-  /** Beside the globe's marker (the site's `globe`), and all it says:
-      the name of where you are, "Tokyo". Leave out for your name over the
-      mark. */
+  /** Beside the globe's marker (the site's `globe`), under your name:
+      the name of where you are, "Tokyo". Leave out for your name alone. */
   place?: string;
   /** At the foot of the home screen, under the globe, with its visitors
       (globe.visitors): a line saying how they're counted, "Rough visitor

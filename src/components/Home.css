@@ -204,7 +204,7 @@
   font-weight: 500;
 }
 
-/* The owner's name, over their mark's dot, when it names no place. */
+/* The owner's name, over their mark's dot. */
 .globe-name {
   position: absolute;
   bottom: calc(100% + 4px);
