@@ -3,7 +3,6 @@
    hint points at the tabs. On a site with a globe, it's behind the text, for the script to draw. */
 import type { Place } from "../config/globe.ts";
 import { MAX_QUESTION_LENGTH } from "../contracts/ask.ts";
-import { VISITS_PATH } from "../contracts/globe.ts";
 import { DATA } from "../contracts/page-attributes.ts";
 import { HOURS, type GreetingPart } from "../contracts/day-parts.ts";
 import { PAGE_CLASSES } from "../contracts/page-classes.ts";
@@ -18,17 +17,13 @@ interface Props {
 }
 const { code, language } = Astro.props.page;
 const { strings } = language;
-const { greeting, intro, hint, tagline, place, globeNote, prompts = [] } = language.home;
+const { greeting, intro, hint, tagline, place, prompts = [] } = language.home;
 const { globe } = site.config;
 // Each place as the script reads it: its longitude, a space, its latitude.
 const placeAttribute = ({ latitude, longitude }: Place): string => `${longitude} ${latitude}`;
 const globeAttributes = globe && {
   [DATA.globeHere]: placeAttribute(globe.here),
   ...(globe.from ? { [DATA.globeFrom]: placeAttribute(globe.from) } : {}),
-  ...(globe.visitors ? { [DATA.globeVisits]: site.link(VISITS_PATH) } : {}),
-  ...(globe.seed?.length
-    ? { [DATA.globeSeed]: globe.seed.map((seed) => `${seed.latitude} ${seed.longitude} ${seed.visits}`).join(";") }
-    : {}),
 };
 // The box asks what the question card asks, and its button is the card's.
 const { ask: cardQuestion, ui: cardWords } = language.questions;
@@ -91,11 +86,6 @@ const greetingsForScript = {
     {hint && <p class="hint icon i-back">{hint}</p>}
     <p class="under">
       <span class="credit">{strings.credit}</span>
-      {globe?.visitors && globeNote && (
-        <span class="globe-note" data-js-only>
-          {globeNote}
-        </span>
-      )}
     </p>
   </div>
 </section>

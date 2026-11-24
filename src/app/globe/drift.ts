@@ -1,6 +1,7 @@
 /* Once it has landed, the globe turns slowly by itself, east as the Earth
    does, until a visitor takes hold of it, and carries on a moment after
-   they let go. Not with motion reduced, and not while the home screen is
+   they let go; while it rests it's still drawn each frame, for its lights
+   and its spark. Not with motion reduced, and not while the home screen is
    hidden. */
 import { isMotionReduced } from "../lib/motion.ts";
 
@@ -16,20 +17,23 @@ type Drifting = {
   isShowing: () => boolean;
   /** When a visitor last turned it (performance.now()), or 0. */
   lastTurnedAt: () => number;
-  /** Turns it by this many degrees of longitude, and draws it. */
+  /** Turns it by this many degrees of longitude (none while it rests), and
+      draws it. */
   turn: (degrees: number) => void;
 };
 
-export function drift(drifting: Drifting): void {
-  if (isMotionReduced()) return;
+/** Starts the drift, and says whether it did: not with motion reduced. */
+export function drift(drifting: Drifting): boolean {
+  if (isMotionReduced()) return false;
   let last = performance.now();
   const frame = (now: number): void => {
     const elapsed = Math.min(now - last, LONGEST_FRAME_MS);
     last = now;
     const isResting = now - drifting.lastTurnedAt() < RESTS_AFTER_TURN_MS;
     // East: the face turns to the right, so the view's longitude goes down.
-    if (drifting.isShowing() && !isResting) drifting.turn((-DEGREES_PER_SECOND * elapsed) / 1000);
+    if (drifting.isShowing()) drifting.turn(isResting ? 0 : (-DEGREES_PER_SECOND * elapsed) / 1000);
     requestAnimationFrame(frame);
   };
   requestAnimationFrame(frame);
+  return true;
 }

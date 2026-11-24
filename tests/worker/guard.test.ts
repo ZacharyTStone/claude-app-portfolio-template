@@ -8,7 +8,12 @@ import { test } from "node:test";
 import { setImmediate as nextTurn } from "node:timers/promises";
 import { sum } from "es-toolkit";
 import { INAPPROPRIATE } from "../../src/worker/ask/prompts/pick.ts";
-import { ASK_GUARD_KEYS, AskGuard, MAX_KEYS_PER_DELETE } from "../../src/worker/guard/ask-guard.ts";
+import {
+  ASK_GUARD_KEYS,
+  AskGuard,
+  COUNTED_VISITORS_ONCE,
+  MAX_KEYS_PER_DELETE,
+} from "../../src/worker/guard/ask-guard.ts";
 import {
   ASK_GUARD_NAME,
   ASK_GUARD_PATH,
@@ -332,6 +337,15 @@ test("the alarm deletes all that's kept of visitors, however many and whatever d
     [...stored.keys()].sort(),
     [ASK_GUARD_KEYS.dearest, ASK_GUARD_KEYS.hour, ASK_GUARD_KEYS.messages, ASK_GUARD_KEYS.today].sort(),
   );
+});
+
+test("the alarm deletes what the globe kept of the visitors it counted, now that it counts none", async () => {
+  const stored: Stored = new Map<string, unknown>([
+    [`${COUNTED_VISITORS_ONCE}9b3d`, true],
+    [ASK_GUARD_KEYS.today, { day: "2000-01-01", used: 3 }],
+  ]);
+  await guardAndStorage(stored).guard.alarm();
+  assert.deepEqual([...stored.keys()], [ASK_GUARD_KEYS.today]);
 });
 
 test("the next day's first question starts the site's count again and deletes nothing itself", async () => {

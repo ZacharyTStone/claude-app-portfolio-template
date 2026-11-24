@@ -1,7 +1,7 @@
 /* One frame of the globe on its canvas: the warm air round its rim, its
    land as dots lit by the sun (with a town's lights here and there on the
-   night side), the way drawn to where its owner is (from this visitor, or
-   from where the owner is from), and where the site's visitors came from. */
+   night side, twinkling once it has landed), and the way drawn to where its
+   owner is from where they're from, which a spark runs again now and then. */
 import type { Moment, Placing } from "./placing.ts";
 import { clamp, seeAll, seenFrom, type Vector } from "./sphere.ts";
 
@@ -9,13 +9,11 @@ import { clamp, seeAll, seenFrom, type Vector } from "./sphere.ts";
 export type Rgb = readonly [red: number, green: number, blue: number];
 
 /** The globe's colours, from its stylesheet. */
-export type Colours = { day: Rgb; night: Rgb; light: Rgb; accent: Rgb; page: Rgb; visit: Rgb };
+export type Colours = { day: Rgb; night: Rgb; light: Rgb; accent: Rgb; page: Rgb };
 
-/** Where the site's visitors came from: a dot, its radius in pixels. */
-type VisitDot = { point: Vector; size: number };
-
-/** Dots of one colour, as indexes into the land. */
-export type DotGroup = { colour: Rgb; points: Uint32Array };
+/** Dots of one colour, as indexes into the land, and whether they twinkle:
+    the towns' lights. */
+export type DotGroup = { colour: Rgb; points: Uint32Array; twinkles: boolean };
 
 /** What every frame draws, worked out once. */
 export type Scene = {
@@ -30,8 +28,6 @@ export type Scene = {
       points along it. */
   way: Vector[];
   colours: Colours;
-  /** The site's visitors' places, once /visits has said them. */
-  visits: VisitDot[];
 };
 
 /** How high above the globe the way rises in its middle, as a share of
@@ -45,10 +41,14 @@ const WAY_GLOW = 10;
     the rim it fades in, so it comes over the horizon. */
 const WAY_DIMS = 0.5;
 const WAY_FADES_OVER = 0.12;
-/** How the visitors' dots glow. */
-const VISIT_GLOW = 8;
 /** How the far side of the land dims and shrinks, towards the rim. */
 const AT_RIM = { brightness: 0.35, size: 0.9 };
+/** How a town's light twinkles: how far it dims at its dimmest, and how
+    slowly, each at its own pace, by its place in the lattice. */
+const TWINKLE = { dims: 0.35, ms: 700 };
+/** The spark that runs the way again: how many of its steps its tail is,
+    and the size of its head. */
+const SPARK = { tail: 16, head: 2.4 };
 
 const rgba = ([red, green, blue]: Rgb, alpha: number): string => `rgba(${red}, ${green}, ${blue}, ${alpha})`;
 
@@ -57,22 +57,12 @@ export function drawFrame(context: CanvasRenderingContext2D, scene: Scene, placi
   context.clearRect(0, 0, placing.width, placing.height);
   drawAir(context, scene.colours, placing, moment.shown);
   seeAll({ longitude: moment.longitude, latitude: placing.latitude }, scene.land, scene.seen);
-  for (const group of scene.groups) drawDots(context, scene, group, { placing, shown: moment.shown });
+  for (const group of scene.groups) {
+    // Only the towns' lights twinkle.
+    drawDots(context, scene, group, { placing, shown: moment.shown, at: group.twinkles ? moment.at : undefined });
+  }
   context.globalAlpha = 1;
   drawWay(context, scene, placing, moment);
-  if (moment.settled > 0) drawVisits(context, scene, placing, moment);
-}
-
-/** Each place visitors came from, as a soft dot in the visitors' colour. */
-function drawVisits(context: CanvasRenderingContext2D, { visits, colours }: Scene, placing: Placing, moment: Moment) {
-  context.save();
-  Object.assign(context, { shadowBlur: VISIT_GLOW, shadowColor: rgba(colours.visit, 0.8) });
-  for (const { point, size } of visits) {
-    const { x, y, depth } = onScreen(point, placing, moment.longitude);
-    if (depth <= 0) continue;
-    fillCircle(context, rgba(colours.visit, (0.35 + 0.5 * depth) * moment.settled), x, y, size * (0.6 + 0.4 * depth));
-  }
-  context.restore();
 }
 
 /** A soft warm glow round the rim, and the globe's face, a little lit
@@ -114,7 +104,7 @@ function drawDots(
   context: CanvasRenderingContext2D,
   { seen, brightness }: Scene,
   { colour, points }: DotGroup,
-  { placing, shown }: { placing: Placing; shown: number },
+  { placing, shown, at }: { placing: Placing; shown: number; at: number | undefined },
 ): void {
   const { x, y, radius, width, height } = placing;
   context.fillStyle = rgba(colour, 1);
@@ -124,9 +114,18 @@ function drawDots(
     const dotY = y - radius * (seen[point * 3 + 1] ?? 0);
     if (depth <= 0 || dotY > height || dotX < 0 || dotX > width) continue;
     const size = AT_RIM.size + depth;
-    context.globalAlpha = (brightness[point] ?? 0) * (AT_RIM.brightness + (1 - AT_RIM.brightness) * depth) * shown;
+    const lit = (brightness[point] ?? 0) * (AT_RIM.brightness + (1 - AT_RIM.brightness) * depth) * shown;
+    context.globalAlpha = lit * twinkleOf(point, at);
     context.fillRect(dotX - size / 2, dotY - size / 2, size, size);
   }
+}
+
+/** How bright a town's light is `at` (in ms), of its full brightness: all
+    of it when nothing twinkles. Each light's pace and phase are its own. */
+function twinkleOf(point: number, at: number | undefined): number {
+  if (at === undefined) return 1;
+  const pace = 1 + (point % 7) / 7;
+  return 1 - TWINKLE.dims * (0.5 + 0.5 * Math.sin((at / TWINKLE.ms) * pace + point * 2.399));
 }
 
 /** Where a point is on the canvas, and how far round the near side it is:
@@ -171,5 +170,26 @@ function drawWay(context: CanvasRenderingContext2D, { way, colours }: Scene, pla
   });
   const head = drawn.at(-1);
   if (moment.drawn < 1 && head && head.depth > 0) fillCircle(context, rgba(colours.light, 0.95), head.x, head.y, 2.6);
+  if (moment.spark !== undefined) drawSpark(context, drawn, colours.light, moment.spark);
   context.restore();
+}
+
+/** The spark that runs the way again, `spark` of the way along: a bright
+    head with a tail that fades behind it, both fading in as it sets off and
+    out as it arrives, and hidden behind the globe. */
+function drawSpark(context: CanvasRenderingContext2D, way: OnScreen[], light: Rgb, spark: number): void {
+  const head = Math.round((way.length - 1) * spark);
+  const fades = Math.sin(Math.PI * spark) ** 0.6;
+  context.shadowColor = rgba(light, 0.9 * fades);
+  for (let step = Math.max(1, head - SPARK.tail); step <= head; step++) {
+    const [start, end] = [way[step - 1], way[step]];
+    if (!start || !end || Math.min(start.depth, end.depth) <= 0) continue;
+    context.strokeStyle = rgba(light, (1 - (head - step) / SPARK.tail) ** 1.5 * 0.9 * fades);
+    context.beginPath();
+    context.moveTo(start.x, start.y);
+    context.lineTo(end.x, end.y);
+    context.stroke();
+  }
+  const at = way[head];
+  if (at && at.depth > 0) fillCircle(context, rgba(light, 0.95 * fades), at.x, at.y, SPARK.head);
 }

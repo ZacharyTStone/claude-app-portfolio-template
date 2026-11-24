@@ -1,36 +1,37 @@
 /* The globe behind the home screen's text (the config's `globe`; frame.ts
    draws it). The first time the home screen shows, it turns from where its
    owner is from to where they are, drawing the way between, and marks
-   where they are with their name and the city's. Then it's
-   the visitor's to turn (spin.ts). With globe.visitors the way is drawn
-   from this visitor, who is marked too, with "You" and nothing else, and
-   dots show where the site's visitors have come from. With motion reduced, it shows
-   the end at once. Its land is a script of its own, loaded only then. */
+   where they are with their name and the city's. Then it's the visitor's
+   to turn (spin.ts). With motion reduced, it shows the end at once. Its
+   land is a script of its own, loaded only then. */
 import { DATA } from "../../contracts/page-attributes.ts";
 import { PAGE_CLASSES } from "../../contracts/page-classes.ts";
 import { CLASS_SELECTOR } from "../../contracts/page-selectors.ts";
-import type { You } from "../../contracts/globe.ts";
 import { find, make, query } from "../lib/dom.ts";
 import { isMotionReduced } from "../lib/motion.ts";
-import { words } from "../page.ts";
 import { drift } from "./drift.ts";
 import { drawFrame, type Scene } from "./frame.ts";
 import { landPoints } from "./land-points.ts";
-import { keepWordsApart, placeMarker, widthsOf, youMarker, type Mark } from "./markers.ts";
-import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf, type Placing, type Turn } from "./placing.ts";
-import { seedPlaces, togetherPlaces } from "./places.ts";
-import { sceneOf, withVisits } from "./scene.ts";
+import { placeMarker, widthsOf, type Mark } from "./markers.ts";
+import {
+  LANDS_MS,
+  PLAY_MS,
+  momentAt,
+  placeGlobe,
+  sparkAt,
+  turnOf,
+  type Moment,
+  type Placing,
+  type Turn,
+} from "./placing.ts";
+import { sceneOf } from "./scene.ts";
 import { makeSpinnable, type Turned } from "./spin.ts";
-import { clamp, degreesApart, vectorOf, type Coordinates, type Vector } from "./sphere.ts";
-import { askForVisits } from "./visits.ts";
+import { clamp, vectorOf, type Coordinates } from "./sphere.ts";
 
 /** How far the globe tilts, up or down, under a drag, in degrees. */
 const MOST_TILT = 35;
 /** How far above the rim a drag can start. */
 const GRAB_ABOVE_RIM = 24;
-/** How long the turn waits for /visits to say where this visitor is, so it
-    can start from them; past that, it starts without. */
-const WAITS_FOR_VISITS_MS = 1200;
 
 type Globe = {
   holder: HTMLElement;
@@ -44,12 +45,16 @@ type Globe = {
   isDone: boolean;
   /** Where the visitor has turned it to, once it has landed. */
   view: Turned;
-  you: { marker: HTMLElement; point: Vector } | null;
   grab: HTMLElement | null;
   isDrawingSoon: boolean;
   /** When a visitor last turned it (performance.now()), so its own slow
       turn rests a while after. */
   turnedAt: number;
+  /** When it landed (performance.now()), for its spark. */
+  landedAt: number;
+  /** Whether it's drawn every frame once it has landed (drift.ts): not with
+      motion reduced. Then its lights twinkle and its spark runs. */
+  isLively: boolean;
 };
 
 /** Waits for the home screen to show, then turns the globe. */
@@ -73,44 +78,21 @@ function coordinatesIn(element: HTMLElement, attribute: string): Coordinates | u
 }
 
 async function start(holder: HTMLElement, here: Coordinates): Promise<void> {
-  const visitsAddress = holder.getAttribute(DATA.globeVisits);
-  const visiting = visitsAddress ? askForVisits(visitsAddress) : Promise.resolve(null);
-  const [{ LAND }, visits] = await Promise.all([import("./land.ts"), soonOrNone(visiting)]);
+  const { LAND } = await import("./land.ts");
   const context = holder.querySelector("canvas")?.getContext("2d");
   if (!context) return;
-  const you = visits?.you;
-  const from = wayFrom(holder, here, you);
-  const seed = seedPlaces(holder.getAttribute(DATA.globeSeed));
-  const land = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
-  const scene = withVisits(land, togetherPlaces(seed, visits?.places ?? []));
+  const from = coordinatesIn(holder, DATA.globeFrom);
+  const scene = sceneOf(context, landPoints(LAND), { from, here, colours: getComputedStyle(holder) });
   const owner = find(holder, CLASS_SELECTOR.globeMarker);
   const globe: Globe = {
     ...{ holder, context, owner, here, scene, turn: turnOf(here, from), placing: null, isDone: false },
-    ...{ view: { longitude: 0, tilt: 0 }, you: null, grab: null, isDrawingSoon: false, turnedAt: 0 },
+    ...{ view: { longitude: 0, tilt: 0 }, grab: null, isDrawingSoon: false, turnedAt: 0 },
+    ...{ landedAt: 0, isLively: false },
   };
   fit(globe);
   new ResizeObserver(() => fit(globe)).observe(holder);
-  if (visits?.you) showYou(globe, visits.you);
   play(globe);
 }
-
-/** Where the way starts: this visitor, when the site knows where they are
-    and they're further off than the owner's own town (from next door, a
-    way would be a stub, so there's none); or else where the owner is from. */
-function wayFrom(holder: HTMLElement, here: Coordinates, you: You | null | undefined): Coordinates | undefined {
-  if (!you) return coordinatesIn(holder, DATA.globeFrom);
-  return farEnough([you.longitude, you.latitude], here);
-}
-
-/** Within a degree (about 100 km), a place is next door: no way is drawn
-    from it. */
-const NEXT_DOOR_DEGREES = 1;
-
-const farEnough = (place: Coordinates, here: Coordinates): Coordinates | undefined =>
-  degreesApart(place, here) > NEXT_DOOR_DEGREES ? place : undefined;
-
-const soonOrNone = <T>(coming: Promise<T | null>): Promise<T | null> =>
-  Promise.race([coming, new Promise<null>((resolve) => setTimeout(() => resolve(null), WAITS_FOR_VISITS_MS))]);
 
 /** Sizes the canvas to the home screen, sharp on any screen, and puts the
     globe under the text. */
@@ -151,7 +133,7 @@ function play(globe: Globe): void {
 /** The turn is over: the marks show, and the globe is the visitor's to
     turn. */
 function land(globe: Globe): void {
-  Object.assign(globe, { isDone: true, view: { longitude: globe.turn.end, tilt: 0 } });
+  Object.assign(globe, { isDone: true, view: { longitude: globe.turn.end, tilt: 0 }, landedAt: performance.now() });
   globe.holder.classList.add(PAGE_CLASSES.landed);
   globe.grab = make("div", { class: PAGE_CLASSES.globeGrab, "aria-hidden": "true" });
   globe.holder.append(globe.grab);
@@ -160,7 +142,7 @@ function land(globe: Globe): void {
     isOnGlobe: (event) => isOnGlobe(globe, event),
     turn: (by) => turnBy(globe, by),
   });
-  drift({
+  globe.isLively = drift({
     isShowing: () => globe.placing !== null && globe.holder.clientWidth > 0,
     lastTurnedAt: () => globe.turnedAt,
     turn: (degrees) => {
@@ -184,7 +166,8 @@ function turnBy(globe: Globe, by: Turned): void {
     longitude: globe.view.longitude + by.longitude,
     tilt: clamp(globe.view.tilt + by.tilt, -MOST_TILT, MOST_TILT),
   };
-  if (globe.isDrawingSoon) return;
+  // A lively globe is drawn every frame already.
+  if (globe.isLively || globe.isDrawingSoon) return;
   globe.isDrawingSoon = true;
   requestAnimationFrame(() => {
     globe.isDrawingSoon = false;
@@ -192,28 +175,23 @@ function turnBy(globe: Globe, by: Turned): void {
   });
 }
 
+/** The moment of a globe that has landed: as the visitor has turned it,
+    and, when it's lively, now, with its spark wherever it is. */
+function landedMoment(globe: Globe): Moment {
+  const moment = { longitude: globe.view.longitude, drawn: 1, settled: 1, shown: 1 };
+  if (!globe.isLively) return moment;
+  const at = performance.now();
+  return { ...moment, at, spark: sparkAt(at - globe.landedAt) };
+}
+
 /** Draws the globe `ms` into its turn, or as the visitor has turned it once
     it's landed, with each mark over its place. */
 function draw(globe: Globe, ms: number): void {
   if (!globe.placing) return;
   const placing = { ...globe.placing, latitude: globe.placing.latitude + globe.view.tilt };
-  const moment = globe.isDone
-    ? { longitude: globe.view.longitude, drawn: 1, settled: 1, shown: 1 }
-    : momentAt(ms, globe.turn);
+  const moment = globe.isDone ? landedMoment(globe) : momentAt(ms, globe.turn);
   drawFrame(globe.context, globe.scene, placing, moment);
   const longitude = globe.isDone ? moment.longitude : globe.turn.end;
   const owner: Mark = { marker: globe.owner, point: vectorOf(globe.here) };
-  const [ownersWidths, yourWidths] = [widthsOf(owner.marker), globe.you && widthsOf(globe.you.marker)];
-  const owners = placeMarker(owner, ownersWidths, placing, longitude);
-  if (!globe.you || !yourWidths) return;
-  const yours = placeMarker(globe.you, yourWidths, placing, longitude);
-  keepWordsApart(globe.you.marker, yours, owners);
-}
-
-/** With globe.visitors, once /visits has said where they are: this
-    visitor's own mark. */
-function showYou(globe: Globe, you: You): void {
-  const marker = youMarker(words.globeYou ?? "");
-  globe.holder.append(marker);
-  globe.you = { marker, point: vectorOf([you.longitude, you.latitude]) };
+  placeMarker(owner, widthsOf(owner.marker), placing, longitude);
 }

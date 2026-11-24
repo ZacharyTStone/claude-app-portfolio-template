@@ -12,8 +12,6 @@ export type PolicyOptions = {
   /** The contact form is on: the page may post it to /contact, as a form
       and, with JavaScript, with fetch. */
   contactForm?: boolean;
-  /** The globe shows its visitors: the page may post to /visits. */
-  globeVisitors?: boolean;
   /** The sites the viewer may show in a frame (frameOrigins), if any. */
   frames?: readonly string[];
   /** The viewer shows the site's own pages of its posts in a frame (the
@@ -38,9 +36,8 @@ const frameSources = ({ frames = [], ownFrames }: PolicyOptions): string[] => [
   ...frames,
 ];
 
-/** Whether the page fetches anything: /ask, /contact or /visits. */
-const fetchesFromItself = ({ ask, contactForm, globeVisitors }: PolicyOptions): boolean =>
-  Boolean(ask || contactForm || globeVisitors);
+/** Whether the page fetches anything: /ask or /contact. */
+const fetchesFromItself = ({ ask, contactForm }: PolicyOptions): boolean => Boolean(ask || contactForm);
 
 /** The Content-Security-Policy, directive by directive: only same-origin
     scripts, styles, images and fonts, nothing inline, and Trusted Types
@@ -61,7 +58,7 @@ export function contentSecurityPolicy(options: PolicyOptions & { meta?: boolean 
     "style-src 'self'",
     "img-src 'self'",
     "font-src 'self'",
-    // The page fetches only /ask, /contact and /visits, and only when each is on.
+    // The page fetches only /ask and /contact, and only when each is on.
     ...(fetchesFromItself(options) ? ["connect-src 'self'"] : []),
     // Frames only for the viewer, and only from the sites it names.
     ...(frames.length ? [`frame-src ${frames.join(" ")}`] : []),

@@ -38,7 +38,6 @@ import { SAMPLE_ACTIVITY, sampleRepos } from "../sample/activity.ts";
 import { SAMPLE_GITHUB_HISTORY } from "../sample/github-history.ts";
 import { SAMPLE_WRITING, SAMPLE_WRITING_WITH_NO_POSTS, sampleFixture, samplePosts } from "../sample/writing.ts";
 import sampleConfig from "../sample/site.config.ts";
-import { withoutVisitors } from "../site/sample.ts";
 import { builtSite, testBuiltSite, type BuiltSite } from "./built-site.ts";
 
 const folder = folderForConfigs();
@@ -225,14 +224,8 @@ for (const { file, url } of sample.languagePages) {
 }
 
 /** The sample on a host that reads no _headers file, where neither Ask nor the contact form can run. */
-const ON_A_STATIC_HOST =
-  'config.host = "github-pages"; delete config.ask; delete config.contactForm; delete config.globe?.visitors;';
-const onAStaticHost: SiteConfig = withoutVisitors({
-  ...sampleConfig,
-  host: "github-pages",
-  ask: undefined,
-  contactForm: undefined,
-});
+const ON_A_STATIC_HOST = 'config.host = "github-pages"; delete config.ask; delete config.contactForm;';
+const onAStaticHost: SiteConfig = { ...sampleConfig, host: "github-pages", ask: undefined, contactForm: undefined };
 
 const staticConfigPath = join(folder, "static-host.config.ts");
 writeSampleConfig(staticConfigPath, ON_A_STATIC_HOST);

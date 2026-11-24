@@ -2,8 +2,7 @@
    point of land's brightness by the sun as it is now, which of them are a
    town's lights at night, the way, and the colours from the stylesheet. */
 import type { Colours, DotGroup, Rgb, Scene } from "./frame.ts";
-import type { VisitedPlace } from "../../contracts/globe.ts";
-import { daylight, sunAt, vectorOf, wayBetween, type Coordinates, type Vector } from "./sphere.ts";
+import { daylight, sunAt, wayBetween, type Coordinates, type Vector } from "./sphere.ts";
 
 /** How bright a dot is by day, by night and as a town's lights. */
 const BRIGHTNESS = { day: 0.66, night: 0.34, light: 0.95 };
@@ -14,8 +13,6 @@ const LIGHTS_PER_HUNDRED = 9;
 const DARK_ENOUGH_FOR_LIGHTS = 0.3;
 const LIGHT_ENOUGH_FOR_DAY = 0.5;
 const WAY_STEPS = 120;
-/** A visitors' dot's radius, where one came and where the most did. */
-const VISIT_DOT = { least: 1.6, most: 4 };
 
 /** The globe's custom properties (in Home.css), and the page's own. */
 const COLOUR_PROPERTIES: Record<keyof Colours, string> = {
@@ -24,7 +21,6 @@ const COLOUR_PROPERTIES: Record<keyof Colours, string> = {
   light: "--globe-light",
   accent: "--accent",
   page: "--page",
-  visit: "--globe-visit",
 };
 
 type Kind = "day" | "night" | "light";
@@ -53,20 +49,10 @@ export function sceneOf(context: CanvasRenderingContext2D, land: Float32Array, p
   const groups = (Object.keys(byKind) as Kind[]).map((kind): DotGroup => ({
     colour: colours[kind],
     points: Uint32Array.from(byKind[kind]),
+    twinkles: kind === "light",
   }));
   const way = parts.from ? wayBetween(parts.from, parts.here, WAY_STEPS) : [];
-  return { land, seen: new Float32Array(land.length), brightness, groups, way, colours, visits: [] };
-}
-
-/** The scene with where the site's visitors have come from, each a dot a
-    little bigger the more came. */
-export function withVisits(scene: Scene, places: VisitedPlace[]): Scene {
-  const most = Math.max(1, ...places.map(([, , count]) => count));
-  const visits = places.map(([latitude, longitude, count]) => ({
-    point: vectorOf([longitude, latitude]),
-    size: VISIT_DOT.least + (VISIT_DOT.most - VISIT_DOT.least) * (Math.log(count + 1) / Math.log(most + 1)),
-  }));
-  return { ...scene, visits };
+  return { land, seen: new Float32Array(land.length), brightness, groups, way, colours };
 }
 
 /** A night point's lights are spread by a hash of its place in the
@@ -86,7 +72,6 @@ function coloursOf(context: CanvasRenderingContext2D, style: CSSStyleDeclaration
     light: rgbOfProperty(COLOUR_PROPERTIES.light),
     accent: rgbOfProperty(COLOUR_PROPERTIES.accent),
     page: rgbOfProperty(COLOUR_PROPERTIES.page),
-    visit: rgbOfProperty(COLOUR_PROPERTIES.visit),
   };
 }
 

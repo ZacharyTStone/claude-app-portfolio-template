@@ -66,8 +66,6 @@ export type Clock = ClockWording & { zone: string };
     marker, if it has one. */
 export type Globe = {
   place: string | null;
-  /** Where the page asks /visits, with globe.visitors. */
-  visits: string | null;
 };
 
 /** A link in a thread that opens in the viewer (the config's `viewer`). */
@@ -469,7 +467,6 @@ async function readGlobe(page: Page): Promise<Globe | null> {
   const place = globe.locator(`${CLASS.globeMarker} > ${CLASS.globePlace}`);
   return {
     place: (await place.count()) ? await place.textContent() : null,
-    visits: await globe.getAttribute(DATA.globeVisits),
   };
 }
 

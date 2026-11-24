@@ -1,7 +1,7 @@
 /* Where the globe sits, and its turn (src/app/globe/placing.ts). */
 import assert from "node:assert/strict";
 import { test } from "node:test";
-import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, turnOf } from "../../../src/app/globe/placing.ts";
+import { LANDS_MS, PLAY_MS, momentAt, placeGlobe, sparkAt, turnOf } from "../../../src/app/globe/placing.ts";
 import { seenFrom, vectorOf, type Coordinates } from "../../../src/app/globe/sphere.ts";
 
 const TOKYO: Coordinates = [139.69, 35.69];
@@ -50,4 +50,21 @@ test("the turn ends facing where its owner is, with the way drawn, after it has 
   const turn = turnOf(TOKYO, NEW_YORK);
   assert.ok(LANDS_MS < PLAY_MS);
   assert.deepEqual(momentAt(PLAY_MS, turn), { longitude: turn.end, drawn: 1, settled: 1, shown: 1 });
+});
+
+test("once it has landed, a spark runs the way now and then: not at once, from its start to its end, then again", () => {
+  assert.equal(sparkAt(0), undefined);
+  const runs = Array.from({ length: 40_000 / 50 }, (_, step) => sparkAt(step * 50));
+  const firstRun = runs.findIndex((spark) => spark !== undefined);
+  assert.ok(firstRun > 0, "it waits a moment after landing");
+  assert.ok((runs[firstRun] ?? 1) < 0.05, "it sets off from where the owner is from");
+  const along = runs.slice(firstRun, runs.indexOf(undefined, firstRun));
+  assert.deepEqual(
+    along,
+    [...along].sort((a = 0, b = 0) => a - b),
+    "it only goes forward",
+  );
+  assert.ok((along.at(-1) ?? 0) > 0.95, "it arrives where the owner is");
+  const startsOfRuns = runs.filter((spark, step) => spark !== undefined && runs[step - 1] === undefined).length;
+  assert.ok(startsOfRuns >= 3, `it runs again: ${startsOfRuns} runs in 40 s`);
 });
