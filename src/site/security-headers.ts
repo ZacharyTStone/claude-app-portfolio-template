@@ -18,7 +18,23 @@ export type PolicyOptions = {
       config's writing.viewer): the pages may frame the site itself, and be
       framed by it and by no other site. */
   ownFrames?: boolean;
+  /** Cloudflare Web Analytics adds its beacon to the pages (the config's
+      `analytics`): the pages may load that one script's host, and send
+      what it measures to the site itself. */
+  analytics?: boolean;
 };
+
+/** Where Cloudflare Web Analytics' beacon loads from. Cloudflare adds it to
+    a page as it passes, at an address under this host that changes with
+    its version, so the policy names the host. */
+const CLOUDFLARE_ANALYTICS_SCRIPTS = "https://static.cloudflareinsights.com";
+
+/** Where the pages' scripts may come from: the site itself, and Cloudflare
+    Web Analytics' beacon on a site with `analytics`. */
+const scriptSources = ({ analytics }: PolicyOptions): string[] => [
+  "'self'",
+  ...(analytics ? [CLOUDFLARE_ANALYTICS_SCRIPTS] : []),
+];
 
 /** The sites the viewer shows pages from: the origin of each address in
     the config's `viewer` ("https://docs.google.com"), once each, sorted.
@@ -36,8 +52,10 @@ const frameSources = ({ frames = [], ownFrames }: PolicyOptions): string[] => [
   ...frames,
 ];
 
-/** Whether the page fetches anything: /ask or /contact. */
-const fetchesFromItself = ({ ask, contactForm }: PolicyOptions): boolean => Boolean(ask || contactForm);
+/** Whether the page sends anything: to /ask or /contact, or Web Analytics'
+    beacon to /cdn-cgi/rum, which Cloudflare answers on the site's domain. */
+const fetchesFromItself = ({ ask, contactForm, analytics }: PolicyOptions): boolean =>
+  Boolean(ask || contactForm || analytics);
 
 /** The Content-Security-Policy, directive by directive: only same-origin
     scripts, styles, images and fonts, nothing inline, and Trusted Types
@@ -45,7 +63,8 @@ const fetchesFromItself = ({ ask, contactForm }: PolicyOptions): boolean => Bool
     viewer may also show pages from the sites its viewer names, in a frame,
     and its own pages of its posts if its viewer shows those: only then may
     a page be framed at all, and by the site itself alone. One with the
-    contact form may post a form, to itself.
+    contact form may post a form, to itself. One with Cloudflare Web
+    Analytics may load its beacon from Cloudflare, and nothing inline.
 
     With `meta`, it's the policy for a page to carry in a <meta> tag: the
     same, less frame-ancestors, which browsers only take from a header. */
@@ -54,11 +73,12 @@ export function contentSecurityPolicy(options: PolicyOptions & { meta?: boolean 
   const frames = frameSources(options);
   const directives = [
     "default-src 'none'",
-    "script-src 'self'",
+    `script-src ${scriptSources(options).join(" ")}`,
     "style-src 'self'",
     "img-src 'self'",
     "font-src 'self'",
-    // The page fetches only /ask and /contact, and only when each is on.
+    // The page sends only to /ask, /contact and Web Analytics' /cdn-cgi/rum,
+    // on the site's own domain, and only when each is on.
     ...(fetchesFromItself(options) ? ["connect-src 'self'"] : []),
     // Frames only for the viewer, and only from the sites it names.
     ...(frames.length ? [`frame-src ${frames.join(" ")}`] : []),

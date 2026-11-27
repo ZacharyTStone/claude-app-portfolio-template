@@ -343,6 +343,21 @@ for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
   });
 }
 
+test("Cloudflare Web Analytics is for a site Cloudflare serves, named or left out", () => {
+  for (const host of [undefined, "cloudflare"] as const) {
+    assert.deepEqual(problemsIn(sampleConfig({ analytics: "cloudflare", host })), [], host);
+  }
+});
+
+for (const host of HOSTS.filter((other) => other !== "cloudflare")) {
+  test(`Cloudflare Web Analytics isn't for the host "${host}"`, () => {
+    const config = sampleConfig({ ask: undefined, contactForm: undefined, analytics: "cloudflare", host });
+    assert.deepEqual(problemsIn(config), [
+      `analytics "cloudflare" needs Cloudflare to serve the site, but host is "${host}": remove analytics, or set host to "cloudflare"`,
+    ]);
+  });
+}
+
 test("the contact form runs where Cloudflare's Worker or Netlify Forms takes its messages", () => {
   for (const host of [undefined, "cloudflare", "netlify"] as const) {
     assert.deepEqual(problemsIn(sampleConfig({ ask: undefined, contactForm: { tab: "about" }, host })), [], host);

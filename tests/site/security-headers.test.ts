@@ -56,6 +56,9 @@ test("HSTS asks to be preloaded when a site asks for that too", () => {
 /* The policies written out, so that a change that weakens one (a source
    added, Trusted Types or a directive dropped) fails here. */
 const OWN_FILES_ONLY = "default-src 'none'; script-src 'self'; style-src 'self'; img-src 'self'; font-src 'self'";
+/** The site's own files, and Cloudflare Web Analytics' beacon: one host, written out, and nothing inline. */
+const WITH_ANALYTICS =
+  "default-src 'none'; script-src 'self' https://static.cloudflareinsights.com; style-src 'self'; img-src 'self'; font-src 'self'";
 const NO_BASE_NO_FORMS = "base-uri 'none'; form-action 'none'";
 const NO_BASE_OWN_FORM = "base-uri 'none'; form-action 'self'";
 const NEVER_FRAMED = "frame-ancestors 'none'";
@@ -107,6 +110,16 @@ const POLICIES = [
     site: "a site whose viewer shows its own pages of its posts and other sites' pages",
     options: { ask: false, ownFrames: true, frames: frameOrigins(VIEWER) },
     policy: `${OWN_FILES_ONLY}; ${OWN_AND_VIEWER_FRAMES}; ${NO_BASE_NO_FORMS}; ${FRAMED_BY_ITSELF_ALONE}; ${TRUSTED_TYPES}`,
+  },
+  {
+    site: "a site with Cloudflare Web Analytics",
+    options: { ask: false, analytics: true },
+    policy: `${WITH_ANALYTICS}; connect-src 'self'; ${NO_BASE_NO_FORMS}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
+  },
+  {
+    site: "a site with Ask and Cloudflare Web Analytics",
+    options: { ask: true, analytics: true },
+    policy: `${WITH_ANALYTICS}; connect-src 'self'; ${NO_BASE_NO_FORMS}; ${NEVER_FRAMED}; ${TRUSTED_TYPES}`,
   },
 ];
 

@@ -219,6 +219,15 @@ const checkAskRunsOnItsHost: SiteCheck = ({ config, host }, problemUnless) => {
   );
 };
 
+/** Cloudflare adds Web Analytics' beacon only to the pages it serves, and
+    its beacon reports to /cdn-cgi/rum, which only Cloudflare answers. */
+const checkAnalyticsHost: SiteCheck = ({ config, host }, problemUnless) => {
+  problemUnless(
+    config.analytics === undefined || host === WORKER_HOST,
+    `analytics "${config.analytics}" needs Cloudflare to serve the site, but host is "${host}": remove analytics, or set host to "${WORKER_HOST}"`,
+  );
+};
+
 /** On a host with nothing to take its messages, the form would post to an
     address with nothing there. Its thread is the main language's: the
     others have the same threads (checkLanguagesMatch). */
@@ -295,6 +304,7 @@ export const SITE_CHECKS: SiteCheck[] = [
   checkSettingFormats,
   checkHsts,
   checkAskRunsOnItsHost,
+  checkAnalyticsHost,
   checkContactForm,
   checkViewer,
   checkActivityNamesAPlace,

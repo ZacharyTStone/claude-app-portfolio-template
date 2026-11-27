@@ -39,6 +39,14 @@ in the code, see the security policy in the template's repository.
   site by itself: the fonts and icons are its own files. Chats and layout
   are kept in `localStorage`, in the visitor's browser only. A link to
   another site opens with `noopener noreferrer`.
+- The one exception for scripts is Cloudflare Web Analytics, and only on a
+  site that sets `analytics: "cloudflare"` ([Deploying](deploy.md)).
+  Cloudflare adds its beacon to each page as it passes; the policy then
+  lets that one script load, from `https://static.cloudflareinsights.com`,
+  and send what it measures to the site's own `/cdn-cgi/rum`. Nothing
+  inline is allowed, Trusted Types still hold, and the beacon sets no
+  cookie. A site that has it should say so where it says what it
+  collects.
 - The one exception is the viewer, and only on a site that sets `viewer`
   ([What the site says](content.md#the-viewer)). When a visitor opens a
   link in it, that page loads from its own site, in a frame, and that site

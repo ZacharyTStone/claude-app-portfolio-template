@@ -75,14 +75,30 @@ With a custom domain, set `"workers_dev": false` in `wrangler.jsonc`, so
 the site isn't also served at its `workers.dev` address.
 
 On a custom domain Cloudflare can also add scripts of its own to every
-page as it passes: Web Analytics' automatic setup (its beacon) and Bot
-Fight Mode (JavaScript Detections). The policy allows no script but the
-site's own, so the browser refuses both, and every page logs
-Content-Security-Policy errors in its console, which Lighthouse marks
-down. Leave both off: on the **Web Analytics** page, **Manage site** sets
-its automatic setup to **Disable**; under **Security → Settings**,
-filtered by **Bot traffic**, turn **Bot fight mode** off. The domain's
-**Analytics** tab counts visits at the edge, with no script at all.
+page as it passes. The policy allows no script but the site's own, so
+the browser refuses each one it isn't told about, logs a
+Content-Security-Policy error in the console, and Lighthouse marks the
+page down.
+
+- **Web Analytics' automatic setup** adds its beacon, which measures each
+  visit and the page's speed. To keep it, set `analytics: "cloudflare"`
+  in `site.config.ts`: the policy then lets that one script load, from
+  `static.cloudflareinsights.com`, and report to the site's own
+  `/cdn-cgi/rum` ([Security](security.md)). It sets no cookie. Without
+  it, Web Analytics measures nothing: turn its automatic setup to
+  **Disable** (the **Web Analytics** page, **Manage site**), or set the
+  field. The domain's **Analytics** tab counts visits at the edge with no
+  script at all, either way.
+- **Bot Fight Mode** challenges known bots before they reach the site, and
+  that works whatever the policy. It also adds JavaScript Detections, an
+  inline script whose content changes with every request, and that the
+  policy can't let run: Cloudflare supports it only with a nonce made
+  for each request in the policy's header and none in a `<meta>` tag,
+  and it writes markup, which Trusted Types forbid. So with Bot Fight
+  Mode on, each page logs two errors for it, and is otherwise as it
+  was. It can also challenge the assistants that read `llms.txt` on
+  someone's behalf. It's under **Security → Settings**, filtered by
+  **Bot traffic**.
 
 ## Netlify, Vercel, or any static host
 

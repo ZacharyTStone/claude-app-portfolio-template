@@ -25,6 +25,11 @@ export type SiteConfig = {
   /** Strict-Transport-Security's extras. Both are hard to undo: leave them
       out unless every subdomain is HTTPS for good. */
   hsts?: Hsts;
+  /** "cloudflare" when Cloudflare Web Analytics' automatic setup is on for
+      the domain: the policy then lets its beacon load, the one script from
+      another site, and report to the site itself. Needs `host` "cloudflare"
+      (docs/deploy.md). Left out, the policy refuses the beacon. */
+  analytics?: "cloudflare";
   /** As the site writes it everywhere ("Alex Example"): the top of the
       sidebar, the window's title, under every tab's composer, the 404
       page, and what Ask's model calls you. A language that writes it
