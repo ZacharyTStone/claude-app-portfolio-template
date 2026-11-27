@@ -7,13 +7,13 @@
   overflow-y: auto;
   font: 400 14px/21px var(--sans);
 }
-/* The credit, at the panel's foot on the right, after the sections in whatever order they're in. Its two
-   lines are near the same length, so neither is a word or two tucked into the corner. */
+/* The credit, centered at the panel's foot, as it is under the chat on a narrow screen, after the sections in
+   whatever order they're in. Its two lines are near the same length, so neither is a word or two left alone. */
 .panel-credit {
   order: 1;
   margin-top: auto;
   padding-top: 24px;
-  text-align: right;
+  text-align: center;
   text-wrap: balance;
   font: 400 12px/18px var(--sans);
   color: var(--text-2);
