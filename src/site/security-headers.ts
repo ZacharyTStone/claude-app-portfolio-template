@@ -27,7 +27,7 @@ export type PolicyOptions = {
 /** Where Cloudflare Web Analytics' beacon loads from. Cloudflare adds it to
     a page as it passes, at an address under this host that changes with
     its version, so the policy names the host. */
-export const CLOUDFLARE_ANALYTICS_SCRIPTS = "https://static.cloudflareinsights.com";
+const CLOUDFLARE_ANALYTICS_SCRIPTS = "https://static.cloudflareinsights.com";
 
 /** Where the pages' scripts may come from: the site itself, and Cloudflare
     Web Analytics' beacon on a site with `analytics`. */
