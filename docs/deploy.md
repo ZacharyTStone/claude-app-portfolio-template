@@ -74,6 +74,16 @@ need a `GITHUB_TOKEN` for GitHub on a busy build machine.
 With a custom domain, set `"workers_dev": false` in `wrangler.jsonc`, so
 the site isn't also served at its `workers.dev` address.
 
+On a custom domain Cloudflare can also add scripts of its own to every
+page as it passes: Web Analytics' automatic setup (its beacon) and Bot
+Fight Mode (JavaScript Detections). The policy allows no script but the
+site's own, so the browser refuses both, and every page logs
+Content-Security-Policy errors in its console, which Lighthouse marks
+down. Leave both off: on the **Web Analytics** page, **Manage site** sets
+its automatic setup to **Disable**; under **Security → Settings**,
+filtered by **Bot traffic**, turn **Bot fight mode** off. The domain's
+**Analytics** tab counts visits at the edge, with no script at all.
+
 ## Netlify, Vercel, or any static host
 
 | Host | `host` | Settings |
