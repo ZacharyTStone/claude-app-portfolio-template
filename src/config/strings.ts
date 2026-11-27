@@ -123,6 +123,11 @@ export type WritingStrings = {
   /** After a post's count of likes, on a site with posts from Zenn or DEV:
       "likes" ("12 likes"). Qiita's are its own word, "LGTM". */
   writingLikes: string;
+  /** The link under a card to a machine translation of a post in another
+      language, on a site with writing.translate: "Read it in English,
+      machine-translated from {language} by Google". {language}, where it's
+      written, is the post's language in the page's words ("Japanese"). */
+  writingTranslation: string;
 };
 
 /** The names in WritingStrings that the tab shows with posts. */
@@ -138,6 +143,12 @@ export const EMPTY_WRITING_STRING_NAMES = ["writingEmpty"] as const satisfies re
 /** The name in WritingStrings that a card shows its likes with, on a site
     with posts from a place that counts them in no word of its own. */
 export const WRITING_LIKES_STRING_NAMES = ["writingLikes"] as const satisfies readonly (keyof WritingStrings)[];
+
+/** The name in WritingStrings that a card links to its post's translation
+    with, on a site with writing.translate. */
+export const WRITING_TRANSLATION_STRING_NAMES = [
+  "writingTranslation",
+] as const satisfies readonly (keyof WritingStrings)[];
 
 /** The page's wording for the panel's activity, on a site with
     `activity` (PART_STRINGS). */
@@ -294,9 +305,10 @@ export const SCRIPT_STRING_NAMES = Object.keys(SCRIPT_STRING_ATTRIBUTES) as Scri
 /** The strings a site needs only when it has the part (the build says
     which are missing): the script's, the contact form's (and its link
     from Ask's reply), the Writing tab's (and its line for no posts, on a
-    site whose tab is there before the first, and its word for likes, on a
-    site with posts from Zenn or DEV), the panel's activity's own, the
-    GitHub history's, and its calendar's repos'. */
+    site whose tab is there before the first, its word for likes, on a
+    site with posts from Zenn or DEV, and its link to a translation, on a
+    site with writing.translate), the panel's activity's own, the GitHub
+    history's, and its calendar's repos'. */
 export const PART_STRINGS = {
   viewer: ["viewerOpen", "viewerClose"],
   movingPictures: ["play", "pause"],
@@ -305,6 +317,7 @@ export const PART_STRINGS = {
   writing: WRITING_STRING_NAMES,
   emptyWriting: EMPTY_WRITING_STRING_NAMES,
   writingLikes: WRITING_LIKES_STRING_NAMES,
+  writingTranslation: WRITING_TRANSLATION_STRING_NAMES,
   activity: ACTIVITY_STRING_NAMES,
   githubHistory: HISTORY_STRING_NAMES,
   githubRepos: HISTORY_REPO_STRING_NAMES,

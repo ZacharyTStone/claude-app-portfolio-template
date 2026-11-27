@@ -42,3 +42,12 @@
   margin-left: auto;
   color: var(--text-2);
 }
+/* Under a card, its link to the same thing in the page's language (a post
+   machine-translated): closer to the card than the answer's next block, and
+   quieter than it. */
+.link-card + .translation {
+  margin-top: -6px;
+  padding-left: 12px;
+  font: 400 13px/18px var(--sans);
+  color: var(--text-2);
+}

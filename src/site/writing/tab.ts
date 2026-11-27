@@ -7,6 +7,7 @@ import type { Sidebar } from "../../config/sidebar.ts";
 import type { Strings } from "../../config/strings.ts";
 import { WRITING_ICON, WRITING_TAB } from "../../config/writing.ts";
 import { dayPosted, isInJapanese, type Post } from "./post.ts";
+import { postTranslation } from "./translation.ts";
 
 /** The language a post's title is in, where it isn't the page's and can be
     told from the title: "ja", or undefined. A title in kanji alone isn't
@@ -48,22 +49,33 @@ function countInWords(count: number, pageLanguage: string): string {
   }
 }
 
-/** What a card is shown with: the page's language and wording, and whether
-    the tab has posts from more than one place, so each card names its own. */
-export type CardWording = { pageLanguage: string; strings: Strings; namesPlace: boolean };
+/** On a site with writing.translate: its main language, which a post with
+    no kana is taken to be in (translation.ts). */
+export type Translating = { mainLanguage: string };
+
+/** What a card is shown with: the page's language and wording, whether
+    the tab has posts from more than one place, so each card names its own,
+    and, on a site with writing.translate, what a post's language is told
+    by. */
+export type CardWording = { pageLanguage: string; strings: Strings; namesPlace: boolean; translating?: Translating };
 
 /** A post as a link card: its title, over the day, where it was posted (in a
     tab with more than one place), its likes and its tags
-    ("Oct 1, 2026 · Zenn · 12 likes · TypeScript, Astro"). */
-export function postCard(post: Post, { pageLanguage, strings, namesPlace }: CardWording): LinkCard {
+    ("Oct 1, 2026 · Zenn · 12 likes · TypeScript, Astro"); and under it, for
+    a post in another language on a site with writing.translate, a link to
+    its translation. */
+export function postCard(post: Post, { pageLanguage, strings, namesPlace, translating }: CardWording): LinkCard {
   const day = dayInWords(dayPosted(post), pageLanguage);
   const kind = [day, namesPlace ? post.place : "", likesInWords(post, strings, pageLanguage), post.tags.join(", ")];
+  const translation =
+    translating && postTranslation(post, { pageLanguage, ...translating, wording: strings.writingTranslation ?? "" });
   return {
     name: post.title,
     kind: kind.filter(Boolean).join(" · "),
     href: post.url,
     icon: WRITING_ICON,
     lang: titleLanguage(post.title, pageLanguage),
+    ...(translation ? { translation } : {}),
   };
 }
 
@@ -72,9 +84,15 @@ export const comeFromPlaces = (posts: Post[]): boolean => new Set(posts.map((pos
 
 /** The tab in one language's words: its question, then the posts newest
     first under a line that says so, or a line that there are none. A
-    string the language leaves out is "", for the config's checks to name. */
-export function writingThread(posts: Post[], strings: Strings, pageLanguage: string): Thread {
-  const wording = { pageLanguage, strings, namesPlace: comeFromPlaces(posts) };
+    string the language leaves out is "", for the config's checks to name.
+    `translating` is there on a site with writing.translate. */
+export function writingThread(
+  posts: Post[],
+  strings: Strings,
+  pageLanguage: string,
+  translating?: Translating,
+): Thread {
+  const wording = { pageLanguage, strings, namesPlace: comeFromPlaces(posts), ...(translating ? { translating } : {}) };
   const answer: Block[] = posts.length
     ? [strings.writingIntro ?? "", ...posts.map((post) => ({ link: postCard(post, wording) }))]
     : [strings.writingEmpty ?? ""];

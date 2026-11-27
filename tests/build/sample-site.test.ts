@@ -223,6 +223,33 @@ for (const { file, url } of sample.languagePages) {
   });
 }
 
+/** Each link under a card to a translation, as a page has it: its tag's attributes, as the browser reads them,
+    and what it says. */
+const translationLinksIn = (html: string) =>
+  [...html.matchAll(/<p class="translation"><a ([^>]*)>([^<]*)<\/a><\/p>/g)].map(([, attributes = "", label]) => ({
+    attributes: attributes.replaceAll("&amp;", "&"),
+    label,
+  }));
+
+test("each language's page has a link under each post in another language to Google's translation of it, in a new tab that's told nothing", () => {
+  sampleSite.codes.forEach((code, index) => {
+    const tab = sampleSite.language(code).threads.find((thread) => thread.id === WRITING_TAB);
+    const expected = (tab?.messages[0]?.a ?? []).flatMap((block) =>
+      typeof block === "object" && "link" in block && block.link.translation ? [block.link.translation] : [],
+    );
+    assert.ok(expected.length > 0, `${code} has a post in another language`);
+    const found = translationLinksIn(sample.read(sample.languagePages[index]?.file ?? ""));
+    assert.deepEqual(
+      found.map(({ label }) => label),
+      expected.map(({ label }) => label),
+      code,
+    );
+    for (const [linkIndex, { attributes }] of found.entries()) {
+      assert.equal(attributes, `href="${expected[linkIndex]?.href}" target="_blank" rel="noopener noreferrer"`);
+    }
+  });
+});
+
 /** The sample on a host that reads no _headers file, where neither Ask nor the contact form can run. */
 const ON_A_STATIC_HOST = 'config.host = "github-pages"; delete config.ask; delete config.contactForm;';
 const onAStaticHost: SiteConfig = { ...sampleConfig, host: "github-pages", ask: undefined, contactForm: undefined };

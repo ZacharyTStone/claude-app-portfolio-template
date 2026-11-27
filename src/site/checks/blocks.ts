@@ -45,14 +45,20 @@ function checkPicture(
 }
 
 /** Its `lang` is written into an attribute, as the language its name is
-    drawn and read in. */
-function checkLinkCard({ name, icon, href, lang }: LinkCard, where: string, checks: LanguageChecks): void {
+    drawn and read in. A link to its translation is a link like its own. */
+function checkLinkCard({ name, icon, href, lang, translation }: LinkCard, where: string, checks: LanguageChecks): void {
   checks.checkIsIconOrLogo(icon, `the link card "${name}"`);
   checks.checkLinkIsSafe(href, `the link card "${name}"`);
   checks.problemUnless(
     lang == null || isLanguageCode(lang),
     `${where} has the link card "${name}" in the language "${lang}", which should be a language code like "ja"`,
   );
+  if (translation == null) return;
+  checks.problemUnless(
+    isFilledIn(translation.label),
+    `${where} has the link card "${name}" with a translation that says nothing: give it a label`,
+  );
+  checks.checkLinkIsSafe(translation.href, `the translation of the link card "${name}"`);
 }
 
 /** One of FIGURE_LIMITS. */

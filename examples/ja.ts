@@ -480,6 +480,8 @@ export default function japanese(me: SampleFacts): Language {
       writingEmpty: "まだ記事はありません。",
       // With writing.zenn or writing.dev: after a post's count of likes.
       writingLikes: "いいね",
+      // With writing.translate: the link under a post in another language.
+      writingTranslation: "日本語で読む（Googleによる{language}からの機械翻訳）",
       // With `activity` in site.config.ts: the panel's activity.
       activityTitle: "最近の公開リポジトリ",
       // With `githubHistory` in site.config.ts: the parts of the history.

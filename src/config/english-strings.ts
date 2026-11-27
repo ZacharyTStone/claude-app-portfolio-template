@@ -59,6 +59,7 @@ export const ENGLISH_STRINGS: Required<Strings> = {
   writingIntro: "Posts, newest first:",
   writingEmpty: "Nothing posted yet.",
   writingLikes: "likes",
+  writingTranslation: "Read it in English, machine-translated from {language} by Google",
   activityTitle: "Recent public repos",
   historyContributions: "Contributions",
   historySince: "Since",
