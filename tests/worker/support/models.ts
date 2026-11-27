@@ -57,9 +57,9 @@ export const wrote = (text: string, tokens?: [read: number, written: number]) =>
 export const models =
   (pick: unknown, guard: unknown = { response: "safe" }): Run =>
   (model) => {
-    if (model !== LLAMA_GUARD_MODEL) return pick;
-    if (guard instanceof Error) throw guard;
-    return guard;
+    const reply = model === LLAMA_GUARD_MODEL ? guard : pick;
+    if (reply instanceof Error) throw reply;
+    return reply;
   };
 
 /** What a call for a line of text was sent. */

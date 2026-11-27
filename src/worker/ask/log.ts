@@ -133,7 +133,7 @@ function summaryOf(outcome: Outcome): Summary | null {
     case "timedOut":
       return { ask: "error", error: "timeout", neurons: rounded(outcome.neurons) };
     case "failed":
-      return { ask: "error", error: errorCode(outcome.error) };
+      return { ask: "error", error: errorCode(outcome.error), neurons: rounded(outcome.neurons) };
   }
 }
 

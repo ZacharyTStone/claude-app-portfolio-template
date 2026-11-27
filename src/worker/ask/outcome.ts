@@ -45,15 +45,15 @@ export type Outcome =
       all the same, so what it cost is counted. */
   | ({ kind: "timedOut" } & Asked)
   /** Something failed on the way to an answer. A model call that failed
-      wasn't run, so it cost nothing. */
-  | { kind: "failed"; error: unknown; question: string };
+      wasn't run, so it cost nothing, but one that ran beside it (Llama
+      Guard, beside a pick that failed) is paid for: `neurons` is what the
+      calls that ran cost. */
+  | { kind: "failed"; error: unknown; question: string; neurons: number };
 
 /** What a question that was taken cost, in Neurons, for the day's count.
     Undefined for one that was never taken. */
-export function neuronsSpentOn(outcome: Outcome): number | undefined {
-  if (outcome.kind === "failed") return 0;
-  return "neurons" in outcome ? outcome.neurons : undefined;
-}
+export const neuronsSpentOn = (outcome: Outcome): number | undefined =>
+  "neurons" in outcome ? outcome.neurons : undefined;
 
 /** A visitor with this many questions or fewer left today is told so. */
 export const WARN_AT_QUESTIONS_LEFT = 10;
