@@ -13,7 +13,7 @@ import type { Repo } from "./activity/repo.ts";
 import type { History } from "./history/history.ts";
 import { basePath } from "./url.ts";
 import type { Post } from "./writing/post.ts";
-import { withWritingRow, writingThread } from "./writing/tab.ts";
+import { withWritingRow, writingThread, type Translating } from "./writing/tab.ts";
 
 /** Who serves the site when the config's `host` is left out. */
 const DEFAULT_HOST: Host = "cloudflare";
@@ -94,8 +94,13 @@ function withEveryString(code: string, language: Language): SiteLanguage {
 
 /** The language with the Writing tab: its thread after the config's, and
     its row in the sidebar. */
-function withWritingTab(code: string, language: SiteLanguage, posts: Post[]): SiteLanguage {
-  const thread: SiteThread = { ...writingThread(posts, language.strings, code), fetched: true };
+function withWritingTab(
+  code: string,
+  language: SiteLanguage,
+  posts: Post[],
+  translating: Translating | undefined,
+): SiteLanguage {
+  const thread: SiteThread = { ...writingThread(posts, language.strings, code, translating), fetched: true };
   return {
     ...language,
     threads: [...language.threads, thread],
@@ -112,6 +117,13 @@ const isPathFromSiteRoot = (href: string): boolean => href.startsWith("/") && !r
 const hasWritingTab = ({ writing }: SiteConfig, posts: Post[]): boolean =>
   Boolean(writing && (posts.length > 0 || writing.showWhenEmpty));
 
+/** On a site with writing.translate, what a post's language is told by: the
+    site's main language, its first. */
+function translatingOn({ writing, languages }: SiteConfig): Translating | undefined {
+  const mainLanguage = Object.keys(languages)[0];
+  return writing?.translate && mainLanguage ? { mainLanguage } : undefined;
+}
+
 /** Throws if the config has no languages. `posts` are the Writing tab's, as
     the build fetched them (src/site/writing): a site with `writing` and
     none has no tab, unless its config asks for it, and then the tab says
@@ -127,9 +139,10 @@ export function makeSite(
   history: History | null = null,
 ): Site {
   const withTheTab = hasWritingTab(config, posts);
+  const translating = translatingOn(config);
   const asThePagesReadIt = (code: string, language: Language): SiteLanguage => {
     const withStrings = withEveryString(code, language);
-    return withTheTab ? withWritingTab(code, withStrings, posts) : withStrings;
+    return withTheTab ? withWritingTab(code, withStrings, posts, translating) : withStrings;
   };
   const languages = new Map(
     Object.entries(config.languages).map(([code, language]) => [code, asThePagesReadIt(code, language)]),

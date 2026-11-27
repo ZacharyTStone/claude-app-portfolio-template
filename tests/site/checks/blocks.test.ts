@@ -1,7 +1,7 @@
 /* The checks of one block of an answer (src/site/checks/blocks.ts): each
    problem's wording. Every block here is added to the sample's "work"
    thread, in English. */
-import type { BarRow, Bars, Block, Picture } from "../../../src/config/blocks.ts";
+import type { BarRow, Bars, Block, LinkCard, Picture } from "../../../src/config/blocks.ts";
 import { testEachProblem, withBlock, workAnswer, type ProblemRow } from "./problems.ts";
 
 const NOT_A_SAFE_LINK = "which should be a web, mailto, #thread or relative address";
@@ -11,6 +11,9 @@ const picture: Picture = { src: "/a.png", alt: "A picture", width: 1200, height:
 
 /** A picture that moves, but for its still. */
 const movingPicture: Picture = { src: "/assets/how.svg", alt: "How it works", width: 1600, height: 800 };
+
+/** A link card to a post, with nothing wrong, to give a translation. */
+const aPost: LinkCard = { name: "A post", kind: "Qiita", href: "https://example.com/p", icon: "pen" };
 
 const twoBars: BarRow[] = [
   { label: "Before", value: "1.04 s", amount: 1040 },
@@ -95,6 +98,16 @@ testEachProblem([
     "a link card whose language would break out of its attribute",
     { link: { name: "A file", kind: "PDF", href: "/a.pdf", icon: "file", lang: `ja" onclick="alert(1)` } },
     `the thread "work" has the link card "A file" in the language "ja" onclick="alert(1)", which should be a language code like "ja"`,
+  ),
+  wrongBlock(
+    "a link card with a translation that says nothing",
+    { link: { ...aPost, translation: { label: "", href: "https://example.com/en" } } },
+    `the thread "work" has the link card "A post" with a translation that says nothing: give it a label`,
+  ),
+  wrongBlock(
+    "a link card whose translation's link hides a scheme",
+    { link: { ...aPost, translation: { label: "In English", href: "javascript:alert(1)" } } },
+    `the translation of the link card "A post" links to "javascript:alert(1)", ${NOT_A_SAFE_LINK}`,
   ),
   wrongBlock(
     "bars without a title",

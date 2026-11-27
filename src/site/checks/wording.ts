@@ -97,6 +97,7 @@ const checkPartWording: LanguageCheck = ({ site, language, problemUnless }) => {
       nameInProblem: "writing.showWhenEmpty",
     },
     writingLikes: likesPart(site.config.writing),
+    writingTranslation: { isOnTheSite: Boolean(site.config.writing?.translate), nameInProblem: "writing.translate" },
     activity: { isOnTheSite: Boolean(site.config.activity), nameInProblem: "activity" },
     githubHistory: { isOnTheSite: Boolean(site.config.githubHistory), nameInProblem: "githubHistory" },
     githubRepos: { isOnTheSite: Boolean(site.config.githubHistory?.repos), nameInProblem: "githubHistory.repos" },

@@ -164,6 +164,38 @@ Qiita post opens in the viewer and any other opens where it was posted.
 Ask and llms.txt read a post's title, as they do without `viewer`, and
 nothing of its text.
 
+## Reading a post in the page's language
+
+A visitor reading your English page may not read Japanese, and one on your
+Japanese page may not read English. To give each post in another language
+than the page's a link under its card to a machine translation of it into
+the page's, by Google Translate:
+
+```ts
+writing: { qiita: "alex-example", translate: true },
+```
+
+The link says what it is, in the page's words: "Read it in English,
+machine-translated from Japanese by Google" (`strings.writingTranslation`,
+where `{language}` is the post's language, named in the page's language).
+It opens Google's translation of the post where it was posted, in a new
+tab, from any place: Qiita, Zenn, a feed.
+
+- **Nothing is translated by the build.** The link is all there is: the
+  translation is Google's, made when a visitor opens it, so it costs
+  nothing, needs no key, and is never out of date. The page loads nothing
+  from Google, and Google sees only a visitor who follows the link.
+- **A post's language is told by kana**, as its page's is: a title or a
+  text with any is in Japanese, and any other is taken to be in the site's
+  main language. On a site whose main language is Japanese, a post with no
+  kana can't be told, and has no link.
+- **A post in the page's language has none**, so a Japanese page links
+  only the posts not in Japanese, and an English page only the Japanese
+  ones.
+- **Each language needs `strings.writingTranslation`.** English has it, and
+  the build names one that's missing: `examples/ja.ts` has it in Japanese.
+- **Ask and llms.txt read nothing of it**, only the post's title.
+
 ## Before your first post
 
 A site with `writing` and no public posts anywhere it names yet is built

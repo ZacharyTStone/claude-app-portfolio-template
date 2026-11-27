@@ -103,7 +103,7 @@ testEachProblem([
   },
   {
     wrong:
-      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn, activity in the panel and a GitHub history",
+      "a language other than English with no strings at all, on a site with a viewer, a picture that moves, the contact form, a Writing tab with posts on Zenn and links to their translations, activity in the panel and a GitHub history",
     change: inFrench((french) => delete french.strings),
     problems: [
       ...[...PAGE_STRING_NAMES, ...REQUIRED_SCRIPT_STRING_NAMES].map(
@@ -117,10 +117,16 @@ testEachProblem([
       ...ASK_FORM_STRING_NAMES.map((name) => `fr: strings.${name} is missing (ask with contactForm needs it)`),
       ...WRITING_STRING_NAMES.map((name) => `fr: strings.${name} is missing (writing needs it)`),
       "fr: strings.writingLikes is missing (writing.zenn needs it)",
+      "fr: strings.writingTranslation is missing (writing.translate needs it)",
       ...ACTIVITY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (activity needs it)`),
       ...HISTORY_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory needs it)`),
       ...HISTORY_REPO_STRING_NAMES.map((name) => `fr: strings.${name} is missing (githubHistory.repos needs it)`),
     ],
+  },
+  {
+    wrong: "links to posts' translations without their words, in a language other than English",
+    change: inFrench((french) => delete statedStrings(french).writingTranslation),
+    problems: ["fr: strings.writingTranslation is missing (writing.translate needs it)"],
   },
   {
     wrong: "a calendar with repos, without the key's words for them, in a language other than English",

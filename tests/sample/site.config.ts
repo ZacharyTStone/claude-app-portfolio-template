@@ -200,8 +200,9 @@ const config: SiteConfig = {
   viewer: { [notes.href]: notes.inFrame },
   // Its posts are made up, on Qiita, Zenn and note: the tests' builds read
   // them from writing.json. Each Qiita post opens in the viewer too, as a
-  // page of the site's own.
-  writing: { qiita: "sam-sample", zenn: "sam_sample", note: "sam_sample", viewer: true },
+  // page of the site's own, and each in another language than the page's
+  // has a link under its card to Google's machine translation of it.
+  writing: { qiita: "sam-sample", zenn: "sam_sample", note: "sam_sample", viewer: true, translate: true },
   // So is its activity on all three places, read from activity.json: on
   // Codeberg, Sam has another name. And its whole history on GitHub, from
   // github-history.json, with two moments marked on it.

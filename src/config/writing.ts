@@ -43,7 +43,17 @@ export type Writing = {
       a page of the site's own of it, which the viewer frames (docs/writing.md).
       Each language then needs strings.viewerOpen and strings.viewerClose. */
   viewer?: boolean;
+  /** true for a post in another language than the page's to have a link
+      under its card to a machine translation of it into the page's, by
+      Google Translate: a Japanese post on an English page, or a post not in
+      Japanese on a Japanese page (docs/writing.md). Each language then
+      needs strings.writingTranslation. */
+  translate?: boolean;
 };
+
+/** Where strings.writingTranslation names the language a post was
+    translated from: "machine-translated from {language}". */
+export const LANGUAGE_PLACEHOLDER = "{language}";
 
 /** A blog's feed, for `writing.feeds`. */
 export type WritingFeed = {

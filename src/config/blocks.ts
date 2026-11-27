@@ -111,6 +111,20 @@ export type LinkCard = {
       Japanese title on an English page, so it's drawn and read as
       Japanese. Leave out for the page's own. */
   lang?: string;
+  /** A second link, under the card, to what it links to in the page's
+      language: what it says ("Read it in English, machine-translated from
+      Japanese by Google") and its web address. The Writing tab gives one to
+      a post in another language (writing.translate). Ask and llms.txt read
+      nothing of it. */
+  translation?: LinkTranslation;
+};
+
+/** A link card's link to a translation of what it links to. */
+export type LinkTranslation = {
+  /** What the link says, in the page's language. */
+  label: string;
+  /** A web address: "https://translate.google.com/translate?…". */
+  href: string;
 };
 
 /** A before and an after, or one version beside the next, from one

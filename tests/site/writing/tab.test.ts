@@ -5,10 +5,12 @@ import assert from "node:assert/strict";
 import { test } from "node:test";
 import type { LinkCard } from "../../../src/config/blocks.ts";
 import { ENGLISH_STRINGS } from "../../../src/config/english-strings.ts";
-import { WRITING_ICON, WRITING_TAB } from "../../../src/config/writing.ts";
+import { LANGUAGE_PLACEHOLDER, WRITING_ICON, WRITING_TAB } from "../../../src/config/writing.ts";
+import { plainAnswers } from "../../../src/site/plain-answers.ts";
 import { makeSite, type SiteLanguage } from "../../../src/site/site.ts";
 import type { Post } from "../../../src/site/writing/post.ts";
 import { postCard, type CardWording } from "../../../src/site/writing/tab.ts";
+import { postLanguage, translationAddress } from "../../../src/site/writing/translation.ts";
 import { samplePosts } from "../../sample/writing.ts";
 import { languageOf, sampleConfig } from "../sample.ts";
 
@@ -132,6 +134,42 @@ test("a title in Japanese is marked as Japanese on a page in another language, a
 test("a title with no kana isn't marked: it could be in English, or in Chinese", () => {
   for (const title of ["Testing a static site in Playwright", "静的網站"]) {
     assert.equal(cardOf({ ...post, title }, "en").lang, undefined);
+  }
+});
+
+test("without writing.translate, no card links to a translation", () => {
+  assert.equal(Object.hasOwn(cardOf(post, "en"), "translation"), false);
+});
+
+test("with writing.translate, a Japanese post's card on an English page links to Google's English of it", () => {
+  assert.deepEqual(cardOf(post, "en", { translating: { mainLanguage: "en" } }).translation, {
+    label: ENGLISH_STRINGS.writingTranslation.replace(LANGUAGE_PLACEHOLDER, "Japanese"),
+    href: translationAddress(post.url, "ja", "en"),
+  });
+});
+
+test("with writing.translate, a post in the page's language has no link to a translation", () => {
+  const english = { ...post, title: "Testing a static site in Playwright" };
+  assert.equal(Object.hasOwn(cardOf(english, "en", { translating: { mainLanguage: "en" } }), "translation"), false);
+  assert.equal(Object.hasOwn(cardOf(post, "ja", { translating: { mainLanguage: "en" } }), "translation"), false);
+});
+
+test("the sample (writing.translate) links each post in another language than the page's to its translation", () => {
+  for (const code of site.codes) {
+    const cards = cardsIn(site.language(code));
+    const translated = cards.filter((card) => card.translation).map((card) => card.name);
+    const inAnother = posts.filter((one) => postLanguage(one, site.main) !== code).map((one) => one.title);
+    assert.deepEqual(translated, inAnother, code);
+    assert.ok(translated.length > 0, `${code} has a post in another language`);
+  }
+});
+
+test("Ask and llms.txt read a translated post's title, and nothing of its link to the translation", () => {
+  const writing = plainAnswers(site, "en").find((answer) => answer.id.startsWith(`${WRITING_TAB}.`));
+  assert.ok(writing, "the Writing tab has an answer");
+  for (const card of cardsIn(site.language("en"))) {
+    assert.ok(writing.text.includes(card.name), card.name);
+    if (card.translation) assert.ok(!writing.text.includes(card.translation.label), card.translation.label);
   }
 });
 
